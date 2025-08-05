@@ -9,7 +9,6 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { getProgramsForAdmin, mockCourses } from '../data/mockData';
 import { 
   Award, 
@@ -20,7 +19,8 @@ import {
   Edit, 
   Clock,
   BarChart,
-  GripVertical,
+  ArrowUp,
+  ArrowDown,
   Trash2
 } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
