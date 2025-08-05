@@ -105,7 +105,7 @@ const CreateCourse = () => {
               ...module,
               lessons: [
                 ...module.lessons,
-                { id: `l${Date.now()}`, title: '', type: 'video', duration: '', videoUrl: '', content: '' }
+                { id: `l${Date.now()}`, title: '', type: 'video', duration: '', videoUrl: '', presentationUrl: '', content: '' }
               ]
             }
           : module
