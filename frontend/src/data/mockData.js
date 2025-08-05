@@ -191,6 +191,10 @@ export const getCourseProgress = (userId, courseId) => {
   return enrollment ? enrollment.progress : 0;
 };
 
+export const getUserCertificates = (userId) => {
+  return mockCertificates.filter(cert => cert.userId === userId);
+};
+
 export const mockClassrooms = [
   {
     id: '1',
