@@ -191,6 +191,76 @@ export const getCourseProgress = (userId, courseId) => {
   return enrollment ? enrollment.progress : 0;
 };
 
+export const mockPrograms = [
+  {
+    id: '1',
+    name: 'Full Stack Development Certification',
+    description: 'Complete full-stack development program covering frontend, backend, and deployment',
+    courseIds: ['1', '2'], // React Development, Python for Data Science
+    courseOrder: ['1', '2'], // Specific order for courses
+    duration: '16 weeks',
+    difficulty: 'Intermediate',
+    createdBy: '1', // Admin
+    createdAt: '2024-01-15',
+    status: 'active',
+    enrolledStudents: 12,
+    totalCourses: 2,
+    estimatedHours: 120
+  },
+  {
+    id: '2',
+    name: 'Digital Marketing Professional',
+    description: 'Comprehensive digital marketing program from basics to advanced strategies',
+    courseIds: ['3'], // Digital Marketing Mastery
+    courseOrder: ['3'],
+    duration: '8 weeks',
+    difficulty: 'Beginner',
+    createdBy: '1',
+    createdAt: '2024-02-01',
+    status: 'active',
+    enrolledStudents: 8,
+    totalCourses: 1,
+    estimatedHours: 40
+  }
+];
+
+export const mockProgramEnrollments = [
+  {
+    id: '1',
+    programId: '1',
+    userId: '3',
+    enrolledAt: '2024-03-01',
+    currentCourseId: '1',
+    completedCourses: [],
+    overallProgress: 25,
+    status: 'active'
+  }
+];
+
+export const getProgramsForAdmin = () => {
+  return mockPrograms;
+};
+
+export const getUserPrograms = (userId) => {
+  const enrollments = mockProgramEnrollments.filter(e => e.userId === userId);
+  return enrollments.map(enrollment => {
+    const program = mockPrograms.find(p => p.id === enrollment.programId);
+    return {
+      ...program,
+      ...enrollment
+    };
+  });
+};
+
+export const getProgramCourses = (programId) => {
+  const program = mockPrograms.find(p => p.id === programId);
+  if (!program) return [];
+  
+  return program.courseOrder.map(courseId => 
+    mockCourses.find(course => course.id === courseId)
+  ).filter(Boolean);
+};
+
 export const getUserCertificates = (userId) => {
   return mockCertificates.filter(cert => cert.userId === userId);
 };
