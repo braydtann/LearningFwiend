@@ -48,7 +48,8 @@ export const mockCourses = [
         lessons: [
           { id: 'l1', title: 'Introduction to React', type: 'video', duration: '15 min', videoUrl: 'https://www.youtube.com/embed/Tn6-PIqc4UM' },
           { id: 'l2', title: 'Setting up Development Environment', type: 'video', duration: '12 min', videoUrl: 'https://drive.google.com/file/d/1BxBicpQ09uO5m_Lyp9oWw7vtkMEMFHNB/view' },
-          { id: 'l3', title: 'Your First Component', type: 'text', content: 'In this lesson, we will create our first React component...' }
+          { id: 'l3', title: 'React Component Overview', type: 'presentation', duration: '10 min', presentationUrl: 'https://www.canva.com/design/DAFxKzE1234/view?utm_content=DAFxKzE1234' },
+          { id: 'l4', title: 'Your First Component', type: 'text', content: 'In this lesson, we will create our first React component...' }
         ]
       },
       {
