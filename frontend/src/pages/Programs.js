@@ -219,58 +219,56 @@ const Programs = () => {
               {/* Course Ordering */}
               {newProgram.courseOrder.length > 0 && (
                 <div className="space-y-4">
-                  <Label>Course Order (Drag to reorder)</Label>
-                  <DragDropContext onDragEnd={handleDragEnd}>
-                    <Droppable droppableId="courseOrder">
-                      {(provided) => (
+                  <Label>Course Order (Use arrows to reorder)</Label>
+                  <div className="space-y-2 border rounded-md p-4 bg-gray-50">
+                    {newProgram.courseOrder.map((courseId, index) => {
+                      const course = mockCourses.find(c => c.id === courseId);
+                      return (
                         <div
-                          {...provided.droppableProps}
-                          ref={provided.innerRef}
-                          className="space-y-2 border rounded-md p-4 bg-gray-50"
+                          key={courseId}
+                          className="flex items-center space-x-3 p-3 bg-white rounded-lg border shadow-sm"
                         >
-                          {newProgram.courseOrder.map((courseId, index) => {
-                            const course = mockCourses.find(c => c.id === courseId);
-                            return (
-                              <Draggable key={courseId} draggableId={courseId} index={index}>
-                                {(provided, snapshot) => (
-                                  <div
-                                    ref={provided.innerRef}
-                                    {...provided.draggableProps}
-                                    {...provided.dragHandleProps}
-                                    className={`flex items-center space-x-3 p-3 bg-white rounded-lg border ${
-                                      snapshot.isDragging ? 'shadow-lg' : 'shadow-sm'
-                                    }`}
-                                  >
-                                    <GripVertical className="w-4 h-4 text-gray-400" />
-                                    <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-medium">
-                                      {index + 1}
-                                    </div>
-                                    <img 
-                                      src={course?.thumbnail} 
-                                      alt={course?.title}
-                                      className="w-10 h-10 rounded-lg object-cover"
-                                    />
-                                    <div className="flex-1">
-                                      <h5 className="font-medium text-gray-900">{course?.title}</h5>
-                                      <p className="text-sm text-gray-600">{course?.duration}</p>
-                                    </div>
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => removeCourseFromOrder(courseId)}
-                                    >
-                                      <Trash2 className="w-4 h-4" />
-                                    </Button>
-                                  </div>
-                                )}
-                              </Draggable>
-                            );
-                          })}
-                          {provided.placeholder}
+                          <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-medium">
+                            {index + 1}
+                          </div>
+                          <img 
+                            src={course?.thumbnail} 
+                            alt={course?.title}
+                            className="w-10 h-10 rounded-lg object-cover"
+                          />
+                          <div className="flex-1">
+                            <h5 className="font-medium text-gray-900">{course?.title}</h5>
+                            <p className="text-sm text-gray-600">{course?.duration}</p>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => moveCourseUp(index)}
+                              disabled={index === 0}
+                            >
+                              <ArrowUp className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => moveCourseDown(index)}
+                              disabled={index === newProgram.courseOrder.length - 1}
+                            >
+                              <ArrowDown className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => removeCourseFromOrder(courseId)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
                         </div>
-                      )}
-                    </Droppable>
-                  </DragDropContext>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
 
