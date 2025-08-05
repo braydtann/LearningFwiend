@@ -40,6 +40,12 @@ const Sidebar = () => {
       roles: ['admin', 'instructor', 'learner'] 
     },
     { 
+      path: '/programs', 
+      icon: Award, 
+      label: 'Programs', 
+      roles: ['admin'] 
+    },
+    { 
       path: '/classrooms', 
       icon: Users, 
       label: 'Classrooms', 
