@@ -74,7 +74,7 @@ const Users = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">User Management</h1>
-          <p className="text-gray-600">Manage all users in your Learning 360 platform</p>
+          <p className="text-gray-600">Manage all users in your LearningFwiend platform</p>
         </div>
         
         <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
