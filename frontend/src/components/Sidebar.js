@@ -92,8 +92,12 @@ const Sidebar = () => {
       {/* Header */}
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <BookOpen className="w-5 h-5 text-white" />
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+            <img 
+              src="https://customer-assets.emergentagent.com/job_learn-hub-60/artifacts/w6mk6gy1_ChatGPT%20Image%20Aug%205%2C%202025%2C%2001_02_09%20PM.png"
+              alt="LearningFwiend Mascot"
+              className="w-8 h-8 object-contain"
+            />
           </div>
           <h1 className="text-xl font-bold text-gray-900">LearningFwiend</h1>
         </div>
