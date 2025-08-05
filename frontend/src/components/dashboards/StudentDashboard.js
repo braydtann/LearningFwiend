@@ -83,6 +83,18 @@ const StudentDashboard = () => {
             </div>
           </CardContent>
         </Card>
+
+        <Card className="bg-indigo-50 border-indigo-200">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-indigo-600 text-sm font-medium">Classrooms</p>
+                <p className="text-2xl font-bold text-indigo-700">{stats.classrooms}</p>
+              </div>
+              <Users className="h-8 w-8 text-indigo-600" />
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Enrolled Courses */}
