@@ -91,10 +91,39 @@ const CourseDetail = () => {
                 alt={course.title}
                 className="w-full h-full object-cover"
               />
-              {selectedLesson?.type === 'video' && selectedLesson.videoUrl && (
+              {(selectedLesson?.type === 'video' || selectedLesson?.type === 'presentation') && 
+               (selectedLesson.videoUrl || selectedLesson.presentationUrl) && (
                 <div className="absolute inset-0 bg-black">
                   {(() => {
-                    const url = selectedLesson.videoUrl;
+                    const url = selectedLesson.videoUrl || selectedLesson.presentationUrl;
+                    
+                    // Handle Canva presentations
+                    if (selectedLesson.type === 'presentation' || url.includes('canva.com')) {
+                      // Convert Canva sharing link to embed format
+                      if (url.includes('canva.com/design/')) {
+                        const designId = url.match(/design\/([^\/\?]+)/)?.[1];
+                        if (designId) {
+                          return (
+                            <iframe
+                              src={`https://www.canva.com/design/${designId}/view?embed`}
+                              className="w-full h-full"
+                              allowFullScreen
+                              title={selectedLesson.title}
+                            />
+                          );
+                        }
+                      }
+                      
+                      // Fallback for other Canva URLs
+                      return (
+                        <iframe
+                          src={url.includes('?embed') ? url : `${url}?embed`}
+                          className="w-full h-full"
+                          allowFullScreen
+                          title={selectedLesson.title}
+                        />
+                      );
+                    }
                     
                     // Handle Google Drive links
                     if (url.includes('drive.google.com')) {
