@@ -241,6 +241,7 @@ const CourseDetail = () => {
                                 <div className="flex items-center space-x-3">
                                   <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
                                     {lesson.type === 'video' && <Play className="w-4 h-4" />}
+                                    {lesson.type === 'presentation' && <Presentation className="w-4 h-4" />}
                                     {lesson.type === 'text' && <FileText className="w-4 h-4" />}
                                     {lesson.type === 'quiz' && <CheckCircle className="w-4 h-4" />}
                                   </div>
