@@ -329,17 +329,31 @@ const CreateCourse = () => {
                           </div>
                         </div>
 
-                        {lesson.type === 'video' && (
+                        {(lesson.type === 'video' || lesson.type === 'presentation') && (
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                             <div className="space-y-2">
-                              <Label>Video URL</Label>
+                              <Label>
+                                {lesson.type === 'video' ? 'Video URL' : 'Canva Presentation URL'}
+                              </Label>
                               <Input
-                                placeholder="YouTube, Vimeo, or Google Drive URL"
-                                value={lesson.videoUrl || ''}
-                                onChange={(e) => handleLessonChange(moduleIndex, lessonIndex, 'videoUrl', e.target.value)}
+                                placeholder={
+                                  lesson.type === 'video' 
+                                    ? "YouTube, Vimeo, or Google Drive URL" 
+                                    : "Canva presentation sharing link"
+                                }
+                                value={lesson.videoUrl || lesson.presentationUrl || ''}
+                                onChange={(e) => handleLessonChange(
+                                  moduleIndex, 
+                                  lessonIndex, 
+                                  lesson.type === 'video' ? 'videoUrl' : 'presentationUrl', 
+                                  e.target.value
+                                )}
                               />
                               <p className="text-xs text-gray-500">
-                                Supported: YouTube, Vimeo, or Google Drive sharing links
+                                {lesson.type === 'video' 
+                                  ? 'Supported: YouTube, Vimeo, or Google Drive sharing links'
+                                  : 'Copy the sharing link from your Canva presentation'
+                                }
                               </p>
                             </div>
                             <div className="space-y-2">
