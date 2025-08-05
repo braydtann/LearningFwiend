@@ -3,7 +3,7 @@ export const mockUsers = [
   {
     id: '1',
     name: 'John Admin',
-    email: 'admin@learning360.com',
+    email: 'admin@learningfwiend.com',
     role: 'admin',
     avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
     joinDate: '2024-01-15'
