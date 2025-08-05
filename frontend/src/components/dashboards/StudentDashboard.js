@@ -181,6 +181,45 @@ const StudentDashboard = () => {
         </CardContent>
       </Card>
 
+      {/* My Classrooms */}
+      {studentClassrooms.length > 0 && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-xl">My Training Programs</CardTitle>
+              <Button 
+                variant="outline" 
+                onClick={() => navigate('/classrooms')}
+              >
+                View All
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {studentClassrooms.slice(0, 2).map((classroom) => (
+                <div key={classroom.id} className="flex items-center p-4 bg-indigo-50 rounded-lg border border-indigo-200">
+                  <Users className="h-8 w-8 text-indigo-600 mr-3" />
+                  <div className="flex-1">
+                    <h4 className="font-medium text-gray-900">{classroom.name}</h4>
+                    <p className="text-sm text-gray-600">Progress: {classroom.progress || 0}%</p>
+                    <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                      <div 
+                        className="bg-indigo-600 h-2 rounded-full" 
+                        style={{ width: `${classroom.progress || 0}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                  <Button size="sm" variant="outline" onClick={() => navigate(`/classroom/${classroom.id}`)}>
+                    View
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Recent Certificates */}
       {certificates.length > 0 && (
         <Card>
