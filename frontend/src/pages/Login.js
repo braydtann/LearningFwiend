@@ -42,9 +42,9 @@ const Login = () => {
 
   const quickLogin = (role) => {
     const credentials = {
-      admin: { email: 'admin@learning360.com', password: 'admin123' },
-      instructor: { email: 'sarah.wilson@learning360.com', password: 'instructor123' },
-      learner: { email: 'mike.johnson@learning360.com', password: 'student123' }
+      admin: { email: 'admin@learningfwiend.com', password: 'admin123' },
+      instructor: { email: 'sarah.wilson@learningfwiend.com', password: 'instructor123' },
+      learner: { email: 'mike.johnson@learningfwiend.com', password: 'student123' }
     };
     
     setEmail(credentials[role].email);
