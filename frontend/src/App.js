@@ -1,52 +1,114 @@
-import { useEffect } from "react";
+import React from "react";
 import "./App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { Toaster } from './components/ui/toaster';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+// Pages
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import Courses from './pages/Courses';
+import CourseDetail from './pages/CourseDetail';
+import CreateCourse from './pages/CreateCourse';
+import Users from './pages/Users';
+import Profile from './pages/Profile';
+import Analytics from './pages/Analytics';
+import Certificates from './pages/Certificates';
+import Announcements from './pages/Announcements';
 
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
-    }
-  };
+// Components
+import Layout from './components/Layout';
 
-  useEffect(() => {
-    helloWorldApi();
-  }, []);
+const ProtectedRoute = ({ children }) => {
+  const { user } = useAuth();
+  return user ? <Layout>{children}</Layout> : <Navigate to="/login" />;
+};
 
-  return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
-    </div>
-  );
+const AuthRoute = ({ children }) => {
+  const { user } = useAuth();
+  return user ? <Navigate to="/dashboard" /> : children;
 };
 
 function App() {
   return (
     <div className="App">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            {/* Auth Routes */}
+            <Route path="/login" element={
+              <AuthRoute>
+                <Login />
+              </AuthRoute>
+            } />
+            
+            {/* Protected Routes */}
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/courses" element={
+              <ProtectedRoute>
+                <Courses />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/course/:id" element={
+              <ProtectedRoute>
+                <CourseDetail />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/create-course" element={
+              <ProtectedRoute>
+                <CreateCourse />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/edit-course/:id" element={
+              <ProtectedRoute>
+                <CreateCourse />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/users" element={
+              <ProtectedRoute>
+                <Users />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/analytics" element={
+              <ProtectedRoute>
+                <Analytics />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/certificates" element={
+              <ProtectedRoute>
+                <Certificates />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/announcements" element={
+              <ProtectedRoute>
+                <Announcements />
+              </ProtectedRoute>
+            } />
+            
+            {/* Default redirect */}
+            <Route path="/" element={<Navigate to="/dashboard" />} />
+          </Routes>
+          <Toaster />
+        </BrowserRouter>
+      </AuthProvider>
     </div>
   );
 }
