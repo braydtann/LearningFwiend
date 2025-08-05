@@ -19,7 +19,7 @@ export const mockUsers = [
   {
     id: '3',
     name: 'Mike Johnson',
-    email: 'mike.johnson@learning360.com',
+    email: 'mike.johnson@learningfwiend.com',
     role: 'learner',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face',
     joinDate: '2024-03-05'
