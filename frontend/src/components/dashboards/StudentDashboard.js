@@ -14,6 +14,7 @@ const StudentDashboard = () => {
   
   const enrolledCourses = getEnrolledCourses(user?.id);
   const certificates = getUserCertificates(user?.id);
+  const studentClassrooms = getStudentClassrooms(user?.id);
   
   const stats = {
     enrolled: enrolledCourses.length,
