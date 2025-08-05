@@ -11,7 +11,7 @@ export const mockUsers = [
   {
     id: '2',
     name: 'Sarah Wilson',
-    email: 'sarah.wilson@learning360.com',
+    email: 'sarah.wilson@learningfwiend.com',
     role: 'instructor',
     avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face',
     joinDate: '2024-02-10'
