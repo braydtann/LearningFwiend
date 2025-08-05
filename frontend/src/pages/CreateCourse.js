@@ -33,7 +33,7 @@ const CreateCourse = () => {
         id: 'm1',
         title: '',
         lessons: [
-          { id: 'l1', title: '', type: 'video', duration: '', videoUrl: '', content: '' }
+          { id: 'l1', title: '', type: 'video', duration: '', videoUrl: '', presentationUrl: '', content: '' }
         ]
       }
     ]
