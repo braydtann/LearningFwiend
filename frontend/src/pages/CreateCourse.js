@@ -321,6 +321,7 @@ const CreateCourse = () => {
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="video">Video</SelectItem>
+                                <SelectItem value="presentation">Canva Presentation</SelectItem>
                                 <SelectItem value="text">Text/Article</SelectItem>
                                 <SelectItem value="quiz">Quiz</SelectItem>
                               </SelectContent>
