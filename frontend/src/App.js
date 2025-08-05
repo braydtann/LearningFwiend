@@ -75,6 +75,18 @@ function App() {
               </ProtectedRoute>
             } />
             
+            <Route path="/classrooms" element={
+              <ProtectedRoute>
+                <Classrooms />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/classroom/:id" element={
+              <ProtectedRoute>
+                <ClassroomDetail />
+              </ProtectedRoute>
+            } />
+            
             <Route path="/users" element={
               <ProtectedRoute>
                 <Users />
