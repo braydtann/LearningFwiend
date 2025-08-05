@@ -191,6 +191,105 @@ export const getCourseProgress = (userId, courseId) => {
   return enrollment ? enrollment.progress : 0;
 };
 
-export const getUserCertificates = (userId) => {
-  return mockCertificates.filter(cert => cert.userId === userId);
+export const mockClassrooms = [
+  {
+    id: '1',
+    name: 'Q1 2024 New Agent Training',
+    description: 'Comprehensive training program for new customer service agents',
+    trainerId: '2', // Sarah Wilson
+    trainerName: 'Sarah Wilson',
+    courseIds: ['1', '3'], // React Development and Digital Marketing
+    studentIds: ['3'], // Mike Johnson
+    startDate: '2024-03-01',
+    endDate: '2024-04-30',
+    status: 'active',
+    createdAt: '2024-02-20',
+    metrics: {
+      totalStudents: 1,
+      completedStudents: 0,
+      averageProgress: 45,
+      averageTimeToCompletion: null,
+      averageTestScore: 85,
+      completionRate: 0
+    }
+  },
+  {
+    id: '2',
+    name: 'Advanced Python Bootcamp',
+    description: 'Intensive Python training for data science applications',
+    trainerId: '2',
+    trainerName: 'Sarah Wilson',
+    courseIds: ['2'], // Python for Data Science
+    studentIds: ['3'],
+    startDate: '2024-02-15',
+    endDate: '2024-05-15',
+    status: 'active',
+    createdAt: '2024-02-01',
+    metrics: {
+      totalStudents: 1,
+      completedStudents: 0,
+      averageProgress: 25,
+      averageTimeToCompletion: null,
+      averageTestScore: 78,
+      completionRate: 0
+    }
+  }
+];
+
+export const mockClassroomEnrollments = [
+  {
+    id: '1',
+    classroomId: '1',
+    studentId: '3',
+    enrolledAt: '2024-03-01',
+    progress: 45,
+    completedCourses: [],
+    testScores: [
+      { courseId: '1', score: 85, completedAt: '2024-03-15' }
+    ],
+    totalTimeSpent: 1200, // minutes
+    lastAccessed: '2024-03-20'
+  },
+  {
+    id: '2',
+    classroomId: '2',
+    studentId: '3',
+    enrolledAt: '2024-02-15',
+    progress: 25,
+    completedCourses: [],
+    testScores: [
+      { courseId: '2', score: 78, completedAt: '2024-03-01' }
+    ],
+    totalTimeSpent: 800, // minutes
+    lastAccessed: '2024-03-18'
+  }
+];
+
+export const getClassroomsForTrainer = (trainerId) => {
+  return mockClassrooms.filter(classroom => classroom.trainerId === trainerId);
+};
+
+export const getClassroomStudents = (classroomId) => {
+  const classroom = mockClassrooms.find(c => c.id === classroomId);
+  if (!classroom) return [];
+  
+  return classroom.studentIds.map(studentId => {
+    const user = mockUsers.find(u => u.id === studentId);
+    const enrollment = mockClassroomEnrollments.find(e => e.classroomId === classroomId && e.studentId === studentId);
+    return {
+      ...user,
+      ...enrollment
+    };
+  });
+};
+
+export const getStudentClassrooms = (studentId) => {
+  const enrollments = mockClassroomEnrollments.filter(e => e.studentId === studentId);
+  return enrollments.map(enrollment => {
+    const classroom = mockClassrooms.find(c => c.id === enrollment.classroomId);
+    return {
+      ...classroom,
+      ...enrollment
+    };
+  });
 };
