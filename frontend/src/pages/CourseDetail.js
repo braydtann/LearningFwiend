@@ -91,14 +91,37 @@ const CourseDetail = () => {
                 alt={course.title}
                 className="w-full h-full object-cover"
               />
-              {selectedLesson?.type === 'video' && (
+              {selectedLesson?.type === 'video' && selectedLesson.videoUrl && (
                 <div className="absolute inset-0 bg-black">
-                  <iframe
-                    src={selectedLesson.videoUrl}
-                    className="w-full h-full"
-                    allowFullScreen
-                    title={selectedLesson.title}
-                  />
+                  {(() => {
+                    const url = selectedLesson.videoUrl;
+                    
+                    // Handle Google Drive links
+                    if (url.includes('drive.google.com')) {
+                      const fileId = url.match(/\/file\/d\/([a-zA-Z0-9-_]+)/)?.[1] || 
+                                   url.match(/id=([a-zA-Z0-9-_]+)/)?.[1];
+                      if (fileId) {
+                        return (
+                          <iframe
+                            src={`https://drive.google.com/file/d/${fileId}/preview`}
+                            className="w-full h-full"
+                            allowFullScreen
+                            title={selectedLesson.title}
+                          />
+                        );
+                      }
+                    }
+                    
+                    // Handle YouTube and Vimeo (existing logic)
+                    return (
+                      <iframe
+                        src={url}
+                        className="w-full h-full"
+                        allowFullScreen
+                        title={selectedLesson.title}
+                      />
+                    );
+                  })()}
                 </div>
               )}
             </div>
