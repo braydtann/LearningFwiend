@@ -17,7 +17,8 @@ import {
   CheckCircle, 
   Star,
   ArrowLeft,
-  Download
+  Download,
+  Presentation
 } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 
