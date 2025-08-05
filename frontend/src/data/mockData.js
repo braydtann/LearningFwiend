@@ -37,7 +37,7 @@ export const mockCourses = [
     duration: '8 weeks',
     thumbnail: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=300&h=200&fit=crop',
     enrolledStudents: 45,
-    totalLessons: 24,
+    totalLessons: 25,
     isPublic: true,
     status: 'published',
     createdAt: '2024-01-20',
