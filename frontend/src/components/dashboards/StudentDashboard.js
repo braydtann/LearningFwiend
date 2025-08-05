@@ -20,7 +20,8 @@ const StudentDashboard = () => {
     enrolled: enrolledCourses.length,
     completed: enrolledCourses.filter(course => course.progress === 100).length,
     inProgress: enrolledCourses.filter(course => course.progress > 0 && course.progress < 100).length,
-    certificates: certificates.length
+    certificates: certificates.length,
+    classrooms: studentClassrooms.length
   };
 
   return (
