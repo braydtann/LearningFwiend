@@ -6,7 +6,7 @@ import { Button } from '../ui/button';
 import { Progress } from '../ui/progress';
 import { Badge } from '../ui/badge';
 import { getEnrolledCourses, getUserCertificates, getStudentClassrooms } from '../../data/mockData';
-import { BookOpen, Clock, Award, TrendingUp, Play } from 'lucide-react';
+import { BookOpen, Clock, Award, TrendingUp, Play, Users } from 'lucide-react';
 
 const StudentDashboard = () => {
   const { user } = useAuth();
