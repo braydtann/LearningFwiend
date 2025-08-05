@@ -333,10 +333,13 @@ const CreateCourse = () => {
                             <div className="space-y-2">
                               <Label>Video URL</Label>
                               <Input
-                                placeholder="YouTube or Vimeo URL"
+                                placeholder="YouTube, Vimeo, or Google Drive URL"
                                 value={lesson.videoUrl || ''}
                                 onChange={(e) => handleLessonChange(moduleIndex, lessonIndex, 'videoUrl', e.target.value)}
                               />
+                              <p className="text-xs text-gray-500">
+                                Supported: YouTube, Vimeo, or Google Drive sharing links
+                              </p>
                             </div>
                             <div className="space-y-2">
                               <Label>Duration</Label>
