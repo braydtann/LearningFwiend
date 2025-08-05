@@ -83,17 +83,18 @@ const Programs = () => {
     }
   };
 
-  const handleDragEnd = (result) => {
-    if (!result.destination) return;
+  const moveCourseUp = (index) => {
+    if (index === 0) return;
+    const newOrder = [...newProgram.courseOrder];
+    [newOrder[index], newOrder[index - 1]] = [newOrder[index - 1], newOrder[index]];
+    setNewProgram(prev => ({ ...prev, courseOrder: newOrder }));
+  };
 
-    const items = Array.from(newProgram.courseOrder);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-
-    setNewProgram(prev => ({
-      ...prev,
-      courseOrder: items
-    }));
+  const moveCourseDown = (index) => {
+    if (index === newProgram.courseOrder.length - 1) return;
+    const newOrder = [...newProgram.courseOrder];
+    [newOrder[index], newOrder[index + 1]] = [newOrder[index + 1], newOrder[index]];
+    setNewProgram(prev => ({ ...prev, courseOrder: newOrder }));
   };
 
   const removeCourseFromOrder = (courseId) => {
