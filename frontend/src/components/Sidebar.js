@@ -40,6 +40,12 @@ const Sidebar = () => {
       roles: ['admin', 'instructor', 'learner'] 
     },
     { 
+      path: '/classrooms', 
+      icon: Users, 
+      label: 'Classrooms', 
+      roles: ['admin', 'instructor', 'learner'] 
+    },
+    { 
       path: '/create-course', 
       icon: PlusCircle, 
       label: 'Create Course', 
