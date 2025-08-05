@@ -60,7 +60,7 @@ const Login = () => {
             <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
               <BookOpen className="w-7 h-7 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900">LEARNING 360</h1>
+            <h1 className="text-3xl font-bold text-gray-900">LearningFwiend</h1>
           </div>
           <p className="text-gray-600">Sign in to your account</p>
         </div>
