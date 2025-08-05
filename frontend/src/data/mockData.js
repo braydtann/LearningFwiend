@@ -1,4 +1,4 @@
-// Mock data for Learning 360 LMS clone
+// Mock data for LearningFwiend LMS clone
 export const mockUsers = [
   {
     id: '1',
