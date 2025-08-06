@@ -765,6 +765,42 @@ const CreateCourse = () => {
                                         />
                                       </div>
 
+                                      {/* Question Media Upload */}
+                                      <div className="space-y-2 mb-4">
+                                        <Label>Question Media (Optional)</Label>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                          <div className="space-y-2">
+                                            <Label className="text-sm">Image URL</Label>
+                                            <Input
+                                              placeholder="https://example.com/image.jpg"
+                                              value={question.questionImage || ''}
+                                              onChange={(e) => handleQuestionChange(moduleIndex, lessonIndex, questionIndex, 'questionImage', e.target.value)}
+                                            />
+                                          </div>
+                                          <div className="space-y-2">
+                                            <Label className="text-sm">Audio URL</Label>
+                                            <Input
+                                              placeholder="https://example.com/audio.mp3"
+                                              value={question.questionAudio || ''}
+                                              onChange={(e) => handleQuestionChange(moduleIndex, lessonIndex, questionIndex, 'questionAudio', e.target.value)}
+                                            />
+                                          </div>
+                                        </div>
+                                        {question.questionImage && (
+                                          <div className="mt-2">
+                                            <img src={question.questionImage} alt="Question" className="max-w-xs h-32 object-cover rounded border" />
+                                          </div>
+                                        )}
+                                        {question.questionAudio && (
+                                          <div className="mt-2">
+                                            <audio controls className="w-full max-w-xs">
+                                              <source src={question.questionAudio} type="audio/mpeg" />
+                                              Your browser does not support the audio element.
+                                            </audio>
+                                          </div>
+                                        )}
+                                      </div>
+
                                       {(question.type === 'multiple-choice' || !question.type) && (
                                         <div className="space-y-2 mb-4">
                                           <Label>Answer Options</Label>
