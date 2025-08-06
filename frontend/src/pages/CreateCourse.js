@@ -279,7 +279,7 @@ const CreateCourse = () => {
                           qIdx === questionIndex 
                             ? { 
                                 ...question, 
-                                items: [...(question.items || []), '']
+                                items: [...(question.items || []), { text: '', image: '', audio: '' }]
                               } 
                             : question
                         )
