@@ -412,26 +412,51 @@ const QuizTaking = () => {
                   {quiz.questions[currentQuestionIndex].type === 'select-all-that-apply' && (
                     <div className="space-y-3">
                       <p className="text-sm text-blue-600 font-medium mb-3">Select all correct answers:</p>
-                      {quiz.questions[currentQuestionIndex].options.map((option, index) => (
-                        <label 
-                          key={index} 
-                          className="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={(answers[quiz.questions[currentQuestionIndex].id] || []).includes(index)}
-                            onChange={(e) => {
-                              const currentAnswers = answers[quiz.questions[currentQuestionIndex].id] || [];
-                              const newAnswers = e.target.checked
-                                ? [...currentAnswers, index]
-                                : currentAnswers.filter(answerIndex => answerIndex !== index);
-                              handleAnswerChange(quiz.questions[currentQuestionIndex].id, newAnswers);
-                            }}
-                            className="text-blue-600"
-                          />
-                          <span>{option}</span>
-                        </label>
-                      ))}
+                      {quiz.questions[currentQuestionIndex].options.map((option, index) => {
+                        const optionText = typeof option === 'string' ? option : option.text || '';
+                        const optionImage = typeof option === 'object' ? option.image : null;
+                        const optionAudio = typeof option === 'object' ? option.audio : null;
+                        
+                        return (
+                          <label 
+                            key={index} 
+                            className="flex items-start space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={(answers[quiz.questions[currentQuestionIndex].id] || []).includes(index)}
+                              onChange={(e) => {
+                                const currentAnswers = answers[quiz.questions[currentQuestionIndex].id] || [];
+                                const newAnswers = e.target.checked
+                                  ? [...currentAnswers, index]
+                                  : currentAnswers.filter(answerIndex => answerIndex !== index);
+                                handleAnswerChange(quiz.questions[currentQuestionIndex].id, newAnswers);
+                              }}
+                              className="text-blue-600 mt-1"
+                            />
+                            <div className="flex-1 space-y-2">
+                              <span className="text-gray-900">{optionText}</span>
+                              {optionImage && (
+                                <div>
+                                  <img 
+                                    src={optionImage} 
+                                    alt={`Option ${index + 1}`} 
+                                    className="max-w-xs h-32 object-cover rounded border"
+                                  />
+                                </div>
+                              )}
+                              {optionAudio && (
+                                <div>
+                                  <audio controls className="w-full max-w-xs">
+                                    <source src={optionAudio} type="audio/mpeg" />
+                                    Your browser does not support the audio element.
+                                  </audio>
+                                </div>
+                              )}
+                            </div>
+                          </label>
+                        );
+                      })}
                     </div>
                   )}
 
