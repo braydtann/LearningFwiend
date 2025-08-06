@@ -688,6 +688,34 @@ const CreateCourse = () => {
                                         </div>
                                       )}
 
+                                      {question.type === 'select-all-that-apply' && (
+                                        <div className="space-y-2 mb-4">
+                                          <Label>Answer Options (Select all correct answers)</Label>
+                                          {(question.options || ['', '', '', '', '']).map((option, optionIndex) => (
+                                            <div key={optionIndex} className="flex items-center space-x-2">
+                                              <input
+                                                type="checkbox"
+                                                checked={(question.correctAnswers || []).includes(optionIndex)}
+                                                onChange={(e) => {
+                                                  const currentAnswers = question.correctAnswers || [];
+                                                  const newAnswers = e.target.checked
+                                                    ? [...currentAnswers, optionIndex]
+                                                    : currentAnswers.filter(index => index !== optionIndex);
+                                                  handleQuestionChange(moduleIndex, lessonIndex, questionIndex, 'correctAnswers', newAnswers);
+                                                }}
+                                                className="text-green-600"
+                                              />
+                                              <Input
+                                                placeholder={`Option ${optionIndex + 1}`}
+                                                value={option}
+                                                onChange={(e) => handleOptionChange(moduleIndex, lessonIndex, questionIndex, optionIndex, e.target.value)}
+                                              />
+                                            </div>
+                                          ))}
+                                          <p className="text-xs text-gray-500">Check the boxes next to all correct answers</p>
+                                        </div>
+                                      )}
+
                                       {question.type === 'true-false' && (
                                         <div className="space-y-2 mb-4">
                                           <Label>Correct Answer</Label>
