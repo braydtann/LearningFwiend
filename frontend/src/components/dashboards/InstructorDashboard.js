@@ -36,10 +36,17 @@ const InstructorDashboard = () => {
         </div>
         <Button 
           onClick={() => navigate('/create-course')}
-          className="bg-blue-600 hover:bg-blue-700"
+          className="bg-blue-600 hover:bg-blue-700 mr-3"
         >
           <PlusCircle className="w-4 h-4 mr-2" />
           Create New Course
+        </Button>
+        <Button 
+          onClick={() => navigate('/quiz-results')}
+          variant="outline"
+        >
+          <ClipboardCheck className="w-4 h-4 mr-2" />
+          Quiz Results
         </Button>
       </div>
 
