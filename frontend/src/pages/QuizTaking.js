@@ -535,43 +535,68 @@ const QuizTaking = () => {
                       <p className="text-sm text-blue-600 font-medium mb-3">
                         Drag and drop the items to arrange them in chronological order:
                       </p>
-                      <div className="space-y-2">
-                        {(quiz.questions[currentQuestionIndex].items || []).map((item, index) => (
-                          <div
-                            key={index}
-                            className="p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 cursor-move hover:bg-gray-100 transition-colors"
-                            draggable
-                            onDragStart={(e) => {
-                              e.dataTransfer.setData('text/plain', index.toString());
-                            }}
-                            onDragOver={(e) => {
-                              e.preventDefault();
-                            }}
-                            onDrop={(e) => {
-                              e.preventDefault();
-                              const draggedIndex = parseInt(e.dataTransfer.getData('text/plain'));
-                              const targetIndex = index;
-                              
-                              if (draggedIndex !== targetIndex) {
-                                const currentOrder = answers[quiz.questions[currentQuestionIndex].id] || quiz.questions[currentQuestionIndex].items.map((_, i) => i);
-                                const newOrder = [...currentOrder];
-                                const [draggedItem] = newOrder.splice(draggedIndex, 1);
-                                newOrder.splice(targetIndex, 0, draggedItem);
-                                handleAnswerChange(quiz.questions[currentQuestionIndex].id, newOrder);
-                              }
-                            }}
-                          >
-                            <div className="flex items-center space-x-3">
-                              <span className="text-sm font-medium text-gray-600">#{index + 1}</span>
-                              <span>{item}</span>
-                              <div className="ml-auto text-gray-400">
-                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                  <path d="M10 6L6 10l4 4 4-4-4-4z"/>
-                                </svg>
+                      <div className="space-y-3">
+                        {(quiz.questions[currentQuestionIndex].items || []).map((item, index) => {
+                          const itemText = typeof item === 'string' ? item : item.text || '';
+                          const itemImage = typeof item === 'object' ? item.image : null;
+                          const itemAudio = typeof item === 'object' ? item.audio : null;
+                          
+                          return (
+                            <div
+                              key={index}
+                              className="p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 cursor-move hover:bg-gray-100 transition-colors"
+                              draggable
+                              onDragStart={(e) => {
+                                e.dataTransfer.setData('text/plain', index.toString());
+                              }}
+                              onDragOver={(e) => {
+                                e.preventDefault();
+                              }}
+                              onDrop={(e) => {
+                                e.preventDefault();
+                                const draggedIndex = parseInt(e.dataTransfer.getData('text/plain'));
+                                const targetIndex = index;
+                                
+                                if (draggedIndex !== targetIndex) {
+                                  const currentOrder = answers[quiz.questions[currentQuestionIndex].id] || quiz.questions[currentQuestionIndex].items.map((_, i) => i);
+                                  const newOrder = [...currentOrder];
+                                  const [draggedItem] = newOrder.splice(draggedIndex, 1);
+                                  newOrder.splice(targetIndex, 0, draggedItem);
+                                  handleAnswerChange(quiz.questions[currentQuestionIndex].id, newOrder);
+                                }
+                              }}
+                            >
+                              <div className="flex items-start space-x-3">
+                                <span className="text-sm font-medium text-gray-600 mt-1">#{index + 1}</span>
+                                <div className="flex-1 space-y-2">
+                                  <span className="text-gray-900">{itemText}</span>
+                                  {itemImage && (
+                                    <div>
+                                      <img 
+                                        src={itemImage} 
+                                        alt={`Item ${index + 1}`} 
+                                        className="max-w-xs h-24 object-cover rounded border"
+                                      />
+                                    </div>
+                                  )}
+                                  {itemAudio && (
+                                    <div>
+                                      <audio controls className="w-full max-w-xs">
+                                        <source src={itemAudio} type="audio/mpeg" />
+                                        Your browser does not support the audio element.
+                                      </audio>
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="ml-auto text-gray-400 mt-1">
+                                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10 6L6 10l4 4 4-4-4-4z"/>
+                                  </svg>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                       <p className="text-xs text-gray-500">
                         Click and drag the items to reorder them. The correct chronological order is from earliest to latest.
