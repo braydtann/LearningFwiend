@@ -12,22 +12,25 @@ const LoginPalButton = ({ className = '', disabled = false }) => {
     setIsLoading(true);
     
     try {
-      // Simulate checking LoginPal status
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Check if LoginPal service is ready
+      const status = await loginPalService.checkStatus();
       
-      toast({
-        title: "LoginPal Integration Coming Soon",
-        description: "LoginPal OAuth service is being deployed. Once ready, you'll be able to sign in with unified role and permission management.",
-        variant: "default",
-      });
-      
-      // In the future, this will initiate actual OAuth flow:
-      // window.location.href = await initiateLoginPalOAuth();
+      if (status.ready) {
+        // If ready, initiate actual OAuth flow
+        await loginPalService.redirectToOAuth();
+      } else {
+        // Show placeholder message
+        toast({
+          title: "LoginPal Integration Coming Soon",
+          description: "LoginPal OAuth service is being deployed. Once ready, you'll be able to sign in with unified role and permission management.",
+          variant: "default",
+        });
+      }
       
     } catch (error) {
       toast({
         title: "Service Unavailable",
-        description: "LoginPal authentication service is not yet available.",
+        description: error.message || "LoginPal authentication service is not yet available.",
         variant: "destructive",
       });
     } finally {
