@@ -708,13 +708,23 @@ const QuizTaking = () => {
                             <span className="text-gray-600">Your answer: </span>
                             <span className={answer?.correct ? 'text-green-600' : 'text-red-600'}>
                               {question.type === 'multiple-choice' 
-                                ? question.options[answer?.answer] || 'No answer'
+                                ? (typeof question.options[answer?.answer] === 'string' 
+                                    ? question.options[answer?.answer] 
+                                    : question.options[answer?.answer]?.text || 'No answer')
                                 : question.type === 'select-all-that-apply'
-                                ? (answer?.answer || []).map(index => question.options[index]).join(', ') || 'No answer'
+                                ? (answer?.answer || []).map(index => 
+                                    typeof question.options[index] === 'string' 
+                                      ? question.options[index] 
+                                      : question.options[index]?.text || ''
+                                  ).join(', ') || 'No answer'
                                 : question.type === 'true-false'
                                 ? (answer?.answer?.toString() || 'No answer')
                                 : question.type === 'chronological-order'
-                                ? (answer?.answer || []).map(index => question.items[index]).join(' → ') || 'No answer'
+                                ? (answer?.answer || []).map(index => 
+                                    typeof question.items[index] === 'string' 
+                                      ? question.items[index] 
+                                      : question.items[index]?.text || ''
+                                  ).join(' → ') || 'No answer'
                                 : answer?.answer || 'No answer'}
                             </span>
                           </div>
@@ -724,13 +734,23 @@ const QuizTaking = () => {
                               <span className="text-gray-600">Correct answer: </span>
                               <span className="text-green-600">
                                 {question.type === 'multiple-choice'
-                                  ? question.options[question.correctAnswer]
+                                  ? (typeof question.options[question.correctAnswer] === 'string' 
+                                      ? question.options[question.correctAnswer] 
+                                      : question.options[question.correctAnswer]?.text || '')
                                   : question.type === 'select-all-that-apply'
-                                  ? (question.correctAnswers || []).map(index => question.options[index]).join(', ')
+                                  ? (question.correctAnswers || []).map(index => 
+                                      typeof question.options[index] === 'string' 
+                                        ? question.options[index] 
+                                        : question.options[index]?.text || ''
+                                    ).join(', ')
                                   : question.type === 'true-false'
                                   ? question.correctAnswer.toString()
                                   : question.type === 'chronological-order'
-                                  ? (question.correctOrder || []).map(index => question.items[index]).join(' → ')
+                                  ? (question.correctOrder || []).map(index => 
+                                      typeof question.items[index] === 'string' 
+                                        ? question.items[index] 
+                                        : question.items[index]?.text || ''
+                                    ).join(' → ')
                                   : question.correctAnswer}
                               </span>
                             </div>
