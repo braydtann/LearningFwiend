@@ -14,6 +14,37 @@ import { useToast } from '../hooks/use-toast';
 
 const Users = () => {
   const { toast } = useToast();
+  const { user, isAdmin } = useAuth();
+  
+  // Redirect non-admin users
+  if (!isAdmin) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Card className="max-w-md mx-auto">
+          <CardContent className="text-center py-12">
+            <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Shield className="w-10 h-10 text-red-600" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h2>
+            <p className="text-gray-600 mb-6">
+              You don't have permission to access user management. This feature is restricted to administrators only.
+            </p>
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+              <div className="flex items-center">
+                <AlertTriangle className="w-5 h-5 text-yellow-600 mr-2" />
+                <p className="text-sm text-yellow-800">
+                  <strong>Security Notice:</strong> User management requires admin privileges
+                </p>
+              </div>
+            </div>
+            <Button onClick={() => window.history.back()} variant="outline">
+              Go Back
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
