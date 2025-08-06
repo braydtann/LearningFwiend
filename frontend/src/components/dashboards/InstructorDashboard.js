@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { mockCourses, mockEnrollments } from '../../data/mockData';
-import { BookOpen, Users, TrendingUp, PlusCircle, Eye, Edit } from 'lucide-react';
+import { mockCourses, mockEnrollments, getInstructorQuizAnalytics } from '../../data/mockData';
+import { BookOpen, Users, TrendingUp, PlusCircle, Eye, Edit, ClipboardCheck } from 'lucide-react';
 
 const InstructorDashboard = () => {
   const { user } = useAuth();
