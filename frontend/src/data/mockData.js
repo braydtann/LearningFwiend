@@ -98,6 +98,21 @@ export const mockCourses = [
                 },
                 {
                   id: 'q3',
+                  type: 'select-all-that-apply',
+                  question: 'Which of the following are valid React hooks? (Select all that apply)',
+                  options: [
+                    'useState',
+                    'useEffect',
+                    'useProps',
+                    'useContext',
+                    'useComponent'
+                  ],
+                  correctAnswers: [0, 1, 3], // useState, useEffect, useContext
+                  points: 8,
+                  explanation: 'useState, useEffect, and useContext are built-in React hooks. useProps and useComponent do not exist.'
+                },
+                {
+                  id: 'q4',
                   type: 'true-false',
                   question: 'React components must always return a single element.',
                   correctAnswer: true,
@@ -105,12 +120,54 @@ export const mockCourses = [
                   explanation: 'React components must return a single element, but it can contain multiple child elements.'
                 },
                 {
-                  id: 'q4',
-                  type: 'short-answer',
-                  question: 'What is the main purpose of React components?',
-                  correctAnswer: 'To create reusable UI elements and manage component state',
-                  points: 7,
-                  explanation: 'React components allow you to create reusable UI elements and manage their state and lifecycle.'
+                  id: 'q5',
+                  type: 'chronological-order',
+                  question: 'Arrange the following React component lifecycle phases in chronological order:',
+                  items: [
+                    'Component mounts',
+                    'Component updates',
+                    'Component unmounts',
+                    'Component renders'
+                  ],
+                  correctOrder: [0, 3, 1, 2], // Mount -> Render -> Update -> Unmount
+                  points: 10,
+                  explanation: 'React components follow the lifecycle: Mount → Render → Update (if needed) → Unmount'
+                },
+                {
+                  id: 'q6',
+                  type: 'long-form-answer',
+                  question: 'Explain the concept of "lifting state up" in React and provide a practical example of when you would use this pattern.',
+                  sampleAnswer: 'Lifting state up means moving state from child components to their common parent component when multiple children need to share or synchronize state. For example, if you have two sibling components that need to display and modify the same user data, you would move the user state to their parent component and pass it down as props.',
+                  points: 15,
+                  explanation: 'This question tests understanding of React state management patterns and requires manual grading for full credit.',
+                  wordLimit: 500
+                },
+                {
+                  id: 'q7',
+                  type: 'multiple-choice-multimedia',
+                  question: 'Which of the following code snippets correctly implements a React functional component?',
+                  options: [
+                    {
+                      type: 'image',
+                      url: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=300&h=200&fit=crop',
+                      alt: 'Code snippet showing function component'
+                    },
+                    {
+                      type: 'text',
+                      content: 'const MyComponent = () => { return <div>Hello</div>; }'
+                    },
+                    {
+                      type: 'text', 
+                      content: 'class MyComponent extends Component { render() { return <div>Hello</div>; } }'
+                    },
+                    {
+                      type: 'text',
+                      content: 'function MyComponent() { return <div>Hello</div>; }'
+                    }
+                  ],
+                  correctAnswer: 1,
+                  points: 6,
+                  explanation: 'Both arrow functions and regular functions can be used for functional components, but option B shows the modern arrow function syntax.'
                 }
               ]
             }
