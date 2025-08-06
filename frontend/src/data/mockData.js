@@ -532,4 +532,3 @@ export const getInstructorQuizAnalytics = (instructorId) => {
       : 0
   };
 };
-};
