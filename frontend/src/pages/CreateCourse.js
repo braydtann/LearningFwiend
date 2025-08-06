@@ -226,7 +226,7 @@ const CreateCourse = () => {
           id: `m${prev.modules.length + 1}`,
           title: '',
           lessons: [
-            { id: `l${Date.now()}`, title: '', type: 'video', duration: '', videoUrl: '', presentationUrl: '', content: '' }
+            { id: `l${Date.now()}`, title: '', type: 'video', duration: '', videoUrl: '', presentationUrl: '', content: '', quiz: null }
           ]
         }
       ]
