@@ -22,6 +22,7 @@ import Profile from './pages/Profile';
 import Analytics from './pages/Analytics';
 import Certificates from './pages/Certificates';
 import Announcements from './pages/Announcements';
+import LoginPalStatus from './pages/LoginPalStatus';
 
 // Components
 import Layout from './components/Layout';
