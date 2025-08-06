@@ -217,6 +217,101 @@ const CreateCourse = () => {
     }));
   };
 
+  const handleOrderItemChange = (moduleIndex, lessonIndex, questionIndex, itemIndex, value) => {
+    setCourseData(prev => ({
+      ...prev,
+      modules: prev.modules.map((module, mIdx) => 
+        mIdx === moduleIndex 
+          ? {
+              ...module,
+              lessons: module.lessons.map((lesson, lIdx) =>
+                lIdx === lessonIndex 
+                  ? { 
+                      ...lesson, 
+                      quiz: {
+                        ...lesson.quiz,
+                        questions: (lesson.quiz?.questions || []).map((question, qIdx) =>
+                          qIdx === questionIndex 
+                            ? { 
+                                ...question, 
+                                items: question.items?.map((item, iIdx) =>
+                                  iIdx === itemIndex ? value : item
+                                ) || []
+                              } 
+                            : question
+                        )
+                      }
+                    } 
+                  : lesson
+              )
+            }
+          : module
+      )
+    }));
+  };
+
+  const addOrderItem = (moduleIndex, lessonIndex, questionIndex) => {
+    setCourseData(prev => ({
+      ...prev,
+      modules: prev.modules.map((module, mIdx) => 
+        mIdx === moduleIndex 
+          ? {
+              ...module,
+              lessons: module.lessons.map((lesson, lIdx) =>
+                lIdx === lessonIndex 
+                  ? { 
+                      ...lesson, 
+                      quiz: {
+                        ...lesson.quiz,
+                        questions: (lesson.quiz?.questions || []).map((question, qIdx) =>
+                          qIdx === questionIndex 
+                            ? { 
+                                ...question, 
+                                items: [...(question.items || []), '']
+                              } 
+                            : question
+                        )
+                      }
+                    } 
+                  : lesson
+              )
+            }
+          : module
+      )
+    }));
+  };
+
+  const removeOrderItem = (moduleIndex, lessonIndex, questionIndex, itemIndex) => {
+    setCourseData(prev => ({
+      ...prev,
+      modules: prev.modules.map((module, mIdx) => 
+        mIdx === moduleIndex 
+          ? {
+              ...module,
+              lessons: module.lessons.map((lesson, lIdx) =>
+                lIdx === lessonIndex 
+                  ? { 
+                      ...lesson, 
+                      quiz: {
+                        ...lesson.quiz,
+                        questions: (lesson.quiz?.questions || []).map((question, qIdx) =>
+                          qIdx === questionIndex 
+                            ? { 
+                                ...question, 
+                                items: (question.items || []).filter((_, iIdx) => iIdx !== itemIndex)
+                              } 
+                            : question
+                        )
+                      }
+                    } 
+                  : lesson
+              )
+            }
+          : module
+      )
+    }));
+  };
+
   const addModule = () => {
     setCourseData(prev => ({
       ...prev,
