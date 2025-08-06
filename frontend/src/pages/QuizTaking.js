@@ -437,6 +437,83 @@ const QuizTaking = () => {
                       />
                     </div>
                   )}
+
+                  {quiz.questions[currentQuestionIndex].type === 'long-form-answer' && (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm text-blue-600 font-medium">Provide a detailed answer:</p>
+                        {quiz.questions[currentQuestionIndex].wordLimit && (
+                          <span className="text-sm text-gray-500">
+                            Word limit: {quiz.questions[currentQuestionIndex].wordLimit} words
+                          </span>
+                        )}
+                      </div>
+                      <Textarea
+                        placeholder="Enter your detailed answer here..."
+                        rows={8}
+                        value={answers[quiz.questions[currentQuestionIndex].id] || ''}
+                        onChange={(e) => handleAnswerChange(
+                          quiz.questions[currentQuestionIndex].id, 
+                          e.target.value
+                        )}
+                        className="w-full"
+                      />
+                      {quiz.questions[currentQuestionIndex].wordLimit && (
+                        <p className="text-xs text-gray-500">
+                          Current word count: {(answers[quiz.questions[currentQuestionIndex].id] || '').split(/\s+/).filter(word => word.length > 0).length}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {quiz.questions[currentQuestionIndex].type === 'chronological-order' && (
+                    <div className="space-y-4">
+                      <p className="text-sm text-blue-600 font-medium mb-3">
+                        Drag and drop the items to arrange them in chronological order:
+                      </p>
+                      <div className="space-y-2">
+                        {(quiz.questions[currentQuestionIndex].items || []).map((item, index) => (
+                          <div
+                            key={index}
+                            className="p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 cursor-move hover:bg-gray-100 transition-colors"
+                            draggable
+                            onDragStart={(e) => {
+                              e.dataTransfer.setData('text/plain', index.toString());
+                            }}
+                            onDragOver={(e) => {
+                              e.preventDefault();
+                            }}
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              const draggedIndex = parseInt(e.dataTransfer.getData('text/plain'));
+                              const targetIndex = index;
+                              
+                              if (draggedIndex !== targetIndex) {
+                                const currentOrder = answers[quiz.questions[currentQuestionIndex].id] || quiz.questions[currentQuestionIndex].items.map((_, i) => i);
+                                const newOrder = [...currentOrder];
+                                const [draggedItem] = newOrder.splice(draggedIndex, 1);
+                                newOrder.splice(targetIndex, 0, draggedItem);
+                                handleAnswerChange(quiz.questions[currentQuestionIndex].id, newOrder);
+                              }
+                            }}
+                          >
+                            <div className="flex items-center space-x-3">
+                              <span className="text-sm font-medium text-gray-600">#{index + 1}</span>
+                              <span>{item}</span>
+                              <div className="ml-auto text-gray-400">
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M10 6L6 10l4 4 4-4-4-4z"/>
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        Click and drag the items to reorder them. The correct chronological order is from earliest to latest.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
