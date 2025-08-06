@@ -1384,6 +1384,205 @@ const CreateCourse = () => {
           </CardContent>
         </Card>
 
+        {/* Final Test Section */}
+        <Card className="mt-8 border-purple-200">
+          <CardHeader className="bg-gradient-to-r from-purple-50 to-blue-50">
+            <CardTitle className="flex items-center text-purple-800">
+              <Trophy className="w-5 h-5 mr-2" />
+              Final Test Configuration
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="space-y-6">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="enableFinalTest"
+                  checked={courseData.enableFinalTest || false}
+                  onChange={(e) => setCourseData(prev => ({ ...prev, enableFinalTest: e.target.checked }))}
+                  className="text-purple-600"
+                />
+                <Label htmlFor="enableFinalTest" className="font-medium">Enable Final Test for this course</Label>
+              </div>
+
+              {courseData.enableFinalTest && (
+                <div className="space-y-6 border-t pt-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label>Final Test Title</Label>
+                      <Input
+                        placeholder="e.g., React Development - Final Assessment"
+                        value={courseData.finalTest?.title || ''}
+                        onChange={(e) => handleFinalTestChange('title', e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Time Limit (minutes)</Label>
+                      <Input
+                        type="number"
+                        placeholder="90"
+                        value={courseData.finalTest?.timeLimit || ''}
+                        onChange={(e) => handleFinalTestChange('timeLimit', parseInt(e.target.value) || 0)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Passing Score (%)</Label>
+                      <Input
+                        type="number"
+                        placeholder="75"
+                        min="0"
+                        max="100"
+                        value={courseData.finalTest?.passingScore || ''}
+                        onChange={(e) => handleFinalTestChange('passingScore', parseInt(e.target.value) || 75)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Final Test Description</Label>
+                    <Textarea
+                      placeholder="Comprehensive test covering all topics from this course"
+                      rows={2}
+                      value={courseData.finalTest?.description || ''}
+                      onChange={(e) => handleFinalTestChange('description', e.target.value)}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Maximum Attempts</Label>
+                      <Input
+                        type="number"
+                        placeholder="2"
+                        min="1"
+                        value={courseData.finalTest?.maxAttempts || ''}
+                        onChange={(e) => handleFinalTestChange('maxAttempts', parseInt(e.target.value) || 2)}
+                      />
+                    </div>
+                    <div className="flex items-center space-x-4 pt-7">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id="shuffleFinalTest"
+                          checked={courseData.finalTest?.shuffleQuestions || false}
+                          onChange={(e) => handleFinalTestChange('shuffleQuestions', e.target.checked)}
+                          className="text-purple-600"
+                        />
+                        <Label htmlFor="shuffleFinalTest">Shuffle Questions</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id="showFinalTestResults"
+                          checked={courseData.finalTest?.showResults !== false}
+                          onChange={(e) => handleFinalTestChange('showResults', e.target.checked)}
+                          className="text-purple-600"
+                        />
+                        <Label htmlFor="showFinalTestResults">Show Results</Label>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Final Test Questions */}
+                  <div className="border-t pt-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <Label className="text-lg font-medium text-purple-800">Final Test Questions</Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={addFinalTestQuestion}
+                        className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Question
+                      </Button>
+                    </div>
+
+                    <div className="space-y-6">
+                      {(courseData.finalTest?.questions || []).map((question, questionIndex) => (
+                        <Card key={question.id} className="border-purple-200 bg-purple-50/30">
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between mb-3">
+                              <Badge variant="outline" className="border-purple-300 text-purple-700">
+                                Final Test Question {questionIndex + 1}
+                              </Badge>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => removeFinalTestQuestion(questionIndex)}
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+
+                            {/* Question configuration - similar to regular quiz but for final test */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                              <div className="space-y-2">
+                                <Label>Question Type</Label>
+                                <Select 
+                                  value={question.type || 'multiple-choice'} 
+                                  onValueChange={(value) => handleFinalTestQuestionChange(questionIndex, 'type', value)}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="multiple-choice">Multiple Choice</SelectItem>
+                                    <SelectItem value="select-all-that-apply">Select All That Apply</SelectItem>
+                                    <SelectItem value="true-false">True/False</SelectItem>
+                                    <SelectItem value="short-answer">Short Answer</SelectItem>
+                                    <SelectItem value="long-form-answer">Long Form Answer</SelectItem>
+                                    <SelectItem value="chronological-order">Chronological Order</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Points</Label>
+                                <Input
+                                  type="number"
+                                  placeholder="10"
+                                  min="1"
+                                  value={question.points || ''}
+                                  onChange={(e) => handleFinalTestQuestionChange(questionIndex, 'points', parseInt(e.target.value) || 1)}
+                                />
+                              </div>
+                            </div>
+
+                            <div className="space-y-2 mb-4">
+                              <Label>Question Text</Label>
+                              <Textarea
+                                placeholder="Enter your final test question here"
+                                rows={2}
+                                value={question.question || ''}
+                                onChange={(e) => handleFinalTestQuestionChange(questionIndex, 'question', e.target.value)}
+                              />
+                            </div>
+
+                            {/* This would include all the same question type interfaces as regular quiz */}
+                            <p className="text-xs text-purple-600">
+                              Question configuration interface would be here (same as regular quiz questions)
+                            </p>
+                          </CardContent>
+                        </Card>
+                      ))}
+
+                      {(!courseData.finalTest?.questions || courseData.finalTest.questions.length === 0) && (
+                        <div className="text-center py-8 text-purple-600 bg-purple-50 rounded-lg">
+                          <Trophy className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                          <p>No final test questions added yet. Click "Add Question" to create comprehensive assessment questions.</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Actions */}
         <div className="flex items-center justify-end space-x-4">
           <Button 
