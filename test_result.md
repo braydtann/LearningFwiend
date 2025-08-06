@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Build a comprehensive quiz maker system for LearningFwiend LMS with full quiz creation, student quiz-taking experience, results display, and grade tracking functionality."
+user_problem_statement: "Complete E2E testing of the entire LearningFwiend LMS application including all implemented features: user management, course management, quiz system, classroom management, programs, role-based access control, and final test functionality."
 
 frontend:
   - task: "Enhanced Mock Data Structure for Quizzes"
