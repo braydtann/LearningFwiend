@@ -58,9 +58,63 @@ export const mockCourses = [
         lessons: [
           { id: 'l4', title: 'Understanding JSX', type: 'video', duration: '18 min', videoUrl: 'https://www.youtube.com/embed/7fPXI_MnBOY' },
           { id: 'l5', title: 'Props and Component Communication', type: 'video', duration: '20 min', videoUrl: 'https://www.youtube.com/embed/PHaECbrKgs0' },
-          { id: 'l6', title: 'Component Quiz', type: 'quiz', questions: [
-            { id: 'q1', question: 'What does JSX stand for?', options: ['JavaScript XML', 'Java Syntax Extension', 'JavaScript Extension'], correct: 0 }
-          ]}
+          { 
+            id: 'l6', 
+            title: 'Component Quiz', 
+            type: 'quiz', 
+            duration: '10 min',
+            quiz: {
+              id: 'quiz1',
+              title: 'React Components Quiz',
+              description: 'Test your knowledge of React components and JSX',
+              timeLimit: 10, // minutes
+              maxAttempts: 3,
+              passingScore: 70,
+              shuffleQuestions: true,
+              showResults: true,
+              questions: [
+                {
+                  id: 'q1',
+                  type: 'multiple-choice',
+                  question: 'What does JSX stand for?',
+                  options: ['JavaScript XML', 'Java Syntax Extension', 'JavaScript Extension', 'Just Simple XML'],
+                  correctAnswer: 0,
+                  points: 5,
+                  explanation: 'JSX stands for JavaScript XML. It allows you to write HTML-like syntax in JavaScript.'
+                },
+                {
+                  id: 'q2',
+                  type: 'multiple-choice',
+                  question: 'Which of the following is the correct way to pass props to a component?',
+                  options: [
+                    '<MyComponent prop="value" />',
+                    '<MyComponent {prop: "value"} />',
+                    '<MyComponent prop={value} />',
+                    'All of the above'
+                  ],
+                  correctAnswer: 0,
+                  points: 5,
+                  explanation: 'Props are passed as attributes in JSX: <MyComponent prop="value" />'
+                },
+                {
+                  id: 'q3',
+                  type: 'true-false',
+                  question: 'React components must always return a single element.',
+                  correctAnswer: true,
+                  points: 3,
+                  explanation: 'React components must return a single element, but it can contain multiple child elements.'
+                },
+                {
+                  id: 'q4',
+                  type: 'short-answer',
+                  question: 'What is the main purpose of React components?',
+                  correctAnswer: 'To create reusable UI elements and manage component state',
+                  points: 7,
+                  explanation: 'React components allow you to create reusable UI elements and manage their state and lifecycle.'
+                }
+              ]
+            }
+          }
         ]
       }
     ]
