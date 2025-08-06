@@ -356,9 +356,30 @@ const QuizTaking = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
-                  <p className="text-lg text-gray-900">
-                    {quiz.questions[currentQuestionIndex].question}
-                  </p>
+                  <div className="space-y-4">
+                    <p className="text-lg text-gray-900">
+                      {quiz.questions[currentQuestionIndex].question}
+                    </p>
+                    
+                    {/* Question Media */}
+                    {quiz.questions[currentQuestionIndex].questionImage && (
+                      <div className="my-4">
+                        <img 
+                          src={quiz.questions[currentQuestionIndex].questionImage} 
+                          alt="Question illustration" 
+                          className="max-w-full h-64 object-cover rounded border shadow-sm"
+                        />
+                      </div>
+                    )}
+                    {quiz.questions[currentQuestionIndex].questionAudio && (
+                      <div className="my-4">
+                        <audio controls className="w-full max-w-md">
+                          <source src={quiz.questions[currentQuestionIndex].questionAudio} type="audio/mpeg" />
+                          Your browser does not support the audio element.
+                        </audio>
+                      </div>
+                    )}
+                  </div>
 
                   {quiz.questions[currentQuestionIndex].type === 'multiple-choice' && (
                     <div className="space-y-3">
