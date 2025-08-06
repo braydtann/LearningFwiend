@@ -125,6 +125,29 @@ const Login = () => {
               </Button>
             </form>
 
+            {/* OAuth Separator */}
+            <div className="my-6 flex items-center">
+              <div className="flex-1 border-t border-gray-300"></div>
+              <div className="mx-4 text-sm text-gray-500">or</div>
+              <div className="flex-1 border-t border-gray-300"></div>
+            </div>
+
+            {/* LoginPal OAuth Button */}
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full h-12 border-2 border-indigo-200 hover:border-indigo-300 hover:bg-indigo-50 text-indigo-700 font-medium relative group"
+              onClick={handleLoginPalClick}
+            >
+              <div className="flex items-center justify-center space-x-3">
+                <div className="w-6 h-6 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                  <Shield className="w-4 h-4 text-white" />
+                </div>
+                <span>Continue with LoginPal</span>
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 to-purple-500/5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            </Button>
+
             {/* Quick Login Demo Buttons */}
             <div className="mt-6 pt-6 border-t border-gray-200">
               <p className="text-sm text-gray-500 text-center mb-3">Quick Demo Login:</p>
