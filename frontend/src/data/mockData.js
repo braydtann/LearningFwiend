@@ -77,35 +77,28 @@ export const mockCourses = [
                   id: 'q1',
                   type: 'multiple-choice',
                   question: 'What does JSX stand for?',
-                  options: ['JavaScript XML', 'Java Syntax Extension', 'JavaScript Extension', 'Just Simple XML'],
+                  questionImage: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&h=200&fit=crop',
+                  options: [
+                    { text: 'JavaScript XML', image: '', audio: '' },
+                    { text: 'Java Syntax Extension', image: '', audio: '' },
+                    { text: 'JavaScript Extension', image: '', audio: '' },
+                    { text: 'Just Simple XML', image: '', audio: '' }
+                  ],
                   correctAnswer: 0,
                   points: 5,
                   explanation: 'JSX stands for JavaScript XML. It allows you to write HTML-like syntax in JavaScript.'
                 },
                 {
                   id: 'q2',
-                  type: 'multiple-choice',
-                  question: 'Which of the following is the correct way to pass props to a component?',
-                  options: [
-                    '<MyComponent prop="value" />',
-                    '<MyComponent {prop: "value"} />',
-                    '<MyComponent prop={value} />',
-                    'All of the above'
-                  ],
-                  correctAnswer: 0,
-                  points: 5,
-                  explanation: 'Props are passed as attributes in JSX: <MyComponent prop="value" />'
-                },
-                {
-                  id: 'q3',
                   type: 'select-all-that-apply',
                   question: 'Which of the following are valid React hooks? (Select all that apply)',
+                  questionAudio: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
                   options: [
-                    'useState',
-                    'useEffect',
-                    'useProps',
-                    'useContext',
-                    'useComponent'
+                    { text: 'useState', image: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=100&h=100&fit=crop', audio: '' },
+                    { text: 'useEffect', image: 'https://images.unsplash.com/photo-1633356122102-3fe601e05bd2?w=100&h=100&fit=crop', audio: '' },
+                    { text: 'useProps', image: '', audio: '' },
+                    { text: 'useContext', image: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=100&h=100&fit=crop', audio: '' },
+                    { text: 'useComponent', image: '', audio: '' }
                   ],
                   correctAnswers: [0, 1, 3], // useState, useEffect, useContext
                   points: 8,
