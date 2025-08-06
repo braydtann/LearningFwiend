@@ -1161,22 +1161,58 @@ const CreateCourse = () => {
                                         <div className="space-y-2 mb-4">
                                           <Label>Items to Order</Label>
                                           {(question.items || ['', '', '', '']).map((item, itemIndex) => (
-                                            <div key={itemIndex} className="flex items-center space-x-2">
-                                              <span className="text-sm text-gray-600 min-w-[80px]">Position {itemIndex + 1}:</span>
-                                              <Input
-                                                placeholder={`Item ${itemIndex + 1}`}
-                                                value={item}
-                                                onChange={(e) => handleOrderItemChange(moduleIndex, lessonIndex, questionIndex, itemIndex, e.target.value)}
-                                              />
-                                              <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => removeOrderItem(moduleIndex, lessonIndex, questionIndex, itemIndex)}
-                                                disabled={(question.items || []).length <= 2}
-                                              >
-                                                <Trash2 className="w-4 h-4" />
-                                              </Button>
+                                            <div key={itemIndex} className="border rounded-lg p-3 space-y-3">
+                                              <div className="flex items-center space-x-2">
+                                                <span className="text-sm text-gray-600 min-w-[80px]">Position {itemIndex + 1}:</span>
+                                                <Input
+                                                  placeholder={`Item ${itemIndex + 1} text`}
+                                                  value={typeof item === 'string' ? item : (item?.text || '')}
+                                                  onChange={(e) => handleOrderItemTextChange(moduleIndex, lessonIndex, questionIndex, itemIndex, e.target.value)}
+                                                />
+                                                <Button
+                                                  type="button"
+                                                  variant="outline"
+                                                  size="sm"
+                                                  onClick={() => removeOrderItem(moduleIndex, lessonIndex, questionIndex, itemIndex)}
+                                                  disabled={(question.items || []).length <= 2}
+                                                >
+                                                  <Trash2 className="w-4 h-4" />
+                                                </Button>
+                                              </div>
+                                              
+                                              {/* Item Media */}
+                                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 ml-20">
+                                                <div className="space-y-1">
+                                                  <Label className="text-xs">Item Image URL</Label>
+                                                  <Input
+                                                    placeholder="https://example.com/item-image.jpg"
+                                                    value={typeof item === 'object' ? (item.image || '') : ''}
+                                                    onChange={(e) => handleOrderItemMediaChange(moduleIndex, lessonIndex, questionIndex, itemIndex, 'image', e.target.value)}
+                                                  />
+                                                </div>
+                                                <div className="space-y-1">
+                                                  <Label className="text-xs">Item Audio URL</Label>
+                                                  <Input
+                                                    placeholder="https://example.com/item-audio.mp3"
+                                                    value={typeof item === 'object' ? (item.audio || '') : ''}
+                                                    onChange={(e) => handleOrderItemMediaChange(moduleIndex, lessonIndex, questionIndex, itemIndex, 'audio', e.target.value)}
+                                                  />
+                                                </div>
+                                              </div>
+                                              
+                                              {/* Media Preview */}
+                                              {typeof item === 'object' && item.image && (
+                                                <div className="ml-20">
+                                                  <img src={item.image} alt={`Item ${itemIndex + 1}`} className="max-w-xs h-20 object-cover rounded border" />
+                                                </div>
+                                              )}
+                                              {typeof item === 'object' && item.audio && (
+                                                <div className="ml-20">
+                                                  <audio controls className="w-full max-w-xs">
+                                                    <source src={item.audio} type="audio/mpeg" />
+                                                  </audio>
+                                                </div>
+                                              )}
                                             </div>
                                           ))}
                                           <Button
@@ -1202,7 +1238,7 @@ const CreateCourse = () => {
                                               }}
                                             />
                                           </div>
-                                          <p className="text-xs text-gray-500">Students will drag and drop these items into the correct chronological order.</p>
+                                          <p className="text-xs text-gray-500">Students will drag and drop these items into the correct chronological order. Add images or audio to enhance the items.</p>
                                         </div>
                                       )}
 
