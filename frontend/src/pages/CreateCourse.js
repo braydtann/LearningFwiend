@@ -803,24 +803,81 @@ const CreateCourse = () => {
 
                                       {(question.type === 'multiple-choice' || !question.type) && (
                                         <div className="space-y-2 mb-4">
-                                          <Label>Answer Options</Label>
+                                          <div className="flex items-center justify-between">
+                                            <Label>Answer Options</Label>
+                                            <Button
+                                              type="button"
+                                              variant="outline"
+                                              size="sm"
+                                              onClick={() => addAnswerOption(moduleIndex, lessonIndex, questionIndex)}
+                                            >
+                                              <Plus className="w-4 h-4 mr-1" />
+                                              Add Option
+                                            </Button>
+                                          </div>
                                           {(question.options || ['', '', '', '']).map((option, optionIndex) => (
-                                            <div key={optionIndex} className="flex items-center space-x-2">
-                                              <input
-                                                type="radio"
-                                                name={`correct-${question.id}`}
-                                                checked={question.correctAnswer === optionIndex}
-                                                onChange={() => handleQuestionChange(moduleIndex, lessonIndex, questionIndex, 'correctAnswer', optionIndex)}
-                                                className="text-green-600"
-                                              />
-                                              <Input
-                                                placeholder={`Option ${optionIndex + 1}`}
-                                                value={option}
-                                                onChange={(e) => handleOptionChange(moduleIndex, lessonIndex, questionIndex, optionIndex, e.target.value)}
-                                              />
+                                            <div key={optionIndex} className="border rounded-lg p-3 space-y-3">
+                                              <div className="flex items-center space-x-2">
+                                                <input
+                                                  type="radio"
+                                                  name={`correct-${question.id}`}
+                                                  checked={question.correctAnswer === optionIndex}
+                                                  onChange={() => handleQuestionChange(moduleIndex, lessonIndex, questionIndex, 'correctAnswer', optionIndex)}
+                                                  className="text-green-600"
+                                                />
+                                                <Input
+                                                  placeholder={`Option ${optionIndex + 1} text`}
+                                                  value={typeof option === 'string' ? option : (option?.text || '')}
+                                                  onChange={(e) => handleOptionTextChange(moduleIndex, lessonIndex, questionIndex, optionIndex, e.target.value)}
+                                                />
+                                                {(question.options || []).length > 2 && (
+                                                  <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => removeAnswerOption(moduleIndex, lessonIndex, questionIndex, optionIndex)}
+                                                  >
+                                                    <Trash2 className="w-4 h-4" />
+                                                  </Button>
+                                                )}
+                                              </div>
+                                              
+                                              {/* Option Media */}
+                                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 ml-6">
+                                                <div className="space-y-1">
+                                                  <Label className="text-xs">Option Image URL</Label>
+                                                  <Input
+                                                    placeholder="https://example.com/option-image.jpg"
+                                                    value={typeof option === 'object' ? (option.image || '') : ''}
+                                                    onChange={(e) => handleOptionMediaChange(moduleIndex, lessonIndex, questionIndex, optionIndex, 'image', e.target.value)}
+                                                  />
+                                                </div>
+                                                <div className="space-y-1">
+                                                  <Label className="text-xs">Option Audio URL</Label>
+                                                  <Input
+                                                    placeholder="https://example.com/option-audio.mp3"
+                                                    value={typeof option === 'object' ? (option.audio || '') : ''}
+                                                    onChange={(e) => handleOptionMediaChange(moduleIndex, lessonIndex, questionIndex, optionIndex, 'audio', e.target.value)}
+                                                  />
+                                                </div>
+                                              </div>
+                                              
+                                              {/* Media Preview */}
+                                              {typeof option === 'object' && option.image && (
+                                                <div className="ml-6">
+                                                  <img src={option.image} alt={`Option ${optionIndex + 1}`} className="max-w-xs h-20 object-cover rounded border" />
+                                                </div>
+                                              )}
+                                              {typeof option === 'object' && option.audio && (
+                                                <div className="ml-6">
+                                                  <audio controls className="w-full max-w-xs">
+                                                    <source src={option.audio} type="audio/mpeg" />
+                                                  </audio>
+                                                </div>
+                                              )}
                                             </div>
                                           ))}
-                                          <p className="text-xs text-gray-500">Select the radio button next to the correct answer</p>
+                                          <p className="text-xs text-gray-500">Select the radio button next to the correct answer. Add images or audio to enhance your options.</p>
                                         </div>
                                       )}
 
