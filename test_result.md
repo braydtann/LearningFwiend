@@ -270,11 +270,16 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Quiz System End-to-End Testing"
-    - "Role-based Access Control for Quiz Features"
-    - "Quiz Creation Workflow"
-    - "Quiz Taking Experience"
-    - "Results and Analytics Display"
+    - "Complete Application E2E Testing"
+    - "Authentication and Role-based Access Control"
+    - "Course Management (Create, Edit, View)"
+    - "Quiz Creation and Taking Workflow"
+    - "Final Test Feature"
+    - "Classroom Management"
+    - "Programs Management"
+    - "User Management (Admin Functions)"
+    - "Dashboard Functionality (All Roles)"
+    - "Content Embedding (YouTube, Vimeo, Google Drive, Canva)"
   stuck_tasks: []
   test_all: true
   test_priority: "high_first"
