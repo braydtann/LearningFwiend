@@ -51,7 +51,7 @@ const InstructorDashboard = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
         <Card className="bg-blue-50 border-blue-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -92,10 +92,22 @@ const InstructorDashboard = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-purple-600 text-sm font-medium">Avg Rating</p>
-                <p className="text-2xl font-bold text-purple-700">{stats.avgRating}</p>
+                <p className="text-purple-600 text-sm font-medium">Total Quizzes</p>
+                <p className="text-2xl font-bold text-purple-700">{stats.quizzes}</p>
               </div>
-              <TrendingUp className="h-8 w-8 text-purple-600" />
+              <ClipboardCheck className="h-8 w-8 text-purple-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-indigo-50 border-indigo-200">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-indigo-600 text-sm font-medium">Avg Rating</p>
+                <p className="text-2xl font-bold text-indigo-700">{stats.avgRating}</p>
+              </div>
+              <TrendingUp className="h-8 w-8 text-indigo-600" />
             </div>
           </CardContent>
         </Card>
