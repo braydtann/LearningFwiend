@@ -1790,6 +1790,39 @@ const CreateCourse = () => {
                               />
                             </div>
 
+                            {/* Final Test Question Type and Points */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                              <div className="space-y-2">
+                                <Label>Question Type</Label>
+                                <Select 
+                                  value={question.type || 'multiple-choice'} 
+                                  onValueChange={(value) => handleFinalTestQuestionChange(questionIndex, 'type', value)}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="multiple-choice">Multiple Choice</SelectItem>
+                                    <SelectItem value="select-all-that-apply">Select All That Apply</SelectItem>
+                                    <SelectItem value="true-false">True/False</SelectItem>
+                                    <SelectItem value="short-answer">Short Answer</SelectItem>
+                                    <SelectItem value="long-form-answer">Long Form Answer</SelectItem>
+                                    <SelectItem value="chronological-order">Chronological Order</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Points</Label>
+                                <Input
+                                  type="number"
+                                  placeholder="10"
+                                  min="1"
+                                  value={question.points || ''}
+                                  onChange={(e) => handleFinalTestQuestionChange(questionIndex, 'points', parseInt(e.target.value) || 1)}
+                                />
+                              </div>
+                            </div>
+
                             {/* Final Test Question Media Upload */}
                             <div className="space-y-2 mb-4">
                               <Label>Question Media (Optional)</Label>
