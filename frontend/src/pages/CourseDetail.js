@@ -243,14 +243,24 @@ const CourseDetail = () => {
                                     {lesson.type === 'video' && <Play className="w-4 h-4" />}
                                     {lesson.type === 'presentation' && <Presentation className="w-4 h-4" />}
                                     {lesson.type === 'text' && <FileText className="w-4 h-4" />}
-                                    {lesson.type === 'quiz' && <CheckCircle className="w-4 h-4" />}
+                                    {lesson.type === 'quiz' && <CheckCircle className="w-4 h-4 text-purple-600" />}
                                   </div>
                                   <div>
                                     <p className="font-medium text-gray-900">
                                       {lessonIndex + 1}. {lesson.title}
+                                      {lesson.type === 'quiz' && (
+                                        <Badge variant="outline" className="ml-2 text-purple-600">
+                                          Quiz
+                                        </Badge>
+                                      )}
                                     </p>
                                     {lesson.duration && (
                                       <p className="text-sm text-gray-500">{lesson.duration}</p>
+                                    )}
+                                    {lesson.type === 'quiz' && lesson.quiz && (
+                                      <p className="text-sm text-gray-500">
+                                        {lesson.quiz.questions?.length || 0} questions • {lesson.quiz.timeLimit || 10} min
+                                      </p>
                                     )}
                                   </div>
                                 </div>
