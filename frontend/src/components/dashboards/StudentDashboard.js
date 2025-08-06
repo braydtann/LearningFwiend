@@ -15,13 +15,18 @@ const StudentDashboard = () => {
   const enrolledCourses = getEnrolledCourses(user?.id);
   const certificates = getUserCertificates(user?.id);
   const studentClassrooms = getStudentClassrooms(user?.id);
+  const quizResults = getUserQuizResults(user?.id);
   
   const stats = {
     enrolled: enrolledCourses.length,
     completed: enrolledCourses.filter(course => course.progress === 100).length,
     inProgress: enrolledCourses.filter(course => course.progress > 0 && course.progress < 100).length,
     certificates: certificates.length,
-    classrooms: studentClassrooms.length
+    classrooms: studentClassrooms.length,
+    quizzesTaken: quizResults.length,
+    avgQuizScore: quizResults.length > 0 
+      ? Math.round(quizResults.reduce((sum, result) => sum + result.bestScore, 0) / quizResults.length)
+      : 0
   };
 
   return (
