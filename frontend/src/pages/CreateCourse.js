@@ -118,7 +118,14 @@ const CreateCourse = () => {
                             id: `q${Date.now()}`,
                             type: 'multiple-choice',
                             question: '',
-                            options: ['', '', '', ''],
+                            questionImage: '',
+                            questionAudio: '',
+                            options: [
+                              { text: '', image: '', audio: '' },
+                              { text: '', image: '', audio: '' },
+                              { text: '', image: '', audio: '' },
+                              { text: '', image: '', audio: '' }
+                            ],
                             correctAnswer: 0,
                             correctAnswers: [], // for select-all-that-apply
                             items: [], // for chronological-order
