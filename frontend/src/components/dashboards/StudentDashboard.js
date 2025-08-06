@@ -114,42 +114,32 @@ const StudentDashboard = () => {
         </Card>
       </div>
 
-        <Card className="bg-green-50 border-green-200">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-green-600 text-sm font-medium">Completed</p>
-                <p className="text-2xl font-bold text-green-700">{stats.completed}</p>
-              </div>
-              <Award className="h-8 w-8 text-green-600" />
+      {/* Recent Quiz Performance */}
+      {quizResults.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl">Recent Quiz Performance</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {quizResults.slice(0, 3).map((result, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <p className="font-medium text-gray-900">Quiz Performance</p>
+                    <p className="text-sm text-gray-600">{result.totalAttempts} attempts</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-bold text-gray-900">{result.bestScore}%</p>
+                    <Badge variant={result.passed ? "default" : "destructive"} className="text-xs">
+                      {result.passed ? "Passed" : "Failed"}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
-
-        <Card className="bg-orange-50 border-orange-200">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-orange-600 text-sm font-medium">In Progress</p>
-                <p className="text-2xl font-bold text-orange-700">{stats.inProgress}</p>
-              </div>
-              <TrendingUp className="h-8 w-8 text-orange-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-indigo-50 border-indigo-200">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-indigo-600 text-sm font-medium">Certificates</p>
-                <p className="text-2xl font-bold text-indigo-700">{stats.certificates}</p>
-              </div>
-              <Award className="h-8 w-8 text-indigo-600" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      )}
 
       {/* Enrolled Courses */}
       <Card>
