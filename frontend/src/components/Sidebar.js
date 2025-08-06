@@ -13,7 +13,8 @@ import {
   PlusCircle,
   Award,
   MessageSquare,
-  LogOut 
+  LogOut,
+  ClipboardCheck
 } from 'lucide-react';
 
 const Sidebar = () => {
