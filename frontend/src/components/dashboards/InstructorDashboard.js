@@ -14,11 +14,13 @@ const InstructorDashboard = () => {
   const myCourses = mockCourses.filter(course => course.instructorId === user?.id);
   const totalStudents = myCourses.reduce((sum, course) => sum + course.enrolledStudents, 0);
   const publishedCourses = myCourses.filter(course => course.status === 'published').length;
+  const quizAnalytics = getInstructorQuizAnalytics(user?.id);
   
   const stats = {
     courses: myCourses.length,
     students: totalStudents,
     published: publishedCourses,
+    quizzes: quizAnalytics.totalQuizzes,
     avgRating: 4.7 // Mock average rating
   };
 
