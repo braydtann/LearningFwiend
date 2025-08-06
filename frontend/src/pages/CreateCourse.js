@@ -317,6 +317,143 @@ const CreateCourse = () => {
     }));
   };
 
+  const addAnswerOption = (moduleIndex, lessonIndex, questionIndex) => {
+    setCourseData(prev => ({
+      ...prev,
+      modules: prev.modules.map((module, mIdx) => 
+        mIdx === moduleIndex 
+          ? {
+              ...module,
+              lessons: module.lessons.map((lesson, lIdx) =>
+                lIdx === lessonIndex 
+                  ? { 
+                      ...lesson, 
+                      quiz: {
+                        ...lesson.quiz,
+                        questions: (lesson.quiz?.questions || []).map((question, qIdx) =>
+                          qIdx === questionIndex 
+                            ? { 
+                                ...question, 
+                                options: [...(question.options || []), { text: '', image: '', audio: '' }]
+                              } 
+                            : question
+                        )
+                      }
+                    } 
+                  : lesson
+              )
+            }
+          : module
+      )
+    }));
+  };
+
+  const removeAnswerOption = (moduleIndex, lessonIndex, questionIndex, optionIndex) => {
+    setCourseData(prev => ({
+      ...prev,
+      modules: prev.modules.map((module, mIdx) => 
+        mIdx === moduleIndex 
+          ? {
+              ...module,
+              lessons: module.lessons.map((lesson, lIdx) =>
+                lIdx === lessonIndex 
+                  ? { 
+                      ...lesson, 
+                      quiz: {
+                        ...lesson.quiz,
+                        questions: (lesson.quiz?.questions || []).map((question, qIdx) =>
+                          qIdx === questionIndex 
+                            ? { 
+                                ...question, 
+                                options: (question.options || []).filter((_, oIdx) => oIdx !== optionIndex),
+                                correctAnswer: question.correctAnswer === optionIndex ? 0 : 
+                                             question.correctAnswer > optionIndex ? question.correctAnswer - 1 : question.correctAnswer,
+                                correctAnswers: question.correctAnswers ? 
+                                  question.correctAnswers.map(ans => ans > optionIndex ? ans - 1 : ans).filter(ans => ans !== optionIndex) :
+                                  []
+                              } 
+                            : question
+                        )
+                      }
+                    } 
+                  : lesson
+              )
+            }
+          : module
+      )
+    }));
+  };
+
+  const handleOptionTextChange = (moduleIndex, lessonIndex, questionIndex, optionIndex, value) => {
+    setCourseData(prev => ({
+      ...prev,
+      modules: prev.modules.map((module, mIdx) => 
+        mIdx === moduleIndex 
+          ? {
+              ...module,
+              lessons: module.lessons.map((lesson, lIdx) =>
+                lIdx === lessonIndex 
+                  ? { 
+                      ...lesson, 
+                      quiz: {
+                        ...lesson.quiz,
+                        questions: (lesson.quiz?.questions || []).map((question, qIdx) =>
+                          qIdx === questionIndex 
+                            ? { 
+                                ...question, 
+                                options: (question.options || []).map((option, oIdx) =>
+                                  oIdx === optionIndex 
+                                    ? (typeof option === 'string' ? { text: value, image: '', audio: '' } : { ...option, text: value })
+                                    : option
+                                )
+                              } 
+                            : question
+                        )
+                      }
+                    } 
+                  : lesson
+              )
+            }
+          : module
+      )
+    }));
+  };
+
+  const handleOptionMediaChange = (moduleIndex, lessonIndex, questionIndex, optionIndex, mediaType, value) => {
+    setCourseData(prev => ({
+      ...prev,
+      modules: prev.modules.map((module, mIdx) => 
+        mIdx === moduleIndex 
+          ? {
+              ...module,
+              lessons: module.lessons.map((lesson, lIdx) =>
+                lIdx === lessonIndex 
+                  ? { 
+                      ...lesson, 
+                      quiz: {
+                        ...lesson.quiz,
+                        questions: (lesson.quiz?.questions || []).map((question, qIdx) =>
+                          qIdx === questionIndex 
+                            ? { 
+                                ...question, 
+                                options: (question.options || []).map((option, oIdx) =>
+                                  oIdx === optionIndex 
+                                    ? (typeof option === 'string' ? { text: option, [mediaType]: value } : { ...option, [mediaType]: value })
+                                    : option
+                                )
+                              } 
+                            : question
+                        )
+                      }
+                    } 
+                  : lesson
+              )
+            }
+          : module
+      )
+    }));
+  };
+
   const addModule = () => {
     setCourseData(prev => ({
       ...prev,
