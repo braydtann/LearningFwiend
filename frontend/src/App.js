@@ -15,6 +15,7 @@ import Classrooms from './pages/Classrooms';
 import ClassroomDetail from './pages/ClassroomDetail';
 import CreateCourse from './pages/CreateCourse';
 import QuizTaking from './pages/QuizTaking';
+import QuizResults from './pages/QuizResults';
 import Users from './pages/Users';
 import Profile from './pages/Profile';
 import Analytics from './pages/Analytics';
