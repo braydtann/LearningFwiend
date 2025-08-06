@@ -199,7 +199,52 @@ export const mockCourses = [
           { id: 'l8', title: 'Variables and Data Types', type: 'video', duration: '22 min', videoUrl: 'https://www.youtube.com/embed/OH86oLzVzzw' }
         ]
       }
-    ]
+    ],
+    finalTest: {
+      id: 'final_test_2',
+      title: 'Python for Data Science - Final Assessment',
+      description: 'Comprehensive test covering all topics from the Python for Data Science course',
+      timeLimit: 90, // 90 minutes
+      maxAttempts: 2,
+      passingScore: 75,
+      shuffleQuestions: true,
+      showResults: true,
+      questions: [
+        {
+          id: 'ft_q1',
+          type: 'select-all-that-apply',
+          question: 'Which of the following are valid Python data types? (Select all that apply)',
+          options: ['int', 'string', 'list', 'boolean', 'array'],
+          correctAnswers: [0, 1, 2, 3], // int, string, list, boolean (array is not a built-in type)
+          points: 10,
+          explanation: 'Python has int, str (string), list, and bool data types built-in. Array is available through numpy, not built-in.'
+        },
+        {
+          id: 'ft_q2',
+          type: 'chronological-order',
+          question: 'Arrange the following steps of a typical data science workflow in chronological order:',
+          items: [
+            'Data Collection',
+            'Data Analysis', 
+            'Data Cleaning',
+            'Model Deployment',
+            'Model Training'
+          ],
+          correctOrder: [0, 2, 1, 4, 3], // Collection -> Cleaning -> Analysis -> Training -> Deployment
+          points: 15,
+          explanation: 'Data science workflow: Collect data → Clean data → Analyze data → Train models → Deploy models'
+        },
+        {
+          id: 'ft_q3',
+          type: 'long-form-answer',
+          question: 'Explain the difference between supervised and unsupervised learning. Provide examples of each and discuss when you would use one approach over the other.',
+          sampleAnswer: 'Supervised learning uses labeled training data to learn patterns and make predictions on new data (e.g., email spam detection, image classification). Unsupervised learning finds hidden patterns in unlabeled data (e.g., customer segmentation, anomaly detection). Use supervised when you have labeled examples; use unsupervised for exploration and pattern discovery.',
+          points: 20,
+          explanation: 'This question tests understanding of core machine learning concepts.',
+          wordLimit: 750
+        }
+      ]
+    }
   },
   {
     id: '3',
