@@ -56,6 +56,43 @@ const Users = () => {
     setIsCreateModalOpen(false);
   };
 
+  const handleEditUser = (user) => {
+    setSelectedUser(user);
+    setEditUser({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateUser = () => {
+    if (!editUser.name || !editUser.email) {
+      toast({
+        title: "Missing required fields",
+        description: "Please fill in all required information.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "User updated successfully!",
+      description: `${editUser.name}'s information has been updated.`,
+    });
+
+    setEditUser({ id: '', name: '', email: '', role: 'learner' });
+    setSelectedUser(null);
+    setIsEditModalOpen(false);
+  };
+
+  const handleCancelEdit = () => {
+    setEditUser({ id: '', name: '', email: '', role: 'learner' });
+    setSelectedUser(null);
+    setIsEditModalOpen(false);
+  };
+
   const handleDeleteUser = (userId, userName) => {
     toast({
       title: "User deleted",
