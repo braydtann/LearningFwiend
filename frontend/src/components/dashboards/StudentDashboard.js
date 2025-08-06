@@ -138,26 +138,14 @@ const StudentDashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-purple-50 border-purple-200">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-purple-600 text-sm font-medium">Certificates</p>
-                <p className="text-2xl font-bold text-purple-700">{stats.certificates}</p>
-              </div>
-              <Award className="h-8 w-8 text-purple-600" />
-            </div>
-          </CardContent>
-        </Card>
-
         <Card className="bg-indigo-50 border-indigo-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-indigo-600 text-sm font-medium">Classrooms</p>
-                <p className="text-2xl font-bold text-indigo-700">{stats.classrooms}</p>
+                <p className="text-indigo-600 text-sm font-medium">Certificates</p>
+                <p className="text-2xl font-bold text-indigo-700">{stats.certificates}</p>
               </div>
-              <Users className="h-8 w-8 text-indigo-600" />
+              <Award className="h-8 w-8 text-indigo-600" />
             </div>
           </CardContent>
         </Card>
