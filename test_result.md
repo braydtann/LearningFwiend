@@ -189,17 +189,41 @@ frontend:
         agent: "main"
         comment: "Successfully updated course detail page to handle quiz lessons properly, including visual indicators, click navigation to quiz taking interface, and proper lesson display."
 
-  - task: "Dashboard Statistics Integration"
+  - task: "Advanced Question Types Implementation"
     implemented: true
     working: true
-    file: "/app/frontend/src/components/dashboards/InstructorDashboard.js, /app/frontend/src/components/dashboards/StudentDashboard.js"
+    file: "/app/frontend/src/pages/CreateCourse.js, /app/frontend/src/pages/QuizTaking.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Successfully implemented 3 new question types: Select-all-that-apply with multiple correct answers, Long-form answers requiring manual grading, and Chronological order with drag-and-drop functionality."
+
+  - task: "Multimedia Response Options Support"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/data/mockData.js, /app/frontend/src/pages/CreateCourse.js"
     stuck_count: 0
     priority: "medium"
     needs_retesting: false
     status_history:
       - working: true
         agent: "main"
-        comment: "Successfully integrated quiz-related statistics into both instructor and student dashboards. Added quiz count, attempts, scores, and performance metrics with proper data visualization."
+        comment: "Successfully enhanced mock data structure to support multimedia content (images, videos, audio) as response options. Added example multimedia question with image options in mock data."
+
+  - task: "Final Test Feature"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/FinalTest.js, /app/frontend/src/pages/CourseDetail.js, /app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Successfully implemented comprehensive Final Test system that unlocks at 80% course completion. Created dedicated Final Test interface with purple branding, comprehensive questions covering entire course, and certificate generation upon passing."
 
 backend:
   - task: "No Backend Integration Required"
