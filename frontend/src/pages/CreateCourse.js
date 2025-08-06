@@ -657,6 +657,163 @@ const CreateCourse = () => {
     }));
   };
 
+  const addFinalTestAnswerOption = (questionIndex) => {
+    setCourseData(prev => ({
+      ...prev,
+      finalTest: {
+        ...prev.finalTest,
+        questions: (prev.finalTest?.questions || []).map((question, qIdx) =>
+          qIdx === questionIndex 
+            ? { 
+                ...question, 
+                options: [...(question.options || []), { text: '', image: '', audio: '' }]
+              } 
+            : question
+        )
+      }
+    }));
+  };
+
+  const removeFinalTestAnswerOption = (questionIndex, optionIndex) => {
+    setCourseData(prev => ({
+      ...prev,
+      finalTest: {
+        ...prev.finalTest,
+        questions: (prev.finalTest?.questions || []).map((question, qIdx) =>
+          qIdx === questionIndex 
+            ? { 
+                ...question, 
+                options: (question.options || []).filter((_, oIdx) => oIdx !== optionIndex),
+                correctAnswer: question.correctAnswer === optionIndex ? 0 : 
+                             question.correctAnswer > optionIndex ? question.correctAnswer - 1 : question.correctAnswer,
+                correctAnswers: question.correctAnswers ? 
+                  question.correctAnswers.map(ans => ans > optionIndex ? ans - 1 : ans).filter(ans => ans !== optionIndex) :
+                  []
+              } 
+            : question
+        )
+      }
+    }));
+  };
+
+  const handleFinalTestOptionTextChange = (questionIndex, optionIndex, value) => {
+    setCourseData(prev => ({
+      ...prev,
+      finalTest: {
+        ...prev.finalTest,
+        questions: (prev.finalTest?.questions || []).map((question, qIdx) =>
+          qIdx === questionIndex 
+            ? { 
+                ...question, 
+                options: (question.options || []).map((option, oIdx) =>
+                  oIdx === optionIndex 
+                    ? (typeof option === 'string' ? { text: value, image: '', audio: '' } : { ...option, text: value })
+                    : option
+                )
+              } 
+            : question
+        )
+      }
+    }));
+  };
+
+  const handleFinalTestOptionMediaChange = (questionIndex, optionIndex, mediaType, value) => {
+    setCourseData(prev => ({
+      ...prev,
+      finalTest: {
+        ...prev.finalTest,
+        questions: (prev.finalTest?.questions || []).map((question, qIdx) =>
+          qIdx === questionIndex 
+            ? { 
+                ...question, 
+                options: (question.options || []).map((option, oIdx) =>
+                  oIdx === optionIndex 
+                    ? (typeof option === 'string' ? { text: option, [mediaType]: value } : { ...option, [mediaType]: value })
+                    : option
+                )
+              } 
+            : question
+        )
+      }
+    }));
+  };
+
+  const handleFinalTestOrderItemTextChange = (questionIndex, itemIndex, value) => {
+    setCourseData(prev => ({
+      ...prev,
+      finalTest: {
+        ...prev.finalTest,
+        questions: (prev.finalTest?.questions || []).map((question, qIdx) =>
+          qIdx === questionIndex 
+            ? { 
+                ...question, 
+                items: (question.items || []).map((item, iIdx) =>
+                  iIdx === itemIndex 
+                    ? (typeof item === 'string' ? { text: value, image: '', audio: '' } : { ...item, text: value })
+                    : item
+                )
+              } 
+            : question
+        )
+      }
+    }));
+  };
+
+  const handleFinalTestOrderItemMediaChange = (questionIndex, itemIndex, mediaType, value) => {
+    setCourseData(prev => ({
+      ...prev,
+      finalTest: {
+        ...prev.finalTest,
+        questions: (prev.finalTest?.questions || []).map((question, qIdx) =>
+          qIdx === questionIndex 
+            ? { 
+                ...question, 
+                items: (question.items || []).map((item, iIdx) =>
+                  iIdx === itemIndex 
+                    ? (typeof item === 'string' ? { text: item, [mediaType]: value } : { ...item, [mediaType]: value })
+                    : item
+                )
+              } 
+            : question
+        )
+      }
+    }));
+  };
+
+  const addFinalTestOrderItem = (questionIndex) => {
+    setCourseData(prev => ({
+      ...prev,
+      finalTest: {
+        ...prev.finalTest,
+        questions: (prev.finalTest?.questions || []).map((question, qIdx) =>
+          qIdx === questionIndex 
+            ? { 
+                ...question, 
+                items: [...(question.items || []), { text: '', image: '', audio: '' }]
+              } 
+            : question
+        )
+      }
+    }));
+  };
+
+  const removeFinalTestOrderItem = (questionIndex, itemIndex) => {
+    setCourseData(prev => ({
+      ...prev,
+      finalTest: {
+        ...prev.finalTest,
+        questions: (prev.finalTest?.questions || []).map((question, qIdx) =>
+          qIdx === questionIndex 
+            ? { 
+                ...question, 
+                items: (question.items || []).filter((_, iIdx) => iIdx !== itemIndex)
+              } 
+            : question
+        )
+      }
+    }));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     
