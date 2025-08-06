@@ -59,6 +59,12 @@ const Sidebar = () => {
       roles: ['admin', 'instructor'] 
     },
     { 
+      path: '/quiz-results', 
+      icon: ClipboardCheck, 
+      label: 'Quiz Results', 
+      roles: ['admin', 'instructor'] 
+    },
+    { 
       path: '/users', 
       icon: Users, 
       label: 'Users', 
