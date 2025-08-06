@@ -422,3 +422,114 @@ export const getStudentClassrooms = (studentId) => {
     };
   });
 };
+
+// Quiz-related mock data
+export const mockQuizAttempts = [
+  {
+    id: '1',
+    userId: '3',
+    courseId: '1',
+    lessonId: 'l6',
+    quizId: 'quiz1',
+    attempt: 1,
+    startedAt: '2024-03-15T10:00:00Z',
+    completedAt: '2024-03-15T10:08:30Z',
+    timeSpent: 510, // seconds
+    score: 85,
+    totalPoints: 20,
+    earnedPoints: 17,
+    passed: true,
+    answers: [
+      { questionId: 'q1', answer: 0, correct: true, points: 5 },
+      { questionId: 'q2', answer: 0, correct: true, points: 5 },
+      { questionId: 'q3', answer: true, correct: true, points: 3 },
+      { questionId: 'q4', answer: 'To create reusable UI components', correct: true, points: 4 }
+    ],
+    status: 'completed'
+  },
+  {
+    id: '2',
+    userId: '3',
+    courseId: '1',
+    lessonId: 'l6',
+    quizId: 'quiz1',
+    attempt: 2,
+    startedAt: '2024-03-16T14:00:00Z',
+    completedAt: null,
+    timeSpent: 0,
+    score: null,
+    totalPoints: 20,
+    earnedPoints: null,
+    passed: null,
+    answers: [],
+    status: 'in-progress'
+  }
+];
+
+export const mockQuizResults = [
+  {
+    id: '1',
+    userId: '3',
+    courseId: '1',
+    lessonId: 'l6',
+    quizId: 'quiz1',
+    bestScore: 85,
+    averageScore: 85,
+    totalAttempts: 1,
+    completedAttempts: 1,
+    passed: true,
+    firstAttemptScore: 85,
+    lastAttemptAt: '2024-03-15T10:08:30Z',
+    timeSpentTotal: 510 // total seconds across all attempts
+  }
+];
+
+// Helper functions for quiz data
+export const getQuizAttempts = (userId, courseId, lessonId, quizId) => {
+  return mockQuizAttempts.filter(attempt => 
+    attempt.userId === userId && 
+    attempt.courseId === courseId && 
+    attempt.lessonId === lessonId && 
+    attempt.quizId === quizId
+  );
+};
+
+export const getQuizResults = (userId, courseId, lessonId, quizId) => {
+  return mockQuizResults.find(result => 
+    result.userId === userId && 
+    result.courseId === courseId && 
+    result.lessonId === lessonId && 
+    result.quizId === quizId
+  );
+};
+
+export const getUserQuizResults = (userId) => {
+  return mockQuizResults.filter(result => result.userId === userId);
+};
+
+export const getInstructorQuizAnalytics = (instructorId) => {
+  // In real app, would filter by instructor's courses
+  const instructorCourses = mockCourses.filter(course => course.instructorId === instructorId);
+  const courseIds = instructorCourses.map(course => course.id);
+  
+  const relevantResults = mockQuizResults.filter(result => 
+    courseIds.includes(result.courseId)
+  );
+  
+  return {
+    totalQuizzes: instructorCourses.reduce((total, course) => {
+      const quizLessons = course.modules?.reduce((moduleTotal, module) => {
+        return moduleTotal + (module.lessons?.filter(lesson => lesson.type === 'quiz')?.length || 0);
+      }, 0) || 0;
+      return total + quizLessons;
+    }, 0),
+    totalAttempts: relevantResults.reduce((total, result) => total + result.totalAttempts, 0),
+    averageScore: relevantResults.length > 0 
+      ? relevantResults.reduce((total, result) => total + result.averageScore, 0) / relevantResults.length 
+      : 0,
+    passRate: relevantResults.length > 0 
+      ? (relevantResults.filter(result => result.passed).length / relevantResults.length) * 100 
+      : 0
+  };
+};
+};
