@@ -1633,10 +1633,368 @@ const CreateCourse = () => {
                               />
                             </div>
 
-                            {/* This would include all the same question type interfaces as regular quiz */}
-                            <p className="text-xs text-purple-600">
-                              Question configuration interface would be here (same as regular quiz questions)
-                            </p>
+                            {/* Final Test Question Media Upload */}
+                            <div className="space-y-2 mb-4">
+                              <Label>Question Media (Optional)</Label>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <Label className="text-sm">Image URL</Label>
+                                  <Input
+                                    placeholder="https://example.com/image.jpg"
+                                    value={question.questionImage || ''}
+                                    onChange={(e) => handleFinalTestQuestionChange(questionIndex, 'questionImage', e.target.value)}
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label className="text-sm">Audio URL</Label>
+                                  <Input
+                                    placeholder="https://example.com/audio.mp3"
+                                    value={question.questionAudio || ''}
+                                    onChange={(e) => handleFinalTestQuestionChange(questionIndex, 'questionAudio', e.target.value)}
+                                  />
+                                </div>
+                              </div>
+                              {question.questionImage && (
+                                <div className="mt-2">
+                                  <img src={question.questionImage} alt="Question" className="max-w-xs h-32 object-cover rounded border" />
+                                </div>
+                              )}
+                              {question.questionAudio && (
+                                <div className="mt-2">
+                                  <audio controls className="w-full max-w-xs">
+                                    <source src={question.questionAudio} type="audio/mpeg" />
+                                    Your browser does not support the audio element.
+                                  </audio>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Multiple Choice Final Test Questions */}
+                            {(question.type === 'multiple-choice' || !question.type) && (
+                              <div className="space-y-2 mb-4">
+                                <div className="flex items-center justify-between">
+                                  <Label>Answer Options</Label>
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => addFinalTestAnswerOption(questionIndex)}
+                                    className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                                  >
+                                    <Plus className="w-4 h-4 mr-1" />
+                                    Add Option
+                                  </Button>
+                                </div>
+                                {(question.options || [{ text: '', image: '', audio: '' }, { text: '', image: '', audio: '' }, { text: '', image: '', audio: '' }, { text: '', image: '', audio: '' }]).map((option, optionIndex) => (
+                                  <div key={optionIndex} className="border border-purple-200 rounded-lg p-3 space-y-3 bg-purple-50/50">
+                                    <div className="flex items-center space-x-2">
+                                      <input
+                                        type="radio"
+                                        name={`final-correct-${question.id}`}
+                                        checked={question.correctAnswer === optionIndex}
+                                        onChange={() => handleFinalTestQuestionChange(questionIndex, 'correctAnswer', optionIndex)}
+                                        className="text-purple-600"
+                                      />
+                                      <Input
+                                        placeholder={`Option ${optionIndex + 1} text`}
+                                        value={typeof option === 'string' ? option : (option?.text || '')}
+                                        onChange={(e) => handleFinalTestOptionTextChange(questionIndex, optionIndex, e.target.value)}
+                                      />
+                                      {(question.options || []).length > 2 && (
+                                        <Button
+                                          type="button"
+                                          variant="outline"
+                                          size="sm"
+                                          onClick={() => removeFinalTestAnswerOption(questionIndex, optionIndex)}
+                                          className="text-red-600 hover:text-red-700"
+                                        >
+                                          <Trash2 className="w-4 h-4" />
+                                        </Button>
+                                      )}
+                                    </div>
+                                    
+                                    {/* Final Test Option Media */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 ml-6">
+                                      <div className="space-y-1">
+                                        <Label className="text-xs">Option Image URL</Label>
+                                        <Input
+                                          placeholder="https://example.com/option-image.jpg"
+                                          value={typeof option === 'object' ? (option.image || '') : ''}
+                                          onChange={(e) => handleFinalTestOptionMediaChange(questionIndex, optionIndex, 'image', e.target.value)}
+                                        />
+                                      </div>
+                                      <div className="space-y-1">
+                                        <Label className="text-xs">Option Audio URL</Label>
+                                        <Input
+                                          placeholder="https://example.com/option-audio.mp3"
+                                          value={typeof option === 'object' ? (option.audio || '') : ''}
+                                          onChange={(e) => handleFinalTestOptionMediaChange(questionIndex, optionIndex, 'audio', e.target.value)}
+                                        />
+                                      </div>
+                                    </div>
+                                    
+                                    {/* Final Test Media Preview */}
+                                    {typeof option === 'object' && option.image && (
+                                      <div className="ml-6">
+                                        <img src={option.image} alt={`Option ${optionIndex + 1}`} className="max-w-xs h-20 object-cover rounded border" />
+                                      </div>
+                                    )}
+                                    {typeof option === 'object' && option.audio && (
+                                      <div className="ml-6">
+                                        <audio controls className="w-full max-w-xs">
+                                          <source src={option.audio} type="audio/mpeg" />
+                                        </audio>
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                                <p className="text-xs text-purple-600">Select the radio button next to the correct answer. Add images or audio to enhance your options.</p>
+                              </div>
+                            )}
+
+                            {/* Select All That Apply Final Test Questions */}
+                            {question.type === 'select-all-that-apply' && (
+                              <div className="space-y-2 mb-4">
+                                <div className="flex items-center justify-between">
+                                  <Label>Answer Options (Select all correct answers)</Label>
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => addFinalTestAnswerOption(questionIndex)}
+                                    className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                                  >
+                                    <Plus className="w-4 h-4 mr-1" />
+                                    Add Option
+                                  </Button>
+                                </div>
+                                {(question.options || [{ text: '', image: '', audio: '' }, { text: '', image: '', audio: '' }, { text: '', image: '', audio: '' }, { text: '', image: '', audio: '' }, { text: '', image: '', audio: '' }]).map((option, optionIndex) => (
+                                  <div key={optionIndex} className="border border-purple-200 rounded-lg p-3 space-y-3 bg-purple-50/50">
+                                    <div className="flex items-center space-x-2">
+                                      <input
+                                        type="checkbox"
+                                        checked={(question.correctAnswers || []).includes(optionIndex)}
+                                        onChange={(e) => {
+                                          const currentAnswers = question.correctAnswers || [];
+                                          const newAnswers = e.target.checked
+                                            ? [...currentAnswers, optionIndex]
+                                            : currentAnswers.filter(index => index !== optionIndex);
+                                          handleFinalTestQuestionChange(questionIndex, 'correctAnswers', newAnswers);
+                                        }}
+                                        className="text-purple-600"
+                                      />
+                                      <Input
+                                        placeholder={`Option ${optionIndex + 1} text`}
+                                        value={typeof option === 'string' ? option : (option?.text || '')}
+                                        onChange={(e) => handleFinalTestOptionTextChange(questionIndex, optionIndex, e.target.value)}
+                                      />
+                                      {(question.options || []).length > 2 && (
+                                        <Button
+                                          type="button"
+                                          variant="outline"
+                                          size="sm"
+                                          onClick={() => removeFinalTestAnswerOption(questionIndex, optionIndex)}
+                                          className="text-red-600 hover:text-red-700"
+                                        >
+                                          <Trash2 className="w-4 h-4" />
+                                        </Button>
+                                      )}
+                                    </div>
+                                    
+                                    {/* Option Media - Same as above */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 ml-6">
+                                      <div className="space-y-1">
+                                        <Label className="text-xs">Option Image URL</Label>
+                                        <Input
+                                          placeholder="https://example.com/option-image.jpg"
+                                          value={typeof option === 'object' ? (option.image || '') : ''}
+                                          onChange={(e) => handleFinalTestOptionMediaChange(questionIndex, optionIndex, 'image', e.target.value)}
+                                        />
+                                      </div>
+                                      <div className="space-y-1">
+                                        <Label className="text-xs">Option Audio URL</Label>
+                                        <Input
+                                          placeholder="https://example.com/option-audio.mp3"
+                                          value={typeof option === 'object' ? (option.audio || '') : ''}
+                                          onChange={(e) => handleFinalTestOptionMediaChange(questionIndex, optionIndex, 'audio', e.target.value)}
+                                        />
+                                      </div>
+                                    </div>
+                                    
+                                    {/* Media Preview */}
+                                    {typeof option === 'object' && option.image && (
+                                      <div className="ml-6">
+                                        <img src={option.image} alt={`Option ${optionIndex + 1}`} className="max-w-xs h-20 object-cover rounded border" />
+                                      </div>
+                                    )}
+                                    {typeof option === 'object' && option.audio && (
+                                      <div className="ml-6">
+                                        <audio controls className="w-full max-w-xs">
+                                          <source src={option.audio} type="audio/mpeg" />
+                                        </audio>
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                                <p className="text-xs text-purple-600">Check the boxes next to all correct answers. Add images or audio to enhance your options.</p>
+                              </div>
+                            )}
+
+                            {/* True/False Final Test Questions */}
+                            {question.type === 'true-false' && (
+                              <div className="space-y-2 mb-4">
+                                <Label>Correct Answer</Label>
+                                <Select 
+                                  value={question.correctAnswer?.toString() || ''} 
+                                  onValueChange={(value) => handleFinalTestQuestionChange(questionIndex, 'correctAnswer', value === 'true')}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select correct answer" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="true">True</SelectItem>
+                                    <SelectItem value="false">False</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
+
+                            {/* Short Answer Final Test Questions */}
+                            {question.type === 'short-answer' && (
+                              <div className="space-y-2 mb-4">
+                                <Label>Sample Correct Answer</Label>
+                                <Input
+                                  placeholder="Enter a sample correct answer for reference"
+                                  value={question.correctAnswer || ''}
+                                  onChange={(e) => handleFinalTestQuestionChange(questionIndex, 'correctAnswer', e.target.value)}
+                                />
+                                <p className="text-xs text-purple-600">This will be used for grading reference. Short answer questions may require manual grading.</p>
+                              </div>
+                            )}
+
+                            {/* Long Form Answer Final Test Questions */}
+                            {question.type === 'long-form-answer' && (
+                              <div className="space-y-2 mb-4">
+                                <Label>Sample Answer (for instructor reference)</Label>
+                                <Textarea
+                                  placeholder="Provide a sample answer to guide manual grading"
+                                  rows={4}
+                                  value={question.sampleAnswer || ''}
+                                  onChange={(e) => handleFinalTestQuestionChange(questionIndex, 'sampleAnswer', e.target.value)}
+                                />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div className="space-y-2">
+                                    <Label>Word Limit (optional)</Label>
+                                    <Input
+                                      type="number"
+                                      placeholder="500"
+                                      value={question.wordLimit || ''}
+                                      onChange={(e) => handleFinalTestQuestionChange(questionIndex, 'wordLimit', parseInt(e.target.value) || null)}
+                                    />
+                                  </div>
+                                </div>
+                                <p className="text-xs text-purple-600">Long form answers require manual grading by the instructor.</p>
+                              </div>
+                            )}
+
+                            {/* Chronological Order Final Test Questions */}
+                            {question.type === 'chronological-order' && (
+                              <div className="space-y-2 mb-4">
+                                <Label>Items to Order</Label>
+                                {(question.items || [{ text: '', image: '', audio: '' }, { text: '', image: '', audio: '' }, { text: '', image: '', audio: '' }, { text: '', image: '', audio: '' }]).map((item, itemIndex) => (
+                                  <div key={itemIndex} className="border border-purple-200 rounded-lg p-3 space-y-3 bg-purple-50/50">
+                                    <div className="flex items-center space-x-2">
+                                      <span className="text-sm text-purple-700 min-w-[80px]">Position {itemIndex + 1}:</span>
+                                      <Input
+                                        placeholder={`Item ${itemIndex + 1} text`}
+                                        value={typeof item === 'string' ? item : (item?.text || '')}
+                                        onChange={(e) => handleFinalTestOrderItemTextChange(questionIndex, itemIndex, e.target.value)}
+                                      />
+                                      <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => removeFinalTestOrderItem(questionIndex, itemIndex)}
+                                        disabled={(question.items || []).length <= 2}
+                                        className="text-red-600 hover:text-red-700"
+                                      >
+                                        <Trash2 className="w-4 h-4" />
+                                      </Button>
+                                    </div>
+                                    
+                                    {/* Item Media */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 ml-20">
+                                      <div className="space-y-1">
+                                        <Label className="text-xs">Item Image URL</Label>
+                                        <Input
+                                          placeholder="https://example.com/item-image.jpg"
+                                          value={typeof item === 'object' ? (item.image || '') : ''}
+                                          onChange={(e) => handleFinalTestOrderItemMediaChange(questionIndex, itemIndex, 'image', e.target.value)}
+                                        />
+                                      </div>
+                                      <div className="space-y-1">
+                                        <Label className="text-xs">Item Audio URL</Label>
+                                        <Input
+                                          placeholder="https://example.com/item-audio.mp3"
+                                          value={typeof item === 'object' ? (item.audio || '') : ''}
+                                          onChange={(e) => handleFinalTestOrderItemMediaChange(questionIndex, itemIndex, 'audio', e.target.value)}
+                                        />
+                                      </div>
+                                    </div>
+                                    
+                                    {/* Media Preview */}
+                                    {typeof item === 'object' && item.image && (
+                                      <div className="ml-20">
+                                        <img src={item.image} alt={`Item ${itemIndex + 1}`} className="max-w-xs h-20 object-cover rounded border" />
+                                      </div>
+                                    )}
+                                    {typeof item === 'object' && item.audio && (
+                                      <div className="ml-20">
+                                        <audio controls className="w-full max-w-xs">
+                                          <source src={item.audio} type="audio/mpeg" />
+                                        </audio>
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => addFinalTestOrderItem(questionIndex)}
+                                  className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                                >
+                                  <Plus className="w-4 h-4 mr-2" />
+                                  Add Item
+                                </Button>
+                                <div className="space-y-2">
+                                  <Label>Correct Order</Label>
+                                  <p className="text-xs text-purple-600 mb-2">
+                                    Specify the correct chronological order by entering the position numbers (1, 2, 3, etc.)
+                                  </p>
+                                  <Input
+                                    placeholder="e.g., 2,1,4,3 (comma-separated position numbers)"
+                                    value={question.correctOrder ? question.correctOrder.map(i => i + 1).join(',') : ''}
+                                    onChange={(e) => {
+                                      const order = e.target.value.split(',').map(num => parseInt(num.trim()) - 1).filter(num => !isNaN(num));
+                                      handleFinalTestQuestionChange(questionIndex, 'correctOrder', order);
+                                    }}
+                                  />
+                                </div>
+                                <p className="text-xs text-purple-600">Students will drag and drop these items into the correct chronological order. Add images or audio to enhance the items.</p>
+                              </div>
+                            )}
+
+                            {/* Explanation for all Final Test question types */}
+                            <div className="space-y-2">
+                              <Label>Explanation (Optional)</Label>
+                              <Textarea
+                                placeholder="Explain why this is the correct answer"
+                                rows={2}
+                                value={question.explanation || ''}
+                                onChange={(e) => handleFinalTestQuestionChange(questionIndex, 'explanation', e.target.value)}
+                              />
+                            </div>
                           </CardContent>
                         </Card>
                       ))}
