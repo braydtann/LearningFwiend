@@ -16,7 +16,15 @@ const Users = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
   const [newUser, setNewUser] = useState({
+    name: '',
+    email: '',
+    role: 'learner'
+  });
+  const [editUser, setEditUser] = useState({
+    id: '',
     name: '',
     email: '',
     role: 'learner'
