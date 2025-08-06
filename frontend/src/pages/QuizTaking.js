@@ -613,22 +613,37 @@ const QuizTaking = () => {
                             <span className={answer?.correct ? 'text-green-600' : 'text-red-600'}>
                               {question.type === 'multiple-choice' 
                                 ? question.options[answer?.answer] || 'No answer'
+                                : question.type === 'select-all-that-apply'
+                                ? (answer?.answer || []).map(index => question.options[index]).join(', ') || 'No answer'
                                 : question.type === 'true-false'
                                 ? (answer?.answer?.toString() || 'No answer')
+                                : question.type === 'chronological-order'
+                                ? (answer?.answer || []).map(index => question.items[index]).join(' → ') || 'No answer'
                                 : answer?.answer || 'No answer'}
                             </span>
                           </div>
                           
-                          {!answer?.correct && (
+                          {!answer?.correct && question.type !== 'long-form-answer' && (
                             <div>
                               <span className="text-gray-600">Correct answer: </span>
                               <span className="text-green-600">
                                 {question.type === 'multiple-choice'
                                   ? question.options[question.correctAnswer]
+                                  : question.type === 'select-all-that-apply'
+                                  ? (question.correctAnswers || []).map(index => question.options[index]).join(', ')
                                   : question.type === 'true-false'
                                   ? question.correctAnswer.toString()
+                                  : question.type === 'chronological-order'
+                                  ? (question.correctOrder || []).map(index => question.items[index]).join(' → ')
                                   : question.correctAnswer}
                               </span>
+                            </div>
+                          )}
+
+                          {question.type === 'long-form-answer' && (
+                            <div className="mt-2 p-2 bg-yellow-50 rounded text-yellow-800">
+                              <span className="font-medium">Note: </span>
+                              This answer requires manual grading by your instructor. Your score may be updated after review.
                             </div>
                           )}
 
