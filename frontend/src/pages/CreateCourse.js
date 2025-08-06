@@ -378,6 +378,221 @@ const CreateCourse = () => {
                             />
                           </div>
                         )}
+
+                        {lesson.type === 'quiz' && (
+                          <div className="mt-4 space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <div className="space-y-2">
+                                <Label>Time Limit (minutes)</Label>
+                                <Input
+                                  type="number"
+                                  placeholder="10"
+                                  value={lesson.quiz?.timeLimit || ''}
+                                  onChange={(e) => handleQuizChange(moduleIndex, lessonIndex, 'timeLimit', parseInt(e.target.value) || 0)}
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Passing Score (%)</Label>
+                                <Input
+                                  type="number"
+                                  placeholder="70"
+                                  min="0"
+                                  max="100"
+                                  value={lesson.quiz?.passingScore || ''}
+                                  onChange={(e) => handleQuizChange(moduleIndex, lessonIndex, 'passingScore', parseInt(e.target.value) || 70)}
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Max Attempts</Label>
+                                <Input
+                                  type="number"
+                                  placeholder="3"
+                                  min="1"
+                                  value={lesson.quiz?.maxAttempts || ''}
+                                  onChange={(e) => handleQuizChange(moduleIndex, lessonIndex, 'maxAttempts', parseInt(e.target.value) || 3)}
+                                />
+                              </div>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <Label>Quiz Description</Label>
+                              <Textarea
+                                placeholder="Describe what this quiz covers"
+                                rows={2}
+                                value={lesson.quiz?.description || ''}
+                                onChange={(e) => handleQuizChange(moduleIndex, lessonIndex, 'description', e.target.value)}
+                              />
+                            </div>
+
+                            <div className="space-y-2">
+                              <div className="flex items-center space-x-4">
+                                <div className="flex items-center space-x-2">
+                                  <input
+                                    type="checkbox"
+                                    id={`shuffle-${lesson.id}`}
+                                    checked={lesson.quiz?.shuffleQuestions || false}
+                                    onChange={(e) => handleQuizChange(moduleIndex, lessonIndex, 'shuffleQuestions', e.target.checked)}
+                                    className="rounded border-gray-300"
+                                  />
+                                  <Label htmlFor={`shuffle-${lesson.id}`}>Shuffle Questions</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <input
+                                    type="checkbox"
+                                    id={`show-results-${lesson.id}`}
+                                    checked={lesson.quiz?.showResults !== false}
+                                    onChange={(e) => handleQuizChange(moduleIndex, lessonIndex, 'showResults', e.target.checked)}
+                                    className="rounded border-gray-300"
+                                  />
+                                  <Label htmlFor={`show-results-${lesson.id}`}>Show Results After Submission</Label>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="border-t pt-4">
+                              <div className="flex items-center justify-between mb-4">
+                                <Label className="text-lg font-medium">Quiz Questions</Label>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => addQuizQuestion(moduleIndex, lessonIndex)}
+                                >
+                                  <Plus className="w-4 h-4 mr-2" />
+                                  Add Question
+                                </Button>
+                              </div>
+
+                              <div className="space-y-4">
+                                {(lesson.quiz?.questions || []).map((question, questionIndex) => (
+                                  <Card key={question.id} className="border-dashed">
+                                    <CardContent className="p-4">
+                                      <div className="flex items-center justify-between mb-3">
+                                        <Badge variant="outline">Question {questionIndex + 1}</Badge>
+                                        <Button
+                                          type="button"
+                                          variant="outline"
+                                          size="sm"
+                                          onClick={() => removeQuizQuestion(moduleIndex, lessonIndex, questionIndex)}
+                                        >
+                                          <Trash2 className="w-4 h-4" />
+                                        </Button>
+                                      </div>
+
+                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                        <div className="space-y-2">
+                                          <Label>Question Type</Label>
+                                          <Select 
+                                            value={question.type || 'multiple-choice'} 
+                                            onValueChange={(value) => handleQuestionChange(moduleIndex, lessonIndex, questionIndex, 'type', value)}
+                                          >
+                                            <SelectTrigger>
+                                              <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                              <SelectItem value="multiple-choice">Multiple Choice</SelectItem>
+                                              <SelectItem value="true-false">True/False</SelectItem>
+                                              <SelectItem value="short-answer">Short Answer</SelectItem>
+                                            </SelectContent>
+                                          </Select>
+                                        </div>
+                                        <div className="space-y-2">
+                                          <Label>Points</Label>
+                                          <Input
+                                            type="number"
+                                            placeholder="5"
+                                            min="1"
+                                            value={question.points || ''}
+                                            onChange={(e) => handleQuestionChange(moduleIndex, lessonIndex, questionIndex, 'points', parseInt(e.target.value) || 1)}
+                                          />
+                                        </div>
+                                      </div>
+
+                                      <div className="space-y-2 mb-4">
+                                        <Label>Question Text</Label>
+                                        <Textarea
+                                          placeholder="Enter your question here"
+                                          rows={2}
+                                          value={question.question || ''}
+                                          onChange={(e) => handleQuestionChange(moduleIndex, lessonIndex, questionIndex, 'question', e.target.value)}
+                                        />
+                                      </div>
+
+                                      {(question.type === 'multiple-choice' || !question.type) && (
+                                        <div className="space-y-2 mb-4">
+                                          <Label>Answer Options</Label>
+                                          {(question.options || ['', '', '', '']).map((option, optionIndex) => (
+                                            <div key={optionIndex} className="flex items-center space-x-2">
+                                              <input
+                                                type="radio"
+                                                name={`correct-${question.id}`}
+                                                checked={question.correctAnswer === optionIndex}
+                                                onChange={() => handleQuestionChange(moduleIndex, lessonIndex, questionIndex, 'correctAnswer', optionIndex)}
+                                                className="text-green-600"
+                                              />
+                                              <Input
+                                                placeholder={`Option ${optionIndex + 1}`}
+                                                value={option}
+                                                onChange={(e) => handleOptionChange(moduleIndex, lessonIndex, questionIndex, optionIndex, e.target.value)}
+                                              />
+                                            </div>
+                                          ))}
+                                          <p className="text-xs text-gray-500">Select the radio button next to the correct answer</p>
+                                        </div>
+                                      )}
+
+                                      {question.type === 'true-false' && (
+                                        <div className="space-y-2 mb-4">
+                                          <Label>Correct Answer</Label>
+                                          <Select 
+                                            value={question.correctAnswer?.toString() || ''} 
+                                            onValueChange={(value) => handleQuestionChange(moduleIndex, lessonIndex, questionIndex, 'correctAnswer', value === 'true')}
+                                          >
+                                            <SelectTrigger>
+                                              <SelectValue placeholder="Select correct answer" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                              <SelectItem value="true">True</SelectItem>
+                                              <SelectItem value="false">False</SelectItem>
+                                            </SelectContent>
+                                          </Select>
+                                        </div>
+                                      )}
+
+                                      {question.type === 'short-answer' && (
+                                        <div className="space-y-2 mb-4">
+                                          <Label>Sample Correct Answer</Label>
+                                          <Input
+                                            placeholder="Enter a sample correct answer for reference"
+                                            value={question.correctAnswer || ''}
+                                            onChange={(e) => handleQuestionChange(moduleIndex, lessonIndex, questionIndex, 'correctAnswer', e.target.value)}
+                                          />
+                                          <p className="text-xs text-gray-500">This will be used for grading reference. Short answer questions may require manual grading.</p>
+                                        </div>
+                                      )}
+
+                                      <div className="space-y-2">
+                                        <Label>Explanation (Optional)</Label>
+                                        <Textarea
+                                          placeholder="Explain why this is the correct answer"
+                                          rows={2}
+                                          value={question.explanation || ''}
+                                          onChange={(e) => handleQuestionChange(moduleIndex, lessonIndex, questionIndex, 'explanation', e.target.value)}
+                                        />
+                                      </div>
+                                    </CardContent>
+                                  </Card>
+                                ))}
+
+                                {(!lesson.quiz?.questions || lesson.quiz.questions.length === 0) && (
+                                  <div className="text-center py-8 text-gray-500">
+                                    <p>No questions added yet. Click "Add Question" to get started.</p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     ))}
                     
