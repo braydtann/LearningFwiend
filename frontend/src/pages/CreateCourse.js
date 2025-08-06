@@ -120,6 +120,11 @@ const CreateCourse = () => {
                             question: '',
                             options: ['', '', '', ''],
                             correctAnswer: 0,
+                            correctAnswers: [], // for select-all-that-apply
+                            items: [], // for chronological-order
+                            correctOrder: [], // for chronological-order
+                            sampleAnswer: '', // for long-form-answer
+                            wordLimit: null, // for long-form-answer
                             points: 5,
                             explanation: ''
                           }
