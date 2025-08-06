@@ -323,7 +323,8 @@ export const mockEnrollments = [
     enrolledAt: '2024-03-10',
     progress: 65,
     completedLessons: ['l1', 'l2', 'l3', 'l4'],
-    lastAccessed: '2024-03-15'
+    lastAccessed: '2024-03-15',
+    timeSpent: 12.5 // hours
   },
   {
     id: '2',
@@ -332,7 +333,49 @@ export const mockEnrollments = [
     enrolledAt: '2024-03-08',
     progress: 25,
     completedLessons: ['l7'],
-    lastAccessed: '2024-03-12'
+    lastAccessed: '2024-03-12',
+    timeSpent: 8.2 // hours
+  },
+  // Additional enrollments for better analytics
+  {
+    id: '3',
+    userId: '2', // instructor as learner
+    courseId: '3',
+    enrolledAt: '2024-02-15',
+    progress: 100,
+    completedLessons: ['l8', 'l9'],
+    lastAccessed: '2024-03-01',
+    timeSpent: 15.8
+  },
+  {
+    id: '4',
+    userId: '1', // admin as learner
+    courseId: '1',
+    enrolledAt: '2024-01-20',
+    progress: 45,
+    completedLessons: ['l1', 'l2'],
+    lastAccessed: '2024-03-18',
+    timeSpent: 7.3
+  },
+  {
+    id: '5',
+    userId: '2',
+    courseId: '2',
+    enrolledAt: '2024-02-01',
+    progress: 80,
+    completedLessons: ['l7', 'l8'],
+    lastAccessed: '2024-03-10',
+    timeSpent: 18.7
+  },
+  {
+    id: '6',
+    userId: '1',
+    courseId: '3',
+    enrolledAt: '2024-03-01',
+    progress: 30,
+    completedLessons: ['l8'],
+    lastAccessed: '2024-03-14',
+    timeSpent: 4.5
   }
 ];
 
