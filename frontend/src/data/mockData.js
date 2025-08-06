@@ -117,10 +117,10 @@ export const mockCourses = [
                   type: 'chronological-order',
                   question: 'Arrange the following React component lifecycle phases in chronological order:',
                   items: [
-                    'Component mounts',
-                    'Component updates',
-                    'Component unmounts',
-                    'Component renders'
+                    { text: 'Component mounts', image: 'https://images.unsplash.com/photo-1518073176059-65c11ec1d93b?w=100&h=100&fit=crop', audio: '' },
+                    { text: 'Component updates', image: 'https://images.unsplash.com/photo-1516321497487-e288fb19713f?w=100&h=100&fit=crop', audio: '' },
+                    { text: 'Component unmounts', image: 'https://images.unsplash.com/photo-1516321497487-e288fb19713f?w=100&h=100&fit=crop', audio: '' },
+                    { text: 'Component renders', image: 'https://images.unsplash.com/photo-1516321497487-e288fb19713f?w=100&h=100&fit=crop', audio: '' }
                   ],
                   correctOrder: [0, 3, 1, 2], // Mount -> Render -> Update -> Unmount
                   points: 10,
