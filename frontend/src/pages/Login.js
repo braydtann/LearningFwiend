@@ -51,6 +51,14 @@ const Login = () => {
     setPassword(credentials[role].password);
   };
 
+  const handleLoginPalClick = () => {
+    toast({
+      title: "LoginPal Coming Soon",
+      description: "LoginPal OAuth integration will be available once the service is deployed. Use the demo login options below for now.",
+      variant: "default",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
