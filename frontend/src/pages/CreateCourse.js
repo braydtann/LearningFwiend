@@ -591,6 +591,7 @@ const CreateCourse = () => {
       ...prev,
       finalTest: {
         ...prev.finalTest,
+        id: prev.finalTest?.id || `final_test_${Date.now()}`,
         [field]: value
       }
     }));
