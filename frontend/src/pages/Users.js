@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -8,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { Label } from '../components/ui/label';
 import { mockUsers } from '../data/mockData';
-import { Search, Filter, Plus, Edit, Trash2, UserPlus } from 'lucide-react';
+import { Search, Filter, Plus, Edit, Trash2, UserPlus, Shield, AlertTriangle } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 
 const Users = () => {
