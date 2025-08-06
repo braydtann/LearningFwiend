@@ -364,6 +364,32 @@ const QuizTaking = () => {
                             )}
                             className="text-blue-600"
                           />
+                          <span>{typeof option === 'string' ? option : option.content || option.alt}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+
+                  {quiz.questions[currentQuestionIndex].type === 'select-all-that-apply' && (
+                    <div className="space-y-3">
+                      <p className="text-sm text-blue-600 font-medium mb-3">Select all correct answers:</p>
+                      {quiz.questions[currentQuestionIndex].options.map((option, index) => (
+                        <label 
+                          key={index} 
+                          className="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={(answers[quiz.questions[currentQuestionIndex].id] || []).includes(index)}
+                            onChange={(e) => {
+                              const currentAnswers = answers[quiz.questions[currentQuestionIndex].id] || [];
+                              const newAnswers = e.target.checked
+                                ? [...currentAnswers, index]
+                                : currentAnswers.filter(answerIndex => answerIndex !== index);
+                              handleAnswerChange(quiz.questions[currentQuestionIndex].id, newAnswers);
+                            }}
+                            className="text-blue-600"
+                          />
                           <span>{option}</span>
                         </label>
                       ))}
