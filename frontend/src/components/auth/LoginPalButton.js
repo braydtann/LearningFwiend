@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '../ui/button';
 import { Shield, ArrowRight, Clock } from 'lucide-react';
 import { useToast } from '../../hooks/use-toast';
+import { loginPalService } from '../../services/loginPalService';
 
 const LoginPalButton = ({ className = '', disabled = false }) => {
   const [isLoading, setIsLoading] = useState(false);
