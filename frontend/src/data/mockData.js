@@ -174,7 +174,57 @@ export const mockCourses = [
           }
         ]
       }
-    ]
+    ],
+    finalTest: {
+      id: 'final_test_1',
+      title: 'React Development Fundamentals - Final Assessment',
+      description: 'Comprehensive test covering all React topics from the course',
+      timeLimit: 120, // 120 minutes
+      maxAttempts: 3,
+      passingScore: 70,
+      shuffleQuestions: true,
+      showResults: true,
+      questions: [
+        {
+          id: 'ft_q1',
+          type: 'multiple-choice',
+          question: 'What is the primary purpose of React?',
+          options: [
+            'To build user interfaces',
+            'To manage databases', 
+            'To handle server requests',
+            'To create mobile apps only'
+          ],
+          correctAnswer: 0,
+          points: 5,
+          explanation: 'React is a JavaScript library primarily used for building user interfaces.'
+        },
+        {
+          id: 'ft_q2',
+          type: 'select-all-that-apply',
+          question: 'Which of the following are React lifecycle methods? (Select all that apply)',
+          options: [
+            'componentDidMount',
+            'componentWillUpdate', 
+            'componentDidUpdate',
+            'componentWillUnmount',
+            'componentDidCreate'
+          ],
+          correctAnswers: [0, 2, 3], // componentDidMount, componentDidUpdate, componentWillUnmount
+          points: 12,
+          explanation: 'componentDidMount, componentDidUpdate, and componentWillUnmount are valid React lifecycle methods. componentDidCreate does not exist.'
+        },
+        {
+          id: 'ft_q3',
+          type: 'long-form-answer',
+          question: 'Compare and contrast functional components with class components in React. Discuss the advantages and disadvantages of each approach and when you might choose one over the other.',
+          sampleAnswer: 'Functional components are simpler, easier to test, and can use hooks for state management. Class components have more verbose syntax but provide lifecycle methods. With hooks, functional components can do everything class components can do, making them preferred for modern React development.',
+          points: 25,
+          explanation: 'This question tests comprehensive understanding of React component types.',
+          wordLimit: 600
+        }
+      ]
+    }
   },
   {
     id: '2',
