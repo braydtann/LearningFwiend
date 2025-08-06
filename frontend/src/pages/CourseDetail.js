@@ -53,7 +53,12 @@ const CourseDetail = () => {
   };
 
   const handleLessonClick = (lesson) => {
-    setSelectedLesson(lesson);
+    if (lesson.type === 'quiz') {
+      // Navigate to quiz taking page
+      navigate(`/quiz/${id}/${lesson.id}`);
+    } else {
+      setSelectedLesson(lesson);
+    }
   };
 
   const markLessonComplete = (lessonId) => {
