@@ -357,7 +357,11 @@ const Users = () => {
             </TableHeader>
             <TableBody>
               {filteredUsers.map((user) => (
-                <TableRow key={user.id}>
+                <TableRow 
+                  key={user.id} 
+                  className="cursor-pointer hover:bg-gray-50 transition-colors"
+                  onClick={() => handleEditUser(user)}
+                >
                   <TableCell>
                     <div className="flex items-center space-x-3">
                       <img 
@@ -382,13 +386,23 @@ const Users = () => {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end space-x-2">
-                      <Button size="sm" variant="outline">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation(); // Prevent row click
+                          handleEditUser(user);
+                        }}
+                      >
                         <Edit className="w-4 h-4" />
                       </Button>
                       <Button 
                         size="sm" 
                         variant="outline"
-                        onClick={() => handleDeleteUser(user.id, user.name)}
+                        onClick={(e) => {
+                          e.stopPropagation(); // Prevent row click
+                          handleDeleteUser(user.id, user.name);
+                        }}
                       >
                         <Trash2 className="w-4 h-4 text-red-500" />
                       </Button>
