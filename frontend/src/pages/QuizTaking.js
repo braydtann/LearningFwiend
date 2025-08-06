@@ -115,6 +115,11 @@ const QuizTaking = () => {
       
       if (question.type === 'multiple-choice') {
         correct = userAnswer === question.correctAnswer;
+      } else if (question.type === 'select-all-that-apply') {
+        const correctAnswers = question.correctAnswers || [];
+        const userAnswers = userAnswer || [];
+        correct = correctAnswers.length === userAnswers.length && 
+                 correctAnswers.every(answer => userAnswers.includes(answer));
       } else if (question.type === 'true-false') {
         correct = userAnswer === question.correctAnswer;
       } else if (question.type === 'short-answer') {
@@ -122,6 +127,15 @@ const QuizTaking = () => {
         // In real app, this might need manual grading
         correct = userAnswer && 
           userAnswer.toLowerCase().includes(question.correctAnswer.toLowerCase().split(' ')[0]);
+      } else if (question.type === 'long-form-answer') {
+        // Long form answers require manual grading - mark as pending for now
+        // In real app, instructor would grade these manually
+        correct = userAnswer && userAnswer.trim().length > 50; // Basic completion check
+      } else if (question.type === 'chronological-order') {
+        const correctOrder = question.correctOrder || [];
+        const userOrder = userAnswer || [];
+        correct = correctOrder.length === userOrder.length && 
+                 correctOrder.every((item, index) => item === userOrder[index]);
       }
       
       if (correct) {
