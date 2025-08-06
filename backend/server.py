@@ -35,6 +35,29 @@ class StatusCheck(BaseModel):
 class StatusCheckCreate(BaseModel):
     client_name: str
 
+# LoginPal OAuth Models (Placeholder)
+class LoginPalUser(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    loginpal_user_id: str
+    email: str
+    name: Optional[str] = None
+    picture: Optional[str] = None
+    role: str = "learner"  # learner, instructor, admin
+    verified_email: bool = False
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class LoginPalWebhook(BaseModel):
+    event_type: str  # user.created, user.updated, user.deleted, role.changed
+    user_id: str
+    user_data: dict
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+
+class UserRoleUpdate(BaseModel):
+    user_id: str
+    new_role: str  # learner, instructor, admin
+    permissions: Optional[List[str]] = None
+
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
 async def root():
