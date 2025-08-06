@@ -14,7 +14,8 @@ import {
   Award,
   MessageSquare,
   LogOut,
-  ClipboardCheck
+  ClipboardCheck,
+  Shield
 } from 'lucide-react';
 
 const Sidebar = () => {
