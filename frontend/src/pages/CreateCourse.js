@@ -746,6 +746,79 @@ const CreateCourse = () => {
                                         </div>
                                       )}
 
+                                      {question.type === 'long-form-answer' && (
+                                        <div className="space-y-2 mb-4">
+                                          <Label>Sample Answer (for instructor reference)</Label>
+                                          <Textarea
+                                            placeholder="Provide a sample answer to guide manual grading"
+                                            rows={4}
+                                            value={question.sampleAnswer || ''}
+                                            onChange={(e) => handleQuestionChange(moduleIndex, lessonIndex, questionIndex, 'sampleAnswer', e.target.value)}
+                                          />
+                                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                              <Label>Word Limit (optional)</Label>
+                                              <Input
+                                                type="number"
+                                                placeholder="500"
+                                                value={question.wordLimit || ''}
+                                                onChange={(e) => handleQuestionChange(moduleIndex, lessonIndex, questionIndex, 'wordLimit', parseInt(e.target.value) || null)}
+                                              />
+                                            </div>
+                                          </div>
+                                          <p className="text-xs text-gray-500">Long form answers require manual grading by the instructor.</p>
+                                        </div>
+                                      )}
+
+                                      {question.type === 'chronological-order' && (
+                                        <div className="space-y-2 mb-4">
+                                          <Label>Items to Order</Label>
+                                          {(question.items || ['', '', '', '']).map((item, itemIndex) => (
+                                            <div key={itemIndex} className="flex items-center space-x-2">
+                                              <span className="text-sm text-gray-600 min-w-[80px]">Position {itemIndex + 1}:</span>
+                                              <Input
+                                                placeholder={`Item ${itemIndex + 1}`}
+                                                value={item}
+                                                onChange={(e) => handleOrderItemChange(moduleIndex, lessonIndex, questionIndex, itemIndex, e.target.value)}
+                                              />
+                                              <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => removeOrderItem(moduleIndex, lessonIndex, questionIndex, itemIndex)}
+                                                disabled={(question.items || []).length <= 2}
+                                              >
+                                                <Trash2 className="w-4 h-4" />
+                                              </Button>
+                                            </div>
+                                          ))}
+                                          <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => addOrderItem(moduleIndex, lessonIndex, questionIndex)}
+                                          >
+                                            <Plus className="w-4 h-4 mr-2" />
+                                            Add Item
+                                          </Button>
+                                          <div className="space-y-2">
+                                            <Label>Correct Order</Label>
+                                            <p className="text-xs text-gray-500 mb-2">
+                                              Specify the correct chronological order by entering the position numbers (1, 2, 3, etc.)
+                                            </p>
+                                            <Input
+                                              placeholder="e.g., 2,1,4,3 (comma-separated position numbers)"
+                                              value={question.correctOrder ? question.correctOrder.map(i => i + 1).join(',') : ''}
+                                              onChange={(e) => {
+                                                const order = e.target.value.split(',').map(num => parseInt(num.trim()) - 1).filter(num => !isNaN(num));
+                                                handleQuestionChange(moduleIndex, lessonIndex, questionIndex, 'correctOrder', order);
+                                              }}
+                                            />
+                                          </div>
+                                          <p className="text-xs text-gray-500">Students will drag and drop these items into the correct chronological order.</p>
+                                        </div>
+                                      )}
+
                                       <div className="space-y-2">
                                         <Label>Explanation (Optional)</Label>
                                         <Textarea
