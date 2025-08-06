@@ -585,6 +585,72 @@ const CreateCourse = () => {
     }));
   };
 
+  // Final Test handlers
+  const handleFinalTestChange = (field, value) => {
+    setCourseData(prev => ({
+      ...prev,
+      finalTest: {
+        ...prev.finalTest,
+        [field]: value
+      }
+    }));
+  };
+
+  const addFinalTestQuestion = () => {
+    setCourseData(prev => ({
+      ...prev,
+      finalTest: {
+        ...prev.finalTest,
+        questions: [
+          ...(prev.finalTest?.questions || []),
+          {
+            id: `fq${Date.now()}`,
+            type: 'multiple-choice',
+            question: '',
+            questionImage: '',
+            questionAudio: '',
+            options: [
+              { text: '', image: '', audio: '' },
+              { text: '', image: '', audio: '' },
+              { text: '', image: '', audio: '' },
+              { text: '', image: '', audio: '' }
+            ],
+            correctAnswer: 0,
+            correctAnswers: [],
+            items: [],
+            correctOrder: [],
+            sampleAnswer: '',
+            wordLimit: null,
+            points: 10,
+            explanation: ''
+          }
+        ]
+      }
+    }));
+  };
+
+  const removeFinalTestQuestion = (questionIndex) => {
+    setCourseData(prev => ({
+      ...prev,
+      finalTest: {
+        ...prev.finalTest,
+        questions: (prev.finalTest?.questions || []).filter((_, qIdx) => qIdx !== questionIndex)
+      }
+    }));
+  };
+
+  const handleFinalTestQuestionChange = (questionIndex, field, value) => {
+    setCourseData(prev => ({
+      ...prev,
+      finalTest: {
+        ...prev.finalTest,
+        questions: (prev.finalTest?.questions || []).map((question, qIdx) =>
+          qIdx === questionIndex ? { ...question, [field]: value } : question
+        )
+      }
+    }));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     
