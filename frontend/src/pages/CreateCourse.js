@@ -128,7 +128,12 @@ const CreateCourse = () => {
                             ],
                             correctAnswer: 0,
                             correctAnswers: [], // for select-all-that-apply
-                            items: [], // for chronological-order
+                            items: [
+                              { text: '', image: '', audio: '' },
+                              { text: '', image: '', audio: '' },
+                              { text: '', image: '', audio: '' },
+                              { text: '', image: '', audio: '' }
+                            ], // for chronological-order
                             correctOrder: [], // for chronological-order
                             sampleAnswer: '', // for long-form-answer
                             wordLimit: null, // for long-form-answer
