@@ -73,6 +73,150 @@ const CreateCourse = () => {
     }));
   };
 
+  const handleQuizChange = (moduleIndex, lessonIndex, field, value) => {
+    setCourseData(prev => ({
+      ...prev,
+      modules: prev.modules.map((module, mIdx) => 
+        mIdx === moduleIndex 
+          ? {
+              ...module,
+              lessons: module.lessons.map((lesson, lIdx) =>
+                lIdx === lessonIndex 
+                  ? { 
+                      ...lesson, 
+                      quiz: {
+                        ...lesson.quiz,
+                        id: lesson.quiz?.id || `quiz${Date.now()}`,
+                        title: lesson.title + ' Quiz',
+                        [field]: value
+                      }
+                    } 
+                  : lesson
+              )
+            }
+          : module
+      )
+    }));
+  };
+
+  const addQuizQuestion = (moduleIndex, lessonIndex) => {
+    setCourseData(prev => ({
+      ...prev,
+      modules: prev.modules.map((module, mIdx) => 
+        mIdx === moduleIndex 
+          ? {
+              ...module,
+              lessons: module.lessons.map((lesson, lIdx) =>
+                lIdx === lessonIndex 
+                  ? { 
+                      ...lesson, 
+                      quiz: {
+                        ...lesson.quiz,
+                        questions: [
+                          ...(lesson.quiz?.questions || []),
+                          {
+                            id: `q${Date.now()}`,
+                            type: 'multiple-choice',
+                            question: '',
+                            options: ['', '', '', ''],
+                            correctAnswer: 0,
+                            points: 5,
+                            explanation: ''
+                          }
+                        ]
+                      }
+                    } 
+                  : lesson
+              )
+            }
+          : module
+      )
+    }));
+  };
+
+  const removeQuizQuestion = (moduleIndex, lessonIndex, questionIndex) => {
+    setCourseData(prev => ({
+      ...prev,
+      modules: prev.modules.map((module, mIdx) => 
+        mIdx === moduleIndex 
+          ? {
+              ...module,
+              lessons: module.lessons.map((lesson, lIdx) =>
+                lIdx === lessonIndex 
+                  ? { 
+                      ...lesson, 
+                      quiz: {
+                        ...lesson.quiz,
+                        questions: (lesson.quiz?.questions || []).filter((_, qIdx) => qIdx !== questionIndex)
+                      }
+                    } 
+                  : lesson
+              )
+            }
+          : module
+      )
+    }));
+  };
+
+  const handleQuestionChange = (moduleIndex, lessonIndex, questionIndex, field, value) => {
+    setCourseData(prev => ({
+      ...prev,
+      modules: prev.modules.map((module, mIdx) => 
+        mIdx === moduleIndex 
+          ? {
+              ...module,
+              lessons: module.lessons.map((lesson, lIdx) =>
+                lIdx === lessonIndex 
+                  ? { 
+                      ...lesson, 
+                      quiz: {
+                        ...lesson.quiz,
+                        questions: (lesson.quiz?.questions || []).map((question, qIdx) =>
+                          qIdx === questionIndex ? { ...question, [field]: value } : question
+                        )
+                      }
+                    } 
+                  : lesson
+              )
+            }
+          : module
+      )
+    }));
+  };
+
+  const handleOptionChange = (moduleIndex, lessonIndex, questionIndex, optionIndex, value) => {
+    setCourseData(prev => ({
+      ...prev,
+      modules: prev.modules.map((module, mIdx) => 
+        mIdx === moduleIndex 
+          ? {
+              ...module,
+              lessons: module.lessons.map((lesson, lIdx) =>
+                lIdx === lessonIndex 
+                  ? { 
+                      ...lesson, 
+                      quiz: {
+                        ...lesson.quiz,
+                        questions: (lesson.quiz?.questions || []).map((question, qIdx) =>
+                          qIdx === questionIndex 
+                            ? { 
+                                ...question, 
+                                options: question.options?.map((option, oIdx) =>
+                                  oIdx === optionIndex ? value : option
+                                ) || []
+                              } 
+                            : question
+                        )
+                      }
+                    } 
+                  : lesson
+              )
+            }
+          : module
+      )
+    }));
+  };
+
   const addModule = () => {
     setCourseData(prev => ({
       ...prev,
