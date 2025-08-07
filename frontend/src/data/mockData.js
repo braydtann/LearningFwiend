@@ -213,13 +213,14 @@ export const mockUsers = [
 ];
 
 export const mockCourses = [
+  // Web Development Courses
   {
     id: '1',
     title: 'React Development Fundamentals',
     description: 'Learn the basics of React development including components, hooks, and state management.',
     category: 'Web Development',
     instructor: 'Sarah Wilson',
-    instructorId: '2',
+    instructorId: '3',
     duration: '8 weeks',
     thumbnail: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=300&h=200&fit=crop',
     enrolledStudents: 45,
@@ -234,267 +235,237 @@ export const mockCourses = [
         lessons: [
           { id: 'l1', title: 'Introduction to React', type: 'video', duration: '15 min', videoUrl: 'https://www.youtube.com/embed/Tn6-PIqc4UM' },
           { id: 'l2', title: 'Setting up Development Environment', type: 'video', duration: '12 min', videoUrl: 'https://drive.google.com/file/d/1BxBicpQ09uO5m_Lyp9oWw7vtkMEMFHNB/view' },
-          { id: 'l3', title: 'React Component Overview', type: 'presentation', duration: '10 min', presentationUrl: 'https://www.canva.com/design/DAFxKzE1234/view?utm_content=DAFxKzE1234' },
-          { id: 'l4', title: 'Your First Component', type: 'text', content: 'In this lesson, we will create our first React component...' }
-        ]
-      },
-      {
-        id: 'm2',
-        title: 'Components and JSX',
-        lessons: [
+          { id: 'l3', title: 'Your First React App', type: 'text', duration: '10 min', content: 'Learn to create your first React application...' },
           { id: 'l4', title: 'Understanding JSX', type: 'video', duration: '18 min', videoUrl: 'https://www.youtube.com/embed/7fPXI_MnBOY' },
-          { id: 'l5', title: 'Props and Component Communication', type: 'video', duration: '20 min', videoUrl: 'https://www.youtube.com/embed/PHaECbrKgs0' },
-          { 
-            id: 'l6', 
-            title: 'Component Quiz', 
-            type: 'quiz', 
-            duration: '10 min',
-            quiz: {
-              id: 'quiz1',
-              title: 'React Components Quiz',
-              description: 'Test your knowledge of React components and JSX',
-              timeLimit: 10, // minutes
-              maxAttempts: 3,
-              passingScore: 70,
-              shuffleQuestions: true,
-              showResults: true,
-              questions: [
-                {
-                  id: 'q1',
-                  type: 'multiple-choice',
-                  question: 'What does JSX stand for?',
-                  questionImage: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&h=200&fit=crop',
-                  options: [
-                    { text: 'JavaScript XML', image: '', audio: '' },
-                    { text: 'Java Syntax Extension', image: '', audio: '' },
-                    { text: 'JavaScript Extension', image: '', audio: '' },
-                    { text: 'Just Simple XML', image: '', audio: '' }
-                  ],
-                  correctAnswer: 0,
-                  points: 5,
-                  explanation: 'JSX stands for JavaScript XML. It allows you to write HTML-like syntax in JavaScript.'
-                },
-                {
-                  id: 'q2',
-                  type: 'select-all-that-apply',
-                  question: 'Which of the following are valid React hooks? (Select all that apply)',
-                  questionAudio: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
-                  options: [
-                    { text: 'useState', image: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=100&h=100&fit=crop', audio: '' },
-                    { text: 'useEffect', image: 'https://images.unsplash.com/photo-1633356122102-3fe601e05bd2?w=100&h=100&fit=crop', audio: '' },
-                    { text: 'useProps', image: '', audio: '' },
-                    { text: 'useContext', image: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=100&h=100&fit=crop', audio: '' },
-                    { text: 'useComponent', image: '', audio: '' }
-                  ],
-                  correctAnswers: [0, 1, 3], // useState, useEffect, useContext
-                  points: 8,
-                  explanation: 'useState, useEffect, and useContext are built-in React hooks. useProps and useComponent do not exist.'
-                },
-                {
-                  id: 'q4',
-                  type: 'true-false',
-                  question: 'React components must always return a single element.',
-                  correctAnswer: true,
-                  points: 3,
-                  explanation: 'React components must return a single element, but it can contain multiple child elements.'
-                },
-                {
-                  id: 'q5',
-                  type: 'chronological-order',
-                  question: 'Arrange the following React component lifecycle phases in chronological order:',
-                  items: [
-                    { text: 'Component mounts', image: 'https://images.unsplash.com/photo-1518073176059-65c11ec1d93b?w=100&h=100&fit=crop', audio: '' },
-                    { text: 'Component updates', image: 'https://images.unsplash.com/photo-1516321497487-e288fb19713f?w=100&h=100&fit=crop', audio: '' },
-                    { text: 'Component unmounts', image: 'https://images.unsplash.com/photo-1516321497487-e288fb19713f?w=100&h=100&fit=crop', audio: '' },
-                    { text: 'Component renders', image: 'https://images.unsplash.com/photo-1516321497487-e288fb19713f?w=100&h=100&fit=crop', audio: '' }
-                  ],
-                  correctOrder: [0, 3, 1, 2], // Mount -> Render -> Update -> Unmount
-                  points: 10,
-                  explanation: 'React components follow the lifecycle: Mount → Render → Update (if needed) → Unmount'
-                },
-                {
-                  id: 'q6',
-                  type: 'long-form-answer',
-                  question: 'Explain the concept of "lifting state up" in React and provide a practical example of when you would use this pattern.',
-                  sampleAnswer: 'Lifting state up means moving state from child components to their common parent component when multiple children need to share or synchronize state. For example, if you have two sibling components that need to display and modify the same user data, you would move the user state to their parent component and pass it down as props.',
-                  points: 15,
-                  explanation: 'This question tests understanding of React state management patterns and requires manual grading for full credit.',
-                  wordLimit: 500
-                },
-                {
-                  id: 'q7',
-                  type: 'multiple-choice-multimedia',
-                  question: 'Which of the following code snippets correctly implements a React functional component?',
-                  options: [
-                    {
-                      type: 'image',
-                      url: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=300&h=200&fit=crop',
-                      alt: 'Code snippet showing function component'
-                    },
-                    {
-                      type: 'text',
-                      content: 'const MyComponent = () => { return <div>Hello</div>; }'
-                    },
-                    {
-                      type: 'text', 
-                      content: 'class MyComponent extends Component { render() { return <div>Hello</div>; } }'
-                    },
-                    {
-                      type: 'text',
-                      content: 'function MyComponent() { return <div>Hello</div>; }'
-                    }
-                  ],
-                  correctAnswer: 1,
-                  points: 6,
-                  explanation: 'Both arrow functions and regular functions can be used for functional components, but option B shows the modern arrow function syntax.'
-                }
-              ]
-            }
-          }
+          { id: 'l5', title: 'Components Basics', type: 'text', duration: '20 min', content: 'Understanding React components...' },
+          { id: 'l6', title: 'React Quiz 1', type: 'quiz', duration: '15 min', quizId: 'quiz1' }
         ]
       }
-    ],
-    finalTest: {
-      id: 'final_test_1',
-      title: 'React Development Fundamentals - Final Assessment',
-      description: 'Comprehensive test covering all React topics from the course',
-      timeLimit: 120, // 120 minutes
-      maxAttempts: 3,
-      passingScore: 70,
-      shuffleQuestions: true,
-      showResults: true,
-      questions: [
-        {
-          id: 'ft_q1',
-          type: 'multiple-choice',
-          question: 'What is the primary purpose of React?',
-          options: [
-            'To build user interfaces',
-            'To manage databases', 
-            'To handle server requests',
-            'To create mobile apps only'
-          ],
-          correctAnswer: 0,
-          points: 5,
-          explanation: 'React is a JavaScript library primarily used for building user interfaces.'
-        },
-        {
-          id: 'ft_q2',
-          type: 'select-all-that-apply',
-          question: 'Which of the following are React lifecycle methods? (Select all that apply)',
-          options: [
-            'componentDidMount',
-            'componentWillUpdate', 
-            'componentDidUpdate',
-            'componentWillUnmount',
-            'componentDidCreate'
-          ],
-          correctAnswers: [0, 2, 3], // componentDidMount, componentDidUpdate, componentWillUnmount
-          points: 12,
-          explanation: 'componentDidMount, componentDidUpdate, and componentWillUnmount are valid React lifecycle methods. componentDidCreate does not exist.'
-        },
-        {
-          id: 'ft_q3',
-          type: 'long-form-answer',
-          question: 'Compare and contrast functional components with class components in React. Discuss the advantages and disadvantages of each approach and when you might choose one over the other.',
-          sampleAnswer: 'Functional components are simpler, easier to test, and can use hooks for state management. Class components have more verbose syntax but provide lifecycle methods. With hooks, functional components can do everything class components can do, making them preferred for modern React development.',
-          points: 25,
-          explanation: 'This question tests comprehensive understanding of React component types.',
-          wordLimit: 600
-        }
-      ]
-    }
+    ]
   },
   {
     id: '2',
-    title: 'Python for Data Science',
-    description: 'Comprehensive course covering Python programming for data analysis and machine learning.',
-    category: 'Data Science',
+    title: 'Advanced JavaScript ES6+',
+    description: 'Master modern JavaScript features including async/await, destructuring, and modules.',
+    category: 'Web Development',
     instructor: 'Sarah Wilson',
-    instructorId: '2',
+    instructorId: '3',
+    duration: '6 weeks',
+    thumbnail: 'https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=300&h=200&fit=crop',
+    enrolledStudents: 38,
+    totalLessons: 18,
+    isPublic: true,
+    status: 'published',
+    createdAt: '2024-01-25',
+    modules: [
+      {
+        id: 'm1',
+        title: 'Modern JavaScript Features',
+        lessons: [
+          { id: 'l1', title: 'Arrow Functions and Template Literals', type: 'video', duration: '20 min', videoUrl: 'https://www.youtube.com/embed/h33Srr5J9nY' },
+          { id: 'l2', title: 'Destructuring and Spread Operator', type: 'quiz', duration: '15 min', quizId: 'quiz2' }
+        ]
+      }
+    ]
+  },
+  
+  // Data Science Courses
+  {
+    id: '3',
+    title: 'Python for Data Science',
+    description: 'Complete introduction to Python programming for data analysis and machine learning.',
+    category: 'Data Science',
+    instructor: 'Dr. Michael Chen',
+    instructorId: '4',
+    duration: '10 weeks',
+    thumbnail: 'https://images.unsplash.com/photo-1526379879527-8559ecfcaec0?w=300&h=200&fit=crop',
+    enrolledStudents: 52,
+    totalLessons: 30,
+    isPublic: true,
+    status: 'published',
+    createdAt: '2024-02-01',
+    modules: [
+      {
+        id: 'm1',
+        title: 'Python Fundamentals',
+        lessons: [
+          { id: 'l1', title: 'Introduction to Python', type: 'video', duration: '25 min', videoUrl: 'https://www.youtube.com/embed/_uQrJ0TkZlc' },
+          { id: 'l2', title: 'Python Basics Quiz', type: 'quiz', duration: '20 min', quizId: 'quiz3' }
+        ]
+      }
+    ]
+  },
+  {
+    id: '4',
+    title: 'Machine Learning Fundamentals',
+    description: 'Learn the core concepts of machine learning with hands-on Python implementations.',
+    category: 'Data Science',
+    instructor: 'Dr. Michael Chen',
+    instructorId: '4',
     duration: '12 weeks',
-    thumbnail: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?w=300&h=200&fit=crop',
-    enrolledStudents: 32,
-    totalLessons: 36,
+    thumbnail: 'https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=300&h=200&fit=crop',
+    enrolledStudents: 34,
+    totalLessons: 35,
     isPublic: true,
     status: 'published',
     createdAt: '2024-02-15',
     modules: [
       {
-        id: 'm3',
-        title: 'Python Basics',
+        id: 'm1',
+        title: 'Introduction to ML',
         lessons: [
-          { id: 'l7', title: 'Python Introduction', type: 'video', duration: '25 min', videoUrl: 'https://www.youtube.com/embed/_uQrJ0TkZlc' },
-          { id: 'l8', title: 'Variables and Data Types', type: 'video', duration: '22 min', videoUrl: 'https://www.youtube.com/embed/OH86oLzVzzw' }
+          { id: 'l1', title: 'What is Machine Learning?', type: 'video', duration: '30 min', videoUrl: 'https://www.youtube.com/embed/ukzFI9rgwfU' }
         ]
       }
-    ],
-    finalTest: {
-      id: 'final_test_2',
-      title: 'Python for Data Science - Final Assessment',
-      description: 'Comprehensive test covering all topics from the Python for Data Science course',
-      timeLimit: 90, // 90 minutes
-      maxAttempts: 2,
-      passingScore: 75,
-      shuffleQuestions: true,
-      showResults: true,
-      questions: [
-        {
-          id: 'ft_q1',
-          type: 'select-all-that-apply',
-          question: 'Which of the following are valid Python data types? (Select all that apply)',
-          options: ['int', 'string', 'list', 'boolean', 'array'],
-          correctAnswers: [0, 1, 2, 3], // int, string, list, boolean (array is not a built-in type)
-          points: 10,
-          explanation: 'Python has int, str (string), list, and bool data types built-in. Array is available through numpy, not built-in.'
-        },
-        {
-          id: 'ft_q2',
-          type: 'chronological-order',
-          question: 'Arrange the following steps of a typical data science workflow in chronological order:',
-          items: [
-            'Data Collection',
-            'Data Analysis', 
-            'Data Cleaning',
-            'Model Deployment',
-            'Model Training'
-          ],
-          correctOrder: [0, 2, 1, 4, 3], // Collection -> Cleaning -> Analysis -> Training -> Deployment
-          points: 15,
-          explanation: 'Data science workflow: Collect data → Clean data → Analyze data → Train models → Deploy models'
-        },
-        {
-          id: 'ft_q3',
-          type: 'long-form-answer',
-          question: 'Explain the difference between supervised and unsupervised learning. Provide examples of each and discuss when you would use one approach over the other.',
-          sampleAnswer: 'Supervised learning uses labeled training data to learn patterns and make predictions on new data (e.g., email spam detection, image classification). Unsupervised learning finds hidden patterns in unlabeled data (e.g., customer segmentation, anomaly detection). Use supervised when you have labeled examples; use unsupervised for exploration and pattern discovery.',
-          points: 20,
-          explanation: 'This question tests understanding of core machine learning concepts.',
-          wordLimit: 750
-        }
-      ]
-    }
+    ]
+  },
+  
+  // Digital Marketing Courses
+  {
+    id: '5',
+    title: 'Digital Marketing Mastery',
+    description: 'Comprehensive course covering SEO, social media marketing, and content strategy.',
+    category: 'Digital Marketing',
+    instructor: 'Emma Thompson',
+    instructorId: '5',
+    duration: '8 weeks',
+    thumbnail: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=300&h=200&fit=crop',
+    enrolledStudents: 67,
+    totalLessons: 22,
+    isPublic: true,
+    status: 'published',
+    createdAt: '2024-02-20',
+    modules: [
+      {
+        id: 'm1',
+        title: 'SEO Fundamentals',
+        lessons: [
+          { id: 'l1', title: 'Introduction to SEO', type: 'video', duration: '20 min', videoUrl: 'https://www.youtube.com/embed/xsVTqzratPs' },
+          { id: 'l2', title: 'SEO Quiz', type: 'quiz', duration: '15 min', quizId: 'quiz4' }
+        ]
+      }
+    ]
   },
   {
-    id: '3',
-    title: 'Digital Marketing Mastery',
-    description: 'Master digital marketing strategies including SEO, social media marketing, and analytics.',
-    category: 'Marketing',
-    instructor: 'Sarah Wilson',
-    instructorId: '2',
+    id: '6',
+    title: 'Social Media Strategy',
+    description: 'Learn to create effective social media campaigns across all major platforms.',
+    category: 'Digital Marketing',
+    instructor: 'Emma Thompson',
+    instructorId: '5',
     duration: '6 weeks',
-    thumbnail: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=300&h=200&fit=crop',
-    enrolledStudents: 28,
+    thumbnail: 'https://images.unsplash.com/photo-1611926653458-09294b3142bf?w=300&h=200&fit=crop',
+    enrolledStudents: 43,
     totalLessons: 18,
     isPublic: true,
     status: 'published',
     createdAt: '2024-03-01',
     modules: [
       {
-        id: 'm4',
-        title: 'SEO Fundamentals',
+        id: 'm1',
+        title: 'Platform Strategies',
         lessons: [
-          { id: 'l9', title: 'Introduction to SEO', type: 'video', duration: '20 min', videoUrl: 'https://www.youtube.com/embed/xsVTqzratPs' }
+          { id: 'l1', title: 'Facebook Marketing', type: 'video', duration: '25 min', videoUrl: 'https://www.youtube.com/embed/8oe3aEl52V4' }
+        ]
+      }
+    ]
+  },
+  
+  // Business Management Courses
+  {
+    id: '7',
+    title: 'Project Management Essentials',
+    description: 'Master the fundamentals of project management using Agile and traditional methodologies.',
+    category: 'Business Management',
+    instructor: 'James Davis',
+    instructorId: '6',
+    duration: '10 weeks',
+    thumbnail: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=300&h=200&fit=crop',
+    enrolledStudents: 56,
+    totalLessons: 28,
+    isPublic: true,
+    status: 'published',
+    createdAt: '2024-02-28',
+    modules: [
+      {
+        id: 'm1',
+        title: 'Project Management Fundamentals',
+        lessons: [
+          { id: 'l1', title: 'Introduction to PM', type: 'video', duration: '22 min', videoUrl: 'https://www.youtube.com/embed/2Ox8bnRc5z0' }
+        ]
+      }
+    ]
+  },
+  {
+    id: '8',
+    title: 'Leadership and Team Management',
+    description: 'Develop essential leadership skills for managing high-performing teams.',
+    category: 'Business Management',
+    instructor: 'James Davis',
+    instructorId: '6',
+    duration: '8 weeks',
+    thumbnail: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=300&h=200&fit=crop',
+    enrolledStudents: 41,
+    totalLessons: 20,
+    isPublic: true,
+    status: 'published',
+    createdAt: '2024-03-15',
+    modules: [
+      {
+        id: 'm1',
+        title: 'Leadership Principles',
+        lessons: [
+          { id: 'l1', title: 'What Makes a Great Leader?', type: 'video', duration: '28 min', videoUrl: 'https://www.youtube.com/embed/llKvV8_T95M' }
+        ]
+      }
+    ]
+  },
+  
+  // Cybersecurity Courses
+  {
+    id: '9',
+    title: 'Cybersecurity Fundamentals',
+    description: 'Essential cybersecurity concepts including threat assessment and risk management.',
+    category: 'Cybersecurity',
+    instructor: 'Dr. Priya Patel',
+    instructorId: '7',
+    duration: '12 weeks',
+    thumbnail: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=300&h=200&fit=crop',
+    enrolledStudents: 39,
+    totalLessons: 32,
+    isPublic: true,
+    status: 'published',
+    createdAt: '2024-03-10',
+    modules: [
+      {
+        id: 'm1',
+        title: 'Introduction to Cybersecurity',
+        lessons: [
+          { id: 'l1', title: 'Cyber Threats Overview', type: 'video', duration: '25 min', videoUrl: 'https://www.youtube.com/embed/bPVaOlJ6ln0' }
+        ]
+      }
+    ]
+  },
+  {
+    id: '10',
+    title: 'Network Security Protocols',
+    description: 'Deep dive into network security, firewalls, and intrusion detection systems.',
+    category: 'Cybersecurity',
+    instructor: 'Dr. Priya Patel',
+    instructorId: '7',
+    duration: '10 weeks',
+    thumbnail: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=300&h=200&fit=crop',
+    enrolledStudents: 28,
+    totalLessons: 26,
+    isPublic: true,
+    status: 'published',
+    createdAt: '2024-04-01',
+    modules: [
+      {
+        id: 'm1',
+        title: 'Network Fundamentals',
+        lessons: [
+          { id: 'l1', title: 'OSI Model and Security', type: 'video', duration: '30 min', videoUrl: 'https://www.youtube.com/embed/vv4y_uOneC0' }
         ]
       }
     ]
