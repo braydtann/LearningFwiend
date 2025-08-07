@@ -1,5 +1,6 @@
 // Mock data for LearningFwiend LMS clone
 export const mockUsers = [
+  // Admin Users
   {
     id: '1',
     name: 'John Admin',
@@ -10,19 +11,204 @@ export const mockUsers = [
   },
   {
     id: '2',
+    name: 'Lisa Rodriguez',
+    email: 'lisa.rodriguez@learningfwiend.com',
+    role: 'admin',
+    avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b739?w=100&h=100&fit=crop&crop=face',
+    joinDate: '2024-01-08'
+  },
+  
+  // Instructor Users
+  {
+    id: '3',
     name: 'Sarah Wilson',
     email: 'sarah.wilson@learningfwiend.com',
     role: 'instructor',
     avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face',
-    joinDate: '2024-02-10'
+    joinDate: '2024-01-20',
+    department: 'Web Development'
   },
   {
-    id: '3',
+    id: '4',
+    name: 'Dr. Michael Chen',
+    email: 'michael.chen@learningfwiend.com',
+    role: 'instructor',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face',
+    joinDate: '2024-01-18',
+    department: 'Data Science'
+  },
+  {
+    id: '5',
+    name: 'Emma Thompson',
+    email: 'emma.thompson@learningfwiend.com',
+    role: 'instructor',
+    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=face',
+    joinDate: '2024-02-01',
+    department: 'Digital Marketing'
+  },
+  {
+    id: '6',
+    name: 'James Davis',
+    email: 'james.davis@learningfwiend.com',
+    role: 'instructor',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face',
+    joinDate: '2024-02-15',
+    department: 'Business Management'
+  },
+  {
+    id: '7',
+    name: 'Dr. Priya Patel',
+    email: 'priya.patel@learningfwiend.com',
+    role: 'instructor',
+    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&h=100&fit=crop&crop=face',
+    joinDate: '2024-03-01',
+    department: 'Cybersecurity'
+  },
+  
+  // Learner Users
+  {
+    id: '8',
     name: 'Mike Johnson',
     email: 'mike.johnson@learningfwiend.com',
     role: 'learner',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face',
-    joinDate: '2024-03-05'
+    joinDate: '2024-01-25'
+  },
+  {
+    id: '9',
+    name: 'Jennifer Williams',
+    email: 'jennifer.williams@learningfwiend.com',
+    role: 'learner',
+    avatar: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=100&h=100&fit=crop&crop=face',
+    joinDate: '2024-01-30'
+  },
+  {
+    id: '10',
+    name: 'David Brown',
+    email: 'david.brown@learningfwiend.com',
+    role: 'learner',
+    avatar: 'https://images.unsplash.com/photo-1463453091185-61582044d556?w=100&h=100&fit=crop&crop=face',
+    joinDate: '2024-02-05'
+  },
+  {
+    id: '11',
+    name: 'Maria Garcia',
+    email: 'maria.garcia@learningfwiend.com',
+    role: 'learner',
+    avatar: 'https://images.unsplash.com/photo-1546967191-fdfb13ed6b1e?w=100&h=100&fit=crop&crop=face',
+    joinDate: '2024-02-12'
+  },
+  {
+    id: '12',
+    name: 'Robert Taylor',
+    email: 'robert.taylor@learningfwiend.com',
+    role: 'learner',
+    avatar: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=100&h=100&fit=crop&crop=face',
+    joinDate: '2024-02-20'
+  },
+  {
+    id: '13',
+    name: 'Linda Anderson',
+    email: 'linda.anderson@learningfwiend.com',
+    role: 'learner',
+    avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&h=100&fit=crop&crop=face',
+    joinDate: '2024-02-28'
+  },
+  {
+    id: '14',
+    name: 'Kevin Lee',
+    email: 'kevin.lee@learningfwiend.com',
+    role: 'learner',
+    avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=100&h=100&fit=crop&crop=face',
+    joinDate: '2024-03-10'
+  },
+  {
+    id: '15',
+    name: 'Angela Martinez',
+    email: 'angela.martinez@learningfwiend.com',
+    role: 'learner',
+    avatar: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=100&h=100&fit=crop&crop=face',
+    joinDate: '2024-03-15'
+  },
+  {
+    id: '16',
+    name: 'Thomas Wilson',
+    email: 'thomas.wilson@learningfwiend.com',
+    role: 'learner',
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
+    joinDate: '2024-03-22'
+  },
+  {
+    id: '17',
+    name: 'Jessica Clark',
+    email: 'jessica.clark@learningfwiend.com',
+    role: 'learner',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=face',
+    joinDate: '2024-04-01'
+  },
+  {
+    id: '18',
+    name: 'Christopher Moore',
+    email: 'christopher.moore@learningfwiend.com',
+    role: 'learner',
+    avatar: 'https://images.unsplash.com/photo-1556157382-97eda2d62296?w=100&h=100&fit=crop&crop=face',
+    joinDate: '2024-04-08'
+  },
+  {
+    id: '19',
+    name: 'Amanda White',
+    email: 'amanda.white@learningfwiend.com',
+    role: 'learner',
+    avatar: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=100&h=100&fit=crop&crop=face',
+    joinDate: '2024-04-15'
+  },
+  {
+    id: '20',
+    name: 'Steven Hall',
+    email: 'steven.hall@learningfwiend.com',
+    role: 'learner',
+    avatar: 'https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=100&h=100&fit=crop&crop=face',
+    joinDate: '2024-04-22'
+  },
+  {
+    id: '21',
+    name: 'Michelle Young',
+    email: 'michelle.young@learningfwiend.com',
+    role: 'learner',
+    avatar: 'https://images.unsplash.com/photo-1485206412256-701ccc5b93ca?w=100&h=100&fit=crop&crop=face',
+    joinDate: '2024-05-01'
+  },
+  {
+    id: '22',
+    name: 'Daniel Harris',
+    email: 'daniel.harris@learningfwiend.com',
+    role: 'learner',
+    avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&h=100&fit=crop&crop=face',
+    joinDate: '2024-05-10'
+  },
+  {
+    id: '23',
+    name: 'Nicole Lewis',
+    email: 'nicole.lewis@learningfwiend.com',
+    role: 'learner',
+    avatar: 'https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=100&h=100&fit=crop&crop=face',
+    joinDate: '2024-05-18'
+  },
+  {
+    id: '24',
+    name: 'Ryan King',
+    email: 'ryan.king@learningfwiend.com',
+    role: 'learner',
+    avatar: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=100&h=100&fit=crop&crop=face',
+    joinDate: '2024-05-25'
+  },
+  {
+    id: '25',
+    name: 'Stephanie Scott',
+    email: 'stephanie.scott@learningfwiend.com',
+    role: 'learner',
+    avatar: 'https://images.unsplash.com/photo-1502823403499-6ccfcf4fb453?w=100&h=100&fit=crop&crop=face',
+    joinDate: '2024-06-01'
   }
 ];
 
