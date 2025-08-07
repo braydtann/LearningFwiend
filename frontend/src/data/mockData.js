@@ -777,157 +777,68 @@ export const getStudentClassrooms = (studentId) => {
 
 // Quiz-related mock data
 export const mockQuizAttempts = [
-  {
-    id: '1',
-    userId: '3',
-    courseId: '1',
-    lessonId: 'l6',
-    quizId: 'quiz1',
-    attempt: 1,
-    startedAt: '2024-03-15T10:00:00Z',
-    completedAt: '2024-03-15T10:08:30Z',
-    timeSpent: 510, // seconds
-    score: 85,
-    totalPoints: 20,
-    earnedPoints: 17,
-    passed: true,
-    isTest: false,
-    answers: [
-      { questionId: 'q1', answer: 0, correct: true, points: 5 },
-      { questionId: 'q2', answer: 0, correct: true, points: 5 },
-      { questionId: 'q3', answer: true, correct: true, points: 3 },
-      { questionId: 'q4', answer: 'To create reusable UI components', correct: true, points: 4 }
-    ],
-    status: 'completed'
-  },
-  {
-    id: '2',
-    userId: '3',
-    courseId: '1',
-    lessonId: 'l6',
-    quizId: 'quiz1',
-    attempt: 2,
-    startedAt: '2024-03-16T14:00:00Z',
-    completedAt: null,
-    timeSpent: 0,
-    score: null,
-    totalPoints: 20,
-    earnedPoints: null,
-    passed: null,
-    isTest: false,
-    answers: [],
-    status: 'in-progress'
-  },
-  // Test attempts
-  {
-    id: '3',
-    userId: '3',
-    courseId: '1',
-    lessonId: 'final-test',
-    quizId: 'final-test-1',
-    attempt: 1,
-    startedAt: '2024-03-18T09:00:00Z',
-    completedAt: '2024-03-18T10:15:00Z',
-    timeSpent: 4500, // 75 minutes
-    score: 88,
-    totalPoints: 100,
-    earnedPoints: 88,
-    passed: true,
-    isTest: true,
-    answers: [],
-    status: 'completed'
-  },
-  // Additional quiz attempts for analytics
-  {
-    id: '4',
-    userId: '2',
-    courseId: '2',
-    lessonId: 'l7',
-    quizId: 'quiz2',
-    attempt: 1,
-    startedAt: '2024-03-12T11:00:00Z',
-    completedAt: '2024-03-12T11:07:45Z',
-    timeSpent: 465,
-    score: 92,
-    totalPoints: 25,
-    earnedPoints: 23,
-    passed: true,
-    isTest: false,
-    answers: [],
-    status: 'completed'
-  },
-  {
-    id: '5',
-    userId: '1',
-    courseId: '1',
-    lessonId: 'l6',
-    quizId: 'quiz1',
-    attempt: 1,
-    startedAt: '2024-03-14T15:30:00Z',
-    completedAt: '2024-03-14T15:42:15Z',
-    timeSpent: 735,
-    score: 75,
-    totalPoints: 20,
-    earnedPoints: 15,
-    passed: true,
-    isTest: false,
-    answers: [],
-    status: 'completed'
-  },
-  {
-    id: '6',
-    userId: '2',
-    courseId: '3',
-    lessonId: 'final-test',
-    quizId: 'final-test-3',
-    attempt: 1,
-    startedAt: '2024-03-10T13:00:00Z',
-    completedAt: '2024-03-10T14:30:00Z',
-    timeSpent: 5400, // 90 minutes
-    score: 94,
-    totalPoints: 100,
-    earnedPoints: 94,
-    passed: true,
-    isTest: true,
-    answers: [],
-    status: 'completed'
-  },
-  {
-    id: '7',
-    userId: '3',
-    courseId: '2',
-    lessonId: 'l7',
-    quizId: 'quiz2',
-    attempt: 1,
-    startedAt: '2024-03-11T16:00:00Z',
-    completedAt: '2024-03-11T16:09:20Z',
-    timeSpent: 560,
-    score: 68,
-    totalPoints: 25,
-    earnedPoints: 17,
-    passed: false,
-    isTest: false,
-    answers: [],
-    status: 'completed'
-  },
-  {
-    id: '8',
-    userId: '1',
-    courseId: '3',
-    lessonId: 'l8',
-    quizId: 'quiz3',
-    attempt: 1,
-    startedAt: '2024-03-16T10:00:00Z',
-    completedAt: '2024-03-16T10:12:30Z',
-    timeSpent: 750,
-    score: 82,
-    totalPoints: 30,
-    earnedPoints: 25,
-    passed: true,
-    isTest: false,
-    answers: [],
-    status: 'completed'
-  }
+  // January 2024 Quiz Attempts
+  { id: '1', userId: '8', courseId: '1', lessonId: 'l6', quizId: 'quiz1', attempt: 1, startedAt: '2024-01-28T10:00:00Z', completedAt: '2024-01-28T10:08:30Z', timeSpent: 510, score: 92, totalPoints: 20, earnedPoints: 18, passed: true, isTest: false, answers: [], status: 'completed' },
+  { id: '2', userId: '9', courseId: '1', lessonId: 'l6', quizId: 'quiz1', attempt: 1, startedAt: '2024-01-30T14:00:00Z', completedAt: '2024-01-30T14:12:15Z', timeSpent: 735, score: 85, totalPoints: 20, earnedPoints: 17, passed: true, isTest: false, answers: [], status: 'completed' },
+  { id: '3', userId: '10', courseId: '3', lessonId: 'l2', quizId: 'quiz3', attempt: 1, startedAt: '2024-01-31T16:30:00Z', completedAt: '2024-01-31T16:45:20Z', timeSpent: 920, score: 88, totalPoints: 25, earnedPoints: 22, passed: true, isTest: false, answers: [], status: 'completed' },
+  
+  // February 2024 Quiz Attempts
+  { id: '4', userId: '11', courseId: '1', lessonId: 'l6', quizId: 'quiz1', attempt: 1, startedAt: '2024-02-08T11:00:00Z', completedAt: '2024-02-08T11:09:45Z', timeSpent: 585, score: 75, totalPoints: 20, earnedPoints: 15, passed: true, isTest: false, answers: [], status: 'completed' },
+  { id: '5', userId: '12', courseId: '2', lessonId: 'l2', quizId: 'quiz2', attempt: 1, startedAt: '2024-02-10T13:15:00Z', completedAt: '2024-02-10T13:28:30Z', timeSpent: 810, score: 94, totalPoints: 30, earnedPoints: 28, passed: true, isTest: false, answers: [], status: 'completed' },
+  { id: '6', userId: '13', courseId: '3', lessonId: 'l2', quizId: 'quiz3', attempt: 1, startedAt: '2024-02-12T15:00:00Z', completedAt: '2024-02-12T15:18:15Z', timeSpent: 1095, score: 82, totalPoints: 25, earnedPoints: 20, passed: true, isTest: false, answers: [], status: 'completed' },
+  { id: '7', userId: '14', courseId: '4', lessonId: 'l1', quizId: 'quiz4', attempt: 1, startedAt: '2024-02-18T09:30:00Z', completedAt: '2024-02-18T09:45:00Z', timeSpent: 900, score: 71, totalPoints: 35, earnedPoints: 25, passed: true, isTest: false, answers: [], status: 'completed' },
+  { id: '8', userId: '15', courseId: '5', lessonId: 'l2', quizId: 'quiz5', attempt: 1, startedAt: '2024-02-20T14:45:00Z', completedAt: '2024-02-20T15:02:30Z', timeSpent: 1050, score: 96, totalPoints: 25, earnedPoints: 24, passed: true, isTest: false, answers: [], status: 'completed' },
+  
+  // Final Test Attempts - February
+  { id: '9', userId: '8', courseId: '1', lessonId: 'final-test', quizId: 'final-test-1', attempt: 1, startedAt: '2024-02-15T09:00:00Z', completedAt: '2024-02-15T10:30:00Z', timeSpent: 5400, score: 89, totalPoints: 100, earnedPoints: 89, passed: true, isTest: true, answers: [], status: 'completed' },
+  { id: '10', userId: '12', courseId: '2', lessonId: 'final-test', quizId: 'final-test-2', attempt: 1, startedAt: '2024-02-22T10:00:00Z', completedAt: '2024-02-22T11:15:00Z', timeSpent: 4500, score: 91, totalPoints: 100, earnedPoints: 91, passed: true, isTest: true, answers: [], status: 'completed' },
+  
+  // March 2024 Quiz Attempts
+  { id: '11', userId: '16', courseId: '5', lessonId: 'l2', quizId: 'quiz5', attempt: 1, startedAt: '2024-03-05T16:00:00Z', completedAt: '2024-03-05T16:15:45Z', timeSpent: 945, score: 87, totalPoints: 25, earnedPoints: 22, passed: true, isTest: false, answers: [], status: 'completed' },
+  { id: '12', userId: '17', courseId: '6', lessonId: 'l1', quizId: 'quiz6', attempt: 1, startedAt: '2024-03-08T12:30:00Z', completedAt: '2024-03-08T12:48:20Z', timeSpent: 1100, score: 79, totalPoints: 30, earnedPoints: 24, passed: true, isTest: false, answers: [], status: 'completed' },
+  { id: '13', userId: '18', courseId: '7', lessonId: 'l1', quizId: 'quiz7', attempt: 1, startedAt: '2024-03-10T10:15:00Z', completedAt: '2024-03-10T10:35:30Z', timeSpent: 1230, score: 93, totalPoints: 40, earnedPoints: 37, passed: true, isTest: false, answers: [], status: 'completed' },
+  { id: '14', userId: '19', courseId: '8', lessonId: 'l1', quizId: 'quiz8', attempt: 1, startedAt: '2024-03-12T14:00:00Z', completedAt: '2024-03-12T14:22:15Z', timeSpent: 1335, score: 84, totalPoints: 35, earnedPoints: 29, passed: true, isTest: false, answers: [], status: 'completed' },
+  { id: '15', userId: '20', courseId: '9', lessonId: 'l1', quizId: 'quiz9', attempt: 1, startedAt: '2024-03-15T11:45:00Z', completedAt: '2024-03-15T12:08:45Z', timeSpent: 1425, score: 78, totalPoints: 45, earnedPoints: 35, passed: true, isTest: false, answers: [], status: 'completed' },
+  { id: '16', userId: '21', courseId: '1', lessonId: 'l6', quizId: 'quiz1', attempt: 1, startedAt: '2024-03-18T13:30:00Z', completedAt: '2024-03-18T13:42:00Z', timeSpent: 720, score: 90, totalPoints: 20, earnedPoints: 18, passed: true, isTest: false, answers: [], status: 'completed' },
+  
+  // Final Test Attempts - March
+  { id: '17', userId: '15', courseId: '5', lessonId: 'final-test', quizId: 'final-test-5', attempt: 1, startedAt: '2024-03-20T13:00:00Z', completedAt: '2024-03-20T14:20:00Z', timeSpent: 4800, score: 93, totalPoints: 100, earnedPoints: 93, passed: true, isTest: true, answers: [], status: 'completed' },
+  { id: '18', userId: '18', courseId: '7', lessonId: 'final-test', quizId: 'final-test-7', attempt: 1, startedAt: '2024-03-25T10:30:00Z', completedAt: '2024-03-25T12:00:00Z', timeSpent: 5400, score: 87, totalPoints: 100, earnedPoints: 87, passed: true, isTest: true, answers: [], status: 'completed' },
+  
+  // April 2024 Quiz Attempts
+  { id: '19', userId: '8', courseId: '2', lessonId: 'l2', quizId: 'quiz2', attempt: 1, startedAt: '2024-04-05T15:00:00Z', completedAt: '2024-04-05T15:18:30Z', timeSpent: 1110, score: 86, totalPoints: 30, earnedPoints: 26, passed: true, isTest: false, answers: [], status: 'completed' },
+  { id: '20', userId: '9', courseId: '6', lessonId: 'l1', quizId: 'quiz6', attempt: 1, startedAt: '2024-04-08T11:15:00Z', completedAt: '2024-04-08T11:32:45Z', timeSpent: 1065, score: 81, totalPoints: 30, earnedPoints: 24, passed: true, isTest: false, answers: [], status: 'completed' },
+  { id: '21', userId: '11', courseId: '8', lessonId: 'l1', quizId: 'quiz8', attempt: 1, startedAt: '2024-04-12T16:30:00Z', completedAt: '2024-04-12T16:55:00Z', timeSpent: 1500, score: 95, totalPoints: 35, earnedPoints: 33, passed: true, isTest: false, answers: [], status: 'completed' },
+  { id: '22', userId: '14', courseId: '1', lessonId: 'l6', quizId: 'quiz1', attempt: 1, startedAt: '2024-04-20T10:00:00Z', completedAt: '2024-04-20T10:11:30Z', timeSpent: 690, score: 88, totalPoints: 20, earnedPoints: 18, passed: true, isTest: false, answers: [], status: 'completed' },
+  
+  // May 2024 Quiz Attempts
+  { id: '23', userId: '18', courseId: '1', lessonId: 'l6', quizId: 'quiz1', attempt: 1, startedAt: '2024-05-10T14:45:00Z', completedAt: '2024-05-10T14:58:15Z', timeSpent: 795, score: 83, totalPoints: 20, earnedPoints: 17, passed: true, isTest: false, answers: [], status: 'completed' },
+  { id: '24', userId: '19', courseId: '2', lessonId: 'l2', quizId: 'quiz2', attempt: 1, startedAt: '2024-05-15T12:00:00Z', completedAt: '2024-05-15T12:19:30Z', timeSpent: 1170, score: 92, totalPoints: 30, earnedPoints: 28, passed: true, isTest: false, answers: [], status: 'completed' },
+  { id: '25', userId: '21', courseId: '6', lessonId: 'l1', quizId: 'quiz6', attempt: 1, startedAt: '2024-05-20T09:30:00Z', completedAt: '2024-05-20T09:48:45Z', timeSpent: 1125, score: 89, totalPoints: 30, earnedPoints: 27, passed: true, isTest: false, answers: [], status: 'completed' },
+  
+  // Final Test Attempts - May
+  { id: '26', userId: '11', courseId: '8', lessonId: 'final-test', quizId: 'final-test-8', attempt: 1, startedAt: '2024-05-25T11:00:00Z', completedAt: '2024-05-25T12:15:00Z', timeSpent: 4500, score: 94, totalPoints: 100, earnedPoints: 94, passed: true, isTest: true, answers: [], status: 'completed' },
+  { id: '27', userId: '19', courseId: '2', lessonId: 'final-test', quizId: 'final-test-2', attempt: 1, startedAt: '2024-05-28T14:30:00Z', completedAt: '2024-05-28T15:45:00Z', timeSpent: 4500, score: 96, totalPoints: 100, earnedPoints: 96, passed: true, isTest: true, answers: [], status: 'completed' },
+  
+  // June 2024 Quiz Attempts (Recent)
+  { id: '28', userId: '10', courseId: '8', lessonId: 'l1', quizId: 'quiz8', attempt: 1, startedAt: '2024-06-05T13:15:00Z', completedAt: '2024-06-05T13:38:30Z', timeSpent: 1410, score: 77, totalPoints: 35, earnedPoints: 27, passed: true, isTest: false, answers: [], status: 'completed' },
+  { id: '29', userId: '13', courseId: '1', lessonId: 'l6', quizId: 'quiz1', attempt: 1, startedAt: '2024-06-10T11:00:00Z', completedAt: '2024-06-10T11:13:45Z', timeSpent: 825, score: 85, totalPoints: 20, earnedPoints: 17, passed: true, isTest: false, answers: [], status: 'completed' },
+  { id: '30', userId: '14', courseId: '5', lessonId: 'l2', quizId: 'quiz5', attempt: 1, startedAt: '2024-06-15T15:30:00Z', completedAt: '2024-06-15T15:48:00Z', timeSpent: 1080, score: 91, totalPoints: 25, earnedPoints: 23, passed: true, isTest: false, answers: [], status: 'completed' },
+  
+  // Failed Attempts (for realistic data)
+  { id: '31', userId: '22', courseId: '3', lessonId: 'l2', quizId: 'quiz3', attempt: 1, startedAt: '2024-03-20T16:00:00Z', completedAt: '2024-03-20T16:25:00Z', timeSpent: 1500, score: 65, totalPoints: 25, earnedPoints: 16, passed: false, isTest: false, answers: [], status: 'completed' },
+  { id: '32', userId: '22', courseId: '3', lessonId: 'l2', quizId: 'quiz3', attempt: 2, startedAt: '2024-03-22T10:00:00Z', completedAt: '2024-03-22T10:20:30Z', timeSpent: 1230, score: 84, totalPoints: 25, earnedPoints: 21, passed: true, isTest: false, answers: [], status: 'completed' },
+  { id: '33', userId: '17', courseId: '4', lessonId: 'l1', quizId: 'quiz4', attempt: 1, startedAt: '2024-04-25T14:00:00Z', completedAt: '2024-04-25T14:28:15Z', timeSpent: 1695, score: 68, totalPoints: 35, earnedPoints: 24, passed: false, isTest: false, answers: [], status: 'completed' },
+  { id: '34', userId: '17', courseId: '4', lessonId: 'l1', quizId: 'quiz4', attempt: 2, startedAt: '2024-04-27T12:30:00Z', completedAt: '2024-04-27T12:52:00Z', timeSpent: 1320, score: 74, totalPoints: 35, earnedPoints: 26, passed: true, isTest: false, answers: [], status: 'completed' },
+  
+  // Instructor and Admin Quiz Attempts
+  { id: '35', userId: '4', courseId: '1', lessonId: 'l6', quizId: 'quiz1', attempt: 1, startedAt: '2024-03-01T10:30:00Z', completedAt: '2024-03-01T10:42:15Z', timeSpent: 705, score: 100, totalPoints: 25, earnedPoints: 25, passed: true, isTest: false, answers: [], status: 'completed' },
+  { id: '36', userId: '3', courseId: '9', lessonId: 'l1', quizId: 'quiz9', attempt: 1, startedAt: '2024-04-10T15:00:00Z', completedAt: '2024-04-10T15:25:30Z', timeSpent: 1530, score: 98, totalPoints: 45, earnedPoints: 44, passed: true, isTest: false, answers: [], status: 'completed' },
+  { id: '37', userId: '5', courseId: '3', lessonId: 'l2', quizId: 'quiz3', attempt: 1, startedAt: '2024-03-25T11:15:00Z', completedAt: '2024-03-25T11:38:45Z', timeSpent: 1425, score: 96, totalPoints: 25, earnedPoints: 24, passed: true, isTest: false, answers: [], status: 'completed' },
+  
+  // In-Progress Attempts
+  { id: '38', userId: '24', courseId: '9', lessonId: 'l1', quizId: 'quiz9', attempt: 1, startedAt: '2024-06-20T14:00:00Z', completedAt: null, timeSpent: 0, score: null, totalPoints: 45, earnedPoints: null, passed: null, isTest: false, answers: [], status: 'in-progress' },
+  { id: '39', userId: '25', courseId: '10', lessonId: 'l1', quizId: 'quiz10', attempt: 1, startedAt: '2024-06-25T16:30:00Z', completedAt: null, timeSpent: 0, score: null, totalPoints: 50, earnedPoints: null, passed: null, isTest: false, answers: [], status: 'in-progress' }
 ];
 
 export const mockQuizResults = [
