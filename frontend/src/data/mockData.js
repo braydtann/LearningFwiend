@@ -473,67 +473,74 @@ export const mockCourses = [
 ];
 
 export const mockEnrollments = [
-  {
-    id: '1',
-    userId: '3',
-    courseId: '1',
-    enrolledAt: '2024-03-10',
-    progress: 65,
-    completedLessons: ['l1', 'l2', 'l3', 'l4'],
-    lastAccessed: '2024-03-15',
-    timeSpent: 12.5 // hours
-  },
-  {
-    id: '2',
-    userId: '3',
-    courseId: '2',
-    enrolledAt: '2024-03-08',
-    progress: 25,
-    completedLessons: ['l7'],
-    lastAccessed: '2024-03-12',
-    timeSpent: 8.2 // hours
-  },
-  // Additional enrollments for better analytics
-  {
-    id: '3',
-    userId: '2', // instructor as learner
-    courseId: '3',
-    enrolledAt: '2024-02-15',
-    progress: 100,
-    completedLessons: ['l8', 'l9'],
-    lastAccessed: '2024-03-01',
-    timeSpent: 15.8
-  },
-  {
-    id: '4',
-    userId: '1', // admin as learner
-    courseId: '1',
-    enrolledAt: '2024-01-20',
-    progress: 45,
-    completedLessons: ['l1', 'l2'],
-    lastAccessed: '2024-03-18',
-    timeSpent: 7.3
-  },
-  {
-    id: '5',
-    userId: '2',
-    courseId: '2',
-    enrolledAt: '2024-02-01',
-    progress: 80,
-    completedLessons: ['l7', 'l8'],
-    lastAccessed: '2024-03-10',
-    timeSpent: 18.7
-  },
-  {
-    id: '6',
-    userId: '1',
-    courseId: '3',
-    enrolledAt: '2024-03-01',
-    progress: 30,
-    completedLessons: ['l8'],
-    lastAccessed: '2024-03-14',
-    timeSpent: 4.5
-  }
+  // January 2024 Enrollments
+  { id: '1', userId: '8', courseId: '1', enrolledAt: '2024-01-25', progress: 100, completedLessons: ['l1', 'l2', 'l3', 'l4', 'l5', 'l6'], lastAccessed: '2024-02-15', timeSpent: 32.5 },
+  { id: '2', userId: '9', courseId: '1', enrolledAt: '2024-01-28', progress: 85, completedLessons: ['l1', 'l2', 'l3', 'l4'], lastAccessed: '2024-03-10', timeSpent: 28.3 },
+  { id: '3', userId: '10', courseId: '3', enrolledAt: '2024-01-30', progress: 92, completedLessons: ['l1', 'l2'], lastAccessed: '2024-03-05', timeSpent: 41.2 },
+  
+  // February 2024 Enrollments
+  { id: '4', userId: '11', courseId: '1', enrolledAt: '2024-02-05', progress: 78, completedLessons: ['l1', 'l2', 'l3'], lastAccessed: '2024-03-12', timeSpent: 25.8 },
+  { id: '5', userId: '12', courseId: '2', enrolledAt: '2024-02-08', progress: 100, completedLessons: ['l1', 'l2'], lastAccessed: '2024-02-20', timeSpent: 22.4 },
+  { id: '6', userId: '13', courseId: '3', enrolledAt: '2024-02-10', progress: 65, completedLessons: ['l1'], lastAccessed: '2024-03-15', timeSpent: 35.7 },
+  { id: '7', userId: '14', courseId: '4', enrolledAt: '2024-02-15', progress: 45, completedLessons: ['l1'], lastAccessed: '2024-03-08', timeSpent: 18.9 },
+  { id: '8', userId: '15', courseId: '5', enrolledAt: '2024-02-18', progress: 100, completedLessons: ['l1', 'l2'], lastAccessed: '2024-03-01', timeSpent: 19.6 },
+  { id: '9', userId: '16', courseId: '5', enrolledAt: '2024-02-20', progress: 88, completedLessons: ['l1', 'l2'], lastAccessed: '2024-03-05', timeSpent: 16.8 },
+  { id: '10', userId: '17', courseId: '6', enrolledAt: '2024-02-25', progress: 72, completedLessons: ['l1'], lastAccessed: '2024-03-18', timeSpent: 14.3 },
+  
+  // March 2024 Enrollments
+  { id: '11', userId: '18', courseId: '7', enrolledAt: '2024-03-01', progress: 90, completedLessons: ['l1'], lastAccessed: '2024-03-20', timeSpent: 38.5 },
+  { id: '12', userId: '19', courseId: '8', enrolledAt: '2024-03-05', progress: 83, completedLessons: ['l1'], lastAccessed: '2024-03-22', timeSpent: 31.2 },
+  { id: '13', userId: '20', courseId: '9', enrolledAt: '2024-03-08', progress: 67, completedLessons: ['l1'], lastAccessed: '2024-03-25', timeSpent: 42.1 },
+  { id: '14', userId: '21', courseId: '1', enrolledAt: '2024-03-10', progress: 94, completedLessons: ['l1', 'l2', 'l3', 'l4', 'l5'], lastAccessed: '2024-03-28', timeSpent: 29.7 },
+  { id: '15', userId: '22', courseId: '2', enrolledAt: '2024-03-12', progress: 56, completedLessons: ['l1'], lastAccessed: '2024-03-30', timeSpent: 15.4 },
+  { id: '16', userId: '23', courseId: '3', enrolledAt: '2024-03-15', progress: 100, completedLessons: ['l1', 'l2'], lastAccessed: '2024-04-01', timeSpent: 44.8 },
+  { id: '17', userId: '24', courseId: '4', enrolledAt: '2024-03-18', progress: 71, completedLessons: ['l1'], lastAccessed: '2024-04-05', timeSpent: 26.3 },
+  { id: '18', userId: '25', courseId: '5', enrolledAt: '2024-03-20', progress: 89, completedLessons: ['l1', 'l2'], lastAccessed: '2024-04-08', timeSpent: 18.9 },
+  
+  // April 2024 Enrollments
+  { id: '19', userId: '8', courseId: '2', enrolledAt: '2024-04-01', progress: 75, completedLessons: ['l1'], lastAccessed: '2024-04-25', timeSpent: 20.1 },
+  { id: '20', userId: '9', courseId: '6', enrolledAt: '2024-04-03', progress: 82, completedLessons: ['l1'], lastAccessed: '2024-04-28', timeSpent: 15.7 },
+  { id: '21', userId: '10', courseId: '7', enrolledAt: '2024-04-05', progress: 68, completedLessons: ['l1'], lastAccessed: '2024-04-30', timeSpent: 35.2 },
+  { id: '22', userId: '11', courseId: '8', enrolledAt: '2024-04-08', progress: 100, completedLessons: ['l1'], lastAccessed: '2024-04-20', timeSpent: 28.6 },
+  { id: '23', userId: '12', courseId: '9', enrolledAt: '2024-04-10', progress: 54, completedLessons: ['l1'], lastAccessed: '2024-05-02', timeSpent: 38.4 },
+  { id: '24', userId: '13', courseId: '10', enrolledAt: '2024-04-12', progress: 77, completedLessons: ['l1'], lastAccessed: '2024-05-05', timeSpent: 31.8 },
+  { id: '25', userId: '14', courseId: '1', enrolledAt: '2024-04-15', progress: 91, completedLessons: ['l1', 'l2', 'l3', 'l4', 'l5'], lastAccessed: '2024-05-08', timeSpent: 33.4 },
+  { id: '26', userId: '15', courseId: '2', enrolledAt: '2024-04-18', progress: 63, completedLessons: ['l1'], lastAccessed: '2024-05-10', timeSpent: 17.2 },
+  { id: '27', userId: '16', courseId: '3', enrolledAt: '2024-04-20', progress: 86, completedLessons: ['l1', 'l2'], lastAccessed: '2024-05-12', timeSpent: 39.6 },
+  { id: '28', userId: '17', courseId: '4', enrolledAt: '2024-04-22', progress: 49, completedLessons: ['l1'], lastAccessed: '2024-05-15', timeSpent: 21.7 },
+  
+  // May 2024 Enrollments
+  { id: '29', userId: '18', courseId: '1', enrolledAt: '2024-05-01', progress: 87, completedLessons: ['l1', 'l2', 'l3', 'l4'], lastAccessed: '2024-05-30', timeSpent: 27.9 },
+  { id: '30', userId: '19', courseId: '2', enrolledAt: '2024-05-03', progress: 95, completedLessons: ['l1', 'l2'], lastAccessed: '2024-06-01', timeSpent: 23.8 },
+  { id: '31', userId: '20', courseId: '5', enrolledAt: '2024-05-05', progress: 72, completedLessons: ['l1', 'l2'], lastAccessed: '2024-06-03', timeSpent: 17.4 },
+  { id: '32', userId: '21', courseId: '6', enrolledAt: '2024-05-08', progress: 100, completedLessons: ['l1'], lastAccessed: '2024-05-25', timeSpent: 16.3 },
+  { id: '33', userId: '22', courseId: '7', enrolledAt: '2024-05-10', progress: 65, completedLessons: ['l1'], lastAccessed: '2024-06-05', timeSpent: 34.1 },
+  { id: '34', userId: '23', courseId: '8', enrolledAt: '2024-05-12', progress: 93, completedLessons: ['l1'], lastAccessed: '2024-06-08', timeSpent: 29.5 },
+  { id: '35', userId: '24', courseId: '9', enrolledAt: '2024-05-15', progress: 58, completedLessons: ['l1'], lastAccessed: '2024-06-10', timeSpent: 40.7 },
+  { id: '36', userId: '25', courseId: '10', enrolledAt: '2024-05-18', progress: 84, completedLessons: ['l1'], lastAccessed: '2024-06-12', timeSpent: 33.2 },
+  { id: '37', userId: '8', courseId: '3', enrolledAt: '2024-05-20', progress: 76, completedLessons: ['l1', 'l2'], lastAccessed: '2024-06-15', timeSpent: 36.8 },
+  { id: '38', userId: '9', courseId: '4', enrolledAt: '2024-05-22', progress: 100, completedLessons: ['l1'], lastAccessed: '2024-06-02', timeSpent: 24.6 },
+  
+  // June 2024 Enrollments (Recent)
+  { id: '39', userId: '10', courseId: '8', enrolledAt: '2024-06-01', progress: 45, completedLessons: ['l1'], lastAccessed: '2024-06-18', timeSpent: 19.3 },
+  { id: '40', userId: '11', courseId: '9', enrolledAt: '2024-06-03', progress: 62, completedLessons: ['l1'], lastAccessed: '2024-06-20', timeSpent: 35.7 },
+  { id: '41', userId: '12', courseId: '10', enrolledAt: '2024-06-05', progress: 38, completedLessons: ['l1'], lastAccessed: '2024-06-22', timeSpent: 22.4 },
+  { id: '42', userId: '13', courseId: '1', enrolledAt: '2024-06-08', progress: 73, completedLessons: ['l1', 'l2', 'l3'], lastAccessed: '2024-06-25', timeSpent: 24.1 },
+  { id: '43', userId: '14', courseId: '5', enrolledAt: '2024-06-10', progress: 89, completedLessons: ['l1', 'l2'], lastAccessed: '2024-06-27', timeSpent: 18.6 },
+  { id: '44', userId: '15', courseId: '6', enrolledAt: '2024-06-12', progress: 54, completedLessons: ['l1'], lastAccessed: '2024-06-28', timeSpent: 13.8 },
+  { id: '45', userId: '16', courseId: '7', enrolledAt: '2024-06-15', progress: 71, completedLessons: ['l1'], lastAccessed: '2024-06-30', timeSpent: 32.9 },
+  { id: '46', userId: '17', courseId: '2', enrolledAt: '2024-06-18', progress: 26, completedLessons: [], lastAccessed: '2024-06-30', timeSpent: 8.4 },
+  { id: '47', userId: '18', courseId: '3', enrolledAt: '2024-06-20', progress: 34, completedLessons: ['l1'], lastAccessed: '2024-07-01', timeSpent: 15.2 },
+  { id: '48', userId: '19', courseId: '4', enrolledAt: '2024-06-22', progress: 41, completedLessons: ['l1'], lastAccessed: '2024-07-02', timeSpent: 18.7 },
+  
+  // Admin and Instructor Enrollments for Learning
+  { id: '49', userId: '1', courseId: '5', enrolledAt: '2024-03-01', progress: 100, completedLessons: ['l1', 'l2'], lastAccessed: '2024-03-15', timeSpent: 20.5 },
+  { id: '50', userId: '2', courseId: '7', enrolledAt: '2024-03-05', progress: 88, completedLessons: ['l1'], lastAccessed: '2024-03-20', timeSpent: 35.4 },
+  { id: '51', userId: '3', courseId: '9', enrolledAt: '2024-04-01', progress: 92, completedLessons: ['l1'], lastAccessed: '2024-04-15', timeSpent: 38.9 },
+  { id: '52', userId: '4', courseId: '1', enrolledAt: '2024-02-20', progress: 100, completedLessons: ['l1', 'l2', 'l3', 'l4', 'l5', 'l6'], lastAccessed: '2024-03-10', timeSpent: 31.7 },
+  { id: '53', userId: '5', courseId: '3', enrolledAt: '2024-03-10', progress: 85, completedLessons: ['l1', 'l2'], lastAccessed: '2024-04-01', timeSpent: 42.3 },
+  { id: '54', userId: '6', courseId: '8', enrolledAt: '2024-04-05', progress: 94, completedLessons: ['l1'], lastAccessed: '2024-04-25', timeSpent: 28.1 },
+  { id: '55', userId: '7', courseId: '10', enrolledAt: '2024-05-01', progress: 76, completedLessons: ['l1'], lastAccessed: '2024-05-30', timeSpent: 34.6 }
 ];
 
 export const mockCertificates = [
