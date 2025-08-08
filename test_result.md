@@ -534,9 +534,11 @@ backend:
 
 metadata:
   created_by: "main_agent"
-  version: "1.0"
-  test_sequence: 1
+  version: "1.1"
+  test_sequence: 2
   run_ui: true
+  phase1_testing_date: "2024-12-08"
+  critical_issues_found: true
 
 test_plan:
   current_focus:
