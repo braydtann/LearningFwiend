@@ -59,10 +59,10 @@ const Classrooms = () => {
   const students = mockUsers.filter(u => u.role === 'learner');
 
   const handleCreateClassroom = () => {
-    if (!newClassroom.name || !newClassroom.trainerId || newClassroom.courseIds.length === 0) {
+    if (!newClassroom.name || !newClassroom.batchId || !newClassroom.trainerId || newClassroom.courseIds.length === 0) {
       toast({
         title: "Missing required fields",
-        description: "Please fill in all required information.",
+        description: "Please fill in all required information including batch ID.",
         variant: "destructive",
       });
       return;
@@ -70,11 +70,12 @@ const Classrooms = () => {
 
     toast({
       title: "Classroom created successfully!",
-      description: `${newClassroom.name} has been created and is ready for students.`,
+      description: `${newClassroom.name} (${newClassroom.batchId}) has been created and is ready for students.`,
     });
 
     setNewClassroom({
       name: '',
+      batchId: '',
       description: '',
       trainerId: '',
       courseIds: [],
