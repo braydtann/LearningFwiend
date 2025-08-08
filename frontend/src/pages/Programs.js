@@ -678,73 +678,20 @@ const Programs = () => {
 
                   <div className="space-y-3 max-h-64 overflow-y-auto">
                     {newProgram.finalTest.questions.map((question, questionIndex) => (
-                      <Card key={question.id} className="border-purple-200 bg-purple-50/30">
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between mb-3">
-                            <Badge variant="outline" className="border-purple-300 text-purple-700">
-                              Question {questionIndex + 1}
-                            </Badge>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => removeFinalTestQuestion(questionIndex)}
-                              className="text-red-600 hover:text-red-700"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-
-                          <div className="space-y-3">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                              <div className="md:col-span-2">
-                                <Label className="text-sm">Question Text</Label>
-                                <Textarea
-                                  placeholder="Enter your question here..."
-                                  rows={2}
-                                  value={question.question}
-                                  onChange={(e) => handleFinalTestQuestionChange(questionIndex, 'question', e.target.value)}
-                                />
-                              </div>
-                              <div>
-                                <Label className="text-sm">Points</Label>
-                                <Input
-                                  type="number"
-                                  placeholder="10"
-                                  min="1"
-                                  value={question.points}
-                                  onChange={(e) => handleFinalTestQuestionChange(questionIndex, 'points', parseInt(e.target.value) || 10)}
-                                />
-                              </div>
-                            </div>
-
-                            {/* Answer Options for Multiple Choice */}
-                            {question.type === 'multiple-choice' && (
-                              <div className="space-y-2">
-                                <Label className="text-sm">Answer Options</Label>
-                                {question.options.map((option, optionIndex) => (
-                                  <div key={optionIndex} className="flex items-center space-x-2">
-                                    <input
-                                      type="radio"
-                                      name={`question-${question.id}`}
-                                      checked={question.correctAnswer === optionIndex}
-                                      onChange={() => handleFinalTestQuestionChange(questionIndex, 'correctAnswer', optionIndex)}
-                                      className="text-purple-600"
-                                    />
-                                    <Input
-                                      placeholder={`Option ${optionIndex + 1}`}
-                                      value={option}
-                                      onChange={(e) => handleFinalTestOptionChange(questionIndex, optionIndex, e.target.value)}
-                                      className="flex-1"
-                                    />
-                                  </div>
-                                ))}
-                                <p className="text-xs text-purple-600">Select the radio button next to the correct answer</p>
-                              </div>
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
+                      <FinalTestQuestionInterface
+                        key={question.id}
+                        question={question}
+                        questionIndex={questionIndex}
+                        onQuestionChange={handleFinalTestQuestionChange}
+                        onOptionChange={handleFinalTestOptionChange}
+                        onOptionMediaChange={handleFinalTestOptionMediaChange}
+                        onItemChange={handleFinalTestItemChange}
+                        onRemoveQuestion={removeFinalTestQuestion}
+                        onAddOption={addFinalTestAnswerOption}
+                        onRemoveOption={removeFinalTestAnswerOption}
+                        onAddItem={addFinalTestOrderItem}
+                        onRemoveItem={removeFinalTestOrderItem}
+                      />
                     ))}
 
                     {newProgram.finalTest.questions.length === 0 && (
