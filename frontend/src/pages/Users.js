@@ -232,6 +232,16 @@ const Users = () => {
                   onChange={(e) => setNewUser(prev => ({ ...prev, email: e.target.value }))}
                 />
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="startDate">Start Date</Label>
+                <Input
+                  id="startDate"
+                  type="date"
+                  value={newUser.startDate}
+                  onChange={(e) => setNewUser(prev => ({ ...prev, startDate: e.target.value }))}
+                />
+              </div>
               
               <div className="space-y-2">
                 <Label htmlFor="role">Role</Label>
@@ -246,6 +256,27 @@ const Users = () => {
                   </SelectContent>
                 </Select>
               </div>
+
+              {newUser.role !== 'admin' && (
+                <div className="space-y-2">
+                  <Label htmlFor="department">Department</Label>
+                  <Select value={newUser.departmentId} onValueChange={(value) => setNewUser(prev => ({ ...prev, departmentId: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select department" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {mockDepartments.map(dept => (
+                        <SelectItem key={dept.id} value={dept.id}>
+                          <div className="flex items-center">
+                            <Building2 className="w-4 h-4 mr-2" />
+                            {dept.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               
               <div className="flex items-center justify-end space-x-3 pt-4">
                 <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>
