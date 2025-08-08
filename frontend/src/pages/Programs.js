@@ -43,7 +43,12 @@ const Programs = () => {
     deadline: '' // Add deadline field
   });
 
-  const [programs, setPrograms] = useState(getProgramsWithDeadlineStatus());
+  const [programs, setPrograms] = useState([]);
+
+  // Initialize programs on component mount
+  useEffect(() => {
+    setPrograms(getProgramsWithDeadlineStatus());
+  }, []);
 
   const handleCreateProgram = () => {
     if (!newProgram.name || !newProgram.description || newProgram.courseIds.length === 0 || !newProgram.deadline) {
