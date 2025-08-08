@@ -156,31 +156,83 @@ const ProgramDetail = () => {
                   <div className="absolute left-6 top-20 w-0.5 h-16 bg-gray-200"></div>
                 )}
                 
-                <Card className="hover:shadow-md transition-shadow">
+                <Card className={`transition-shadow ${
+                  course.status === 'locked' 
+                    ? 'border-gray-300 bg-gray-50' 
+                    : course.status === 'completed'
+                    ? 'border-green-300 bg-green-50 hover:shadow-md'
+                    : 'hover:shadow-md'
+                }`}>
                   <CardContent className="p-6">
                     <div className="flex items-start space-x-4">
-                      {/* Step Number */}
-                      <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0">
-                        {index + 1}
+                      {/* Step Number with Status Icon */}
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0 ${
+                        course.status === 'locked' 
+                          ? 'bg-gray-400 text-white'
+                          : course.status === 'completed'
+                          ? 'bg-green-600 text-white'
+                          : course.status === 'in-progress'
+                          ? 'bg-orange-600 text-white'
+                          : 'bg-blue-600 text-white'
+                      }`}>
+                        {course.status === 'locked' ? (
+                          <Lock className="w-5 h-5" />
+                        ) : course.status === 'completed' ? (
+                          <CheckCircle className="w-5 h-5" />
+                        ) : (
+                          index + 1
+                        )}
                       </div>
                       
                       {/* Course Thumbnail */}
                       <img 
                         src={course.thumbnail} 
                         alt={course.title}
-                        className="w-20 h-20 rounded-lg object-cover flex-shrink-0"
+                        className={`w-20 h-20 rounded-lg object-cover flex-shrink-0 ${
+                          course.status === 'locked' ? 'grayscale opacity-50' : ''
+                        }`}
                       />
                       
                       {/* Course Details */}
                       <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                          {course.title}
-                        </h3>
-                        <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <h3 className={`text-lg font-semibold mb-0 ${
+                            course.status === 'locked' ? 'text-gray-500' : 'text-gray-900'
+                          }`}>
+                            {course.title}
+                          </h3>
+                          <Badge variant="outline" className={
+                            course.status === 'locked' ? 'border-gray-400 text-gray-500' :
+                            course.status === 'completed' ? 'border-green-500 text-green-700 bg-green-50' :
+                            course.status === 'in-progress' ? 'border-orange-500 text-orange-700 bg-orange-50' :
+                            'border-blue-500 text-blue-700 bg-blue-50'
+                          }>
+                            {course.status === 'locked' ? 'Locked' :
+                             course.status === 'completed' ? 'Completed' :
+                             course.status === 'in-progress' ? 'In Progress' : 'Available'}
+                          </Badge>
+                        </div>
+
+                        <p className={`text-sm mb-3 line-clamp-2 ${
+                          course.status === 'locked' ? 'text-gray-400' : 'text-gray-600'
+                        }`}>
                           {course.description}
                         </p>
                         
-                        <div className="flex items-center space-x-4 text-sm text-gray-500 mb-3">
+                        {/* Progress Bar for In-Progress Courses */}
+                        {course.status === 'in-progress' && (
+                          <div className="mb-3">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-xs text-gray-600">Progress</span>
+                              <span className="text-xs text-gray-600">{course.progress}%</span>
+                            </div>
+                            <Progress value={course.progress} className="h-2" />
+                          </div>
+                        )}
+                        
+                        <div className={`flex items-center space-x-4 text-sm mb-3 ${
+                          course.status === 'locked' ? 'text-gray-400' : 'text-gray-500'
+                        }`}>
                           <div className="flex items-center">
                             <Clock className="w-4 h-4 mr-1" />
                             {course.duration}
@@ -195,20 +247,44 @@ const ProgramDetail = () => {
                           </div>
                         </div>
 
-                        <Badge variant="secondary" className="mb-3">
+                        <Badge variant="secondary" className={
+                          course.status === 'locked' ? 'bg-gray-200 text-gray-500' : ''
+                        }>
                           {course.category}
                         </Badge>
                       </div>
                       
                       {/* Action Buttons */}
                       <div className="flex flex-col space-y-2 flex-shrink-0">
-                        <Button 
-                          size="sm"
-                          onClick={() => navigate(`/course/${course.id}`)}
-                        >
-                          <Play className="w-4 h-4 mr-1" />
-                          View Course
-                        </Button>
+                        {course.status === 'locked' ? (
+                          <div className="text-center">
+                            <Lock className="w-6 h-6 text-gray-400 mx-auto mb-2" />
+                            <p className="text-xs text-gray-500 mb-2">Complete previous course to unlock</p>
+                            <Button size="sm" disabled>
+                              Locked
+                            </Button>
+                          </div>
+                        ) : (
+                          <Button 
+                            size="sm"
+                            onClick={() => navigate(`/course/${course.id}`)}
+                            className={
+                              course.status === 'completed' ? 'bg-green-600 hover:bg-green-700' : ''
+                            }
+                          >
+                            {course.status === 'completed' ? (
+                              <>
+                                <CheckCircle className="w-4 h-4 mr-1" />
+                                Review Course
+                              </>
+                            ) : (
+                              <>
+                                <Play className="w-4 h-4 mr-1" />
+                                {course.status === 'in-progress' ? 'Continue Course' : 'Start Course'}
+                              </>
+                            )}
+                          </Button>
+                        )}
                         <div className="text-xs text-gray-500 text-center">
                           Step {index + 1} of {courses.length}
                         </div>
