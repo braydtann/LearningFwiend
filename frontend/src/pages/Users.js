@@ -291,6 +291,64 @@ const Users = () => {
         </Dialog>
       </div>
 
+      {/* Delete Confirmation Modal */}
+      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete User</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex items-center space-x-4 p-4 bg-red-50 rounded-lg border border-red-200">
+              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                <AlertTriangle className="w-6 h-6 text-red-600" />
+              </div>
+              <div>
+                <p className="font-medium text-red-900">Are you sure you want to delete this user?</p>
+                <p className="text-sm text-red-700">This action cannot be undone.</p>
+              </div>
+            </div>
+
+            {userToDelete && (
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <img 
+                    src={userToDelete.avatar} 
+                    alt={userToDelete.name}
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                  <div>
+                    <p className="font-medium text-gray-900">{userToDelete.name}</p>
+                    <p className="text-sm text-gray-600">{userToDelete.email}</p>
+                    <p className="text-sm text-gray-600">{userToDelete.role} - {userToDelete.department || 'No Department'}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div className="flex items-center">
+                <AlertTriangle className="w-5 h-5 text-yellow-600 mr-2" />
+                <div>
+                  <p className="text-sm text-yellow-800 font-medium">Warning</p>
+                  <p className="text-sm text-yellow-700">
+                    Deleting this user will remove all their progress, enrollments, and associated data.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-end space-x-3 pt-4">
+              <Button variant="outline" onClick={handleCancelDelete}>
+                Cancel
+              </Button>
+              <Button onClick={handleDeleteUser} className="bg-red-600 hover:bg-red-700">
+                Delete User
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Edit User Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
         <DialogContent>
