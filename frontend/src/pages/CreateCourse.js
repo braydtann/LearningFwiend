@@ -9,7 +9,7 @@ import { Textarea } from '../components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Badge } from '../components/ui/badge';
 import { mockCourses } from '../data/mockData';
-import { ArrowLeft, Plus, Trash2, Upload, Trophy, FileText } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Upload, FileText } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 
 const CreateCourse = () => {
