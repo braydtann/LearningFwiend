@@ -1043,3 +1043,27 @@ export const getDepartmentById = (departmentId) => {
 export const getUsersByDepartment = (departmentId) => {
   return mockUsers.filter(user => user.departmentId === departmentId);
 };
+
+// Program deadline helper functions
+export const getProgramDeadlineStatus = (deadline) => {
+  const today = new Date();
+  const deadlineDate = new Date(deadline);
+  const daysRemaining = Math.ceil((deadlineDate - today) / (1000 * 60 * 60 * 24));
+  
+  if (daysRemaining < 0) {
+    return { status: 'overdue', daysRemaining: Math.abs(daysRemaining), message: `Overdue by ${Math.abs(daysRemaining)} days` };
+  } else if (daysRemaining <= 7) {
+    return { status: 'urgent', daysRemaining, message: `${daysRemaining} days remaining` };
+  } else if (daysRemaining <= 30) {
+    return { status: 'warning', daysRemaining, message: `${daysRemaining} days remaining` };
+  } else {
+    return { status: 'normal', daysRemaining, message: `${daysRemaining} days remaining` };
+  }
+};
+
+export const getProgramsWithDeadlineStatus = () => {
+  return mockPrograms.map(program => ({
+    ...program,
+    deadlineStatus: program.deadline ? getProgramDeadlineStatus(program.deadline) : null
+  }));
+};
