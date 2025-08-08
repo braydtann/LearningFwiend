@@ -72,65 +72,83 @@ const Programs = () => {
       return;
     }
 
-    // Create new program object
-    const newProgramObj = {
-      id: (programs.length + 1).toString(),
-      name: newProgram.name,
-      description: newProgram.description,
-      courseIds: newProgram.courseIds,
-      courseOrder: newProgram.courseOrder,
-      duration: newProgram.duration,
-      difficulty: newProgram.difficulty,
-      deadline: newProgram.deadline,
-      createdBy: user?.id || '1',
-      createdAt: new Date().toISOString().split('T')[0],
-      status: 'active',
-      enrolledStudents: 0,
-      totalCourses: newProgram.courseIds.length,
-      estimatedHours: newProgram.courseIds.length * 20, // Estimate 20 hours per course
-      finalTest: {
-        id: `ft-prog-${programs.length + 1}`,
-        title: `${newProgram.name} Final Assessment`,
-        description: `Comprehensive assessment for the ${newProgram.name} program`,
-        timeLimit: 90,
-        passingScore: 75,
-        maxAttempts: 2,
-        questions: [
-          {
-            id: 'q1',
-            type: 'multiple-choice',
-            question: `What are the key learning objectives of the ${newProgram.name} program?`,
-            options: ['Comprehensive skill development', 'Basic knowledge only', 'Theory without practice', 'Limited scope learning'],
-            correctAnswer: 0,
-            points: 10
-          }
-        ]
-      }
-    };
+    try {
+      // Create new program object
+      const newProgramObj = {
+        id: `${Date.now()}`, // Use timestamp for unique ID
+        name: newProgram.name,
+        description: newProgram.description,
+        courseIds: newProgram.courseIds,
+        courseOrder: newProgram.courseOrder.length > 0 ? newProgram.courseOrder : newProgram.courseIds,
+        duration: newProgram.duration || '8 weeks',
+        difficulty: newProgram.difficulty,
+        deadline: newProgram.deadline,
+        createdBy: user?.id || '1',
+        createdAt: new Date().toISOString().split('T')[0],
+        status: 'active',
+        enrolledStudents: 0,
+        totalCourses: newProgram.courseIds.length,
+        estimatedHours: newProgram.courseIds.length * 20,
+        finalTest: {
+          id: `ft-prog-${Date.now()}`,
+          title: `${newProgram.name} Final Assessment`,
+          description: `Comprehensive assessment for the ${newProgram.name} program`,
+          timeLimit: 90,
+          passingScore: 75,
+          maxAttempts: 2,
+          questions: [
+            {
+              id: 'q1',
+              type: 'multiple-choice',
+              question: `What are the key learning objectives of the ${newProgram.name} program?`,
+              options: ['Comprehensive skill development', 'Basic knowledge only', 'Theory without practice', 'Limited scope learning'],
+              correctAnswer: 0,
+              points: 10
+            }
+          ]
+        }
+      };
 
-    // Add to programs state with deadline status
-    const programWithStatus = {
-      ...newProgramObj,
-      deadlineStatus: newProgramObj.deadline ? getProgramDeadlineStatus(newProgramObj.deadline) : null
-    };
-    
-    setPrograms(prev => [...prev, programWithStatus]);
+      // Add deadline status
+      const programWithStatus = {
+        ...newProgramObj,
+        deadlineStatus: getProgramDeadlineStatus(newProgramObj.deadline)
+      };
+      
+      // Update state using functional update to ensure we have latest state
+      setPrograms(prevPrograms => {
+        console.log('Adding program to state:', programWithStatus);
+        console.log('Previous programs count:', prevPrograms.length);
+        const updatedPrograms = [...prevPrograms, programWithStatus];
+        console.log('New programs count:', updatedPrograms.length);
+        return updatedPrograms;
+      });
 
-    toast({
-      title: "Program created successfully!",
-      description: `${newProgram.name} has been created with ${newProgram.courseIds.length} courses and deadline set for ${new Date(newProgram.deadline).toLocaleDateString()}.`,
-    });
+      toast({
+        title: "Program created successfully!",
+        description: `${newProgram.name} has been created with ${newProgram.courseIds.length} courses and deadline set for ${new Date(newProgram.deadline).toLocaleDateString()}.`,
+      });
 
-    setNewProgram({
-      name: '',
-      description: '',
-      courseIds: [],
-      courseOrder: [],
-      duration: '',
-      difficulty: 'Beginner',
-      deadline: ''
-    });
-    setIsCreateModalOpen(false);
+      // Reset form
+      setNewProgram({
+        name: '',
+        description: '',
+        courseIds: [],
+        courseOrder: [],
+        duration: '',
+        difficulty: 'Beginner',
+        deadline: ''
+      });
+      setIsCreateModalOpen(false);
+      
+    } catch (error) {
+      console.error('Error creating program:', error);
+      toast({
+        title: "Error creating program",
+        description: "There was an error creating the program. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleCourseSelection = (courseId, checked) => {
