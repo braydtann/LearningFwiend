@@ -105,6 +105,42 @@
 user_problem_statement: "Phase 1: User & Department Management - Implementing department management system with create/description functionality, adding department assignment on user creation, adding start date field for new users, and adding pop-up warning for user deletion."
 
 frontend:
+  - task: "Department Management System"
+    implemented: true
+    working: false
+    file: "/app/frontend/src/pages/Departments.js"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "CRITICAL ISSUE: React runtime error in Departments component - 'Rendered more hooks than during the previous render' error prevents page from loading properly. Error occurs when navigating to /departments page. Component has React hooks order violation that needs to be fixed before department management can be tested."
+
+  - task: "Enhanced User Management with Department and Start Date Fields"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/Users.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "NOT FULLY TESTED: Could not complete comprehensive testing due to Department page errors. Initial inspection shows Users page has enhanced fields (Department, Start Date) and role-based form logic implemented. Needs full testing after Department page is fixed."
+
+  - task: "Classroom Batch ID Integration"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/Classrooms.js, /app/frontend/src/data/mockData.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "NOT FULLY TESTED: Could not complete comprehensive testing due to navigation issues. Mock data shows batch IDs are present in classroom data structure. Needs full testing of Create Classroom form for batch ID field."
+
   - task: "Enhanced Mock Data Structure for Quizzes"
     implemented: true
     working: true
