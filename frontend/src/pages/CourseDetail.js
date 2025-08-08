@@ -56,6 +56,61 @@ const CourseDetail = () => {
     );
   }
 
+  // Check classroom access for learners
+  if (isLearner && userClassroomEnrollment && !canAccessCourse) {
+    return (
+      <div className="space-y-8">
+        {/* Header */}
+        <div className="flex items-center space-x-4 mb-6">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => navigate('/courses')}
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
+          </Button>
+          <div className="h-6 border-l border-gray-300"></div>
+          <nav className="text-sm text-gray-500">
+            <span>Courses</span> / <span className="text-gray-900">{course.title}</span>
+          </nav>
+        </div>
+
+        {/* Access Denied */}
+        <Card className="max-w-2xl mx-auto">
+          <CardContent className="text-center py-12">
+            <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Lock className="w-10 h-10 text-red-600" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Course Access Restricted</h2>
+            <p className="text-gray-600 mb-6">
+              {classroomAccess.message}
+            </p>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+              <div className="flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5 text-red-600 mr-2" />
+                <div>
+                  <p className="text-sm font-medium text-red-800">Classroom Ended</p>
+                  <p className="text-sm text-red-700">
+                    You can no longer access courses from this classroom as the enrollment period has ended.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="space-y-3">
+              <Button onClick={() => navigate('/courses')} variant="outline">
+                Browse Other Courses
+              </Button>
+              <p className="text-xs text-gray-500">
+                Contact your instructor if you believe this is an error
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   const handleEnroll = () => {
     toast({
       title: "Enrolled successfully!",
