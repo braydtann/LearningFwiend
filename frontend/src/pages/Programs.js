@@ -43,10 +43,22 @@ const Programs = () => {
   const programs = getProgramsForAdmin();
 
   const handleCreateProgram = () => {
-    if (!newProgram.name || !newProgram.description || newProgram.courseIds.length === 0) {
+    if (!newProgram.name || !newProgram.description || newProgram.courseIds.length === 0 || !newProgram.deadline) {
       toast({
         title: "Missing required fields",
-        description: "Please fill in all required information and select at least one course.",
+        description: "Please fill in all required information including deadline and select at least one course.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate deadline is in the future
+    const today = new Date();
+    const selectedDeadline = new Date(newProgram.deadline);
+    if (selectedDeadline <= today) {
+      toast({
+        title: "Invalid deadline",
+        description: "Program deadline must be in the future.",
         variant: "destructive",
       });
       return;
@@ -54,7 +66,7 @@ const Programs = () => {
 
     toast({
       title: "Program created successfully!",
-      description: `${newProgram.name} has been created with ${newProgram.courseIds.length} courses.`,
+      description: `${newProgram.name} has been created with ${newProgram.courseIds.length} courses and deadline set for ${new Date(newProgram.deadline).toLocaleDateString()}.`,
     });
 
     setNewProgram({
@@ -63,7 +75,8 @@ const Programs = () => {
       courseIds: [],
       courseOrder: [],
       duration: '',
-      difficulty: 'Beginner'
+      difficulty: 'Beginner',
+      deadline: ''
     });
     setIsCreateModalOpen(false);
   };
