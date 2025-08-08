@@ -77,22 +77,42 @@ const Analytics = () => {
     }
 
     const courseIds = filteredCourses.map(course => course.id);
-    const filteredEnrollments = mockEnrollments.filter(enrollment => 
+    let filteredEnrollments = mockEnrollments.filter(enrollment => 
       courseIds.includes(enrollment.courseId) && 
       filterDate(enrollment.enrolledAt)
     );
 
-    const filteredQuizAttempts = mockQuizAttempts.filter(attempt => 
+    // Filter by classroom if selected
+    if (selectedClassroom !== 'all') {
+      const classroomStudents = mockClassroomEnrollments
+        .filter(ce => ce.classroomId === selectedClassroom)
+        .map(ce => ce.studentId);
+      filteredEnrollments = filteredEnrollments.filter(enrollment => 
+        classroomStudents.includes(enrollment.userId)
+      );
+    }
+
+    let filteredQuizAttempts = mockQuizAttempts.filter(attempt => 
       courseIds.includes(attempt.courseId) && 
       filterDate(attempt.completedAt)
     );
+
+    // Filter quiz attempts by classroom if selected
+    if (selectedClassroom !== 'all') {
+      const classroomStudents = mockClassroomEnrollments
+        .filter(ce => ce.classroomId === selectedClassroom)
+        .map(ce => ce.studentId);
+      filteredQuizAttempts = filteredQuizAttempts.filter(attempt => 
+        classroomStudents.includes(attempt.userId)
+      );
+    }
 
     return {
       courses: filteredCourses,
       enrollments: filteredEnrollments,
       quizAttempts: filteredQuizAttempts
     };
-  }, [dateRange, selectedInstructor, selectedDepartment, selectedCourse]);
+  }, [dateRange, selectedInstructor, selectedDepartment, selectedCourse, selectedClassroom]);
 
   // Calculate key metrics
   const metrics = useMemo(() => {
