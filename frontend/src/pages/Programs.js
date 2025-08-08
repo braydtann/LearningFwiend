@@ -227,9 +227,24 @@ const Programs = () => {
       id: `ftq_${Date.now()}`,
       type: 'multiple-choice',
       question: '',
-      options: ['', '', '', ''],
+      questionImage: '',
+      questionAudio: '',
+      options: [
+        { text: '', image: '', audio: '' },
+        { text: '', image: '', audio: '' },
+        { text: '', image: '', audio: '' },
+        { text: '', image: '', audio: '' }
+      ],
       correctAnswer: 0,
       correctAnswers: [],
+      items: [
+        { text: '', image: '', audio: '' },
+        { text: '', image: '', audio: '' },
+        { text: '', image: '', audio: '' }
+      ],
+      correctOrder: [0, 1, 2],
+      sampleAnswer: '',
+      wordLimit: null,
       points: 10,
       explanation: ''
     };
