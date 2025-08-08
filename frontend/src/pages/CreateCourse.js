@@ -1111,7 +1111,6 @@ const CreateCourse = () => {
                                 />
                                 <p className="text-xs text-gray-500">Recommended number of questions</p>
                               </div>
-                              </div>
                             </div>
                             
                             <div className="space-y-2">
