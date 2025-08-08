@@ -1068,7 +1068,7 @@ const CreateCourse = () => {
 
                         {lesson.type === 'quiz' && (
                           <div className="mt-4 space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                               <div className="space-y-2">
                                 <Label>Time Limit (minutes)</Label>
                                 <Input
@@ -1098,6 +1098,19 @@ const CreateCourse = () => {
                                   value={lesson.quiz?.maxAttempts || ''}
                                   onChange={(e) => handleQuizChange(moduleIndex, lessonIndex, 'maxAttempts', parseInt(e.target.value) || 3)}
                                 />
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Target Questions</Label>
+                                <Input
+                                  type="number"
+                                  placeholder="5"
+                                  min="1"
+                                  max="50"
+                                  value={lesson.quiz?.targetQuestionCount || ''}
+                                  onChange={(e) => handleQuizChange(moduleIndex, lessonIndex, 'targetQuestionCount', parseInt(e.target.value) || 5)}
+                                />
+                                <p className="text-xs text-gray-500">Recommended number of questions</p>
+                              </div>
                               </div>
                             </div>
                             
