@@ -795,6 +795,7 @@ export const mockClassrooms = [
   {
     id: '1',
     name: 'Q1 2024 New Agent Training',
+    batchId: 'BATCH-2024-Q1-001',
     description: 'Comprehensive training program for new customer service agents',
     trainerId: '2', // Sarah Wilson
     trainerName: 'Sarah Wilson',
@@ -816,6 +817,7 @@ export const mockClassrooms = [
   {
     id: '2',
     name: 'Advanced Python Bootcamp',
+    batchId: 'BATCH-2024-PY-002',
     description: 'Intensive Python training for data science applications',
     trainerId: '2',
     trainerName: 'Sarah Wilson',
