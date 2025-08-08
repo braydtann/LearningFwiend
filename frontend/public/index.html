@@ -20,11 +20,36 @@
     -->
         <title>LearningFwiend | Learning Management System</title>
         <style>
-          /* Very targeted watermark hiding - CSS only */
+          /* Very targeted watermark hiding - CSS only, no interference with React */
           #emergent-badge {
             display: none !important;
           }
+          
+          /* Additional targeted selectors for watermarks */
+          a[href*="emergent.sh"] {
+            display: none !important;
+          }
         </style>
+        <script>
+          // Gentle watermark removal after page loads - won't interfere with React
+          window.addEventListener('load', function() {
+            setTimeout(function() {
+              // Only target very specific watermark elements
+              const badge = document.getElementById('emergent-badge');
+              if (badge) {
+                badge.style.display = 'none';
+              }
+              
+              // Target specific links
+              const emergentLinks = document.querySelectorAll('a[href*="emergent.sh"]');
+              emergentLinks.forEach(function(link) {
+                if (link.textContent && link.textContent.includes('Made with Emergent')) {
+                  link.style.display = 'none';
+                }
+              });
+            }, 3000);
+          });
+        </script>
     </head>
     <body>
         <noscript>You need to enable JavaScript to run this app.</noscript>
