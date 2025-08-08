@@ -89,6 +89,20 @@ const Departments = () => {
       return;
     }
 
+    // Create new department object
+    const newDept = {
+      id: (departments.length + 1).toString(),
+      name: newDepartment.name,
+      description: newDepartment.description,
+      createdAt: new Date().toISOString().split('T')[0],
+      createdBy: user.id,
+      isActive: true,
+      userCount: 0
+    };
+
+    // Add to departments state
+    setDepartments(prev => [...prev, newDept]);
+
     toast({
       title: "Department created successfully!",
       description: `${newDepartment.name} department has been created.`,
