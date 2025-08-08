@@ -153,10 +153,10 @@ frontend:
   - task: "Verify Final Test Removal from Courses"
     implemented: true
     working: true
-    file: "/app/frontend/src/pages/CourseDetail.js"
+    file: "/app/frontend/src/pages/CourseDetail.js, /app/frontend/src/pages/CreateCourse.js"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: false
         agent: "user"
@@ -167,6 +167,12 @@ frontend:
       - working: true
         agent: "testing"
         comment: "FINAL TEST REMOVAL VERIFIED SUCCESSFUL: Comprehensive testing of course detail pages confirms complete removal of final test elements. Successfully tested Course 1, 2, and 3: 1) NO 'final test' mentions found in any course content, 2) NO 'final assessment' mentions found in any course content, 3) Course detail pages load properly without any final test buttons, links, or assessment options, 4) Final tests are properly isolated to program level only as intended. The removal of final test functionality from individual courses is complete and working correctly."
+      - working: false
+        agent: "user"
+        comment: "ISSUE PERSISTS: User reported with screenshot that Final Test Configuration still shows in course creation/edit interface even after hard refresh and incognito mode. Need to remove from CreateCourse.js."
+      - working: true
+        agent: "main"
+        comment: "FINAL IMPLEMENTATION COMPLETED: Successfully removed the entire Final Test Configuration section from CreateCourse.js including the UI section (596 lines), all handler functions (224 lines), and unused Trophy import. Final tests are now completely removed from individual course creation/editing and only exist at program level as intended."
 
   - task: "Department Management System"
     implemented: true
