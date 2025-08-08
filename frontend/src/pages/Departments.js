@@ -28,7 +28,22 @@ const Departments = () => {
   const { toast } = useToast();
   const { user, isAdmin } = useAuth();
   
-  // Redirect non-admin users
+  // All hooks must be called before any conditional returns
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedDepartment, setSelectedDepartment] = useState(null);
+  const [newDepartment, setNewDepartment] = useState({
+    name: '',
+    description: ''
+  });
+  const [editDepartment, setEditDepartment] = useState({
+    id: '',
+    name: '',
+    description: ''
+  });
+
+  // Redirect non-admin users AFTER hooks are called
   if (!isAdmin) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -57,20 +72,6 @@ const Departments = () => {
       </div>
     );
   }
-
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedDepartment, setSelectedDepartment] = useState(null);
-  const [newDepartment, setNewDepartment] = useState({
-    name: '',
-    description: ''
-  });
-  const [editDepartment, setEditDepartment] = useState({
-    id: '',
-    name: '',
-    description: ''
-  });
 
   const filteredDepartments = mockDepartments.filter(dept =>
     dept.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
