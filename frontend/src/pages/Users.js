@@ -49,17 +49,23 @@ const Users = () => {
   const [roleFilter, setRoleFilter] = useState('all');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [userToDelete, setUserToDelete] = useState(null);
   const [newUser, setNewUser] = useState({
     name: '',
     email: '',
-    role: 'learner'
+    role: 'learner',
+    departmentId: '',
+    startDate: new Date().toISOString().split('T')[0] // Today's date as default
   });
   const [editUser, setEditUser] = useState({
     id: '',
     name: '',
     email: '',
-    role: 'learner'
+    role: 'learner',
+    departmentId: '',
+    startDate: ''
   });
 
   const filteredUsers = mockUsers.filter(user => {
