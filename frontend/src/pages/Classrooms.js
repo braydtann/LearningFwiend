@@ -366,6 +366,11 @@ const Classrooms = () => {
                         <h3 className="text-lg font-semibold text-gray-900 mb-2">
                           {classroom.name}
                         </h3>
+                        {classroom.batchId && (
+                          <p className="text-xs text-blue-600 font-medium mb-1">
+                            Batch ID: {classroom.batchId}
+                          </p>
+                        )}
                         <p className="text-sm text-gray-600 mb-3 line-clamp-2">
                           {classroom.description}
                         </p>
