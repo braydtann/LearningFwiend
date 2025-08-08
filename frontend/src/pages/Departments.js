@@ -74,7 +74,7 @@ const Departments = () => {
     );
   }
 
-  const filteredDepartments = mockDepartments.filter(dept =>
+  const filteredDepartments = departments.filter(dept =>
     dept.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     dept.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
