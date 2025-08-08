@@ -43,7 +43,7 @@ const Programs = () => {
     deadline: '' // Add deadline field
   });
 
-  const programs = getProgramsWithDeadlineStatus();
+  const [programs, setPrograms] = useState(getProgramsWithDeadlineStatus());
 
   const handleCreateProgram = () => {
     if (!newProgram.name || !newProgram.description || newProgram.courseIds.length === 0 || !newProgram.deadline) {
