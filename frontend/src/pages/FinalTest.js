@@ -43,13 +43,13 @@ const FinalTest = () => {
   const [testResults, setTestResults] = useState(null);
 
   useEffect(() => {
-    if (!course || !finalTest) {
+    if ((!course && !isProgram) || (!program && isProgram) || !finalTest) {
       setTestState('error');
       return;
     }
 
     setTestState('ready');
-  }, [course, finalTest]);
+  }, [course, program, finalTest, isProgram]);
 
   // Timer effect
   useEffect(() => {
