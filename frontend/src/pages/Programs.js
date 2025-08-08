@@ -631,7 +631,7 @@ const Programs = () => {
                 </div>
               </div>
 
-              <div className="flex items-center justify-end space-x-3 pt-4 border-t"&>
+              <div className="flex items-center justify-end space-x-3 pt-4 border-t">>
                 <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>
                   Cancel
                 </Button>
