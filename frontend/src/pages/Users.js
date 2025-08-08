@@ -380,7 +380,9 @@ const Users = () => {
               <Label>Additional Information</Label>
               <div className="text-sm text-gray-600 space-y-1">
                 <p>Join Date: {selectedUser ? new Date(selectedUser.joinDate).toLocaleDateString() : ''}</p>
+                <p>Start Date: {selectedUser ? new Date(selectedUser.startDate).toLocaleDateString() : ''}</p>
                 <p>Current Role: <span className="font-medium">{selectedUser?.role}</span></p>
+                <p>Department: <span className="font-medium">{selectedUser?.department || 'No Department'}</span></p>
               </div>
             </div>
             
