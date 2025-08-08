@@ -1270,3 +1270,9 @@ export const updateProgram = (programId, updatedProgram) => {
   
   return true;
 };
+
+export const addProgram = (newProgram) => {
+  // Add the new program to the mock data array
+  mockPrograms.push(newProgram);
+  return true;
+};
