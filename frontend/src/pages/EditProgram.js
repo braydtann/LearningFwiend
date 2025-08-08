@@ -183,6 +183,79 @@ const EditProgram = () => {
     }));
   };
 
+  // Final Test handlers for Edit Program
+  const handleFinalTestChange = (field, value) => {
+    setProgram(prev => ({
+      ...prev,
+      finalTest: {
+        ...prev.finalTest,
+        [field]: value
+      }
+    }));
+  };
+
+  const addFinalTestQuestion = () => {
+    const newQuestion = {
+      id: `ftq_${Date.now()}`,
+      type: 'multiple-choice',
+      question: '',
+      options: ['', '', '', ''],
+      correctAnswer: 0,
+      correctAnswers: [],
+      points: 10,
+      explanation: ''
+    };
+    
+    setProgram(prev => ({
+      ...prev,
+      finalTest: {
+        ...prev.finalTest,
+        questions: [...prev.finalTest.questions, newQuestion]
+      }
+    }));
+  };
+
+  const removeFinalTestQuestion = (questionIndex) => {
+    setProgram(prev => ({
+      ...prev,
+      finalTest: {
+        ...prev.finalTest,
+        questions: prev.finalTest.questions.filter((_, index) => index !== questionIndex)
+      }
+    }));
+  };
+
+  const handleFinalTestQuestionChange = (questionIndex, field, value) => {
+    setProgram(prev => ({
+      ...prev,
+      finalTest: {
+        ...prev.finalTest,
+        questions: prev.finalTest.questions.map((question, index) =>
+          index === questionIndex ? { ...question, [field]: value } : question
+        )
+      }
+    }));
+  };
+
+  const handleFinalTestOptionChange = (questionIndex, optionIndex, value) => {
+    setProgram(prev => ({
+      ...prev,
+      finalTest: {
+        ...prev.finalTest,
+        questions: prev.finalTest.questions.map((question, index) =>
+          index === questionIndex 
+            ? {
+                ...question,
+                options: question.options.map((option, oIndex) =>
+                  oIndex === optionIndex ? value : option
+                )
+              }
+            : question
+        )
+      }
+    }));
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
