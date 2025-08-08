@@ -67,6 +67,50 @@ const Programs = () => {
       return;
     }
 
+    // Create new program object
+    const newProgramObj = {
+      id: (programs.length + 1).toString(),
+      name: newProgram.name,
+      description: newProgram.description,
+      courseIds: newProgram.courseIds,
+      courseOrder: newProgram.courseOrder,
+      duration: newProgram.duration,
+      difficulty: newProgram.difficulty,
+      deadline: newProgram.deadline,
+      createdBy: user?.id || '1',
+      createdAt: new Date().toISOString().split('T')[0],
+      status: 'active',
+      enrolledStudents: 0,
+      totalCourses: newProgram.courseIds.length,
+      estimatedHours: newProgram.courseIds.length * 20, // Estimate 20 hours per course
+      finalTest: {
+        id: `ft-prog-${programs.length + 1}`,
+        title: `${newProgram.name} Final Assessment`,
+        description: `Comprehensive assessment for the ${newProgram.name} program`,
+        timeLimit: 90,
+        passingScore: 75,
+        maxAttempts: 2,
+        questions: [
+          {
+            id: 'q1',
+            type: 'multiple-choice',
+            question: `What are the key learning objectives of the ${newProgram.name} program?`,
+            options: ['Comprehensive skill development', 'Basic knowledge only', 'Theory without practice', 'Limited scope learning'],
+            correctAnswer: 0,
+            points: 10
+          }
+        ]
+      }
+    };
+
+    // Add to programs state with deadline status
+    const programWithStatus = {
+      ...newProgramObj,
+      deadlineStatus: newProgramObj.deadline ? getProgramDeadlineStatus(newProgramObj.deadline) : null
+    };
+    
+    setPrograms(prev => [...prev, programWithStatus]);
+
     toast({
       title: "Program created successfully!",
       description: `${newProgram.name} has been created with ${newProgram.courseIds.length} courses and deadline set for ${new Date(newProgram.deadline).toLocaleDateString()}.`,
