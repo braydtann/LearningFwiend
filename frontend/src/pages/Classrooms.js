@@ -140,23 +140,33 @@ const Classrooms = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="trainer">Assign Trainer</Label>
-                    <Select 
-                      value={newClassroom.trainerId} 
-                      onValueChange={(value) => setNewClassroom(prev => ({ ...prev, trainerId: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select trainer" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {instructors.map(instructor => (
-                          <SelectItem key={instructor.id} value={instructor.id}>
-                            {instructor.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Label htmlFor="batchId">Classroom Batch ID</Label>
+                    <Input
+                      id="batchId"
+                      placeholder="Enter batch ID (e.g., BATCH-2024-Q2-001)"
+                      value={newClassroom.batchId}
+                      onChange={(e) => setNewClassroom(prev => ({ ...prev, batchId: e.target.value }))}
+                    />
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="trainer">Assign Trainer</Label>
+                  <Select 
+                    value={newClassroom.trainerId} 
+                    onValueChange={(value) => setNewClassroom(prev => ({ ...prev, trainerId: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select trainer" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {instructors.map(instructor => (
+                        <SelectItem key={instructor.id} value={instructor.id}>
+                          {instructor.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 
                 <div className="space-y-2">
