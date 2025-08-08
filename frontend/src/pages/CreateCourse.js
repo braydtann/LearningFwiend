@@ -1150,15 +1150,36 @@ const CreateCourse = () => {
 
                             <div className="border-t pt-4">
                               <div className="flex items-center justify-between mb-4">
-                                <Label className="text-lg font-medium">Quiz Questions</Label>
+                                <div className="flex items-center space-x-4">
+                                  <Label className="text-lg font-medium">Quiz Questions</Label>
+                                  {lesson.quiz?.targetQuestionCount && (
+                                    <Badge variant="outline" className={
+                                      (lesson.quiz?.questions || []).length === lesson.quiz.targetQuestionCount
+                                        ? "border-green-500 text-green-700 bg-green-50"
+                                        : (lesson.quiz?.questions || []).length > lesson.quiz.targetQuestionCount
+                                        ? "border-orange-500 text-orange-700 bg-orange-50"
+                                        : "border-gray-400 text-gray-600"
+                                    }>
+                                      {(lesson.quiz?.questions || []).length} / {lesson.quiz.targetQuestionCount} questions
+                                      {(lesson.quiz?.questions || []).length === lesson.quiz.targetQuestionCount && " ✓"}
+                                    </Badge>
+                                  )}
+                                </div>
                                 <Button
                                   type="button"
                                   variant="outline"
                                   size="sm"
                                   onClick={() => addQuizQuestion(moduleIndex, lessonIndex)}
+                                  disabled={
+                                    lesson.quiz?.targetQuestionCount && 
+                                    (lesson.quiz?.questions || []).length >= lesson.quiz.targetQuestionCount
+                                  }
                                 >
                                   <Plus className="w-4 h-4 mr-2" />
                                   Add Question
+                                  {lesson.quiz?.targetQuestionCount && 
+                                   (lesson.quiz?.questions || []).length >= lesson.quiz.targetQuestionCount && 
+                                   " (Target Reached)"}
                                 </Button>
                               </div>
 
