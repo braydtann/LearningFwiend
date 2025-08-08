@@ -41,7 +41,15 @@ const Programs = () => {
     courseOrder: [],
     duration: '',
     difficulty: 'Beginner',
-    deadline: '' // Add deadline field
+    deadline: '', // Add deadline field
+    finalTest: {
+      title: '',
+      description: '',
+      timeLimit: 90,
+      passingScore: 75,
+      maxAttempts: 2,
+      questions: []
+    }
   });
 
   const [programs, setPrograms] = useState([]);
