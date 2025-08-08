@@ -1055,14 +1055,63 @@ const CreateCourse = () => {
                         )}
 
                         {lesson.type === 'text' && (
-                          <div className="mt-4">
-                            <Label>Content</Label>
-                            <Textarea
-                              placeholder="Enter lesson content"
-                              rows={6}
-                              value={lesson.content || ''}
-                              onChange={(e) => handleLessonChange(moduleIndex, lessonIndex, 'content', e.target.value)}
-                            />
+                          <div className="mt-4 space-y-4">
+                            <div className="space-y-2">
+                              <Label>Content</Label>
+                              <Textarea
+                                placeholder="Enter lesson content"
+                                rows={6}
+                                value={lesson.content || ''}
+                                onChange={(e) => handleLessonChange(moduleIndex, lessonIndex, 'content', e.target.value)}
+                              />
+                            </div>
+                            
+                            {/* Document Attachment Section */}
+                            <div className="space-y-2">
+                              <Label>Attachable Document (Optional)</Label>
+                              <div className="border border-dashed border-gray-300 rounded-lg p-4">
+                                <div className="flex items-center justify-center space-x-2 text-gray-600">
+                                  <Upload className="w-5 h-5" />
+                                  <span className="text-sm">Upload PDF, Word, or other documents</span>
+                                </div>
+                                <Input
+                                  type="file"
+                                  accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.xls,.xlsx"
+                                  className="mt-2"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                      // In a real app, you would upload the file and get a URL
+                                      const fakeUrl = `https://example.com/documents/${file.name}`;
+                                      handleLessonChange(moduleIndex, lessonIndex, 'documentUrl', fakeUrl);
+                                      handleLessonChange(moduleIndex, lessonIndex, 'documentName', file.name);
+                                    }
+                                  }}
+                                />
+                                {lesson.documentName && (
+                                  <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded flex items-center justify-between">
+                                    <div className="flex items-center space-x-2">
+                                      <FileText className="w-4 h-4 text-green-600" />
+                                      <span className="text-sm text-green-800">{lesson.documentName}</span>
+                                    </div>
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => {
+                                        handleLessonChange(moduleIndex, lessonIndex, 'documentUrl', '');
+                                        handleLessonChange(moduleIndex, lessonIndex, 'documentName', '');
+                                      }}
+                                    >
+                                      Remove
+                                    </Button>
+                                  </div>
+                                )}
+                                <p className="text-xs text-gray-500 mt-1">
+                                  Supported formats: PDF, Word, PowerPoint, Excel, Text files
+                                </p>
+                              </div>
+                            </div>
                           </div>
                         )}
 
