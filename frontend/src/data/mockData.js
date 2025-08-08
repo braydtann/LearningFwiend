@@ -1251,3 +1251,22 @@ export const getUserClassroomAccess = (userId, classroomId) => {
   
   return { hasAccess: true, status: accessStatus.status, message: accessStatus.message };
 };
+
+// Program helper functions for edit functionality
+export const getProgramById = (programId) => {
+  return mockPrograms.find(program => program.id === programId);
+};
+
+export const updateProgram = (programId, updatedProgram) => {
+  const programIndex = mockPrograms.findIndex(p => p.id === programId);
+  if (programIndex === -1) return false;
+  
+  // Update the program in the mock data
+  mockPrograms[programIndex] = {
+    ...mockPrograms[programIndex],
+    ...updatedProgram,
+    id: programId // Ensure ID doesn't change
+  };
+  
+  return true;
+};
