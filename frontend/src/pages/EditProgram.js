@@ -660,93 +660,20 @@ const EditProgram = () => {
 
                 <div className="space-y-4 max-h-96 overflow-y-auto">
                   {(program.finalTest?.questions || []).map((question, questionIndex) => (
-                    <Card key={question.id} className="border-purple-200 bg-white shadow-sm">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <Badge variant="outline" className="border-purple-300 text-purple-700">
-                              Question {questionIndex + 1}
-                            </Badge>
-                            <Badge variant="secondary">
-                              {question.points} points
-                            </Badge>
-                          </div>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => removeFinalTestQuestion(questionIndex)}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                          <div className="md:col-span-3">
-                            <Label className="text-sm font-medium">Question Text</Label>
-                            <Textarea
-                              placeholder="Enter your comprehensive question here..."
-                              rows={3}
-                              value={question.question}
-                              onChange={(e) => handleFinalTestQuestionChange(questionIndex, 'question', e.target.value)}
-                              className="border-purple-300 focus:border-purple-500"
-                            />
-                          </div>
-                          <div>
-                            <Label className="text-sm font-medium">Points</Label>
-                            <Input
-                              type="number"
-                              placeholder="10"
-                              min="1"
-                              value={question.points}
-                              onChange={(e) => handleFinalTestQuestionChange(questionIndex, 'points', parseInt(e.target.value) || 10)}
-                            />
-                          </div>
-                        </div>
-
-                        {/* Multiple Choice Options */}
-                        {question.type === 'multiple-choice' && (
-                          <div className="space-y-3">
-                            <Label className="text-sm font-medium">Answer Options</Label>
-                            {question.options.map((option, optionIndex) => (
-                              <div key={optionIndex} className="flex items-center space-x-3 p-3 bg-purple-50/50 rounded-lg">
-                                <input
-                                  type="radio"
-                                  name={`question-${question.id}`}
-                                  checked={question.correctAnswer === optionIndex}
-                                  onChange={() => handleFinalTestQuestionChange(questionIndex, 'correctAnswer', optionIndex)}
-                                  className="text-purple-600"
-                                />
-                                <span className="min-w-[20px] text-sm font-medium text-purple-700">
-                                  {String.fromCharCode(65 + optionIndex)}.
-                                </span>
-                                <Input
-                                  placeholder={`Option ${String.fromCharCode(65 + optionIndex)}`}
-                                  value={option}
-                                  onChange={(e) => handleFinalTestOptionChange(questionIndex, optionIndex, e.target.value)}
-                                  className="flex-1"
-                                />
-                              </div>
-                            ))}
-                            <p className="text-xs text-purple-600">Select the radio button next to the correct answer</p>
-                          </div>
-                        )}
-
-                        {/* Question Explanation */}
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium">Explanation (Optional)</Label>
-                          <Textarea
-                            placeholder="Explain why this is the correct answer (shown to students after completing the test)"
-                            rows={2}
-                            value={question.explanation || ''}
-                            onChange={(e) => handleFinalTestQuestionChange(questionIndex, 'explanation', e.target.value)}
-                            className="text-sm"
-                          />
-                        </div>
-                      </CardContent>
-                    </Card>
+                    <FinalTestQuestionInterface
+                      key={question.id}
+                      question={question}
+                      questionIndex={questionIndex}
+                      onQuestionChange={handleFinalTestQuestionChange}
+                      onOptionChange={handleFinalTestOptionChange}
+                      onOptionMediaChange={handleFinalTestOptionMediaChange}
+                      onItemChange={handleFinalTestItemChange}
+                      onRemoveQuestion={removeFinalTestQuestion}
+                      onAddOption={addFinalTestAnswerOption}
+                      onRemoveOption={removeFinalTestAnswerOption}
+                      onAddItem={addFinalTestOrderItem}
+                      onRemoveItem={removeFinalTestOrderItem}
+                    />
                   ))}
 
                   {(!program.finalTest?.questions || program.finalTest.questions.length === 0) && (
