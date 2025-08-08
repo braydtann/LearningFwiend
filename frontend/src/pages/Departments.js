@@ -33,6 +33,7 @@ const Departments = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedDepartment, setSelectedDepartment] = useState(null);
+  const [departments, setDepartments] = useState(mockDepartments); // Use state for departments list
   const [newDepartment, setNewDepartment] = useState({
     name: '',
     description: ''
