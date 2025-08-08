@@ -266,26 +266,6 @@ const CourseDetail = () => {
                   <span className="text-sm font-bold text-blue-700">{progress}%</span>
                 </div>
                 <Progress value={progress} className="h-2" />
-                
-                {/* Final Test Button */}
-                {progress >= 80 && course.finalTest && (
-                  <div className="mt-4 p-3 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="font-medium text-purple-800">Final Assessment Available!</h4>
-                        <p className="text-sm text-purple-600">
-                          You've completed {progress}% of the course. Take the final test to earn your certificate.
-                        </p>
-                      </div>
-                      <Button 
-                        onClick={() => navigate(`/final-test/${course.id}`)}
-                        className="bg-purple-600 hover:bg-purple-700 text-white"
-                      >
-                        Take Final Test
-                      </Button>
-                    </div>
-                  </div>
-                )}
               </div>
             )}
           </div>
