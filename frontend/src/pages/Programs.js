@@ -115,7 +115,10 @@ const Programs = () => {
         deadlineStatus: getProgramDeadlineStatus(newProgramObj.deadline)
       };
       
-      // Update state using functional update to ensure we have latest state
+      // Add program to mock data first
+      addProgram(programWithStatus);
+      
+      // Update state to reflect the change immediately
       setPrograms(prevPrograms => {
         console.log('Adding program to state:', programWithStatus);
         console.log('Previous programs count:', prevPrograms.length);
