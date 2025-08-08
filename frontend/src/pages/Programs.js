@@ -201,6 +201,79 @@ const Programs = () => {
     }));
   };
 
+  // Final Test handlers for Create Program
+  const handleFinalTestChange = (field, value) => {
+    setNewProgram(prev => ({
+      ...prev,
+      finalTest: {
+        ...prev.finalTest,
+        [field]: value
+      }
+    }));
+  };
+
+  const addFinalTestQuestion = () => {
+    const newQuestion = {
+      id: `ftq_${Date.now()}`,
+      type: 'multiple-choice',
+      question: '',
+      options: ['', '', '', ''],
+      correctAnswer: 0,
+      correctAnswers: [],
+      points: 10,
+      explanation: ''
+    };
+    
+    setNewProgram(prev => ({
+      ...prev,
+      finalTest: {
+        ...prev.finalTest,
+        questions: [...prev.finalTest.questions, newQuestion]
+      }
+    }));
+  };
+
+  const removeFinalTestQuestion = (questionIndex) => {
+    setNewProgram(prev => ({
+      ...prev,
+      finalTest: {
+        ...prev.finalTest,
+        questions: prev.finalTest.questions.filter((_, index) => index !== questionIndex)
+      }
+    }));
+  };
+
+  const handleFinalTestQuestionChange = (questionIndex, field, value) => {
+    setNewProgram(prev => ({
+      ...prev,
+      finalTest: {
+        ...prev.finalTest,
+        questions: prev.finalTest.questions.map((question, index) =>
+          index === questionIndex ? { ...question, [field]: value } : question
+        )
+      }
+    }));
+  };
+
+  const handleFinalTestOptionChange = (questionIndex, optionIndex, value) => {
+    setNewProgram(prev => ({
+      ...prev,
+      finalTest: {
+        ...prev.finalTest,
+        questions: prev.finalTest.questions.map((question, index) =>
+          index === questionIndex 
+            ? {
+                ...question,
+                options: question.options.map((option, oIndex) =>
+                  oIndex === optionIndex ? value : option
+                )
+              }
+            : question
+        )
+      }
+    }));
+  };
+
   const getDifficultyColor = (difficulty) => {
     switch (difficulty) {
       case 'Beginner':
