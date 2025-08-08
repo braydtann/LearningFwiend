@@ -23,9 +23,10 @@ import {
 const ProgramDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   const program = mockPrograms.find(p => p.id === id);
-  const courses = getProgramCourses(id);
+  const courses = getCourseProgressionStatus(user?.id, id);
 
   if (!program) {
     return (
