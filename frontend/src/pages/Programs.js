@@ -425,6 +425,27 @@ const Programs = () => {
                         <span>{program.duration} • {program.estimatedHours}h estimated</span>
                       </div>
 
+                      {/* Deadline Information */}
+                      {program.deadline && (
+                        <div className={`flex items-center text-sm p-2 rounded-lg ${
+                          program.deadlineStatus?.status === 'overdue' 
+                            ? 'bg-red-50 border border-red-200 text-red-800' 
+                            : program.deadlineStatus?.status === 'urgent'
+                            ? 'bg-orange-50 border border-orange-200 text-orange-800'
+                            : program.deadlineStatus?.status === 'warning'
+                            ? 'bg-yellow-50 border border-yellow-200 text-yellow-800'
+                            : 'bg-green-50 border border-green-200 text-green-800'
+                        }`}>
+                          <Calendar className="w-4 h-4 mr-1" />
+                          <span className="font-medium">
+                            Deadline: {new Date(program.deadline).toLocaleDateString()}
+                          </span>
+                          {program.deadlineStatus?.status === 'overdue' && (
+                            <AlertTriangle className="w-4 h-4 ml-2" />
+                          )}
+                        </div>
+                      )}
+
                       <div className="text-sm text-gray-600">
                         <strong>Created:</strong> {new Date(program.createdAt).toLocaleDateString()}
                       </div>
