@@ -448,6 +448,226 @@ const EditProgram = () => {
               </div>
             </div>
           )}
+
+          {/* Final Test Management */}
+          <div className="space-y-6 border-t pt-6">
+            <div className="flex items-center space-x-2">
+              <Trophy className="w-6 h-6 text-purple-600" />
+              <Label className="text-xl font-semibold text-purple-800">Final Test Management</Label>
+            </div>
+            
+            <div className="bg-purple-50/50 rounded-lg p-6 space-y-6">
+              {/* Final Test Basic Configuration */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Test Title *</Label>
+                  <Input
+                    placeholder="e.g., Full Stack Development Final Assessment"
+                    value={program.finalTest?.title || ''}
+                    onChange={(e) => handleFinalTestChange('title', e.target.value)}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Time Limit (minutes)</Label>
+                  <Input
+                    type="number"
+                    placeholder="90"
+                    min="1"
+                    value={program.finalTest?.timeLimit || 90}
+                    onChange={(e) => handleFinalTestChange('timeLimit', parseInt(e.target.value) || 90)}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Passing Score (%)</Label>
+                  <Input
+                    type="number"
+                    placeholder="75"
+                    min="0"
+                    max="100"
+                    value={program.finalTest?.passingScore || 75}
+                    onChange={(e) => handleFinalTestChange('passingScore', parseInt(e.target.value) || 75)}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Max Attempts</Label>
+                  <Input
+                    type="number"
+                    placeholder="2"
+                    min="1"
+                    value={program.finalTest?.maxAttempts || 2}
+                    onChange={(e) => handleFinalTestChange('maxAttempts', parseInt(e.target.value) || 2)}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Test Description</Label>
+                <Textarea
+                  placeholder="Describe what this final assessment covers and what students can expect"
+                  rows={3}
+                  value={program.finalTest?.description || ''}
+                  onChange={(e) => handleFinalTestChange('description', e.target.value)}
+                />
+              </div>
+
+              {/* Final Test Questions Management */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-lg font-medium">Final Test Questions</Label>
+                    <p className="text-sm text-gray-600">Create comprehensive questions to assess program completion</p>
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={addFinalTestQuestion}
+                    className="bg-purple-600 hover:bg-purple-700"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Question
+                  </Button>
+                </div>
+
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {(program.finalTest?.questions || []).map((question, questionIndex) => (
+                    <Card key={question.id} className="border-purple-200 bg-white shadow-sm">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <Badge variant="outline" className="border-purple-300 text-purple-700">
+                              Question {questionIndex + 1}
+                            </Badge>
+                            <Badge variant="secondary">
+                              {question.points} points
+                            </Badge>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => removeFinalTestQuestion(questionIndex)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                          <div className="md:col-span-3">
+                            <Label className="text-sm font-medium">Question Text</Label>
+                            <Textarea
+                              placeholder="Enter your comprehensive question here..."
+                              rows={3}
+                              value={question.question}
+                              onChange={(e) => handleFinalTestQuestionChange(questionIndex, 'question', e.target.value)}
+                              className="border-purple-300 focus:border-purple-500"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium">Points</Label>
+                            <Input
+                              type="number"
+                              placeholder="10"
+                              min="1"
+                              value={question.points}
+                              onChange={(e) => handleFinalTestQuestionChange(questionIndex, 'points', parseInt(e.target.value) || 10)}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Multiple Choice Options */}
+                        {question.type === 'multiple-choice' && (
+                          <div className="space-y-3">
+                            <Label className="text-sm font-medium">Answer Options</Label>
+                            {question.options.map((option, optionIndex) => (
+                              <div key={optionIndex} className="flex items-center space-x-3 p-3 bg-purple-50/50 rounded-lg">
+                                <input
+                                  type="radio"
+                                  name={`question-${question.id}`}
+                                  checked={question.correctAnswer === optionIndex}
+                                  onChange={() => handleFinalTestQuestionChange(questionIndex, 'correctAnswer', optionIndex)}
+                                  className="text-purple-600"
+                                />
+                                <span className="min-w-[20px] text-sm font-medium text-purple-700">
+                                  {String.fromCharCode(65 + optionIndex)}.
+                                </span>
+                                <Input
+                                  placeholder={`Option ${String.fromCharCode(65 + optionIndex)}`}
+                                  value={option}
+                                  onChange={(e) => handleFinalTestOptionChange(questionIndex, optionIndex, e.target.value)}
+                                  className="flex-1"
+                                />
+                              </div>
+                            ))}
+                            <p className="text-xs text-purple-600">Select the radio button next to the correct answer</p>
+                          </div>
+                        )}
+
+                        {/* Question Explanation */}
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium">Explanation (Optional)</Label>
+                          <Textarea
+                            placeholder="Explain why this is the correct answer (shown to students after completing the test)"
+                            rows={2}
+                            value={question.explanation || ''}
+                            onChange={(e) => handleFinalTestQuestionChange(questionIndex, 'explanation', e.target.value)}
+                            className="text-sm"
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+
+                  {(!program.finalTest?.questions || program.finalTest.questions.length === 0) && (
+                    <div className="text-center py-8 text-purple-600 bg-purple-50 rounded-lg border-2 border-dashed border-purple-200">
+                      <Trophy className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <h3 className="font-medium mb-2">No Final Test Questions Yet</h3>
+                      <p className="text-sm mb-4">Create comprehensive questions to assess student understanding of the entire program.</p>
+                      <Button
+                        type="button"
+                        onClick={addFinalTestQuestion}
+                        className="bg-purple-600 hover:bg-purple-700"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Create First Question
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                {program.finalTest?.questions && program.finalTest.questions.length > 0 && (
+                  <div className="bg-purple-100 rounded-lg p-4">
+                    <h4 className="font-medium text-purple-800 mb-2">Final Test Summary</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div>
+                        <span className="text-purple-600">Questions:</span>
+                        <span className="ml-2 font-medium">{program.finalTest.questions.length}</span>
+                      </div>
+                      <div>
+                        <span className="text-purple-600">Total Points:</span>
+                        <span className="ml-2 font-medium">
+                          {program.finalTest.questions.reduce((sum, q) => sum + (q.points || 0), 0)}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-purple-600">Time Limit:</span>
+                        <span className="ml-2 font-medium">{program.finalTest.timeLimit || 90} mins</span>
+                      </div>
+                      <div>
+                        <span className="text-purple-600">Passing Score:</span>
+                        <span className="ml-2 font-medium">{program.finalTest.passingScore || 75}%</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
