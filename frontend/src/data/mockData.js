@@ -1026,3 +1026,16 @@ export const getInstructorQuizAnalytics = (instructorId) => {
       : 0
   };
 };
+
+// Department helper functions
+export const getDepartments = () => {
+  return mockDepartments;
+};
+
+export const getDepartmentById = (departmentId) => {
+  return mockDepartments.find(dept => dept.id === departmentId);
+};
+
+export const getUsersByDepartment = (departmentId) => {
+  return mockUsers.filter(user => user.departmentId === departmentId);
+};
