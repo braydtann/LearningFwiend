@@ -660,16 +660,16 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Department Management System"
-    - "Enhanced User Management with Department and Start Date Fields"
-    - "Classroom Batch ID Integration"
+    - "Fix Edit Program White Screen Issue"
+    - "Fix Program Creation Not Showing in List" 
+    - "Verify Final Test Removal from Courses"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
   backend_testing_complete: true
-  frontend_testing_complete: true
-  comprehensive_e2e_complete: true
-  phase1_testing_status: "completed_successfully"
+  frontend_testing_complete: false
+  comprehensive_e2e_complete: false
+  critical_bug_fixes_status: "implemented_needs_testing"
 
 agent_communication:
   - agent: "main"
