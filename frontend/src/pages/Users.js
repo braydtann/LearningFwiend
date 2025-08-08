@@ -113,7 +113,9 @@ const Users = () => {
       id: user.id,
       name: user.name,
       email: user.email,
-      role: user.role
+      role: user.role,
+      departmentId: user.departmentId || '',
+      startDate: user.startDate || ''
     });
     setIsEditModalOpen(true);
   };
