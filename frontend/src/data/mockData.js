@@ -728,6 +728,7 @@ export const mockPrograms = [
     difficulty: 'Intermediate',
     createdBy: '1', // Admin
     createdAt: '2024-01-15',
+    deadline: '2024-12-31', // Program completion deadline
     status: 'active',
     enrolledStudents: 12,
     totalCourses: 2,
@@ -743,6 +744,7 @@ export const mockPrograms = [
     difficulty: 'Beginner',
     createdBy: '1',
     createdAt: '2024-02-01',
+    deadline: '2024-10-15', // Program completion deadline
     status: 'active',
     enrolledStudents: 8,
     totalCourses: 1,
