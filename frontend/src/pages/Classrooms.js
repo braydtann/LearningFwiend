@@ -409,12 +409,41 @@ const Classrooms = () => {
                         </div>
                       </div>
 
-                      <div className="flex items-center text-sm text-gray-600">
+                      <div className="flex items-center text-sm text-gray-600 mb-2">
                         <Calendar className="w-4 h-4 mr-1" />
                         <span>
                           {new Date(classroom.startDate).toLocaleDateString()} - {new Date(classroom.endDate).toLocaleDateString()}
                         </span>
                       </div>
+
+                      {/* Access Status Indicator */}
+                      {(() => {
+                        const accessStatus = getClassroomAccessStatus(classroom);
+                        return (
+                          <div className={`flex items-center text-sm p-2 rounded-lg ${
+                            accessStatus.status === 'expired' 
+                              ? 'bg-red-50 border border-red-200 text-red-800' 
+                              : accessStatus.status === 'ending-soon'
+                              ? 'bg-orange-50 border border-orange-200 text-orange-800'
+                              : 'bg-green-50 border border-green-200 text-green-800'
+                          }`}>
+                            {accessStatus.status === 'expired' ? (
+                              <XCircle className="w-4 h-4 mr-1" />
+                            ) : accessStatus.status === 'ending-soon' ? (
+                              <AlertTriangle className="w-4 h-4 mr-1" />
+                            ) : (
+                              <CheckCircle className="w-4 h-4 mr-1" />
+                            )}
+                            <span className="font-medium">
+                              {accessStatus.status === 'expired' ? 'Expired' : 
+                               accessStatus.status === 'ending-soon' ? 'Ending Soon' : 'Active'}
+                            </span>
+                            <span className="ml-2 text-xs">
+                              {accessStatus.message}
+                            </span>
+                          </div>
+                        );
+                      })()}
 
                       {!isLearner && (
                         <div className="text-sm text-gray-600">
