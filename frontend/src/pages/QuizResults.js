@@ -127,19 +127,78 @@ const QuizResults = () => {
           <h1 className="text-3xl font-bold text-gray-900">Quiz Results & Analytics</h1>
           <p className="text-gray-600">Monitor student performance and quiz analytics</p>
         </div>
-        <div className="flex items-center space-x-4">
-          <select
-            value={selectedCourse}
-            onChange={(e) => setSelectedCourse(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="all">All Courses</option>
-            {courses.map(course => (
-              <option key={course.id} value={course.id}>{course.title}</option>
-            ))}
-          </select>
-        </div>
       </div>
+
+      {/* Enhanced Filters */}
+      <Card className="bg-gray-50">
+        <CardContent className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="course-filter">Filter by Course</Label>
+              <Select value={selectedCourse} onValueChange={setSelectedCourse}>
+                <SelectTrigger id="course-filter">
+                  <SelectValue placeholder="All Courses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Courses</SelectItem>
+                  {courses.map(course => (
+                    <SelectItem key={course.id} value={course.id}>{course.title}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="classroom-filter">Filter by Classroom</Label>
+              <Select value={selectedClassroom} onValueChange={setSelectedClassroom}>
+                <SelectTrigger id="classroom-filter">
+                  <SelectValue placeholder="All Classrooms" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Classrooms</SelectItem>
+                  {classrooms.map(classroom => (
+                    <SelectItem key={classroom.id} value={classroom.id}>
+                      {classroom.name} ({classroom.batchId})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-end">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setSelectedCourse('all');
+                  setSelectedClassroom('all');
+                }}
+                className="w-full"
+              >
+                <Filter className="w-4 h-4 mr-2" />
+                Clear Filters
+              </Button>
+            </div>
+          </div>
+
+          {/* Active Filters Display */}
+          <div className="flex items-center space-x-2 mt-4">
+            <span className="text-sm text-gray-500">Active Filters:</span>
+            {selectedCourse !== 'all' && (
+              <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                Course: {courses.find(c => c.id === selectedCourse)?.title || 'Unknown'}
+              </Badge>
+            )}
+            {selectedClassroom !== 'all' && (
+              <Badge variant="secondary" className="bg-green-100 text-green-800">
+                Classroom: {classrooms.find(c => c.id === selectedClassroom)?.name || 'Unknown'}
+              </Badge>
+            )}
+            {selectedCourse === 'all' && selectedClassroom === 'all' && (
+              <span className="text-sm text-gray-400">None</span>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
