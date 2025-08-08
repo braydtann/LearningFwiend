@@ -33,6 +33,7 @@ const Classrooms = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newClassroom, setNewClassroom] = useState({
     name: '',
+    batchId: '',
     description: '',
     trainerId: '',
     courseIds: [],
