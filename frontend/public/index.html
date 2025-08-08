@@ -20,97 +20,46 @@
     -->
         <title>LearningFwiend | Learning Management System</title>
         <style>
-          /* Hide Emergent watermarks and any analytics badges completely */
+          /* Hide specific Emergent watermark elements only */
           #emergent-badge,
-          [id*="emergent"],
-          [class*="emergent"],
-          [data-emergent],
-          div[style*="Made with"],
-          div[style*="emergent"],
-          a[href*="emergent"],
-          *[style*="position: fixed"][style*="bottom"][style*="right"] {
+          a[href*="emergent.sh"] {
             display: none !important;
             visibility: hidden !important;
             opacity: 0 !important;
-            pointer-events: none !important;
-            position: absolute !important;
-            left: -9999px !important;
-            top: -9999px !important;
-            width: 0 !important;
-            height: 0 !important;
-            overflow: hidden !important;
           }
         </style>
         <script>
-          // Aggressive watermark removal script
-          function removeWatermarks() {
-            // Remove any elements containing "Made with Emergent" text
-            document.querySelectorAll('*').forEach(function(el) {
-              if (el.textContent && (
-                el.textContent.includes('Made with Emergent') ||
-                el.textContent.includes('Made with emergent') ||
-                el.textContent.includes('emergent') ||
-                el.textContent.includes('Emergent')
-              )) {
-                el.remove();
-              }
-            });
-            
-            // Remove specific selectors
-            const selectors = [
+          // Targeted watermark removal - only remove specific known watermark elements
+          function removeSpecificWatermarks() {
+            // Only target very specific watermark selectors
+            const watermarkSelectors = [
               '#emergent-badge',
-              '[id*="emergent"]',
-              '[class*="emergent"]',
-              '[data-emergent]',
-              'div[style*="Made with"]',
-              'div[style*="emergent"]',
-              'a[href*="emergent"]'
+              'a[href*="emergent.sh"]'
             ];
             
-            selectors.forEach(selector => {
+            watermarkSelectors.forEach(selector => {
               try {
-                document.querySelectorAll(selector).forEach(el => el.remove());
-              } catch(e) {}
-            });
-            
-            // Remove any fixed positioned elements in bottom right
-            document.querySelectorAll('*').forEach(function(el) {
-              const style = window.getComputedStyle(el);
-              if (style.position === 'fixed' &&
-                  (style.bottom === '20px' || style.bottom === '16px') &&
-                  (style.right === '20px' || style.right === '16px')) {
-                el.remove();
+                const elements = document.querySelectorAll(selector);
+                elements.forEach(el => {
+                  if (el && el.textContent && el.textContent.includes('Made with Emergent')) {
+                    el.style.display = 'none';
+                    el.style.visibility = 'hidden';
+                    el.style.opacity = '0';
+                  }
+                });
+              } catch(e) {
+                // Silently ignore errors
               }
             });
           }
           
-          // Run immediately
-          removeWatermarks();
+          // Only run after a delay to let React load first
+          setTimeout(removeSpecificWatermarks, 2000);
           
-          // Run when DOM is loaded
-          document.addEventListener('DOMContentLoaded', removeWatermarks);
-          
-          // Run when page is fully loaded
-          window.addEventListener('load', removeWatermarks);
-          
-          // Run continuously to catch dynamically added watermarks
-          setInterval(removeWatermarks, 1000);
-          
-          // Use MutationObserver to catch any new elements being added
-          if (typeof MutationObserver !== 'undefined') {
-            const observer = new MutationObserver(function(mutations) {
-              mutations.forEach(function(mutation) {
-                if (mutation.addedNodes.length > 0) {
-                  removeWatermarks();
-                }
-              });
-            });
-            
-            observer.observe(document.body || document.documentElement, {
-              childList: true,
-              subtree: true
-            });
-          }
+          // Run once more after page is fully loaded
+          window.addEventListener('load', function() {
+            setTimeout(removeSpecificWatermarks, 1000);
+          });
         </script>
     </head>
     <body>
