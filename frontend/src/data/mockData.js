@@ -732,7 +732,44 @@ export const mockPrograms = [
     status: 'active',
     enrolledStudents: 12,
     totalCourses: 2,
-    estimatedHours: 120
+    estimatedHours: 120,
+    finalTest: {
+      id: 'ft-prog-1',
+      title: 'Full Stack Development Certification Final Assessment',
+      description: 'Comprehensive assessment covering all aspects of the Full Stack Development program',
+      timeLimit: 90,
+      passingScore: 75,
+      maxAttempts: 2,
+      questions: [
+        {
+          id: 'q1',
+          type: 'multiple-choice',
+          question: 'What are the key components of a full-stack web application?',
+          options: ['Frontend, Backend, Database', 'HTML, CSS, JavaScript', 'Client, Server, Network', 'UI, API, Storage'],
+          correctAnswer: 0,
+          points: 10
+        },
+        {
+          id: 'q2',
+          type: 'long-form-answer',
+          question: 'Explain the MVC (Model-View-Controller) architecture pattern and how it applies to modern web development. Include examples of how React and Python frameworks implement this pattern.',
+          points: 20
+        },
+        {
+          id: 'q3',
+          type: 'multiple-choice',
+          question: 'Which of the following best describes RESTful API design principles?',
+          options: [
+            'Stateful, session-based communication',
+            'Stateless, uniform interface, resource-based URLs',
+            'RPC-style method calls',
+            'GraphQL query language'
+          ],
+          correctAnswer: 1,
+          points: 10
+        }
+      ]
+    }
   },
   {
     id: '2',
@@ -748,7 +785,36 @@ export const mockPrograms = [
     status: 'active',
     enrolledStudents: 8,
     totalCourses: 1,
-    estimatedHours: 40
+    estimatedHours: 40,
+    finalTest: {
+      id: 'ft-prog-2',
+      title: 'Digital Marketing Professional Certification Final Assessment',
+      description: 'Comprehensive assessment covering digital marketing strategies and implementation',
+      timeLimit: 60,
+      passingScore: 70,
+      maxAttempts: 3,
+      questions: [
+        {
+          id: 'q1',
+          type: 'multiple-choice',
+          question: 'What is the primary goal of SEO in digital marketing?',
+          options: [
+            'Increase social media followers',
+            'Improve organic search rankings and visibility',
+            'Reduce advertising costs',
+            'Create viral content'
+          ],
+          correctAnswer: 1,
+          points: 10
+        },
+        {
+          id: 'q2',
+          type: 'long-form-answer',
+          question: 'Describe a comprehensive digital marketing strategy for a new e-commerce business. Include at least 4 different marketing channels and explain how they work together.',
+          points: 25
+        }
+      ]
+    }
   }
 ];
 
