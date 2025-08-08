@@ -223,7 +223,9 @@ const FinalTest = () => {
             <Trophy className="w-6 h-6 mr-2" />
             {finalTest.title}
           </h1>
-          <p className="text-gray-600">{course.title}</p>
+          <p className="text-gray-600">
+            {isProgram ? program?.name : course?.title}
+          </p>
         </div>
       </div>
 
