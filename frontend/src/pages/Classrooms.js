@@ -453,23 +453,34 @@ const Classrooms = () => {
                     </div>
 
                     <div className="flex items-center space-x-2 mt-4">
-                      <Button 
-                        size="sm" 
-                        className="flex-1"
-                        onClick={() => navigate(`/classroom/${classroom.id}`)}
-                      >
-                        <Eye className="w-4 h-4 mr-1" />
-                        View Details
-                      </Button>
-                      {(isAdmin || (isInstructor && classroom.trainerId === user.id)) && (
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => navigate(`/classroom/${classroom.id}/manage`)}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                      )}
+                      {(() => {
+                        const accessStatus = getClassroomAccessStatus(classroom);
+                        const isExpired = accessStatus.status === 'expired';
+                        
+                        return (
+                          <>
+                            <Button 
+                              size="sm" 
+                              className="flex-1"
+                              onClick={() => navigate(`/classroom/${classroom.id}`)}
+                              disabled={isLearner && isExpired}
+                              variant={isLearner && isExpired ? "outline" : "default"}
+                            >
+                              <Eye className="w-4 h-4 mr-1" />
+                              {isLearner && isExpired ? 'Access Expired' : 'View Details'}
+                            </Button>
+                            {(isAdmin || (isInstructor && classroom.trainerId === user.id)) && (
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => navigate(`/classroom/${classroom.id}/manage`)}
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
                   </CardContent>
                 </Card>
