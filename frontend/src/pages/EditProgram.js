@@ -63,7 +63,15 @@ const EditProgram = () => {
           courseOrder: programData.courseOrder || programData.courseIds || [],
           duration: programData.duration || '',
           difficulty: programData.difficulty || 'Beginner',
-          deadline: programData.deadline || ''
+          deadline: programData.deadline || '',
+          finalTest: programData.finalTest || {
+            title: `${programData.name} Final Assessment`,
+            description: `Comprehensive assessment for the ${programData.name} program`,
+            timeLimit: 90,
+            passingScore: 75,
+            maxAttempts: 2,
+            questions: []
+          }
         });
       } catch (error) {
         console.error('Error loading program:', error);
