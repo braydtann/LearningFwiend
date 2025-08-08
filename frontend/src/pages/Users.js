@@ -121,10 +121,20 @@ const Users = () => {
   };
 
   const handleUpdateUser = () => {
-    if (!editUser.name || !editUser.email) {
+    if (!editUser.name || !editUser.email || !editUser.startDate) {
       toast({
         title: "Missing required fields",
-        description: "Please fill in all required information.",
+        description: "Please fill in all required information including start date.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check if role requires department
+    if (editUser.role !== 'admin' && !editUser.departmentId) {
+      toast({
+        title: "Missing department",
+        description: "Please select a department for instructors and learners.",
         variant: "destructive",
       });
       return;
@@ -135,7 +145,7 @@ const Users = () => {
       description: `${editUser.name}'s information has been updated.`,
     });
 
-    setEditUser({ id: '', name: '', email: '', role: 'learner' });
+    setEditUser({ id: '', name: '', email: '', role: 'learner', departmentId: '', startDate: '' });
     setSelectedUser(null);
     setIsEditModalOpen(false);
   };
