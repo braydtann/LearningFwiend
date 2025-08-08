@@ -22,7 +22,9 @@ import {
   Clock,
   Award,
   Target,
-  UserPlus
+  UserPlus,
+  CheckCircle,
+  XCircle
 } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 
