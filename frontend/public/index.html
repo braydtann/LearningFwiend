@@ -20,12 +20,34 @@
     -->
         <title>LearningFwiend | Learning Management System</title>
         <style>
-          /* Hide Emergent watermark completely */
-          #emergent-badge {
+          /* Hide Emergent watermarks and any analytics badges completely */
+          #emergent-badge,
+          [id*="emergent"],
+          [class*="emergent"],
+          [data-emergent],
+          div[style*="Made with"],
+          div[style*="emergent"],
+          a[href*="emergent"] {
             display: none !important;
             visibility: hidden !important;
             opacity: 0 !important;
             pointer-events: none !important;
+            position: absolute !important;
+            left: -9999px !important;
+            top: -9999px !important;
+          }
+          
+          /* Additional hiding for any floating badges */
+          *[style*="position: fixed"][style*="bottom:"][style*="right:"] {
+            display: none !important;
+          }
+          
+          /* Hide any elements containing 'Made with Emergent' text */
+          *:contains("Made with Emergent"),
+          *:contains("Made with emergent"),
+          *:contains("emergent") {
+            display: none !important;
+            visibility: hidden !important;
           }
         </style>
     </head>
