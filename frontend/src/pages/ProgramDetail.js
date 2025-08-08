@@ -1,10 +1,11 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Progress } from '../components/ui/progress';
-import { mockPrograms, getProgramCourses } from '../data/mockData';
+import { mockPrograms, getCourseProgressionStatus } from '../data/mockData';
 import { 
   ArrowLeft,
   Award, 
@@ -14,7 +15,9 @@ import {
   Calendar,
   Target,
   CheckCircle,
-  Play
+  Play,
+  Lock,
+  UnlockIcon
 } from 'lucide-react';
 
 const ProgramDetail = () => {
