@@ -7,7 +7,7 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { mockCourses, mockUsers, mockEnrollments, mockQuizAttempts, mockClassrooms, mockClassroomEnrollments } from '../data/mockData';
+import { mockCourses, mockUsers, mockEnrollments, mockQuizAttempts, mockClassrooms, mockClassroomEnrollments, mockDepartments } from '../data/mockData';
 import { 
   BarChart, 
   TrendingUp, 
