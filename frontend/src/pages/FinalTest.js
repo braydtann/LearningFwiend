@@ -270,10 +270,10 @@ const FinalTest = () => {
               <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-lg border border-yellow-200">
                 <h3 className="font-medium text-yellow-800 mb-2">Important Information:</h3>
                 <ul className="text-sm text-yellow-700 space-y-1">
-                  <li>• This is a comprehensive test covering the entire course</li>
+                  <li>• This is a comprehensive test covering the entire {isProgram ? 'program' : 'course'}</li>
                   <li>• You have {finalTest.maxAttempts} attempt(s) to pass</li>
                   <li>• Your answers will be saved automatically</li>
-                  <li>• Passing this test will unlock your course certificate</li>
+                  <li>• Passing this test will unlock your {isProgram ? 'program' : 'course'} certificate</li>
                 </ul>
               </div>
 
