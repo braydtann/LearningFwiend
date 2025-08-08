@@ -616,7 +616,7 @@ const Users = () => {
                         variant="outline"
                         onClick={(e) => {
                           e.stopPropagation(); // Prevent row click
-                          handleDeleteUser(user.id, user.name);
+                          handleDeleteClick(user);
                         }}
                       >
                         <Trash2 className="w-4 h-4 text-red-500" />
