@@ -119,6 +119,12 @@ function App() {
               </ProtectedRoute>
             } />
             
+            <Route path="/program/:id/edit" element={
+              <ProtectedRoute>
+                <EditProgram />
+              </ProtectedRoute>
+            } />
+            
             <Route path="/classrooms" element={
               <ProtectedRoute>
                 <Classrooms />
