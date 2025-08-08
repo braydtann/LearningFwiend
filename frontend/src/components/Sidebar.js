@@ -73,6 +73,12 @@ const Sidebar = () => {
       roles: ['admin'] 
     },
     { 
+      path: '/departments', 
+      icon: Building2, 
+      label: 'Departments', 
+      roles: ['admin'] 
+    },
+    { 
       path: '/loginpal-status', 
       icon: Shield, 
       label: 'LoginPal Status', 
