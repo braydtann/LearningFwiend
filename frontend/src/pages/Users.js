@@ -76,21 +76,34 @@ const Users = () => {
   });
 
   const handleCreateUser = () => {
-    if (!newUser.name || !newUser.email) {
+    if (!newUser.name || !newUser.email || !newUser.startDate) {
       toast({
         title: "Missing required fields",
-        description: "Please fill in all required information.",
+        description: "Please fill in all required information including start date.",
         variant: "destructive",
       });
       return;
     }
 
+    // Check if role requires department
+    if (newUser.role !== 'admin' && !newUser.departmentId) {
+      toast({
+        title: "Missing department",
+        description: "Please select a department for instructors and learners.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const departmentName = newUser.departmentId ? 
+      mockDepartments.find(d => d.id === newUser.departmentId)?.name : 'No Department';
+
     toast({
       title: "User created successfully!",
-      description: `${newUser.name} has been added as a ${newUser.role}.`,
+      description: `${newUser.name} has been added as a ${newUser.role} in ${departmentName}.`,
     });
 
-    setNewUser({ name: '', email: '', role: 'learner' });
+    setNewUser({ name: '', email: '', role: 'learner', departmentId: '', startDate: new Date().toISOString().split('T')[0] });
     setIsCreateModalOpen(false);
   };
 
