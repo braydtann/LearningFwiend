@@ -130,6 +130,12 @@ function App() {
               </ProtectedRoute>
             } />
             
+            <Route path="/departments" element={
+              <ProtectedRoute>
+                <Departments />
+              </ProtectedRoute>
+            } />
+            
             <Route path="/loginpal-status" element={
               <ProtectedRoute>
                 <LoginPalStatus />
