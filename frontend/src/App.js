@@ -11,6 +11,7 @@ import Courses from './pages/Courses';
 import CourseDetail from './pages/CourseDetail';
 import Programs from './pages/Programs';
 import ProgramDetail from './pages/ProgramDetail';
+import EditProgram from './pages/EditProgram';
 import Classrooms from './pages/Classrooms';
 import ClassroomDetail from './pages/ClassroomDetail';
 import CreateCourse from './pages/CreateCourse';
