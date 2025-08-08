@@ -151,7 +151,15 @@ const Programs = () => {
         courseOrder: [],
         duration: '',
         difficulty: 'Beginner',
-        deadline: ''
+        deadline: '',
+        finalTest: {
+          title: '',
+          description: '',
+          timeLimit: 90,
+          passingScore: 75,
+          maxAttempts: 2,
+          questions: []
+        }
       });
       setIsCreateModalOpen(false);
       
