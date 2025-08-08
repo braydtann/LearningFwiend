@@ -8,8 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { Label } from '../components/ui/label';
-import { mockUsers } from '../data/mockData';
-import { Search, Filter, Plus, Edit, Trash2, UserPlus, Shield, AlertTriangle } from 'lucide-react';
+import { mockUsers, mockDepartments } from '../data/mockData';
+import { Search, Filter, Plus, Edit, Trash2, UserPlus, Shield, AlertTriangle, Building2 } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 
 const Users = () => {
