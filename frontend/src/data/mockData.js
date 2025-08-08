@@ -7,7 +7,10 @@ export const mockUsers = [
     email: 'admin@learningfwiend.com',
     role: 'admin',
     avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
-    joinDate: '2024-01-15'
+    joinDate: '2024-01-15',
+    startDate: '2024-01-15',
+    departmentId: null, // Admins don't need department
+    department: null
   },
   {
     id: '2',
@@ -15,7 +18,10 @@ export const mockUsers = [
     email: 'lisa.rodriguez@learningfwiend.com',
     role: 'admin',
     avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b739?w=100&h=100&fit=crop&crop=face',
-    joinDate: '2024-01-08'
+    joinDate: '2024-01-08',
+    startDate: '2024-01-08',
+    departmentId: null,
+    department: null
   },
   
   // Instructor Users
@@ -26,6 +32,8 @@ export const mockUsers = [
     role: 'instructor',
     avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face',
     joinDate: '2024-01-20',
+    startDate: '2024-01-20',
+    departmentId: '1',
     department: 'Web Development'
   },
   {
@@ -35,6 +43,8 @@ export const mockUsers = [
     role: 'instructor',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face',
     joinDate: '2024-01-18',
+    startDate: '2024-01-18',
+    departmentId: '2',
     department: 'Data Science'
   },
   {
@@ -44,6 +54,8 @@ export const mockUsers = [
     role: 'instructor',
     avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=face',
     joinDate: '2024-02-01',
+    startDate: '2024-02-01',
+    departmentId: '3',
     department: 'Digital Marketing'
   },
   {
@@ -53,6 +65,8 @@ export const mockUsers = [
     role: 'instructor',
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face',
     joinDate: '2024-02-15',
+    startDate: '2024-02-15',
+    departmentId: '4',
     department: 'Business Management'
   },
   {
@@ -62,6 +76,8 @@ export const mockUsers = [
     role: 'instructor',
     avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&h=100&fit=crop&crop=face',
     joinDate: '2024-03-01',
+    startDate: '2024-03-01',
+    departmentId: '5',
     department: 'Cybersecurity'
   },
   
@@ -72,7 +88,10 @@ export const mockUsers = [
     email: 'mike.johnson@learningfwiend.com',
     role: 'learner',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face',
-    joinDate: '2024-01-25'
+    joinDate: '2024-01-25',
+    startDate: '2024-01-25',
+    departmentId: '1',
+    department: 'Web Development'
   },
   {
     id: '9',
@@ -80,7 +99,10 @@ export const mockUsers = [
     email: 'jennifer.williams@learningfwiend.com',
     role: 'learner',
     avatar: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=100&h=100&fit=crop&crop=face',
-    joinDate: '2024-01-30'
+    joinDate: '2024-01-30',
+    startDate: '2024-01-30',
+    departmentId: '1',
+    department: 'Web Development'
   },
   {
     id: '10',
@@ -88,7 +110,10 @@ export const mockUsers = [
     email: 'david.brown@learningfwiend.com',
     role: 'learner',
     avatar: 'https://images.unsplash.com/photo-1463453091185-61582044d556?w=100&h=100&fit=crop&crop=face',
-    joinDate: '2024-02-05'
+    joinDate: '2024-02-05',
+    startDate: '2024-02-05',
+    departmentId: '2',
+    department: 'Data Science'
   },
   {
     id: '11',
@@ -96,7 +121,10 @@ export const mockUsers = [
     email: 'maria.garcia@learningfwiend.com',
     role: 'learner',
     avatar: 'https://images.unsplash.com/photo-1546967191-fdfb13ed6b1e?w=100&h=100&fit=crop&crop=face',
-    joinDate: '2024-02-12'
+    joinDate: '2024-02-12',
+    startDate: '2024-02-12',
+    departmentId: '1',
+    department: 'Web Development'
   },
   {
     id: '12',
@@ -104,7 +132,10 @@ export const mockUsers = [
     email: 'robert.taylor@learningfwiend.com',
     role: 'learner',
     avatar: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=100&h=100&fit=crop&crop=face',
-    joinDate: '2024-02-20'
+    joinDate: '2024-02-20',
+    startDate: '2024-02-20',
+    departmentId: '3',
+    department: 'Digital Marketing'
   },
   {
     id: '13',
@@ -112,7 +143,10 @@ export const mockUsers = [
     email: 'linda.anderson@learningfwiend.com',
     role: 'learner',
     avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&h=100&fit=crop&crop=face',
-    joinDate: '2024-02-28'
+    joinDate: '2024-02-28',
+    startDate: '2024-02-28',
+    departmentId: '2',
+    department: 'Data Science'
   },
   {
     id: '14',
@@ -120,7 +154,10 @@ export const mockUsers = [
     email: 'kevin.lee@learningfwiend.com',
     role: 'learner',
     avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=100&h=100&fit=crop&crop=face',
-    joinDate: '2024-03-10'
+    joinDate: '2024-03-10',
+    startDate: '2024-03-10',
+    departmentId: '1',
+    department: 'Web Development'
   },
   {
     id: '15',
@@ -128,7 +165,10 @@ export const mockUsers = [
     email: 'angela.martinez@learningfwiend.com',
     role: 'learner',
     avatar: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=100&h=100&fit=crop&crop=face',
-    joinDate: '2024-03-15'
+    joinDate: '2024-03-15',
+    startDate: '2024-03-15',
+    departmentId: '3',
+    department: 'Digital Marketing'
   },
   {
     id: '16',
@@ -136,7 +176,10 @@ export const mockUsers = [
     email: 'thomas.wilson@learningfwiend.com',
     role: 'learner',
     avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
-    joinDate: '2024-03-22'
+    joinDate: '2024-03-22',
+    startDate: '2024-03-22',
+    departmentId: '4',
+    department: 'Business Management'
   },
   {
     id: '17',
@@ -144,7 +187,10 @@ export const mockUsers = [
     email: 'jessica.clark@learningfwiend.com',
     role: 'learner',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=face',
-    joinDate: '2024-04-01'
+    joinDate: '2024-04-01',
+    startDate: '2024-04-01',
+    departmentId: '1',
+    department: 'Web Development'
   },
   {
     id: '18',
@@ -152,7 +198,10 @@ export const mockUsers = [
     email: 'christopher.moore@learningfwiend.com',
     role: 'learner',
     avatar: 'https://images.unsplash.com/photo-1556157382-97eda2d62296?w=100&h=100&fit=crop&crop=face',
-    joinDate: '2024-04-08'
+    joinDate: '2024-04-08',
+    startDate: '2024-04-08',
+    departmentId: '2',
+    department: 'Data Science'
   },
   {
     id: '19',
@@ -160,7 +209,10 @@ export const mockUsers = [
     email: 'amanda.white@learningfwiend.com',
     role: 'learner',
     avatar: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=100&h=100&fit=crop&crop=face',
-    joinDate: '2024-04-15'
+    joinDate: '2024-04-15',
+    startDate: '2024-04-15',
+    departmentId: '3',
+    department: 'Digital Marketing'
   },
   {
     id: '20',
@@ -168,7 +220,10 @@ export const mockUsers = [
     email: 'steven.hall@learningfwiend.com',
     role: 'learner',
     avatar: 'https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=100&h=100&fit=crop&crop=face',
-    joinDate: '2024-04-22'
+    joinDate: '2024-04-22',
+    startDate: '2024-04-22',
+    departmentId: '5',
+    department: 'Cybersecurity'
   },
   {
     id: '21',
@@ -176,7 +231,10 @@ export const mockUsers = [
     email: 'michelle.young@learningfwiend.com',
     role: 'learner',
     avatar: 'https://images.unsplash.com/photo-1485206412256-701ccc5b93ca?w=100&h=100&fit=crop&crop=face',
-    joinDate: '2024-05-01'
+    joinDate: '2024-05-01',
+    startDate: '2024-05-01',
+    departmentId: '1',
+    department: 'Web Development'
   },
   {
     id: '22',
@@ -184,7 +242,10 @@ export const mockUsers = [
     email: 'daniel.harris@learningfwiend.com',
     role: 'learner',
     avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&h=100&fit=crop&crop=face',
-    joinDate: '2024-05-10'
+    joinDate: '2024-05-10',
+    startDate: '2024-05-10',
+    departmentId: '4',
+    department: 'Business Management'
   },
   {
     id: '23',
@@ -192,7 +253,10 @@ export const mockUsers = [
     email: 'nicole.lewis@learningfwiend.com',
     role: 'learner',
     avatar: 'https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=100&h=100&fit=crop&crop=face',
-    joinDate: '2024-05-18'
+    joinDate: '2024-05-18',
+    startDate: '2024-05-18',
+    departmentId: '2',
+    department: 'Data Science'
   },
   {
     id: '24',
@@ -200,7 +264,10 @@ export const mockUsers = [
     email: 'ryan.king@learningfwiend.com',
     role: 'learner',
     avatar: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=100&h=100&fit=crop&crop=face',
-    joinDate: '2024-05-25'
+    joinDate: '2024-05-25',
+    startDate: '2024-05-25',
+    departmentId: '3',
+    department: 'Digital Marketing'
   },
   {
     id: '25',
@@ -208,7 +275,10 @@ export const mockUsers = [
     email: 'stephanie.scott@learningfwiend.com',
     role: 'learner',
     avatar: 'https://images.unsplash.com/photo-1502823403499-6ccfcf4fb453?w=100&h=100&fit=crop&crop=face',
-    joinDate: '2024-06-01'
+    joinDate: '2024-06-01',
+    startDate: '2024-06-01',
+    departmentId: '5',
+    department: 'Cybersecurity'
   }
 ];
 
