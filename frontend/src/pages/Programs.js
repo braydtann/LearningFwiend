@@ -24,7 +24,8 @@ import {
   Trash2,
   Calendar,
   AlertTriangle,
-  CheckCircle
+  CheckCircle,
+  Trophy
 } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 
