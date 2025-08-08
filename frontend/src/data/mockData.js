@@ -212,6 +212,55 @@ export const mockUsers = [
   }
 ];
 
+// Mock departments data
+export const mockDepartments = [
+  {
+    id: '1',
+    name: 'Web Development',
+    description: 'Modern web development technologies including React, JavaScript, HTML, CSS, and full-stack development.',
+    createdAt: '2024-01-01',
+    createdBy: '1', // John Admin
+    isActive: true,
+    userCount: 8 // Users with this department
+  },
+  {
+    id: '2',
+    name: 'Data Science',
+    description: 'Data analysis, machine learning, statistics, and data visualization using Python and related tools.',
+    createdAt: '2024-01-01',
+    createdBy: '1',
+    isActive: true,
+    userCount: 4
+  },
+  {
+    id: '3',
+    name: 'Digital Marketing',
+    description: 'SEO, social media marketing, content strategy, and digital advertising campaigns.',
+    createdAt: '2024-01-01',
+    createdBy: '1',
+    isActive: true,
+    userCount: 5
+  },
+  {
+    id: '4',
+    name: 'Business Management',
+    description: 'Project management, leadership, team management, and business strategy.',
+    createdAt: '2024-01-01',
+    createdBy: '1',
+    isActive: true,
+    userCount: 3
+  },
+  {
+    id: '5',
+    name: 'Cybersecurity',
+    description: 'Information security, network security, threat assessment, and risk management.',
+    createdAt: '2024-01-01',
+    createdBy: '1',
+    isActive: true,
+    userCount: 2
+  }
+];
+
 export const mockCourses = [
   // Web Development Courses
   {
