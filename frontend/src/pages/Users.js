@@ -584,6 +584,19 @@ const Users = () => {
                     </Badge>
                   </TableCell>
                   <TableCell>
+                    {user.department ? (
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Building2 className="w-4 h-4 mr-1" />
+                        {user.department}
+                      </div>
+                    ) : (
+                      <span className="text-sm text-gray-400">No Department</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {user.startDate ? new Date(user.startDate).toLocaleDateString() : 'Not set'}
+                  </TableCell>
+                  <TableCell>
                     {new Date(user.joinDate).toLocaleDateString()}
                   </TableCell>
                   <TableCell className="text-right">
