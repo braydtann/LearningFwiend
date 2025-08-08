@@ -142,16 +142,47 @@ const Analytics = () => {
     };
   }, [filteredData]);
 
-  // Generate time-series data for trends
+  // Generate time-series data for trends based on actual filtered data
   const generateTrendData = () => {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return months.map((month, index) => ({
-      month,
-      enrollments: Math.floor(Math.random() * 50) + 20,
-      completions: Math.floor(Math.random() * 30) + 10,
-      avgScore: Math.floor(Math.random() * 30) + 70,
-      timeSpent: Math.floor(Math.random() * 10) + 15
-    }));
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+    const { enrollments, quizAttempts } = filteredData;
+    
+    return months.map((month, index) => {
+      const monthNumber = String(index + 1).padStart(2, '0');
+      const monthData = {
+        month,
+        enrollments: 0,
+        completions: 0,
+        avgScore: 0,
+        timeSpent: 0
+      };
+
+      // Filter data by month
+      const monthEnrollments = enrollments.filter(e => 
+        e.enrolledAt.startsWith(`2024-${monthNumber}`)
+      );
+      
+      const monthQuizAttempts = quizAttempts.filter(a => 
+        a.completedAt && a.completedAt.startsWith(`2024-${monthNumber}`)
+      );
+
+      monthData.enrollments = monthEnrollments.length;
+      monthData.completions = monthEnrollments.filter(e => e.progress === 100).length;
+      
+      if (monthQuizAttempts.length > 0) {
+        monthData.avgScore = monthQuizAttempts.reduce((sum, a) => sum + a.score, 0) / monthQuizAttempts.length;
+      } else {
+        monthData.avgScore = 0;
+      }
+      
+      if (monthEnrollments.length > 0) {
+        monthData.timeSpent = monthEnrollments.reduce((sum, e) => sum + (e.timeSpent || 0), 0) / monthEnrollments.length;
+      } else {
+        monthData.timeSpent = 0;
+      }
+
+      return monthData;
+    });
   };
 
   const trendData = generateTrendData();
