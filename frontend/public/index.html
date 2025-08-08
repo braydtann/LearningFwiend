@@ -27,7 +27,8 @@
           [data-emergent],
           div[style*="Made with"],
           div[style*="emergent"],
-          a[href*="emergent"] {
+          a[href*="emergent"],
+          *[style*="position: fixed"][style*="bottom"][style*="right"] {
             display: none !important;
             visibility: hidden !important;
             opacity: 0 !important;
@@ -35,21 +36,82 @@
             position: absolute !important;
             left: -9999px !important;
             top: -9999px !important;
-          }
-          
-          /* Additional hiding for any floating badges */
-          *[style*="position: fixed"][style*="bottom:"][style*="right:"] {
-            display: none !important;
-          }
-          
-          /* Hide any elements containing 'Made with Emergent' text */
-          *:contains("Made with Emergent"),
-          *:contains("Made with emergent"),
-          *:contains("emergent") {
-            display: none !important;
-            visibility: hidden !important;
+            width: 0 !important;
+            height: 0 !important;
+            overflow: hidden !important;
           }
         </style>
+        <script>
+          // Aggressive watermark removal script
+          function removeWatermarks() {
+            // Remove any elements containing "Made with Emergent" text
+            document.querySelectorAll('*').forEach(function(el) {
+              if (el.textContent && (
+                el.textContent.includes('Made with Emergent') ||
+                el.textContent.includes('Made with emergent') ||
+                el.textContent.includes('emergent') ||
+                el.textContent.includes('Emergent')
+              )) {
+                el.remove();
+              }
+            });
+            
+            // Remove specific selectors
+            const selectors = [
+              '#emergent-badge',
+              '[id*="emergent"]',
+              '[class*="emergent"]',
+              '[data-emergent]',
+              'div[style*="Made with"]',
+              'div[style*="emergent"]',
+              'a[href*="emergent"]'
+            ];
+            
+            selectors.forEach(selector => {
+              try {
+                document.querySelectorAll(selector).forEach(el => el.remove());
+              } catch(e) {}
+            });
+            
+            // Remove any fixed positioned elements in bottom right
+            document.querySelectorAll('*').forEach(function(el) {
+              const style = window.getComputedStyle(el);
+              if (style.position === 'fixed' &&
+                  (style.bottom === '20px' || style.bottom === '16px') &&
+                  (style.right === '20px' || style.right === '16px')) {
+                el.remove();
+              }
+            });
+          }
+          
+          // Run immediately
+          removeWatermarks();
+          
+          // Run when DOM is loaded
+          document.addEventListener('DOMContentLoaded', removeWatermarks);
+          
+          // Run when page is fully loaded
+          window.addEventListener('load', removeWatermarks);
+          
+          // Run continuously to catch dynamically added watermarks
+          setInterval(removeWatermarks, 1000);
+          
+          // Use MutationObserver to catch any new elements being added
+          if (typeof MutationObserver !== 'undefined') {
+            const observer = new MutationObserver(function(mutations) {
+              mutations.forEach(function(mutation) {
+                if (mutation.addedNodes.length > 0) {
+                  removeWatermarks();
+                }
+              });
+            });
+            
+            observer.observe(document.body || document.documentElement, {
+              childList: true,
+              subtree: true
+            });
+          }
+        </script>
     </head>
     <body>
         <noscript>You need to enable JavaScript to run this app.</noscript>
