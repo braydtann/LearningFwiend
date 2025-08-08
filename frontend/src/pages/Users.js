@@ -330,6 +330,16 @@ const Users = () => {
                 onChange={(e) => setEditUser(prev => ({ ...prev, email: e.target.value }))}
               />
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-startDate">Start Date</Label>
+              <Input
+                id="edit-startDate"
+                type="date"
+                value={editUser.startDate}
+                onChange={(e) => setEditUser(prev => ({ ...prev, startDate: e.target.value }))}
+              />
+            </div>
             
             <div className="space-y-2">
               <Label htmlFor="edit-role">Role</Label>
@@ -344,6 +354,27 @@ const Users = () => {
                 </SelectContent>
               </Select>
             </div>
+
+            {editUser.role !== 'admin' && (
+              <div className="space-y-2">
+                <Label htmlFor="edit-department">Department</Label>
+                <Select value={editUser.departmentId} onValueChange={(value) => setEditUser(prev => ({ ...prev, departmentId: value }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select department" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {mockDepartments.map(dept => (
+                      <SelectItem key={dept.id} value={dept.id}>
+                        <div className="flex items-center">
+                          <Building2 className="w-4 h-4 mr-2" />
+                          {dept.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             
             <div className="space-y-2">
               <Label>Additional Information</Label>
