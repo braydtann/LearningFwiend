@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Complete E2E testing of the entire LearningFwiend LMS application including all implemented features: user management, course management, quiz system, classroom management, programs, role-based access control, and final test functionality."
+user_problem_statement: "Phase 1: User & Department Management - Implementing department management system with create/description functionality, adding department assignment on user creation, adding start date field for new users, and adding pop-up warning for user deletion."
 
 frontend:
   - task: "Enhanced Mock Data Structure for Quizzes"
