@@ -263,9 +263,119 @@ const EditProgram = () => {
             ? {
                 ...question,
                 options: question.options.map((option, oIndex) =>
-                  oIndex === optionIndex ? value : option
+                  oIndex === optionIndex ? { ...option, text: value } : option
                 )
               }
+            : question
+        )
+      }
+    }));
+  };
+
+  const handleFinalTestOptionMediaChange = (questionIndex, optionIndex, mediaType, value) => {
+    setProgram(prev => ({
+      ...prev,
+      finalTest: {
+        ...prev.finalTest,
+        questions: prev.finalTest.questions.map((question, index) =>
+          index === questionIndex 
+            ? {
+                ...question,
+                options: question.options.map((option, oIndex) =>
+                  oIndex === optionIndex ? { ...option, [mediaType]: value } : option
+                )
+              }
+            : question
+        )
+      }
+    }));
+  };
+
+  const addFinalTestAnswerOption = (questionIndex) => {
+    setProgram(prev => ({
+      ...prev,
+      finalTest: {
+        ...prev.finalTest,
+        questions: prev.finalTest.questions.map((question, index) =>
+          index === questionIndex 
+            ? { 
+                ...question, 
+                options: [...question.options, { text: '', image: '', audio: '' }]
+              } 
+            : question
+        )
+      }
+    }));
+  };
+
+  const removeFinalTestAnswerOption = (questionIndex, optionIndex) => {
+    setProgram(prev => ({
+      ...prev,
+      finalTest: {
+        ...prev.finalTest,
+        questions: prev.finalTest.questions.map((question, index) =>
+          index === questionIndex 
+            ? { 
+                ...question, 
+                options: question.options.filter((_, oIdx) => oIdx !== optionIndex),
+                correctAnswer: question.correctAnswer > optionIndex ? question.correctAnswer - 1 : question.correctAnswer,
+                correctAnswers: (question.correctAnswers || [])
+                  .map(idx => idx > optionIndex ? idx - 1 : idx)
+                  .filter(idx => idx !== optionIndex)
+              } 
+            : question
+        )
+      }
+    }));
+  };
+
+  const handleFinalTestItemChange = (questionIndex, itemIndex, field, value) => {
+    setProgram(prev => ({
+      ...prev,
+      finalTest: {
+        ...prev.finalTest,
+        questions: prev.finalTest.questions.map((question, index) =>
+          index === questionIndex 
+            ? {
+                ...question,
+                items: question.items.map((item, iIndex) =>
+                  iIndex === itemIndex ? { ...item, [field]: value } : item
+                )
+              }
+            : question
+        )
+      }
+    }));
+  };
+
+  const addFinalTestOrderItem = (questionIndex) => {
+    setProgram(prev => ({
+      ...prev,
+      finalTest: {
+        ...prev.finalTest,
+        questions: prev.finalTest.questions.map((question, index) =>
+          index === questionIndex 
+            ? { 
+                ...question, 
+                items: [...question.items, { text: '', image: '', audio: '' }]
+              } 
+            : question
+        )
+      }
+    }));
+  };
+
+  const removeFinalTestOrderItem = (questionIndex, itemIndex) => {
+    setProgram(prev => ({
+      ...prev,
+      finalTest: {
+        ...prev.finalTest,
+        questions: prev.finalTest.questions.map((question, index) =>
+          index === questionIndex 
+            ? { 
+                ...question, 
+                items: question.items.filter((_, iIdx) => iIdx !== itemIndex)
+              } 
             : question
         )
       }
