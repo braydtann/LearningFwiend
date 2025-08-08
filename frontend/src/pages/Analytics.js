@@ -322,7 +322,7 @@ const Analytics = () => {
       {/* Filters */}
       <Card className="bg-gray-50">
         <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
             <div className="space-y-2">
               <Label htmlFor="start-date">Start Date</Label>
               <Input
@@ -368,6 +368,23 @@ const Analytics = () => {
                   <SelectItem value="all">All Instructors</SelectItem>
                   {instructors.map(instructor => (
                     <SelectItem key={instructor} value={instructor}>{instructor}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Classroom</Label>
+              <Select value={selectedClassroom} onValueChange={setSelectedClassroom}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Classrooms</SelectItem>
+                  {classrooms.map(classroom => (
+                    <SelectItem key={classroom.id} value={classroom.id}>
+                      {classroom.name} ({classroom.batchId})
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
