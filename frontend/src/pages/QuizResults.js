@@ -39,18 +39,46 @@ const QuizResults = () => {
     ? mockCourses 
     : [];
 
+  // Get classrooms for filtering
+  const classrooms = isInstructor
+    ? mockClassrooms.filter(classroom => classroom.trainerId === user?.id)
+    : isAdmin
+    ? mockClassrooms
+    : [];
+
   // Get quiz analytics
   const analytics = getInstructorQuizAnalytics(user?.id);
 
-  // Filter quiz results based on selected course
-  const filteredResults = selectedCourse === 'all' 
-    ? mockQuizResults 
-    : mockQuizResults.filter(result => result.courseId === selectedCourse);
+  // Filter quiz results based on selected course and classroom
+  let filteredResults = mockQuizResults;
+  if (selectedCourse !== 'all') {
+    filteredResults = filteredResults.filter(result => result.courseId === selectedCourse);
+  }
 
-  // Get quiz attempts for detailed view
-  const filteredAttempts = selectedCourse === 'all'
-    ? mockQuizAttempts
-    : mockQuizAttempts.filter(attempt => attempt.courseId === selectedCourse);
+  // Filter quiz attempts based on selected course and classroom
+  let filteredAttempts = mockQuizAttempts;
+  if (selectedCourse !== 'all') {
+    filteredAttempts = filteredAttempts.filter(attempt => attempt.courseId === selectedCourse);
+  }
+
+  // Apply classroom filter if selected
+  if (selectedClassroom !== 'all') {
+    const classroomStudents = mockClassroomEnrollments
+      .filter(ce => ce.classroomId === selectedClassroom)
+      .map(ce => ce.studentId);
+    
+    filteredResults = filteredResults.filter(result => {
+      // Find attempts for this result to check if student is in classroom
+      const resultAttempts = mockQuizAttempts.filter(attempt => 
+        attempt.courseId === result.courseId && attempt.quizId === result.quizId
+      );
+      return resultAttempts.some(attempt => classroomStudents.includes(attempt.userId));
+    });
+    
+    filteredAttempts = filteredAttempts.filter(attempt => 
+      classroomStudents.includes(attempt.userId)
+    );
+  }
 
   // Calculate statistics
   const stats = {
