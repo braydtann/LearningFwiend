@@ -298,6 +298,74 @@ const ProgramDetail = () => {
         </CardContent>
       </Card>
 
+      {/* Final Test Section */}
+      {courses.every(course => course.status === 'completed') && (
+        <Card className="bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200">
+          <CardContent className="p-8">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="w-16 h-16 bg-purple-600 text-white rounded-full flex items-center justify-center">
+                  <Award className="w-8 h-8" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-purple-900 mb-2">Final Assessment Available!</h3>
+                  <p className="text-purple-700 mb-2">
+                    Congratulations! You've completed all courses in this program.
+                  </p>
+                  <p className="text-sm text-purple-600">
+                    Take the comprehensive final test to earn your program certificate and complete your learning journey.
+                  </p>
+                </div>
+              </div>
+              <Button 
+                size="lg"
+                onClick={() => navigate(`/final-test/program/${program.id}`)}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3"
+              >
+                <Award className="w-5 h-5 mr-2" />
+                Take Final Test
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Progress Summary */}
+      {!courses.every(course => course.status === 'completed') && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl">Program Progress</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Overall Completion</span>
+                <span className="text-sm font-medium text-gray-900">
+                  {courses.filter(c => c.status === 'completed').length} / {courses.length} courses completed
+                </span>
+              </div>
+              <Progress 
+                value={(courses.filter(c => c.status === 'completed').length / courses.length) * 100} 
+                className="h-3"
+              />
+              {courses.some(course => course.status === 'locked') && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <div className="flex items-center">
+                    <Lock className="w-5 h-5 text-yellow-600 mr-2" />
+                    <div>
+                      <p className="text-sm font-medium text-yellow-800">Course Progression</p>
+                      <p className="text-sm text-yellow-700">
+                        Complete each course in order to unlock the next one. The final test will be available after completing all courses.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Program Actions */}
       <Card>
         <CardHeader>
