@@ -1160,27 +1160,69 @@ export const isCourseUnlocked = (userId, programId, courseId) => {
   return userEnrollment && userEnrollment.progress === 100;
 };
 
-export const getCourseProgressionStatus = (userId, programId) => {
-  const program = mockPrograms.find(p => p.id === programId);
-  if (!program) return [];
+// Classroom access control helper functions
+export const isClassroomExpired = (classroom) => {
+  if (!classroom.endDate) return false;
+  const today = new Date();
+  const endDate = new Date(classroom.endDate);
+  return today > endDate;
+};
 
-  return program.courseOrder.map((courseId, index) => {
-    const course = mockCourses.find(c => c.id === courseId);
-    const isUnlocked = isCourseUnlocked(userId, programId, courseId);
-    const userEnrollment = mockEnrollments.find(e => 
-      e.userId === userId && e.courseId === courseId
-    );
-    
-    return {
-      ...course,
-      courseId,
-      index,
-      isUnlocked,
-      isCompleted: userEnrollment?.progress === 100,
-      progress: userEnrollment?.progress || 0,
-      status: !isUnlocked ? 'locked' : 
-              userEnrollment?.progress === 100 ? 'completed' :
-              userEnrollment?.progress > 0 ? 'in-progress' : 'available'
+export const getClassroomAccessStatus = (classroom) => {
+  if (!classroom.endDate) {
+    return { hasAccess: true, status: 'no-end-date', message: 'No end date set' };
+  }
+  
+  const today = new Date();
+  const endDate = new Date(classroom.endDate);
+  const daysRemaining = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+  
+  if (daysRemaining < 0) {
+    return { 
+      hasAccess: false, 
+      status: 'expired', 
+      message: `Classroom ended ${Math.abs(daysRemaining)} days ago`,
+      daysOverdue: Math.abs(daysRemaining)
     };
-  });
+  } else if (daysRemaining <= 7) {
+    return { 
+      hasAccess: true, 
+      status: 'ending-soon', 
+      message: `Classroom ends in ${daysRemaining} days`,
+      daysRemaining
+    };
+  } else {
+    return { 
+      hasAccess: true, 
+      status: 'active', 
+      message: `${daysRemaining} days remaining`,
+      daysRemaining
+    };
+  }
+};
+
+export const getUserClassroomAccess = (userId, classroomId) => {
+  // Check if user is enrolled in classroom
+  const enrollment = mockClassroomEnrollments.find(e => 
+    e.studentId === userId && e.classroomId === classroomId
+  );
+  
+  if (!enrollment) {
+    return { hasAccess: false, reason: 'not-enrolled', message: 'You are not enrolled in this classroom' };
+  }
+  
+  // Check if classroom has expired
+  const classroom = mockClassrooms.find(c => c.id === classroomId);
+  const accessStatus = getClassroomAccessStatus(classroom);
+  
+  if (!accessStatus.hasAccess) {
+    return { 
+      hasAccess: false, 
+      reason: 'classroom-expired', 
+      message: accessStatus.message,
+      ...accessStatus 
+    };
+  }
+  
+  return { hasAccess: true, status: accessStatus.status, message: accessStatus.message };
 };
