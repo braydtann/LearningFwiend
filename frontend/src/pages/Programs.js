@@ -358,16 +358,16 @@ const Programs = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-purple-50 border-purple-200">
+        <Card className="bg-red-50 border-red-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-purple-600 text-sm font-medium">Avg. Courses</p>
-                <p className="text-2xl font-bold text-purple-700">
-                  {Math.round(programs.reduce((sum, p) => sum + p.totalCourses, 0) / (programs.length || 1))}
+                <p className="text-red-600 text-sm font-medium">Urgent Deadlines</p>
+                <p className="text-2xl font-bold text-red-700">
+                  {programs.filter(p => p.deadlineStatus?.status === 'urgent' || p.deadlineStatus?.status === 'overdue').length}
                 </p>
               </div>
-              <BookOpen className="h-8 w-8 text-purple-600" />
+              <AlertTriangle className="h-8 w-8 text-red-600" />
             </div>
           </CardContent>
         </Card>
