@@ -100,6 +100,12 @@ function App() {
               </ProtectedRoute>
             } />
             
+            <Route path="/final-test/program/:programId" element={
+              <ProtectedRoute>
+                <FinalTest />
+              </ProtectedRoute>
+            } />
+            
             <Route path="/programs" element={
               <ProtectedRoute>
                 <Programs />
