@@ -28,6 +28,7 @@ import {
 const QuizResults = () => {
   const { user, isInstructor, isAdmin } = useAuth();
   const [selectedCourse, setSelectedCourse] = useState('all');
+  const [selectedClassroom, setSelectedClassroom] = useState('all');
 
   // Get courses based on user role
   const courses = isInstructor 
