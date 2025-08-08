@@ -20,14 +20,18 @@ import {
 import { useToast } from '../hooks/use-toast';
 
 const FinalTest = () => {
-  const { courseId } = useParams();
+  const { courseId, programId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
 
+  // Determine if this is a program or course final test
+  const isProgram = programId !== undefined;
+  
   // Find course and final test
-  const course = mockCourses.find(c => c.id === courseId);
-  const finalTest = course?.finalTest;
+  const course = !isProgram ? mockCourses.find(c => c.id === courseId) : null;
+  const program = isProgram ? mockPrograms.find(p => p.id === programId) : null;
+  const finalTest = isProgram ? program?.finalTest : course?.finalTest;
 
   // Quiz state
   const [testState, setTestState] = useState('loading'); // loading, ready, taking, submitted, error
