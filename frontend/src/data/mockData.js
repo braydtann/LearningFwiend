@@ -1160,6 +1160,31 @@ export const isCourseUnlocked = (userId, programId, courseId) => {
   return userEnrollment && userEnrollment.progress === 100;
 };
 
+export const getCourseProgressionStatus = (userId, programId) => {
+  const program = mockPrograms.find(p => p.id === programId);
+  if (!program) return [];
+
+  return program.courseOrder.map((courseId, index) => {
+    const course = mockCourses.find(c => c.id === courseId);
+    const isUnlocked = isCourseUnlocked(userId, programId, courseId);
+    const userEnrollment = mockEnrollments.find(e => 
+      e.userId === userId && e.courseId === courseId
+    );
+    
+    return {
+      ...course,
+      courseId,
+      index,
+      isUnlocked,
+      isCompleted: userEnrollment?.progress === 100,
+      progress: userEnrollment?.progress || 0,
+      status: !isUnlocked ? 'locked' : 
+              userEnrollment?.progress === 100 ? 'completed' :
+              userEnrollment?.progress > 0 ? 'in-progress' : 'available'
+    };
+  });
+};
+
 // Classroom access control helper functions
 export const isClassroomExpired = (classroom) => {
   if (!classroom.endDate) return false;
