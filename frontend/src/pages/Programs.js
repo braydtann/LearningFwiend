@@ -100,21 +100,23 @@ const Programs = () => {
         estimatedHours: newProgram.courseIds.length * 20,
         finalTest: {
           id: `ft-prog-${Date.now()}`,
-          title: `${newProgram.name} Final Assessment`,
-          description: `Comprehensive assessment for the ${newProgram.name} program`,
-          timeLimit: 90,
-          passingScore: 75,
-          maxAttempts: 2,
-          questions: [
-            {
-              id: 'q1',
-              type: 'multiple-choice',
-              question: `What are the key learning objectives of the ${newProgram.name} program?`,
-              options: ['Comprehensive skill development', 'Basic knowledge only', 'Theory without practice', 'Limited scope learning'],
-              correctAnswer: 0,
-              points: 10
-            }
-          ]
+          title: newProgram.finalTest.title || `${newProgram.name} Final Assessment`,
+          description: newProgram.finalTest.description || `Comprehensive assessment for the ${newProgram.name} program`,
+          timeLimit: newProgram.finalTest.timeLimit || 90,
+          passingScore: newProgram.finalTest.passingScore || 75,
+          maxAttempts: newProgram.finalTest.maxAttempts || 2,
+          questions: newProgram.finalTest.questions.length > 0 
+            ? newProgram.finalTest.questions 
+            : [
+                {
+                  id: 'q1',
+                  type: 'multiple-choice',
+                  question: `What are the key learning objectives of the ${newProgram.name} program?`,
+                  options: ['Comprehensive skill development', 'Basic knowledge only', 'Theory without practice', 'Limited scope learning'],
+                  correctAnswer: 0,
+                  points: 10
+                }
+              ]
         }
       };
 
