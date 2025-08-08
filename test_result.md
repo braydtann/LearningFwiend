@@ -105,6 +105,54 @@
 user_problem_statement: "BUG FIXES NEEDED: 1) Edit Program functionality shows white screen - missing /program/:id/edit route in App.js, 2) Final test still showing on courses (need to verify this is actually fixed), 3) Program creation issue where new programs don't appear in list after creation."
 
 frontend:
+  - task: "Fix Edit Program White Screen Issue"
+    implemented: false
+    working: false
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "CRITICAL BUG REPORTED: Edit program functionality shows white screen when clicking edit button. Issue identified as missing /program/:id/edit route in App.js routing configuration."
+      - working: false
+        agent: "main"
+        comment: "ISSUE IDENTIFIED: Missing route /program/:id/edit in App.js. Edit button in Programs.js navigates to this non-existent route causing white screen. Need to either create EditProgram component or modify existing component to handle edit mode."
+
+  - task: "Fix Program Creation Not Showing in List"
+    implemented: false
+    working: false
+    file: "/app/frontend/src/pages/Programs.js, /app/frontend/src/data/mockData.js"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "CRITICAL BUG REPORTED: When creating a new program, it does not appear in the programs list despite successful form submission and toast confirmation."
+      - working: false
+        agent: "testing"
+        comment: "VERIFIED CRITICAL FAILURE: New programs like 'Bug Fix Test Program' and 'Manual Test Program' are not visible in the programs list. The Total Programs statistic remains at 2, indicating programs are not being added to the state properly."
+      - working: false
+        agent: "main"
+        comment: "INVESTIGATING: State management issue in Programs.js. The handleCreateProgram function appears to update state correctly, but programs are not persisting or displaying. Need to check mock data integration and state update logic."
+
+  - task: "Verify Final Test Removal from Courses"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/CourseDetail.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "USER REPORTED: Final test still appears on courses, should only be at program level."
+      - working: true
+        agent: "main"
+        comment: "VERIFICATION COMPLETED: Grep search shows no final test elements remaining in CourseDetail.js. All final test related code has been properly removed from individual courses."
+
   - task: "Department Management System"
     implemented: true
     working: true
