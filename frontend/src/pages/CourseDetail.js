@@ -7,7 +7,7 @@ import { Badge } from '../components/ui/badge';
 import { Progress } from '../components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../components/ui/accordion';
-import { mockCourses, getEnrolledCourses, getCourseProgress } from '../data/mockData';
+import { mockCourses, getEnrolledCourses, getCourseProgress, getUserClassroomAccess, mockClassroomEnrollments } from '../data/mockData';
 import { 
   BookOpen, 
   Clock, 
@@ -18,7 +18,9 @@ import {
   Star,
   ArrowLeft,
   Download,
-  Presentation
+  Presentation,
+  AlertTriangle,
+  Lock
 } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 
