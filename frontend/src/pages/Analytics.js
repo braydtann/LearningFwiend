@@ -40,7 +40,7 @@ const Analytics = () => {
   const [performanceTrendFilter, setPerformanceTrendFilter] = useState('all'); // New filter for trends
   const [activeView, setActiveView] = useState('overview');
 
-  // Get unique instructors and departments
+  // Get unique instructors, departments, and classrooms
   const instructors = useMemo(() => {
     const instructorList = [...new Set(mockCourses.map(course => course.instructor))];
     return instructorList;
@@ -49,6 +49,14 @@ const Analytics = () => {
   const departments = useMemo(() => {
     const deptList = [...new Set(mockCourses.map(course => course.category))];
     return deptList;
+  }, []);
+
+  const classrooms = useMemo(() => {
+    return mockClassrooms.map(classroom => ({
+      id: classroom.id,
+      name: classroom.name,
+      batchId: classroom.batchId
+    }));
   }, []);
 
   // Filter data based on selections and date range
