@@ -36,6 +36,15 @@ const CourseDetail = () => {
   const isEnrolled = enrolledCourses.some(c => c.id === id);
   const progress = isLearner ? getCourseProgress(user?.id, id) : 0;
 
+  // Check classroom access for enrolled students
+  const userClassroomEnrollment = isLearner ? mockClassroomEnrollments.find(e => e.studentId === user?.id) : null;
+  const classroomAccess = userClassroomEnrollment ? 
+    getUserClassroomAccess(user?.id, userClassroomEnrollment.classroomId) : 
+    { hasAccess: true, status: 'no-classroom', message: 'Not enrolled in classroom' };
+
+  // Block access if classroom has expired
+  const canAccessCourse = !isLearner || !userClassroomEnrollment || classroomAccess.hasAccess;
+
   if (!course) {
     return (
       <div className="text-center py-12">
