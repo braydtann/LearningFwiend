@@ -36,7 +36,8 @@ const Programs = () => {
     courseIds: [],
     courseOrder: [],
     duration: '',
-    difficulty: 'Beginner'
+    difficulty: 'Beginner',
+    deadline: '' // Add deadline field
   });
 
   const programs = getProgramsForAdmin();
