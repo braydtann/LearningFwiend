@@ -14,7 +14,9 @@ import {
   ArrowUp,
   ArrowDown,
   Trash2,
-  Calendar
+  Calendar,
+  Trophy,
+  Plus
 } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 
