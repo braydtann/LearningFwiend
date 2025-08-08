@@ -1067,3 +1067,54 @@ export const getProgramsWithDeadlineStatus = () => {
     deadlineStatus: program.deadline ? getProgramDeadlineStatus(program.deadline) : null
   }));
 };
+
+// Course progression helper functions
+export const getUserProgramProgress = (userId, programId) => {
+  const enrollment = mockProgramEnrollments.find(e => e.userId === userId && e.programId === programId);
+  return enrollment || null;
+};
+
+export const isCourseUnlocked = (userId, programId, courseId) => {
+  const program = mockPrograms.find(p => p.id === programId);
+  if (!program) return false;
+
+  const courseIndex = program.courseOrder.indexOf(courseId);
+  if (courseIndex === -1) return false;
+  
+  // First course is always unlocked
+  if (courseIndex === 0) return true;
+  
+  // Check if previous course is completed with passing grade
+  const previousCourseId = program.courseOrder[courseIndex - 1];
+  const userEnrollment = mockEnrollments.find(e => 
+    e.userId === userId && e.courseId === previousCourseId
+  );
+  
+  // Course is unlocked if previous course has 100% completion
+  return userEnrollment && userEnrollment.progress === 100;
+};
+
+export const getCourseProgressionStatus = (userId, programId) => {
+  const program = mockPrograms.find(p => p.id === programId);
+  if (!program) return [];
+
+  return program.courseOrder.map((courseId, index) => {
+    const course = mockCourses.find(c => c.id === courseId);
+    const isUnlocked = isCourseUnlocked(userId, programId, courseId);
+    const userEnrollment = mockEnrollments.find(e => 
+      e.userId === userId && e.courseId === courseId
+    );
+    
+    return {
+      ...course,
+      courseId,
+      index,
+      isUnlocked,
+      isCompleted: userEnrollment?.progress === 100,
+      progress: userEnrollment?.progress || 0,
+      status: !isUnlocked ? 'locked' : 
+              userEnrollment?.progress === 100 ? 'completed' :
+              userEnrollment?.progress > 0 ? 'in-progress' : 'available'
+    };
+  });
+};
