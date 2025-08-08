@@ -9,6 +9,8 @@ import {
   mockQuizAttempts, 
   mockQuizResults, 
   mockUsers,
+  mockClassrooms,
+  mockClassroomEnrollments,
   getInstructorQuizAnalytics 
 } from '../data/mockData';
 import { 
@@ -19,7 +21,8 @@ import {
   XCircle,
   TrendingUp,
   FileText,
-  Award
+  Award,
+  Filter
 } from 'lucide-react';
 
 const QuizResults = () => {
