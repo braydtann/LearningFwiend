@@ -151,16 +151,31 @@ const Users = () => {
   };
 
   const handleCancelEdit = () => {
-    setEditUser({ id: '', name: '', email: '', role: 'learner' });
+    setEditUser({ id: '', name: '', email: '', role: 'learner', departmentId: '', startDate: '' });
     setSelectedUser(null);
     setIsEditModalOpen(false);
   };
 
-  const handleDeleteUser = (userId, userName) => {
+  const handleDeleteClick = (user) => {
+    setUserToDelete(user);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteUser = () => {
+    if (!userToDelete) return;
+
     toast({
       title: "User deleted",
-      description: `${userName} has been removed from the system.`,
+      description: `${userToDelete.name} has been removed from the system.`,
     });
+
+    setUserToDelete(null);
+    setIsDeleteModalOpen(false);
+  };
+
+  const handleCancelDelete = () => {
+    setUserToDelete(null);
+    setIsDeleteModalOpen(false);
   };
 
   const getRoleBadgeColor = (role) => {
