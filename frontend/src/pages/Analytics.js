@@ -36,6 +36,8 @@ const Analytics = () => {
   const [selectedInstructor, setSelectedInstructor] = useState('all');
   const [selectedDepartment, setSelectedDepartment] = useState('all');
   const [selectedCourse, setSelectedCourse] = useState('all');
+  const [selectedClassroom, setSelectedClassroom] = useState('all');
+  const [performanceTrendFilter, setPerformanceTrendFilter] = useState('all'); // New filter for trends
   const [activeView, setActiveView] = useState('overview');
 
   // Get unique instructors and departments
