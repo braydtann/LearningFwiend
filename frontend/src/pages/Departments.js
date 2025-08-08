@@ -166,6 +166,9 @@ const Departments = () => {
       return;
     }
 
+    // Remove department from state
+    setDepartments(prev => prev.filter(dept => dept.id !== departmentId));
+
     toast({
       title: "Department deleted",
       description: `${departmentName} department has been removed from the system.`,
