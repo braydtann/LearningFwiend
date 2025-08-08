@@ -132,6 +132,13 @@ const Departments = () => {
       return;
     }
 
+    // Update department in state
+    setDepartments(prev => prev.map(dept => 
+      dept.id === editDepartment.id 
+        ? { ...dept, name: editDepartment.name, description: editDepartment.description }
+        : dept
+    ));
+
     toast({
       title: "Department updated successfully!",
       description: `${editDepartment.name} department has been updated.`,
