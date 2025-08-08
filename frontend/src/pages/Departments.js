@@ -308,7 +308,7 @@ const Departments = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-blue-600 text-sm font-medium">Total Departments</p>
-                <p className="text-2xl font-bold text-blue-700">{mockDepartments.length}</p>
+                <p className="text-2xl font-bold text-blue-700">{departments.length}</p>
               </div>
               <Building2 className="h-8 w-8 text-blue-600" />
             </div>
@@ -321,7 +321,7 @@ const Departments = () => {
               <div>
                 <p className="text-green-600 text-sm font-medium">Active Departments</p>
                 <p className="text-2xl font-bold text-green-700">
-                  {mockDepartments.filter(d => d.isActive).length}
+                  {departments.filter(d => d.isActive).length}
                 </p>
               </div>
               <CheckCircle className="h-8 w-8 text-green-600" />
@@ -335,7 +335,7 @@ const Departments = () => {
               <div>
                 <p className="text-orange-600 text-sm font-medium">Total Users</p>
                 <p className="text-2xl font-bold text-orange-700">
-                  {mockDepartments.reduce((sum, d) => sum + d.userCount, 0)}
+                  {departments.reduce((sum, d) => sum + d.userCount, 0)}
                 </p>
               </div>
               <Users className="h-8 w-8 text-orange-600" />
@@ -349,7 +349,7 @@ const Departments = () => {
               <div>
                 <p className="text-purple-600 text-sm font-medium">Avg Users/Dept</p>
                 <p className="text-2xl font-bold text-purple-700">
-                  {Math.round(mockDepartments.reduce((sum, d) => sum + d.userCount, 0) / mockDepartments.length)}
+                  {departments.length > 0 ? Math.round(departments.reduce((sum, d) => sum + d.userCount, 0) / departments.length) : 0}
                 </p>
               </div>
               <Briefcase className="h-8 w-8 text-purple-600" />
