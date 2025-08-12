@@ -802,6 +802,7 @@ test_plan:
   frontend_testing_complete: false
   comprehensive_e2e_complete: false
   new_feature_development_phase: "started"
+  production_readiness_backend: true
 
 agent_communication:
   - agent: "main"
