@@ -342,6 +342,571 @@ class BackendTester:
             )
         return False
     
+    # =============================================================================
+    # AUTHENTICATION SYSTEM TESTS
+    # =============================================================================
+    
+    def test_admin_user_creation(self):
+        """Test admin user creation endpoint"""
+        try:
+            # First, we need to create the admin user if it doesn't exist
+            admin_data = {
+                "email": "admin@learningfwiend.com",
+                "username": "admin",
+                "full_name": "System Administrator",
+                "role": "admin",
+                "department": "IT",
+                "temporary_password": "Admin123!"
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/auth/admin/create-user",
+                json=admin_data,
+                timeout=TEST_TIMEOUT,
+                headers={'Content-Type': 'application/json'}
+            )
+            
+            # This might fail if admin already exists, which is fine
+            if response.status_code in [200, 400]:  # 400 if user already exists
+                self.log_result(
+                    "Admin User Setup", 
+                    "PASS", 
+                    "Admin user creation endpoint accessible",
+                    f"Status: {response.status_code}"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Admin User Setup", 
+                    "FAIL", 
+                    f"Unexpected status code: {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Admin User Setup", 
+                "FAIL", 
+                "Failed to test admin user creation",
+                str(e)
+            )
+        return False
+    
+    def test_user_login(self):
+        """Test user login with different user types"""
+        test_users = [
+            {"username": "admin", "password": "Admin123!", "role": "admin"},
+            {"username": "instructor", "password": "Instructor123!", "role": "instructor"},
+            {"username": "student", "password": "Student123!", "role": "learner"}
+        ]
+        
+        login_success = False
+        
+        for user in test_users:
+            try:
+                login_data = {
+                    "username_or_email": user["username"],
+                    "password": user["password"]
+                }
+                
+                response = requests.post(
+                    f"{BACKEND_URL}/auth/login",
+                    json=login_data,
+                    timeout=TEST_TIMEOUT,
+                    headers={'Content-Type': 'application/json'}
+                )
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    required_fields = ['access_token', 'token_type', 'user', 'requires_password_change']
+                    
+                    if all(field in data for field in required_fields):
+                        # Store token for later tests
+                        self.auth_tokens[user["role"]] = data['access_token']
+                        
+                        self.log_result(
+                            f"Login Test ({user['username']})", 
+                            "PASS", 
+                            f"Successfully logged in {user['username']} with role {user['role']}",
+                            f"Token received, requires_password_change: {data.get('requires_password_change')}"
+                        )
+                        login_success = True
+                    else:
+                        self.log_result(
+                            f"Login Test ({user['username']})", 
+                            "FAIL", 
+                            "Login response missing required fields",
+                            f"Missing: {[f for f in required_fields if f not in data]}"
+                        )
+                elif response.status_code == 401:
+                    # User might not exist yet, try to create them first
+                    self.log_result(
+                        f"Login Test ({user['username']})", 
+                        "INFO", 
+                        f"User {user['username']} not found or wrong password",
+                        "Will attempt to create user if admin token available"
+                    )
+                else:
+                    self.log_result(
+                        f"Login Test ({user['username']})", 
+                        "FAIL", 
+                        f"Login failed with status {response.status_code}",
+                        f"Response: {response.text}"
+                    )
+            except requests.exceptions.RequestException as e:
+                self.log_result(
+                    f"Login Test ({user['username']})", 
+                    "FAIL", 
+                    f"Failed to test login for {user['username']}",
+                    str(e)
+                )
+        
+        return login_success
+    
+    def test_create_test_users(self):
+        """Create test users using admin endpoint"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Create Test Users", 
+                "SKIP", 
+                "No admin token available, skipping user creation",
+                "Admin login required first"
+            )
+            return False
+        
+        test_users = [
+            {
+                "email": "instructor@learningfwiend.com",
+                "username": "instructor",
+                "full_name": "Test Instructor",
+                "role": "instructor",
+                "department": "Education",
+                "temporary_password": "Instructor123!"
+            },
+            {
+                "email": "student@learningfwiend.com",
+                "username": "student",
+                "full_name": "Test Student",
+                "role": "learner",
+                "department": "General",
+                "temporary_password": "Student123!"
+            }
+        ]
+        
+        created_users = 0
+        
+        for user_data in test_users:
+            try:
+                response = requests.post(
+                    f"{BACKEND_URL}/auth/admin/create-user",
+                    json=user_data,
+                    timeout=TEST_TIMEOUT,
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                    }
+                )
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    self.log_result(
+                        f"Create User ({user_data['username']})", 
+                        "PASS", 
+                        f"Successfully created user {user_data['username']}",
+                        f"User ID: {data.get('id')}"
+                    )
+                    created_users += 1
+                elif response.status_code == 400:
+                    # User already exists
+                    self.log_result(
+                        f"Create User ({user_data['username']})", 
+                        "INFO", 
+                        f"User {user_data['username']} already exists",
+                        "This is expected if user was created previously"
+                    )
+                    created_users += 1  # Count as success since user exists
+                else:
+                    self.log_result(
+                        f"Create User ({user_data['username']})", 
+                        "FAIL", 
+                        f"Failed to create user with status {response.status_code}",
+                        f"Response: {response.text}"
+                    )
+            except requests.exceptions.RequestException as e:
+                self.log_result(
+                    f"Create User ({user_data['username']})", 
+                    "FAIL", 
+                    f"Failed to create user {user_data['username']}",
+                    str(e)
+                )
+        
+        return created_users > 0
+    
+    def test_password_change(self):
+        """Test password change functionality"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Password Change Test", 
+                "SKIP", 
+                "No admin token available, skipping password change test",
+                "Admin login required first"
+            )
+            return False
+        
+        try:
+            password_change_data = {
+                "current_password": "Admin123!",
+                "new_password": "NewAdmin123!"
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/auth/change-password",
+                json=password_change_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get('message') == 'Password changed successfully':
+                    self.log_result(
+                        "Password Change Test", 
+                        "PASS", 
+                        "Successfully changed password",
+                        "Password change endpoint working correctly"
+                    )
+                    
+                    # Test login with new password
+                    login_data = {
+                        "username_or_email": "admin",
+                        "password": "NewAdmin123!"
+                    }
+                    
+                    login_response = requests.post(
+                        f"{BACKEND_URL}/auth/login",
+                        json=login_data,
+                        timeout=TEST_TIMEOUT,
+                        headers={'Content-Type': 'application/json'}
+                    )
+                    
+                    if login_response.status_code == 200:
+                        login_data_response = login_response.json()
+                        # Update token
+                        self.auth_tokens["admin"] = login_data_response['access_token']
+                        
+                        self.log_result(
+                            "Password Change Verification", 
+                            "PASS", 
+                            "Successfully logged in with new password",
+                            f"requires_password_change: {login_data_response.get('requires_password_change')}"
+                        )
+                        return True
+                    else:
+                        self.log_result(
+                            "Password Change Verification", 
+                            "FAIL", 
+                            "Failed to login with new password",
+                            f"Status: {login_response.status_code}"
+                        )
+                else:
+                    self.log_result(
+                        "Password Change Test", 
+                        "FAIL", 
+                        "Unexpected response message",
+                        f"Response: {data}"
+                    )
+            else:
+                self.log_result(
+                    "Password Change Test", 
+                    "FAIL", 
+                    f"Password change failed with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Password Change Test", 
+                "FAIL", 
+                "Failed to test password change",
+                str(e)
+            )
+        return False
+    
+    def test_admin_get_users(self):
+        """Test admin endpoint to get all users"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Admin Get Users Test", 
+                "SKIP", 
+                "No admin token available, skipping get users test",
+                "Admin login required first"
+            )
+            return False
+        
+        try:
+            response = requests.get(
+                f"{BACKEND_URL}/auth/admin/users",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                if isinstance(data, list):
+                    self.log_result(
+                        "Admin Get Users Test", 
+                        "PASS", 
+                        f"Successfully retrieved {len(data)} users",
+                        f"Users found: {[user.get('username') for user in data]}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Admin Get Users Test", 
+                        "FAIL", 
+                        "Response is not a list",
+                        f"Response type: {type(data)}"
+                    )
+            else:
+                self.log_result(
+                    "Admin Get Users Test", 
+                    "FAIL", 
+                    f"Failed to get users with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Admin Get Users Test", 
+                "FAIL", 
+                "Failed to test get users endpoint",
+                str(e)
+            )
+        return False
+    
+    def test_get_current_user(self):
+        """Test get current user endpoint"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Get Current User Test", 
+                "SKIP", 
+                "No admin token available, skipping current user test",
+                "Admin login required first"
+            )
+            return False
+        
+        try:
+            response = requests.get(
+                f"{BACKEND_URL}/auth/me",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                required_fields = ['id', 'email', 'username', 'full_name', 'role']
+                
+                if all(field in data for field in required_fields):
+                    self.log_result(
+                        "Get Current User Test", 
+                        "PASS", 
+                        f"Successfully retrieved current user info for {data.get('username')}",
+                        f"Role: {data.get('role')}, Email: {data.get('email')}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Get Current User Test", 
+                        "FAIL", 
+                        "Response missing required fields",
+                        f"Missing: {[f for f in required_fields if f not in data]}"
+                    )
+            else:
+                self.log_result(
+                    "Get Current User Test", 
+                    "FAIL", 
+                    f"Failed to get current user with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Get Current User Test", 
+                "FAIL", 
+                "Failed to test get current user endpoint",
+                str(e)
+            )
+        return False
+    
+    def test_admin_password_reset(self):
+        """Test admin password reset functionality"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Admin Password Reset Test", 
+                "SKIP", 
+                "No admin token available, skipping password reset test",
+                "Admin login required first"
+            )
+            return False
+        
+        # First, get list of users to find a user to reset
+        try:
+            users_response = requests.get(
+                f"{BACKEND_URL}/auth/admin/users",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if users_response.status_code != 200:
+                self.log_result(
+                    "Admin Password Reset Test", 
+                    "FAIL", 
+                    "Could not get users list for password reset test",
+                    f"Status: {users_response.status_code}"
+                )
+                return False
+            
+            users = users_response.json()
+            test_user = None
+            
+            # Find a non-admin user to reset password for
+            for user in users:
+                if user.get('role') != 'admin' and user.get('username') in ['instructor', 'student']:
+                    test_user = user
+                    break
+            
+            if not test_user:
+                self.log_result(
+                    "Admin Password Reset Test", 
+                    "SKIP", 
+                    "No suitable test user found for password reset",
+                    "Need instructor or student user"
+                )
+                return False
+            
+            # Reset password
+            reset_data = {
+                "user_id": test_user['id'],
+                "new_temporary_password": "ResetTest123!"
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/auth/admin/reset-password",
+                json=reset_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                required_fields = ['message', 'user_id', 'temporary_password', 'reset_at']
+                
+                if all(field in data for field in required_fields):
+                    self.log_result(
+                        "Admin Password Reset Test", 
+                        "PASS", 
+                        f"Successfully reset password for user {test_user['username']}",
+                        f"New temporary password set"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Admin Password Reset Test", 
+                        "FAIL", 
+                        "Password reset response missing required fields",
+                        f"Missing: {[f for f in required_fields if f not in data]}"
+                    )
+            else:
+                self.log_result(
+                    "Admin Password Reset Test", 
+                    "FAIL", 
+                    f"Password reset failed with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Admin Password Reset Test", 
+                "FAIL", 
+                "Failed to test admin password reset",
+                str(e)
+            )
+        return False
+    
+    def test_password_validation(self):
+        """Test password validation rules"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Password Validation Test", 
+                "SKIP", 
+                "No admin token available, skipping password validation test",
+                "Admin login required first"
+            )
+            return False
+        
+        # Test weak passwords that should fail validation
+        weak_passwords = [
+            "123",  # Too short
+            "password",  # No number or special char
+            "Password",  # No number or special char
+            "Password123",  # No special char
+            "Password!"  # No number
+        ]
+        
+        validation_working = 0
+        
+        for weak_password in weak_passwords:
+            try:
+                user_data = {
+                    "email": f"test{len(weak_passwords)}@test.com",
+                    "username": f"testuser{len(weak_passwords)}",
+                    "full_name": "Test User",
+                    "role": "learner",
+                    "temporary_password": weak_password
+                }
+                
+                response = requests.post(
+                    f"{BACKEND_URL}/auth/admin/create-user",
+                    json=user_data,
+                    timeout=TEST_TIMEOUT,
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                    }
+                )
+                
+                if response.status_code == 422:  # Validation error expected
+                    validation_working += 1
+                    self.log_result(
+                        f"Password Validation ({weak_password})", 
+                        "PASS", 
+                        f"Correctly rejected weak password: {weak_password}",
+                        "Validation working as expected"
+                    )
+                else:
+                    self.log_result(
+                        f"Password Validation ({weak_password})", 
+                        "FAIL", 
+                        f"Weak password accepted: {weak_password}",
+                        f"Status: {response.status_code}"
+                    )
+            except requests.exceptions.RequestException as e:
+                self.log_result(
+                    f"Password Validation ({weak_password})", 
+                    "FAIL", 
+                    f"Failed to test password validation for: {weak_password}",
+                    str(e)
+                )
+        
+        return validation_working > 0
+    
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Backend Testing Suite for LearningFwiend LMS")
