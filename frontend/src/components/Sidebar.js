@@ -16,7 +16,8 @@ import {
   LogOut,
   ClipboardCheck,
   Shield,
-  Building2
+  Building2,
+  FolderOpen
 } from 'lucide-react';
 
 const Sidebar = () => {
