@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { mockCourses, getCategories } from '../data/mockData';
 import { ArrowLeft, Plus, Trash2, Upload, FileText, Eye } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
+import CoursePreview from '../components/CoursePreview';
 
 const CreateCourse = () => {
   const navigate = useNavigate();
