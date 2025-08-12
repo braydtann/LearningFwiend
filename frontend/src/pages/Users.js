@@ -450,6 +450,74 @@ const Users = () => {
         </Dialog>
       </div>
 
+      {/* Delete User Modal */}
+      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <AlertTriangle className="w-5 h-5 text-red-500" />
+              <span>Delete User Account</span>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {selectedUserForDelete && (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                    <UserPlus className="w-5 h-5 text-red-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">{selectedUserForDelete.full_name}</p>
+                    <p className="text-sm text-gray-600">{selectedUserForDelete.email}</p>
+                    <p className="text-sm text-gray-600">Username: {selectedUserForDelete.username}</p>
+                    <Badge className={getRoleBadgeColor(selectedUserForDelete.role)} size="sm">
+                      {selectedUserForDelete.role}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex items-center">
+                <AlertTriangle className="w-5 h-5 text-red-600 mr-2" />
+                <div>
+                  <p className="text-sm text-red-800 font-medium">Warning: This action cannot be undone</p>
+                  <p className="text-sm text-red-700">
+                    Deleting this user will permanently remove their account and all associated data from the system.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div className="flex items-center">
+                <AlertTriangle className="w-5 h-5 text-yellow-600 mr-2" />
+                <div>
+                  <p className="text-sm text-yellow-800 font-medium">Security Notice</p>
+                  <p className="text-sm text-yellow-700">
+                    The system prevents deletion of your own admin account and the last remaining admin user.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-end space-x-3 pt-4">
+              <Button variant="outline" onClick={() => {
+                setIsDeleteModalOpen(false);
+                setSelectedUserForDelete(null);
+              }}>
+                Cancel
+              </Button>
+              <Button onClick={handleDeleteUser} className="bg-red-600 hover:bg-red-700">
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete User
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Password Reset Modal */}
       <Dialog open={isPasswordResetModalOpen} onOpenChange={setIsPasswordResetModalOpen}>
         <DialogContent>
