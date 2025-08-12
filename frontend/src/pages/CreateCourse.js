@@ -28,6 +28,7 @@ const CreateCourse = () => {
     duration: existingCourse?.duration || '',
     thumbnail: existingCourse?.thumbnail || '',
     isPublic: existingCourse?.isPublic || true,
+    enrollmentType: existingCourse?.enrollmentType || 'open', // 'open' or 'assignment'
     modules: existingCourse?.modules || [
       {
         id: 'm1',
