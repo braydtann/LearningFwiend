@@ -126,6 +126,10 @@ const FinalTest = () => {
       } else if (question.type === 'long-form-answer') {
         // Long form answers require manual grading
         correct = userAnswer && userAnswer.trim().length > 100; // Basic completion check
+      } else if (question.type === 'record-screen' || question.type === 'record_screen') {
+        // Screen recording questions require manual grading
+        // For now, mark as completed if recording exists
+        correct = userAnswer && userAnswer.hasRecording && userAnswer.duration > 0;
       }
       
       if (correct) {
