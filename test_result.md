@@ -132,11 +132,14 @@ frontend:
     file: "/app/frontend/src/data/mockData.js, /app/frontend/src/pages/Certificates.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: true
         agent: "main"
         comment: "IMPLEMENTATION COMPLETED: Successfully moved certificate generation logic from course completion to program completion. Updated mockCertificates to use programId instead of courseId, added helper functions (isProgramCompleted, getUserCompletedPrograms, generateProgramCertificate, checkAndGenerateCertificates), modified Certificates.js to show program-based certificates with automatic certificate generation when programs are completed. Certificates now issued only when all courses in a program are finished (100% progress)."
+      - working: true
+        agent: "testing"
+        comment: "COMPREHENSIVE E2E TESTING VERIFIED: Certificate logic successfully converted to program-based system. ✅ Certificates page shows 'Program Certificate' clearly in certificate cards, ✅ Statistics show 'Programs Completed: 2' confirming program-based logic, ✅ Certificate cards display program names (Full Stack Development Certification, Complete Technology Mastery Path), ✅ Achievement points calculated based on program completion (200 points), ✅ Download and share functionality present. Certificate generation now correctly tied to program completion rather than individual course completion as requested."
 
   - task: "Instructor Permissions - Create Courses and Programs"
     implemented: true
