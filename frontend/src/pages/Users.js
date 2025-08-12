@@ -242,6 +242,18 @@ const Users = () => {
     setIsDeleteModalOpen(true);
   };
 
+  const openEditModal = (user) => {
+    setSelectedUserForEdit(user);
+    setEditUserData({
+      full_name: user.full_name,
+      email: user.email,
+      role: user.role,
+      department: user.department || '',
+      is_active: user.is_active
+    });
+    setIsEditModalOpen(true);
+  };
+
   const handleDeleteUser = async () => {
     if (!selectedUserForDelete) return;
 
@@ -259,6 +271,57 @@ const Users = () => {
     } else {
       toast({
         title: "User deletion failed",
+        description: result.error,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEditUser = async () => {
+    if (!selectedUserForEdit) return;
+
+    // Prepare update data (only send changed fields)
+    const updateData = {};
+    if (editUserData.full_name !== selectedUserForEdit.full_name) {
+      updateData.full_name = editUserData.full_name;
+    }
+    if (editUserData.email !== selectedUserForEdit.email) {
+      updateData.email = editUserData.email;
+    }
+    if (editUserData.role !== selectedUserForEdit.role) {
+      updateData.role = editUserData.role;
+    }
+    if (editUserData.department !== (selectedUserForEdit.department || '')) {
+      updateData.department = editUserData.department;
+    }
+    if (editUserData.is_active !== selectedUserForEdit.is_active) {
+      updateData.is_active = editUserData.is_active;
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      toast({
+        title: "No changes made",
+        description: "Please make some changes before saving.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const result = await updateUser(selectedUserForEdit.id, updateData);
+
+    if (result.success) {
+      toast({
+        title: "User updated successfully!",
+        description: `${selectedUserForEdit.username}'s information has been updated.`,
+      });
+
+      setIsEditModalOpen(false);
+      setSelectedUserForEdit(null);
+      setEditUserData({ full_name: '', email: '', role: 'learner', department: '', is_active: true });
+      fetchUsers(); // Refresh user list
+    } else {
+      toast({
+        title: "User update failed",
         description: result.error,
         variant: "destructive",
       });
