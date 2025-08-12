@@ -230,22 +230,39 @@ const QuizPreview = ({ isOpen, onClose, quizData }) => {
       case 'record-screen':
         return (
           <div className="space-y-4">
-            <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Video className="w-8 h-8 text-red-600" />
-              </div>
-              <h4 className="font-medium text-red-900 mb-2">Screen Recording Question</h4>
-              <p className="text-sm text-red-700 mb-4">
-                Students will be able to record their screen to demonstrate their knowledge
-              </p>
-              <Button variant="outline" size="sm" disabled>
-                Start Recording (Preview Mode)
-              </Button>
-            </div>
+            <ScreenRecorder
+              questionId={`preview_${currentQuestionIndex}`}
+              onRecordingComplete={(blob, duration) => {
+                // In preview mode, just log the completion
+                console.log('Recording completed:', { blob, duration });
+                handleAnswerChange(questionKey, { 
+                  hasRecording: !!blob, 
+                  duration: duration,
+                  size: blob ? blob.size : 0 
+                });
+              }}
+              maxDuration={question.maxRecordingTime ? question.maxRecordingTime * 60 : 1800}
+              disabled={false} // Enable recording in preview
+            />
+            
             {question.instructions && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h5 className="font-medium text-blue-900 mb-2">Instructions:</h5>
-                <p className="text-sm text-blue-800">{question.instructions}</p>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+                <h5 className="font-medium text-blue-900 mb-2">📋 Instructions:</h5>
+                <p className="text-sm text-blue-800 whitespace-pre-wrap">{question.instructions}</p>
+                
+                {question.requiredTools && (
+                  <div className="mt-3">
+                    <h6 className="font-medium text-blue-900 text-sm">Required Tools:</h6>
+                    <p className="text-sm text-blue-700">{question.requiredTools}</p>
+                  </div>
+                )}
+                
+                {question.evaluationCriteria && (
+                  <div className="mt-3">
+                    <h6 className="font-medium text-blue-900 text-sm">Evaluation Criteria:</h6>
+                    <p className="text-sm text-blue-700 whitespace-pre-wrap">{question.evaluationCriteria}</p>
+                  </div>
+                )}
               </div>
             )}
           </div>
