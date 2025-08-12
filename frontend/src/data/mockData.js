@@ -1,4 +1,5 @@
-// Mock data for LearningFwiend LMS clone
+// Mock data for LearningFwiend LMS - CLEAN SLATE FOR PRODUCTION
+// Note: Replace this mock data system with your actual database integration
 export const mockUsers = [
   // Admin Users
   {
