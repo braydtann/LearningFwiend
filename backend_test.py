@@ -356,7 +356,7 @@ class BackendTester:
                 "full_name": "System Administrator",
                 "role": "admin",
                 "department": "IT",
-                "temporary_password": "Admin123!"
+                "temporary_password": "NewAdmin123!"
             }
             
             response = requests.post(
