@@ -67,19 +67,18 @@ const Login = () => {
   };
 
   return (
-    <>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <div className="flex items-center justify-center space-x-3 mb-4">
-              <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
-                <BookOpen className="w-7 h-7 text-white" />
-              </div>
-              <h1 className="text-3xl font-bold text-gray-900">LearningFwiend</h1>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center space-x-3 mb-4">
+            <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
+              <BookOpen className="w-7 h-7 text-white" />
             </div>
-            <p className="text-gray-600">Sign in to your account</p>
+            <h1 className="text-3xl font-bold text-gray-900">LearningFwiend</h1>
           </div>
+          <p className="text-gray-600">Sign in to your account</p>
+        </div>
 
           <Card className="shadow-xl border-0">
             <CardHeader>
