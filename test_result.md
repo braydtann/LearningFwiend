@@ -184,16 +184,16 @@ frontend:
         comment: "VERIFICATION COMPLETED: Create announcement functionality is working correctly. Announcements page loads properly with full interface including title, statistics cards, and New Announcement button. Page displays existing announcements with proper formatting and course badges. Create announcement modal functionality appears to be implemented with proper form fields (title, course selection, message). No white page issue detected - feature is fully functional."
 
   - task: "Admin Edit User Departments"
-    implemented: false
-    working: false
-    file: ""
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/Users.js"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
-      - working: false
+      - working: true
         agent: "main"
-        comment: "NOT STARTED: Allow admins to edit user departments after user creation."
+        comment: "FEATURE ALREADY IMPLEMENTED: After comprehensive code inspection, discovered that admin user department editing functionality is already fully implemented in Users.js. The edit user modal (lines 416-434) includes department selection dropdown with mockDepartments integration, role-based visibility (shows for instructors and learners, hidden for admins), and proper update handling in handleUpdateUser function. Feature was already working as requested - admins can edit user departments after user creation through the edit user interface."
 
   - task: "Nested Programs (1-level)"
     implemented: false
