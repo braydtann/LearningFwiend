@@ -1,18 +1,33 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
 from pathlib import Path
-from pydantic import BaseModel, Field
-from typing import List, Optional
+from pydantic import BaseModel, Field, EmailStr, validator
+from typing import List, Optional, Dict, Any
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
+import jwt
+from passlib.context import CryptContext
+import re
 
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
+
+# JWT Configuration
+JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
+JWT_ALGORITHM = os.environ.get('JWT_ALGORITHM', 'HS256')
+JWT_EXPIRATION_HOURS = int(os.environ.get('JWT_EXPIRATION_HOURS', '24'))
+
+# Password hashing setup
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+# Security setup
+security = HTTPBearer()
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
@@ -25,6 +40,357 @@ app = FastAPI()
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
+
+# =============================================================================
+# AUTHENTICATION MODELS
+# =============================================================================
+
+class UserCreate(BaseModel):
+    email: EmailStr
+    username: str
+    full_name: str
+    role: str = "learner"  # learner, instructor, admin
+    department: Optional[str] = None
+    temporary_password: str
+    
+    @validator('temporary_password')
+    def validate_password(cls, v):
+        if len(v) < 6:
+            raise ValueError('Password must be at least 6 characters long')
+        if not re.search(r'\d', v):
+            raise ValueError('Password must contain at least one number')
+        if not re.search(r'[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]', v):
+            raise ValueError('Password must contain at least one special character')
+        return v
+
+class UserInDB(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    email: str
+    username: str
+    full_name: str
+    role: str = "learner"
+    department: Optional[str] = None
+    hashed_password: str
+    is_temporary_password: bool = True
+    first_login_required: bool = True
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    last_login: Optional[datetime] = None
+    password_updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class UserResponse(BaseModel):
+    id: str
+    email: str
+    username: str
+    full_name: str
+    role: str
+    department: Optional[str] = None
+    is_active: bool
+    first_login_required: bool
+    created_at: datetime
+    last_login: Optional[datetime] = None
+
+class LoginRequest(BaseModel):
+    username_or_email: str
+    password: str
+
+class LoginResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: UserResponse
+    requires_password_change: bool
+
+class PasswordChangeRequest(BaseModel):
+    current_password: str
+    new_password: str
+    
+    @validator('new_password')
+    def validate_new_password(cls, v):
+        if len(v) < 6:
+            raise ValueError('Password must be at least 6 characters long')
+        if not re.search(r'\d', v):
+            raise ValueError('Password must contain at least one number')
+        if not re.search(r'[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]', v):
+            raise ValueError('Password must contain at least one special character')
+        return v
+
+class AdminPasswordResetRequest(BaseModel):
+    user_id: str
+    new_temporary_password: str
+    
+    @validator('new_temporary_password')
+    def validate_password(cls, v):
+        if len(v) < 6:
+            raise ValueError('Password must be at least 6 characters long')
+        if not re.search(r'\d', v):
+            raise ValueError('Password must contain at least one number')
+        if not re.search(r'[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]', v):
+            raise ValueError('Password must contain at least one special character')
+        return v
+
+class AdminPasswordResetResponse(BaseModel):
+    message: str
+    user_id: str
+    temporary_password: str
+    reset_at: datetime
+
+
+# =============================================================================
+# AUTHENTICATION UTILITIES
+# =============================================================================
+
+def hash_password(password: str) -> str:
+    """Hash a password using bcrypt."""
+    return pwd_context.hash(password)
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verify a password against its hash."""
+    return pwd_context.verify(plain_password, hashed_password)
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+    """Create JWT access token."""
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(hours=JWT_EXPIRATION_HOURS)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
+    return encoded_jwt
+
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> UserResponse:
+    """Get current user from JWT token."""
+    try:
+        token = credentials.credentials
+        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Could not validate credentials",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+    except jwt.PyJWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Get user from database
+    user = await db.users.find_one({"id": user_id})
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    if not user.get('is_active', True):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User account is disabled",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    return UserResponse(**user)
+
+async def get_admin_user(current_user: UserResponse = Depends(get_current_user)) -> UserResponse:
+    """Get current user and verify admin role."""
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required"
+        )
+    return current_user
+
+
+# =============================================================================
+# AUTHENTICATION ENDPOINTS
+# =============================================================================
+
+@api_router.post("/auth/login", response_model=LoginResponse)
+async def login(login_data: LoginRequest):
+    """Authenticate user and return JWT token."""
+    # Find user by username or email
+    user = await db.users.find_one({
+        "$or": [
+            {"username": login_data.username_or_email},
+            {"email": login_data.username_or_email}
+        ]
+    })
+    
+    if not user or not verify_password(login_data.password, user["hashed_password"]):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username/email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    if not user.get('is_active', True):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User account is disabled",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Update last login
+    await db.users.update_one(
+        {"id": user["id"]},
+        {"$set": {"last_login": datetime.utcnow()}}
+    )
+    
+    # Create access token
+    access_token_expires = timedelta(hours=JWT_EXPIRATION_HOURS)
+    access_token = create_access_token(
+        data={"sub": user["id"]}, expires_delta=access_token_expires
+    )
+    
+    user_response = UserResponse(**user)
+    
+    return LoginResponse(
+        access_token=access_token,
+        user=user_response,
+        requires_password_change=user.get('first_login_required', False)
+    )
+
+@api_router.post("/auth/change-password")
+async def change_password(
+    password_data: PasswordChangeRequest, 
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Change user password (for first-time login or regular password change)."""
+    # Get user from database
+    user = await db.users.find_one({"id": current_user.id})
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    # Verify current password
+    if not verify_password(password_data.current_password, user["hashed_password"]):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect"
+        )
+    
+    # Hash new password
+    new_hashed_password = hash_password(password_data.new_password)
+    
+    # Update user password
+    await db.users.update_one(
+        {"id": current_user.id},
+        {
+            "$set": {
+                "hashed_password": new_hashed_password,
+                "is_temporary_password": False,
+                "first_login_required": False,
+                "password_updated_at": datetime.utcnow()
+            }
+        }
+    )
+    
+    return {"message": "Password changed successfully"}
+
+@api_router.post("/auth/admin/create-user", response_model=UserResponse)
+async def admin_create_user(
+    user_data: UserCreate,
+    admin_user: UserResponse = Depends(get_admin_user)
+):
+    """Admin endpoint to create a new user with temporary password."""
+    # Check if user already exists
+    existing_user = await db.users.find_one({
+        "$or": [
+            {"username": user_data.username},
+            {"email": user_data.email}
+        ]
+    })
+    
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User with this username or email already exists"
+        )
+    
+    # Hash the temporary password
+    hashed_password = hash_password(user_data.temporary_password)
+    
+    # Create user document
+    user_dict = {
+        "id": str(uuid.uuid4()),
+        "email": user_data.email,
+        "username": user_data.username,
+        "full_name": user_data.full_name,
+        "role": user_data.role,
+        "department": user_data.department,
+        "hashed_password": hashed_password,
+        "is_temporary_password": True,
+        "first_login_required": True,
+        "is_active": True,
+        "created_at": datetime.utcnow(),
+        "last_login": None,
+        "password_updated_at": datetime.utcnow()
+    }
+    
+    # Insert user into database
+    await db.users.insert_one(user_dict)
+    
+    return UserResponse(**user_dict)
+
+@api_router.post("/auth/admin/reset-password", response_model=AdminPasswordResetResponse)
+async def admin_reset_user_password(
+    reset_data: AdminPasswordResetRequest,
+    admin_user: UserResponse = Depends(get_admin_user)
+):
+    """Admin endpoint to reset a user's password."""
+    # Find the user
+    user = await db.users.find_one({"id": reset_data.user_id})
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    # Hash the new temporary password
+    new_hashed_password = hash_password(reset_data.new_temporary_password)
+    
+    # Update user password
+    reset_time = datetime.utcnow()
+    await db.users.update_one(
+        {"id": reset_data.user_id},
+        {
+            "$set": {
+                "hashed_password": new_hashed_password,
+                "is_temporary_password": True,
+                "first_login_required": True,
+                "password_updated_at": reset_time
+            }
+        }
+    )
+    
+    return AdminPasswordResetResponse(
+        message=f"Password reset successfully for user {user['username']}",
+        user_id=reset_data.user_id,
+        temporary_password=reset_data.new_temporary_password,
+        reset_at=reset_time
+    )
+
+@api_router.get("/auth/admin/users", response_model=List[UserResponse])
+async def admin_get_all_users(admin_user: UserResponse = Depends(get_admin_user)):
+    """Admin endpoint to get all users."""
+    users = await db.users.find().to_list(1000)
+    return [UserResponse(**user) for user in users]
+
+@api_router.get("/auth/me", response_model=UserResponse)
+async def get_current_user_info(current_user: UserResponse = Depends(get_current_user)):
+    """Get current user information."""
+    return current_user
+
+
+# =============================================================================
+# EXISTING MODELS AND ENDPOINTS (PRESERVED)
+# =============================================================================
 
 # Define Models
 class StatusCheck(BaseModel):
