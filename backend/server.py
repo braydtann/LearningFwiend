@@ -444,6 +444,82 @@ async def admin_delete_user(
         }
     }
 
+@api_router.put("/auth/admin/users/{user_id}", response_model=UserResponse)
+async def admin_update_user(
+    user_id: str,
+    update_data: UserUpdateRequest,
+    admin_user: UserResponse = Depends(get_admin_user)
+):
+    """Admin endpoint to update user details."""
+    # Find the user to update
+    user_to_update = await db.users.find_one({"id": user_id})
+    if not user_to_update:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    # Prevent changing role of the last admin
+    if (update_data.role and update_data.role != 'admin' and 
+        user_to_update.get('role') == 'admin'):
+        admin_count = await db.users.count_documents({"role": "admin", "is_active": True})
+        if admin_count <= 1:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Cannot change role of the last admin user. At least one admin must remain."
+            )
+    
+    # Check if email is being changed to an existing email
+    if update_data.email and update_data.email != user_to_update.get('email'):
+        existing_email_user = await db.users.find_one({
+            "email": update_data.email,
+            "id": {"$ne": user_id}
+        })
+        if existing_email_user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email address is already in use by another user"
+            )
+    
+    # Build update data (only include fields that are not None)
+    update_fields = {}
+    if update_data.full_name is not None:
+        update_fields["full_name"] = update_data.full_name
+    if update_data.email is not None:
+        update_fields["email"] = update_data.email
+    if update_data.role is not None:
+        update_fields["role"] = update_data.role
+    if update_data.department is not None:
+        update_fields["department"] = update_data.department
+    if update_data.is_active is not None:
+        update_fields["is_active"] = update_data.is_active
+    
+    if not update_fields:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No valid fields provided for update"
+        )
+    
+    # Add update timestamp
+    update_fields["updated_at"] = datetime.utcnow()
+    
+    # Update the user
+    result = await db.users.update_one(
+        {"id": user_id},
+        {"$set": update_fields}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found or no changes made"
+        )
+    
+    # Get updated user
+    updated_user = await db.users.find_one({"id": user_id})
+    
+    return UserResponse(**updated_user)
+
 @api_router.get("/auth/me", response_model=UserResponse)
 async def get_current_user_info(current_user: UserResponse = Depends(get_current_user)):
     """Get current user information."""
