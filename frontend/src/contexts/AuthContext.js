@@ -263,6 +263,37 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateUser = async (userId, userData) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/auth/admin/users/${userId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(userData),
+      });
+
+      if (response.ok) {
+        const updatedUser = await response.json();
+        return { success: true, user: updatedUser };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to update user' 
+        };
+      }
+    } catch (error) {
+      console.error('Update user error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
   const value = {
     user,
     loading,
