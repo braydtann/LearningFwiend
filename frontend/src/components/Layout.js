@@ -25,29 +25,34 @@ const Layout = ({ children }) => {
             </div>
             
             {/* Role Switcher for Demo */}
-            <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-500 mr-2">Switch Role:</span>
-              <Button
-                size="sm"
-                variant={user?.role === 'learner' ? 'default' : 'outline'}
-                onClick={() => switchRole('learner')}
-              >
-                Student
-              </Button>
-              <Button
-                size="sm"
-                variant={user?.role === 'instructor' ? 'default' : 'outline'}
-                onClick={() => switchRole('instructor')}
-              >
-                Instructor
-              </Button>
-              <Button
-                size="sm"
-                variant={user?.role === 'admin' ? 'default' : 'outline'}
-                onClick={() => switchRole('admin')}
-              >
-                Admin
-              </Button>
+            <div className="flex items-center space-x-3">
+              {/* Notification Bell - only for students */}
+              <NotificationBell />
+              
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-500 mr-2">Switch Role:</span>
+                <Button
+                  size="sm"
+                  variant={user?.role === 'learner' ? 'default' : 'outline'}
+                  onClick={() => switchRole('learner')}
+                >
+                  Student
+                </Button>
+                <Button
+                  size="sm"
+                  variant={user?.role === 'instructor' ? 'default' : 'outline'}
+                  onClick={() => switchRole('instructor')}
+                >
+                  Instructor
+                </Button>
+                <Button
+                  size="sm"
+                  variant={user?.role === 'admin' ? 'default' : 'outline'}
+                  onClick={() => switchRole('admin')}
+                >
+                  Admin
+                </Button>
+              </div>
             </div>
           </div>
         </div>
