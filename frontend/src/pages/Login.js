@@ -8,15 +8,13 @@ import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card'
 import { BookOpen, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 import LoginPalButton from '../components/auth/LoginPalButton';
-import PasswordChangeModal from '../components/PasswordChangeModal';
 
 const Login = () => {
   const [usernameOrEmail, setUsernameOrEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [showPasswordChangeModal, setShowPasswordChangeModal] = useState(false);
-  const { user, login, requiresPasswordChange, changePassword } = useAuth();
+  const { user, login, requiresPasswordChange } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -25,7 +23,6 @@ const Login = () => {
     if (user && !requiresPasswordChange) {
       navigate('/dashboard');
     }
-    // Don't automatically show modal here - let login success handle it
   }, [user, requiresPasswordChange, navigate]);
 
   const handleSubmit = async (e) => {
@@ -35,20 +32,18 @@ const Login = () => {
     const result = await login(usernameOrEmail, password);
     
     if (result.success) {
-      if (result.requires_password_change) {
-        // Show password change modal and don't navigate
-        setShowPasswordChangeModal(true);
-        toast({
-          title: "Welcome!",
-          description: "Please change your temporary password to continue.",
-        });
-      } else {
-        toast({
-          title: "Welcome back!",
-          description: `Logged in as ${result.user.full_name}`,
-        });
+      toast({
+        title: "Welcome!",
+        description: `Logged in as ${result.user.full_name}`,
+      });
+      
+      // Navigation will be handled by useEffect or ProtectedRoute
+      // If password change required, ProtectedRoute will show modal
+      // If not, useEffect will navigate to dashboard
+      if (!result.requires_password_change) {
         navigate('/dashboard');
       }
+      // If password change is required, the ProtectedRoute will handle it
     } else {
       toast({
         title: "Login failed",
@@ -58,15 +53,6 @@ const Login = () => {
     }
     
     setLoading(false);
-  };
-
-  const handlePasswordChangeSuccess = () => {
-    setShowPasswordChangeModal(false);
-    toast({
-      title: "Password updated!",
-      description: "Your password has been successfully changed.",
-    });
-    navigate('/dashboard');
   };
 
   const quickLogin = (role) => {
