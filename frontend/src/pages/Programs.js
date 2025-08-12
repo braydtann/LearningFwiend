@@ -949,6 +949,23 @@ const Programs = () => {
                         <span>{program.duration} • {program.estimatedHours}h estimated</span>
                       </div>
 
+                      {/* Nested Programs Information */}
+                      {program.nestedProgramIds && program.nestedProgramIds.length > 0 && (
+                        <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3">
+                          <div className="flex items-center text-sm text-indigo-800 mb-2">
+                            <Award className="w-4 h-4 mr-1" />
+                            <span className="font-medium">Includes {program.nestedProgramIds.length} nested program{program.nestedProgramIds.length > 1 ? 's' : ''}:</span>
+                          </div>
+                          <div className="space-y-1">
+                            {getNestedPrograms(program.id).map((nestedProgram, index) => (
+                              <div key={nestedProgram.id} className="text-xs text-indigo-700">
+                                {index + 1}. {nestedProgram.name} ({nestedProgram.totalCourses} courses)
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
                       {/* Deadline Information */}
                       {program.deadline && (
                         <div className={`flex items-center text-sm p-2 rounded-lg ${
