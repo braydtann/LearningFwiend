@@ -1681,6 +1681,81 @@ export const addProgram = (newProgram) => {
   return true;
 };
 
+// Nested programs helper functions
+export const getAvailablePrograms = (excludeProgramId = null) => {
+  // Return programs that can be nested (exclude the current program and programs that already have nested programs)
+  return mockPrograms.filter(program => {
+    // Exclude the current program being edited
+    if (program.id === excludeProgramId) return false;
+    
+    // Exclude programs that already have nested programs (only 1-level nesting)
+    if (program.nestedProgramIds && program.nestedProgramIds.length > 0) return false;
+    
+    return true;
+  });
+};
+
+export const getNestedPrograms = (programId) => {
+  const program = mockPrograms.find(p => p.id === programId);
+  if (!program || !program.nestedProgramIds) return [];
+  
+  return program.nestedProgramIds.map(nestedId => 
+    mockPrograms.find(p => p.id === nestedId)
+  ).filter(Boolean);
+};
+
+export const hasNestedPrograms = (programId) => {
+  const program = mockPrograms.find(p => p.id === programId);
+  return program && program.nestedProgramIds && program.nestedProgramIds.length > 0;
+};
+
+export const canNestProgram = (parentProgramId, childProgramId) => {
+  const parentProgram = mockPrograms.find(p => p.id === parentProgramId);
+  const childProgram = mockPrograms.find(p => p.id === childProgramId);
+  
+  if (!parentProgram || !childProgram) return false;
+  
+  // Can't nest a program in itself
+  if (parentProgramId === childProgramId) return false;
+  
+  // Can't nest a program that already has nested programs (1-level limit)
+  if (childProgram.nestedProgramIds && childProgram.nestedProgramIds.length > 0) return false;
+  
+  // Can't create circular nesting
+  if (childProgram.nestedProgramIds && childProgram.nestedProgramIds.includes(parentProgramId)) return false;
+  
+  return true;
+};
+
+export const getTotalProgramCourses = (programId) => {
+  const program = mockPrograms.find(p => p.id === programId);
+  if (!program) return [];
+  
+  let allCourses = [];
+  
+  // Add direct courses
+  if (program.courseIds) {
+    allCourses = program.courseIds.map(courseId => 
+      mockCourses.find(c => c.id === courseId)
+    ).filter(Boolean);
+  }
+  
+  // Add courses from nested programs
+  if (program.nestedProgramIds) {
+    program.nestedProgramIds.forEach(nestedId => {
+      const nestedProgram = mockPrograms.find(p => p.id === nestedId);
+      if (nestedProgram && nestedProgram.courseIds) {
+        const nestedCourses = nestedProgram.courseIds.map(courseId => 
+          mockCourses.find(c => c.id === courseId)
+        ).filter(Boolean);
+        allCourses = [...allCourses, ...nestedCourses];
+      }
+    });
+  }
+  
+  return allCourses;
+};
+
 // Notification system data structures
 export const mockNotifications = [
   // Mike Johnson (ID: 8) notifications
