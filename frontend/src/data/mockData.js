@@ -282,6 +282,55 @@ export const mockUsers = [
   }
 ];
 
+// Course categories data
+export const mockCategories = [
+  {
+    id: '1',
+    name: 'Web Development',
+    description: 'Modern web development technologies and frameworks',
+    createdAt: '2024-01-01',
+    createdBy: '1', // John Admin
+    isActive: true,
+    courseCount: 2
+  },
+  {
+    id: '2',
+    name: 'Data Science',
+    description: 'Data analysis, machine learning, and statistics',
+    createdAt: '2024-01-01',
+    createdBy: '1',
+    isActive: true,
+    courseCount: 2
+  },
+  {
+    id: '3',
+    name: 'Digital Marketing',
+    description: 'SEO, social media marketing, and digital advertising',
+    createdAt: '2024-01-01',
+    createdBy: '1',
+    isActive: true,
+    courseCount: 2
+  },
+  {
+    id: '4',
+    name: 'Business Management',
+    description: 'Project management, leadership, and business strategy',
+    createdAt: '2024-01-01',
+    createdBy: '1',
+    isActive: true,
+    courseCount: 2
+  },
+  {
+    id: '5',
+    name: 'Cybersecurity',
+    description: 'Information security and threat management',
+    createdAt: '2024-01-01',
+    createdBy: '1',
+    isActive: true,
+    courseCount: 2
+  }
+];
+
 // Mock departments data
 export const mockDepartments = [
   {
