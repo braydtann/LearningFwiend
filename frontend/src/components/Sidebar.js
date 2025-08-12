@@ -80,6 +80,12 @@ const Sidebar = () => {
       roles: ['admin'] 
     },
     { 
+      path: '/categories', 
+      icon: FolderOpen, 
+      label: 'Categories', 
+      roles: ['admin', 'instructor'] 
+    },
+    { 
       path: '/loginpal-status', 
       icon: Shield, 
       label: 'LoginPal Status', 
