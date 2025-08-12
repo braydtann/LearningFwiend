@@ -878,6 +878,52 @@ export const mockPrograms = [
         }
       ]
     }
+  },
+  {
+    id: '3',
+    name: 'Complete Technology Mastery Path',
+    description: 'Master program combining Full Stack Development and Digital Marketing for complete technology expertise',
+    courseIds: [], // No direct courses, only nested programs
+    courseOrder: [],
+    nestedProgramIds: ['1', '2'], // Contains Full Stack Development and Digital Marketing programs
+    duration: '24 weeks',
+    difficulty: 'Advanced',
+    createdBy: '1',
+    createdAt: '2024-03-01',
+    deadline: '2025-02-28',
+    status: 'active',
+    enrolledStudents: 5,
+    totalCourses: 0, // Courses are in nested programs
+    estimatedHours: 160,
+    finalTest: {
+      id: 'ft-prog-3',
+      title: 'Technology Mastery Path Final Assessment',
+      description: 'Comprehensive assessment covering both full-stack development and digital marketing',
+      timeLimit: 120,
+      passingScore: 80,
+      maxAttempts: 2,
+      questions: [
+        {
+          id: 'q1',
+          type: 'multiple-choice',
+          question: 'How can full-stack development skills complement digital marketing efforts?',
+          options: [
+            'They are completely separate fields',
+            'Development skills help create better landing pages and analytics tools',
+            'Marketing skills are not needed for developers',
+            'They only work together in large companies'
+          ],
+          correctAnswer: 1,
+          points: 15
+        },
+        {
+          id: 'q2',
+          type: 'long-form-answer',
+          question: 'Design a complete technology solution for a startup that includes both a web application and a digital marketing strategy. Explain how the technical implementation supports the marketing goals.',
+          points: 30
+        }
+      ]
+    }
   }
 ];
 
