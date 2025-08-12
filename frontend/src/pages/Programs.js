@@ -42,6 +42,7 @@ const Programs = () => {
     description: '',
     courseIds: [],
     courseOrder: [],
+    nestedProgramIds: [], // For 1-level program nesting
     duration: '',
     difficulty: 'Beginner',
     deadline: '', // Add deadline field
