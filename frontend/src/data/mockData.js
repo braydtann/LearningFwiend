@@ -426,9 +426,10 @@ export const mockCourses = [
     instructorId: '4',
     duration: '12 weeks',
     thumbnail: 'https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=300&h=200&fit=crop',
-    enrolledStudents: 34,
+    enrolledStudents: 29,
     totalLessons: 35,
     isPublic: true,
+    enrollmentType: 'assignment', // Assignment only
     status: 'published',
     createdAt: '2024-02-15',
     modules: [
