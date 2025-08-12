@@ -1584,6 +1584,13 @@ const CreateCourse = () => {
           </div>
         </div>
       </form>
+
+      {/* Course Preview Modal */}
+      <CoursePreview
+        isOpen={isPreviewOpen}
+        onClose={() => setIsPreviewOpen(false)}
+        courseData={courseData}
+      />
     </div>
   );
 };
