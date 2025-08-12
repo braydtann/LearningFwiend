@@ -124,16 +124,16 @@ frontend:
         comment: "CRITICAL BUG FIXED: Identified and fixed React Rules of Hooks violation. The NotificationBell component had early return before useEffect hooks, causing inconsistent hook calls between renders. Moved conditional rendering check after all hook declarations. Component now properly calls hooks in consistent order and only renders JSX for learner role. Also added proper cleanup for event listeners in useEffect."
 
   - task: "Certificate Logic Fix - Program Completion"
-    implemented: false
-    working: false
-    file: ""
+    implemented: true
+    working: true
+    file: "/app/frontend/src/data/mockData.js, /app/frontend/src/pages/Certificates.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
-      - working: false
+      - working: true
         agent: "main"
-        comment: "NOT STARTED: Need to move certificate generation logic from course completion to program completion."
+        comment: "IMPLEMENTATION COMPLETED: Successfully moved certificate generation logic from course completion to program completion. Updated mockCertificates to use programId instead of courseId, added helper functions (isProgramCompleted, getUserCompletedPrograms, generateProgramCertificate, checkAndGenerateCertificates), modified Certificates.js to show program-based certificates with automatic certificate generation when programs are completed. Certificates now issued only when all courses in a program are finished (100% progress)."
 
   - task: "Instructor Permissions - Create Courses and Programs"
     implemented: false
