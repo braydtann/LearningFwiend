@@ -72,7 +72,58 @@ export const mockCategories = [
 export const mockCourses = [];
 
 // Programs data - Replace with your program management system
-export const mockPrograms = [];
+export const mockPrograms = [
+  {
+    id: '1',
+    title: 'Full Stack Web Development',
+    description: 'Complete web development program covering frontend and backend',
+    departmentId: '1',
+    duration: '12 weeks',
+    createdAt: '2024-01-01',
+    isActive: true,
+    courseCount: 6
+  },
+  {
+    id: '2',
+    title: 'Data Science Fundamentals',
+    description: 'Introduction to data science and machine learning',
+    departmentId: '5', 
+    duration: '16 weeks',
+    createdAt: '2024-01-01',
+    isActive: true,
+    courseCount: 8
+  },
+  {
+    id: '3',
+    title: 'Digital Marketing Mastery',
+    description: 'Complete digital marketing and social media program',
+    departmentId: '4',
+    duration: '8 weeks', 
+    createdAt: '2024-01-01',
+    isActive: true,
+    courseCount: 4
+  },
+  {
+    id: '4',
+    title: 'Business Leadership Program',
+    description: 'Advanced business management and leadership skills',
+    departmentId: '3',
+    duration: '10 weeks',
+    createdAt: '2024-01-01', 
+    isActive: true,
+    courseCount: 5
+  },
+  {
+    id: '5',
+    title: 'Cloud Computing Essentials',
+    description: 'Cloud infrastructure and deployment strategies',
+    departmentId: '2',
+    duration: '6 weeks',
+    createdAt: '2024-01-01',
+    isActive: true,
+    courseCount: 3
+  }
+];
 
 // Classrooms data - Replace with your classroom management system
 export const mockClassrooms = [];
