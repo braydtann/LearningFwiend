@@ -666,16 +666,29 @@ const Programs = () => {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <Label className="text-base font-medium">Final Test Questions</Label>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={addFinalTestQuestion}
-                      className="border-purple-300 text-purple-700 hover:bg-purple-50"
-                    >
-                      <Plus className="w-4 h-4 mr-1" />
-                      Add Question
-                    </Button>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsQuizPreviewOpen(true)}
+                        disabled={newProgram.finalTest.questions.length === 0}
+                        className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                      >
+                        <Eye className="w-4 h-4 mr-1" />
+                        Preview Test
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={addFinalTestQuestion}
+                        className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                      >
+                        <Plus className="w-4 h-4 mr-1" />
+                        Add Question
+                      </Button>
+                    </div>
                   </div>
 
                   <div className="space-y-3 max-h-64 overflow-y-auto">
