@@ -1569,9 +1569,19 @@ const CreateCourse = () => {
           >
             Cancel
           </Button>
-          <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
-            {isEditing ? 'Update Course' : 'Create Course'}
-          </Button>
+          <div className="flex items-center space-x-4">
+            <Button
+              variant="outline"
+              onClick={() => setIsPreviewOpen(true)}
+              className="flex items-center"
+            >
+              <Eye className="w-4 h-4 mr-2" />
+              Preview Course
+            </Button>
+            <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
+              {isEditing ? 'Update Course' : 'Create Course'}
+            </Button>
+          </div>
         </div>
       </form>
     </div>
