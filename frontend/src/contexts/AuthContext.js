@@ -234,6 +234,35 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const deleteUser = async (userId) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/auth/admin/users/${userId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        return { success: true, data: result };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to delete user' 
+        };
+      }
+    } catch (error) {
+      console.error('Delete user error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
   const value = {
     user,
     loading,
