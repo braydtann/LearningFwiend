@@ -207,6 +207,56 @@ const Classrooms = () => {
                 </div>
                 
                 <div className="space-y-2">
+                  <Label>Select Department</Label>
+                  <Select 
+                    value={newClassroom.departmentId} 
+                    onValueChange={(value) => setNewClassroom(prev => ({ ...prev, departmentId: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select department" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {mockDepartments.map(department => (
+                        <SelectItem key={department.id} value={department.id}>
+                          {department.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Select Programs</Label>
+                  <div className="grid grid-cols-1 gap-2 max-h-32 overflow-y-auto border rounded-md p-2">
+                    {mockPrograms.map(program => (
+                      <label key={program.id} className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          checked={newClassroom.programIds.includes(program.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setNewClassroom(prev => ({
+                                ...prev,
+                                programIds: [...prev.programIds, program.id]
+                              }));
+                            } else {
+                              setNewClassroom(prev => ({
+                                ...prev,
+                                programIds: prev.programIds.filter(id => id !== program.id)
+                              }));
+                            }
+                          }}
+                        />
+                        <div className="flex-1">
+                          <span className="text-sm font-medium">{program.title}</span>
+                          <p className="text-xs text-gray-500 mt-1">{program.description}</p>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
                   <Label>Select Courses</Label>
                   <div className="grid grid-cols-1 gap-2 max-h-32 overflow-y-auto border rounded-md p-2">
                     {mockCourses.map(course => (
