@@ -829,35 +829,85 @@ const CreateCourse = () => {
                         </div>
 
                         {(lesson.type === 'video' || lesson.type === 'presentation') && (
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                            <div className="space-y-2">
-                              <Label>
-                                {lesson.type === 'video' ? 'Video URL' : 'Canva Presentation URL'}
-                              </Label>
-                              <Input
-                                placeholder={
-                                  lesson.type === 'video' 
-                                    ? "YouTube, Vimeo, or Google Drive URL" 
-                                    : "Canva presentation sharing link"
-                                }
-                                value={lesson.videoUrl || lesson.presentationUrl || ''}
-                                onChange={(e) => handleLessonChange(
-                                  moduleIndex, 
-                                  lessonIndex, 
-                                  lesson.type === 'video' ? 'videoUrl' : 'presentationUrl', 
-                                  e.target.value
-                                )}
-                              />
-                              <p className="text-xs text-gray-500">
-                                {lesson.type === 'video' 
-                                  ? 'Supported: YouTube, Vimeo, or Google Drive sharing links'
-                                  : 'Copy the sharing link from your Canva presentation'
-                                }
-                              </p>
-                            </div>
-                            <div className="space-y-2">
-                              <Label>Duration</Label>
-                              <Input
+                          <div className="space-y-4 mt-4">
+                            {lesson.type === 'video' ? (
+                              // Video URL fields
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <Label>Video URL</Label>
+                                  <Input
+                                    placeholder="YouTube, Vimeo, or Google Drive URL"
+                                    value={lesson.videoUrl || ''}
+                                    onChange={(e) => handleLessonChange(moduleIndex, lessonIndex, 'videoUrl', e.target.value)}
+                                  />
+                                  <p className="text-xs text-gray-500">
+                                    Supported: YouTube, Vimeo, or Google Drive sharing links
+                                  </p>
+                                </div>
+                                <div className="space-y-2">
+                                  <Label>Duration</Label>
+                                  <Input
+                                    placeholder="e.g., 15 min"
+                                    value={lesson.duration || ''}
+                                    onChange={(e) => handleLessonChange(moduleIndex, lessonIndex, 'duration', e.target.value)}
+                                  />
+                                </div>
+                              </div>
+                            ) : (
+                              // Canva Presentation fields
+                              <div className="space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div className="space-y-2">
+                                    <Label>Canva Presentation URL (Optional)</Label>
+                                    <Input
+                                      placeholder="Canva presentation sharing link"
+                                      value={lesson.presentationUrl || ''}
+                                      onChange={(e) => handleLessonChange(moduleIndex, lessonIndex, 'presentationUrl', e.target.value)}
+                                    />
+                                    <p className="text-xs text-gray-500">
+                                      Direct link to your Canva presentation
+                                    </p>
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Label>Duration</Label>
+                                    <Input
+                                      placeholder="e.g., 20 min"
+                                      value={lesson.duration || ''}
+                                      onChange={(e) => handleLessonChange(moduleIndex, lessonIndex, 'duration', e.target.value)}
+                                    />
+                                  </div>
+                                </div>
+                                
+                                {/* Canva Embed Code Section */}
+                                <div className="space-y-2 border-t pt-4">
+                                  <Label>Canva Embed Code (Recommended)</Label>
+                                  <Textarea
+                                    placeholder='Paste your Canva embed code here (e.g., <div style="position: relative; width: 100%; height: 0; padding-top: 56.2500%;">...)'
+                                    rows={4}
+                                    value={lesson.embedCode || ''}
+                                    onChange={(e) => handleLessonChange(moduleIndex, lessonIndex, 'embedCode', e.target.value)}
+                                    className="font-mono text-sm"
+                                  />
+                                  <div className="bg-blue-50 p-3 rounded-lg">
+                                    <p className="text-sm text-blue-800 font-medium mb-2">📋 How to get Canva embed code:</p>
+                                    <ul className="text-xs text-blue-700 space-y-1">
+                                      <li>1. Open your Canva presentation</li>
+                                      <li>2. Click "Share" → "More" → "Embed"</li>
+                                      <li>3. Copy the embed code and paste it above</li>
+                                      <li>4. This will display the presentation directly in the course</li>
+                                    </ul>
+                                  </div>
+                                  {lesson.embedCode && (
+                                    <div className="bg-green-50 p-3 rounded-lg">
+                                      <p className="text-sm text-green-800">
+                                        ✅ Embed code detected! Students will see the presentation directly in the course.
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
                                 placeholder="e.g., 15 min"
                                 value={lesson.duration || ''}
                                 onChange={(e) => handleLessonChange(moduleIndex, lessonIndex, 'duration', e.target.value)}
