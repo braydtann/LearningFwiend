@@ -6,6 +6,7 @@ import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Progress } from '../components/ui/progress';
 import { Textarea } from '../components/ui/textarea';
+import ScreenRecorder from '../components/ScreenRecorder';
 import { mockCourses, getQuizAttempts, getQuizResults } from '../data/mockData';
 import { 
   Clock, 
