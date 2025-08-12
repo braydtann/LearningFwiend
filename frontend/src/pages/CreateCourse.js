@@ -707,6 +707,41 @@ const CreateCourse = () => {
                 />
               </div>
             </div>
+
+            {/* Enrollment Type */}
+            <div className="space-y-4 border-t pt-6">
+              <div className="space-y-2">
+                <Label htmlFor="enrollmentType">Course Access Type</Label>
+                <Select 
+                  value={courseData.enrollmentType} 
+                  onValueChange={(value) => handleCourseChange('enrollmentType', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select access type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="open">
+                      <div className="flex flex-col">
+                        <span className="font-medium">Open Enrollment</span>
+                        <span className="text-sm text-gray-500">Anyone can enroll in this course</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="assignment">
+                      <div className="flex flex-col">
+                        <span className="font-medium">Assignment Only</span>
+                        <span className="text-sm text-gray-500">Students must be assigned by instructor/admin</span>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-sm text-gray-600">
+                  {courseData.enrollmentType === 'open' 
+                    ? '🟢 Students can browse and enroll in this course themselves'
+                    : '🔒 Only assigned students will have access to this course'
+                  }
+                </p>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
