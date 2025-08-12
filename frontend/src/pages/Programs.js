@@ -730,6 +730,18 @@ const Programs = () => {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Quiz Preview Modal */}
+        <QuizPreview
+          isOpen={isQuizPreviewOpen}
+          onClose={() => setIsQuizPreviewOpen(false)}
+          quizData={{
+            title: newProgram.finalTest.title || 'Final Test Preview',
+            timeLimit: newProgram.finalTest.timeLimit,
+            passingScore: newProgram.finalTest.passingScore,
+            questions: newProgram.finalTest.questions
+          }}
+        />
       </div>
 
       {/* Stats Cards */}
