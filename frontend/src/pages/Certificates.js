@@ -111,7 +111,7 @@ const Certificates = () => {
                     {/* Certificate Details */}
                     <div className="space-y-3">
                       <div>
-                        <h4 className="font-semibold text-gray-900">{certificate.courseName}</h4>
+                        <h4 className="font-semibold text-gray-900">{certificate.programName}</h4>
                         <div className="flex items-center text-sm text-gray-600 mt-1">
                           <Calendar className="w-4 h-4 mr-1" />
                           Issued {new Date(certificate.issuedAt).toLocaleDateString()}
