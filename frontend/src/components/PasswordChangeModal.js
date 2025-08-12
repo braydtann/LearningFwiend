@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
 import { Eye, EyeOff, AlertTriangle, CheckCircle } from 'lucide-react';
-import { useToast } from '../../hooks/use-toast';
+import { useToast } from '../hooks/use-toast';
 
 const PasswordChangeModal = ({ isOpen, onClose, onSuccess, currentUser }) => {
   const [formData, setFormData] = useState({
