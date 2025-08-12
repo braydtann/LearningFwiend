@@ -625,6 +625,45 @@ const QuizTaking = () => {
                       </p>
                     </div>
                   )}
+
+                  {(quiz.questions[currentQuestionIndex].type === 'record-screen' || 
+                    quiz.questions[currentQuestionIndex].type === 'record_screen') && (
+                    <div className="space-y-4">
+                      <ScreenRecorder
+                        questionId={`quiz_${courseId}_${lessonId}_q${currentQuestionIndex}`}
+                        onRecordingComplete={(blob, duration) => {
+                          handleAnswerChange(quiz.questions[currentQuestionIndex].id, {
+                            hasRecording: !!blob,
+                            duration: duration,
+                            size: blob ? blob.size : 0,
+                            timestamp: new Date().toISOString(),
+                            blob: blob // Store the actual blob for grading
+                          });
+                        }}
+                        maxDuration={quiz.questions[currentQuestionIndex].maxRecordingTime ? 
+                          quiz.questions[currentQuestionIndex].maxRecordingTime * 60 : 1800}
+                        disabled={isSubmitted}
+                      />
+                      
+                      {quiz.questions[currentQuestionIndex].instructions && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                          <h5 className="font-medium text-blue-900 mb-2">📋 Instructions:</h5>
+                          <p className="text-sm text-blue-800 whitespace-pre-wrap">
+                            {quiz.questions[currentQuestionIndex].instructions}
+                          </p>
+                          
+                          {quiz.questions[currentQuestionIndex].requiredTools && (
+                            <div className="mt-3">
+                              <h6 className="font-medium text-blue-900 text-sm">Required Tools:</h6>
+                              <p className="text-sm text-blue-700">
+                                {quiz.questions[currentQuestionIndex].requiredTools}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
