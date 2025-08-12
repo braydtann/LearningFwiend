@@ -268,7 +268,8 @@ const QuizPreview = ({ isOpen, onClose, quizData }) => {
       'short_answer': 'Short Answer',
       'long_form': 'Long Form Answer',
       'chronological_order': 'Chronological Order',
-      'record_screen': 'Screen Recording'
+      'record_screen': 'Screen Recording',
+      'record-screen': 'Screen Recording'
     };
     return labels[type] || type;
   };
