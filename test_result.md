@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "BUG FIXES NEEDED: 1) Edit Program functionality shows white screen - missing /program/:id/edit route in App.js, 2) Final test still showing on courses (need to verify this is actually fixed), 3) Program creation issue where new programs don't appear in list after creation."
+user_problem_statement: "NEW FEATURES REQUESTED: 1) Bell icon at top of page for students if they are assigned to any classes (push notifications for users), 2) Ensure the logic is so certificates are sent upon program completion not course completion, 3) Now allow instructors to create courses and programs, 4) Add ability to add category types for courses, 5) Preview functionality for course creation and quiz creation, 6) Fix Create announcement button (white page issue), 7) Allow admins to edit user departments after creation, 8) Add programs as part of a program (1-level nesting), 9) Add Record Screen question type to quiz creation."
 
 frontend:
   - task: "Fix Edit Program White Screen Issue"
