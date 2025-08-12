@@ -908,12 +908,6 @@ const CreateCourse = () => {
                               </div>
                             )}
                           </div>
-                                placeholder="e.g., 15 min"
-                                value={lesson.duration || ''}
-                                onChange={(e) => handleLessonChange(moduleIndex, lessonIndex, 'duration', e.target.value)}
-                              />
-                            </div>
-                          </div>
                         )}
 
                         {lesson.type === 'text' && (
