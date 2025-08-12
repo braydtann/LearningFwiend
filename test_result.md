@@ -160,16 +160,16 @@ frontend:
         comment: "IMPLEMENTATION COMPLETED: Successfully created comprehensive category management system. Added mockCategories data structure, helper functions (getCategories, addCategory, updateCategory, deleteCategory), created Categories.js page with full CRUD interface including statistics cards, table view, and modals for create/edit operations. Added route to App.js and menu item to Sidebar.js. Updated CreateCourse.js to use dynamic categories from getCategories() instead of hardcoded array. Categories are now fully manageable by admins and instructors."
 
   - task: "Preview Functionality for Course and Quiz Creation"
-    implemented: false
-    working: false
-    file: ""
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/CoursePreview.js, /app/frontend/src/components/QuizPreview.js, /app/frontend/src/pages/CreateCourse.js, /app/frontend/src/pages/Programs.js"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
-      - working: false
+      - working: true
         agent: "main"
-        comment: "NOT STARTED: Need to add overlay preview for course creation and quiz creation."
+        comment: "IMPLEMENTATION COMPLETED: Successfully created comprehensive preview functionality for both courses and quizzes. Created CoursePreview.js component with module/lesson navigation, content rendering for all lesson types (video, canva, text, PDF, Google Drive), attachment display, and navigation controls. Created QuizPreview.js component with question navigation, all question types support (multiple choice, select all, true/false, short answer, long form, chronological order, record screen), and interactive preview interface. Integrated both preview components into CreateCourse.js (Preview Course button) and Programs.js (Preview Test button for final tests). Preview opens in overlay modal as requested."
 
   - task: "Fix Create Announcement White Page"
     implemented: true
