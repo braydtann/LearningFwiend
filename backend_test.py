@@ -20,6 +20,7 @@ class BackendTester:
         self.results = []
         self.passed = 0
         self.failed = 0
+        self.auth_tokens = {}  # Store auth tokens for different users
         
     def log_result(self, test_name, status, message, details=None):
         """Log test result"""
