@@ -19,20 +19,15 @@ const NotificationBell = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef(null);
 
-  // Only show for learners (students)
-  if (!isLearner) {
-    return null;
-  }
-
   useEffect(() => {
-    if (user?.id) {
+    if (user?.id && isLearner) {
       const userNotifications = getUserNotifications(user.id);
       const unreadNotifications = getUnreadNotifications(user.id);
       
       setNotifications(userNotifications);
       setUnreadCount(unreadNotifications.length);
     }
-  }, [user?.id]);
+  }, [user?.id, isLearner]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -42,11 +37,18 @@ const NotificationBell = () => {
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
+    if (isLearner) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [isLearner]);
+
+  // Only show for learners (students)
+  if (!isLearner) {
+    return null;
+  }
 
   const handleNotificationClick = (notification) => {
     // Mark as read
