@@ -228,6 +228,34 @@ const Users = () => {
     setIsPasswordResetModalOpen(true);
   };
 
+  const openDeleteModal = (user) => {
+    setSelectedUserForDelete(user);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteUser = async () => {
+    if (!selectedUserForDelete) return;
+
+    const result = await deleteUser(selectedUserForDelete.id);
+
+    if (result.success) {
+      toast({
+        title: "User deleted successfully!",
+        description: `${selectedUserForDelete.username} has been removed from the system.`,
+      });
+
+      setIsDeleteModalOpen(false);
+      setSelectedUserForDelete(null);
+      fetchUsers(); // Refresh user list
+    } else {
+      toast({
+        title: "User deletion failed",
+        description: result.error,
+        variant: "destructive",
+      });
+    }
+  };
+
   const getRoleBadgeColor = (role) => {
     switch (role) {
       case 'admin':
