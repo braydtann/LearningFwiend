@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import Sidebar from './Sidebar';
+import NotificationBell from './NotificationBell';
 import { Button } from './ui/button';
 
 const Layout = ({ children }) => {
