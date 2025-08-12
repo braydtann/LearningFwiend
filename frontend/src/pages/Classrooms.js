@@ -79,30 +79,34 @@ const Classrooms = () => {
   const students = mockUsers.filter(u => u.role === 'learner');
 
   const handleCreateClassroom = () => {
-    if (!newClassroom.name || !newClassroom.batchId || !newClassroom.trainerId || newClassroom.courseIds.length === 0) {
+    if (!newClassroom.name || !newClassroom.batchId || !newClassroom.trainerId || !newClassroom.departmentId) {
       toast({
         title: "Missing required fields",
-        description: "Please fill in all required information including batch ID.",
+        description: "Please fill in all required information including name, batch ID, trainer, and department.",
         variant: "destructive",
       });
       return;
     }
 
+    if (newClassroom.courseIds.length === 0 && newClassroom.programIds.length === 0) {
+      toast({
+        title: "No content selected",
+        description: "Please select at least one course or program for the classroom.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Get department name for display
+    const selectedDepartment = mockDepartments.find(d => d.id === newClassroom.departmentId);
+    const departmentName = selectedDepartment ? selectedDepartment.name : 'Unknown Department';
+
     toast({
       title: "Classroom created successfully!",
-      description: `${newClassroom.name} (${newClassroom.batchId}) has been created and is ready for students.`,
+      description: `${newClassroom.name} (${newClassroom.batchId}) has been created for ${departmentName} and is ready for students.`,
     });
 
-    setNewClassroom({
-      name: '',
-      batchId: '',
-      description: '',
-      trainerId: '',
-      courseIds: [],
-      studentIds: [],
-      startDate: '',
-      endDate: ''
-    });
+    resetForm();
     setIsCreateModalOpen(false);
   };
 
