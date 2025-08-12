@@ -46,6 +46,22 @@ const Classrooms = () => {
     endDate: ''
   });
 
+  // Reset form function
+  const resetForm = () => {
+    setNewClassroom({
+      name: '',
+      batchId: '',
+      description: '',
+      trainerId: '',
+      courseIds: [],
+      programIds: [],
+      studentIds: [],
+      departmentId: '',
+      startDate: '',
+      endDate: ''
+    });
+  };
+
   // Get classrooms based on user role
   const getClassroomsForUser = () => {
     if (isAdmin) {
