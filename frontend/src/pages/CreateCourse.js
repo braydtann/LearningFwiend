@@ -43,6 +43,7 @@ const CreateCourse = () => {
   });
 
   const [categories, setCategories] = useState([]);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   
   useEffect(() => {
     // Load categories when component mounts
