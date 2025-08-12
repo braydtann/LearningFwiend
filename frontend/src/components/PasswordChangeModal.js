@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Button } from './ui/button.jsx';
-import { Input } from './ui/input.jsx';
-import { Label } from './ui/label.jsx';
-import { Card, CardHeader, CardTitle, CardContent } from './ui/card.jsx';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
 import { Eye, EyeOff, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 
