@@ -1460,6 +1460,31 @@ class BackendTester:
         # Authentication Test 8: Password validation
         self.test_password_validation()
         
+        print("\n" + "=" * 60)
+        print("🗑️  USER DELETION FUNCTIONALITY TESTS")
+        print("=" * 60)
+        
+        # User Deletion Test 1: Successful deletion
+        self.test_user_deletion_successful()
+        
+        # User Deletion Test 2: Admin cannot delete self
+        self.test_admin_cannot_delete_self()
+        
+        # User Deletion Test 3: Delete non-existent user
+        self.test_delete_nonexistent_user()
+        
+        # User Deletion Test 4: Non-admin access control
+        self.test_non_admin_cannot_delete_users()
+        
+        # User Deletion Test 5: Last admin protection
+        self.test_last_admin_protection()
+        
+        # User Deletion Test 6: Invalid user ID format
+        self.test_invalid_user_id_format()
+        
+        # User Deletion Test 7: Unauthorized access
+        self.test_unauthorized_deletion_attempt()
+        
         return self.generate_summary()
     
     def generate_summary(self):
