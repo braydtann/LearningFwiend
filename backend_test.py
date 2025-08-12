@@ -907,6 +907,504 @@ class BackendTester:
         
         return validation_working > 0
     
+    # =============================================================================
+    # USER DELETION TESTS - NEW FEATURE
+    # =============================================================================
+    
+    def test_user_deletion_successful(self):
+        """Test successful user deletion by admin"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "User Deletion - Successful Test", 
+                "SKIP", 
+                "No admin token available, skipping user deletion test",
+                "Admin login required first"
+            )
+            return False
+        
+        try:
+            # First, get list of users to find a deletable user
+            users_response = requests.get(
+                f"{BACKEND_URL}/auth/admin/users",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if users_response.status_code != 200:
+                self.log_result(
+                    "User Deletion - Successful Test", 
+                    "FAIL", 
+                    "Could not get users list for deletion test",
+                    f"Status: {users_response.status_code}"
+                )
+                return False
+            
+            users = users_response.json()
+            deletable_user = None
+            
+            # Find a non-admin user to delete (instructor or student)
+            for user in users:
+                if user.get('role') != 'admin' and user.get('username') in ['instructor', 'student']:
+                    deletable_user = user
+                    break
+            
+            if not deletable_user:
+                self.log_result(
+                    "User Deletion - Successful Test", 
+                    "SKIP", 
+                    "No suitable user found for deletion test",
+                    "Need instructor or student user to delete"
+                )
+                return False
+            
+            # Delete the user
+            response = requests.delete(
+                f"{BACKEND_URL}/auth/admin/users/{deletable_user['id']}",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                required_fields = ['message', 'deleted_user']
+                
+                if all(field in data for field in required_fields):
+                    deleted_user_info = data.get('deleted_user', {})
+                    if deleted_user_info.get('id') == deletable_user['id']:
+                        self.log_result(
+                            "User Deletion - Successful Test", 
+                            "PASS", 
+                            f"Successfully deleted user {deletable_user['username']}",
+                            f"Deleted user: {deleted_user_info.get('username')} ({deleted_user_info.get('role')})"
+                        )
+                        return True
+                    else:
+                        self.log_result(
+                            "User Deletion - Successful Test", 
+                            "FAIL", 
+                            "Deleted user ID mismatch",
+                            f"Expected: {deletable_user['id']}, Got: {deleted_user_info.get('id')}"
+                        )
+                else:
+                    self.log_result(
+                        "User Deletion - Successful Test", 
+                        "FAIL", 
+                        "Deletion response missing required fields",
+                        f"Missing: {[f for f in required_fields if f not in data]}"
+                    )
+            else:
+                self.log_result(
+                    "User Deletion - Successful Test", 
+                    "FAIL", 
+                    f"User deletion failed with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "User Deletion - Successful Test", 
+                "FAIL", 
+                "Failed to test user deletion",
+                str(e)
+            )
+        return False
+    
+    def test_admin_cannot_delete_self(self):
+        """Test that admin cannot delete their own account"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "User Deletion - Admin Self-Delete Prevention", 
+                "SKIP", 
+                "No admin token available, skipping self-deletion test",
+                "Admin login required first"
+            )
+            return False
+        
+        try:
+            # Get current admin user info
+            me_response = requests.get(
+                f"{BACKEND_URL}/auth/me",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if me_response.status_code != 200:
+                self.log_result(
+                    "User Deletion - Admin Self-Delete Prevention", 
+                    "FAIL", 
+                    "Could not get current admin user info",
+                    f"Status: {me_response.status_code}"
+                )
+                return False
+            
+            admin_user = me_response.json()
+            admin_id = admin_user.get('id')
+            
+            # Try to delete self
+            response = requests.delete(
+                f"{BACKEND_URL}/auth/admin/users/{admin_id}",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if response.status_code == 400:
+                data = response.json()
+                if "Cannot delete your own admin account" in data.get('detail', ''):
+                    self.log_result(
+                        "User Deletion - Admin Self-Delete Prevention", 
+                        "PASS", 
+                        "Successfully prevented admin from deleting own account",
+                        f"Error message: {data.get('detail')}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "User Deletion - Admin Self-Delete Prevention", 
+                        "FAIL", 
+                        "Wrong error message for self-deletion attempt",
+                        f"Expected 'Cannot delete your own admin account', got: {data.get('detail')}"
+                    )
+            else:
+                self.log_result(
+                    "User Deletion - Admin Self-Delete Prevention", 
+                    "FAIL", 
+                    f"Expected 400 status for self-deletion, got {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "User Deletion - Admin Self-Delete Prevention", 
+                "FAIL", 
+                "Failed to test admin self-deletion prevention",
+                str(e)
+            )
+        return False
+    
+    def test_delete_nonexistent_user(self):
+        """Test deleting a non-existent user returns 404"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "User Deletion - Non-existent User", 
+                "SKIP", 
+                "No admin token available, skipping non-existent user test",
+                "Admin login required first"
+            )
+            return False
+        
+        try:
+            # Use a fake UUID that doesn't exist
+            fake_user_id = "00000000-0000-0000-0000-000000000000"
+            
+            response = requests.delete(
+                f"{BACKEND_URL}/auth/admin/users/{fake_user_id}",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if response.status_code == 404:
+                data = response.json()
+                if "User not found" in data.get('detail', ''):
+                    self.log_result(
+                        "User Deletion - Non-existent User", 
+                        "PASS", 
+                        "Correctly returned 404 for non-existent user",
+                        f"Error message: {data.get('detail')}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "User Deletion - Non-existent User", 
+                        "FAIL", 
+                        "Wrong error message for non-existent user",
+                        f"Expected 'User not found', got: {data.get('detail')}"
+                    )
+            else:
+                self.log_result(
+                    "User Deletion - Non-existent User", 
+                    "FAIL", 
+                    f"Expected 404 status for non-existent user, got {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "User Deletion - Non-existent User", 
+                "FAIL", 
+                "Failed to test non-existent user deletion",
+                str(e)
+            )
+        return False
+    
+    def test_non_admin_cannot_delete_users(self):
+        """Test that non-admin users cannot delete users"""
+        # Test with instructor token if available
+        test_roles = ["instructor", "learner"]
+        
+        for role in test_roles:
+            if role not in self.auth_tokens:
+                # Try to login as this role first
+                role_username = "instructor" if role == "instructor" else "student"
+                role_password = "Instructor123!" if role == "instructor" else "Student123!"
+                
+                try:
+                    login_data = {
+                        "username_or_email": role_username,
+                        "password": role_password
+                    }
+                    
+                    login_response = requests.post(
+                        f"{BACKEND_URL}/auth/login",
+                        json=login_data,
+                        timeout=TEST_TIMEOUT,
+                        headers={'Content-Type': 'application/json'}
+                    )
+                    
+                    if login_response.status_code == 200:
+                        login_data_response = login_response.json()
+                        self.auth_tokens[role] = login_data_response['access_token']
+                    else:
+                        self.log_result(
+                            f"User Deletion - Non-Admin Access ({role})", 
+                            "SKIP", 
+                            f"Could not login as {role} for access control test",
+                            f"Login status: {login_response.status_code}"
+                        )
+                        continue
+                except requests.exceptions.RequestException:
+                    self.log_result(
+                        f"User Deletion - Non-Admin Access ({role})", 
+                        "SKIP", 
+                        f"Could not login as {role} for access control test",
+                        "Login request failed"
+                    )
+                    continue
+            
+            # Now test deletion with non-admin token
+            try:
+                fake_user_id = "00000000-0000-0000-0000-000000000000"
+                
+                response = requests.delete(
+                    f"{BACKEND_URL}/auth/admin/users/{fake_user_id}",
+                    timeout=TEST_TIMEOUT,
+                    headers={
+                        'Authorization': f'Bearer {self.auth_tokens[role]}'
+                    }
+                )
+                
+                if response.status_code == 403:
+                    data = response.json()
+                    if "Admin access required" in data.get('detail', ''):
+                        self.log_result(
+                            f"User Deletion - Non-Admin Access ({role})", 
+                            "PASS", 
+                            f"Correctly denied {role} access to user deletion",
+                            f"Error message: {data.get('detail')}"
+                        )
+                    else:
+                        self.log_result(
+                            f"User Deletion - Non-Admin Access ({role})", 
+                            "FAIL", 
+                            f"Wrong error message for {role} access denial",
+                            f"Expected 'Admin access required', got: {data.get('detail')}"
+                        )
+                else:
+                    self.log_result(
+                        f"User Deletion - Non-Admin Access ({role})", 
+                        "FAIL", 
+                        f"Expected 403 status for {role} access, got {response.status_code}",
+                        f"Response: {response.text}"
+                    )
+            except requests.exceptions.RequestException as e:
+                self.log_result(
+                    f"User Deletion - Non-Admin Access ({role})", 
+                    "FAIL", 
+                    f"Failed to test {role} access control",
+                    str(e)
+                )
+    
+    def test_last_admin_protection(self):
+        """Test that the last admin user cannot be deleted"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "User Deletion - Last Admin Protection", 
+                "SKIP", 
+                "No admin token available, skipping last admin protection test",
+                "Admin login required first"
+            )
+            return False
+        
+        try:
+            # Get list of all users
+            users_response = requests.get(
+                f"{BACKEND_URL}/auth/admin/users",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if users_response.status_code != 200:
+                self.log_result(
+                    "User Deletion - Last Admin Protection", 
+                    "FAIL", 
+                    "Could not get users list for last admin test",
+                    f"Status: {users_response.status_code}"
+                )
+                return False
+            
+            users = users_response.json()
+            admin_users = [user for user in users if user.get('role') == 'admin']
+            
+            if len(admin_users) > 1:
+                self.log_result(
+                    "User Deletion - Last Admin Protection", 
+                    "SKIP", 
+                    f"Multiple admin users found ({len(admin_users)}), cannot test last admin protection",
+                    "Need exactly one admin user for this test"
+                )
+                return False
+            elif len(admin_users) == 0:
+                self.log_result(
+                    "User Deletion - Last Admin Protection", 
+                    "FAIL", 
+                    "No admin users found in system",
+                    "This should not happen"
+                )
+                return False
+            
+            # Try to delete the only admin user
+            admin_user = admin_users[0]
+            
+            response = requests.delete(
+                f"{BACKEND_URL}/auth/admin/users/{admin_user['id']}",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if response.status_code == 400:
+                data = response.json()
+                if "Cannot delete the last admin user" in data.get('detail', ''):
+                    self.log_result(
+                        "User Deletion - Last Admin Protection", 
+                        "PASS", 
+                        "Successfully prevented deletion of last admin user",
+                        f"Error message: {data.get('detail')}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "User Deletion - Last Admin Protection", 
+                        "FAIL", 
+                        "Wrong error message for last admin deletion",
+                        f"Expected 'Cannot delete the last admin user', got: {data.get('detail')}"
+                    )
+            else:
+                self.log_result(
+                    "User Deletion - Last Admin Protection", 
+                    "FAIL", 
+                    f"Expected 400 status for last admin deletion, got {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "User Deletion - Last Admin Protection", 
+                "FAIL", 
+                "Failed to test last admin protection",
+                str(e)
+            )
+        return False
+    
+    def test_invalid_user_id_format(self):
+        """Test deletion with invalid user ID format"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "User Deletion - Invalid ID Format", 
+                "SKIP", 
+                "No admin token available, skipping invalid ID test",
+                "Admin login required first"
+            )
+            return False
+        
+        invalid_ids = ["invalid-id", "123", "", "not-a-uuid"]
+        
+        for invalid_id in invalid_ids:
+            try:
+                response = requests.delete(
+                    f"{BACKEND_URL}/auth/admin/users/{invalid_id}",
+                    timeout=TEST_TIMEOUT,
+                    headers={
+                        'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                    }
+                )
+                
+                # Should return 404 for invalid ID (user not found)
+                if response.status_code == 404:
+                    self.log_result(
+                        f"User Deletion - Invalid ID ({invalid_id})", 
+                        "PASS", 
+                        f"Correctly handled invalid user ID: {invalid_id}",
+                        f"Returned 404 as expected"
+                    )
+                else:
+                    self.log_result(
+                        f"User Deletion - Invalid ID ({invalid_id})", 
+                        "INFO", 
+                        f"Invalid ID {invalid_id} returned status {response.status_code}",
+                        f"Response: {response.text}"
+                    )
+            except requests.exceptions.RequestException as e:
+                self.log_result(
+                    f"User Deletion - Invalid ID ({invalid_id})", 
+                    "FAIL", 
+                    f"Failed to test invalid ID: {invalid_id}",
+                    str(e)
+                )
+    
+    def test_unauthorized_deletion_attempt(self):
+        """Test deletion without authentication token"""
+        try:
+            fake_user_id = "00000000-0000-0000-0000-000000000000"
+            
+            response = requests.delete(
+                f"{BACKEND_URL}/auth/admin/users/{fake_user_id}",
+                timeout=TEST_TIMEOUT
+                # No Authorization header
+            )
+            
+            if response.status_code == 403:
+                self.log_result(
+                    "User Deletion - Unauthorized Access", 
+                    "PASS", 
+                    "Correctly denied access without authentication token",
+                    f"Returned 403 Forbidden"
+                )
+                return True
+            else:
+                self.log_result(
+                    "User Deletion - Unauthorized Access", 
+                    "FAIL", 
+                    f"Expected 403 status for unauthorized access, got {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "User Deletion - Unauthorized Access", 
+                "FAIL", 
+                "Failed to test unauthorized deletion attempt",
+                str(e)
+            )
+        return False
+    
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Backend Testing Suite for LearningFwiend LMS")
