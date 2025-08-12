@@ -56,7 +56,7 @@ const Certificates = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-blue-600 text-sm font-medium">Courses Completed</p>
+                <p className="blue-600 text-sm font-medium">Programs Completed</p>
                 <p className="text-2xl font-bold text-blue-700">{certificates.length}</p>
               </div>
               <Award className="h-8 w-8 text-blue-600" />
