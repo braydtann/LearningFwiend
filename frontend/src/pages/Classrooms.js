@@ -39,7 +39,9 @@ const Classrooms = () => {
     description: '',
     trainerId: '',
     courseIds: [],
+    programIds: [], // New: Program selection
     studentIds: [],
+    departmentId: '', // New: Department selection
     startDate: '',
     endDate: ''
   });
