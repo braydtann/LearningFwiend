@@ -403,6 +403,7 @@ export const mockCourses = [
     enrolledStudents: 52,
     totalLessons: 30,
     isPublic: true,
+    enrollmentType: 'open', // Anyone can enroll
     status: 'published',
     createdAt: '2024-02-01',
     modules: [
