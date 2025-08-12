@@ -273,6 +273,7 @@ export const AuthProvider = ({ children }) => {
     createUser,
     resetUserPassword,
     getAllUsers,
+    deleteUser,
     checkAuthStatus,
     isAdmin: user?.role === 'admin',
     isInstructor: user?.role === 'instructor',
