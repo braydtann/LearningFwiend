@@ -8,6 +8,7 @@ import { Checkbox } from './ui/checkbox';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 import { Label } from './ui/label';
+import ScreenRecorder from './ScreenRecorder';
 import { 
   X, 
   ChevronLeft, 
