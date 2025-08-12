@@ -40,7 +40,13 @@ const CreateCourse = () => {
     ]
   });
 
-  const categories = ['Web Development', 'Data Science', 'Marketing', 'Design', 'Business'];
+  const [categories, setCategories] = useState([]);
+  
+  useEffect(() => {
+    // Load categories when component mounts
+    const loadedCategories = getCategories();
+    setCategories(loadedCategories.map(cat => cat.name));
+  }, []);
 
   const handleCourseChange = (field, value) => {
     setCourseData(prev => ({
