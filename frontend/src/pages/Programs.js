@@ -594,6 +594,100 @@ const Programs = () => {
                 </div>
               )}
 
+              {/* Nested Programs Section */}
+              <div className="space-y-4 border-t pt-6">
+                <div className="flex items-center space-x-2">
+                  <Award className="w-5 h-5 text-indigo-600" />
+                  <Label className="text-lg font-medium text-indigo-800">Nested Programs (Optional)</Label>
+                </div>
+                <p className="text-sm text-gray-600">
+                  Include other programs as part of this program. Students must complete nested programs before accessing the final test.
+                </p>
+                
+                <div className="space-y-4">
+                  <Label className="text-base font-medium">Available Programs</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {getAvailablePrograms().map(program => (
+                      <div key={program.id} className="border rounded-lg p-3">
+                        <div className="flex items-center space-x-3">
+                          <input
+                            type="checkbox"
+                            id={`nested-program-${program.id}`}
+                            checked={newProgram.nestedProgramIds.includes(program.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setNewProgram(prev => ({
+                                  ...prev,
+                                  nestedProgramIds: [...prev.nestedProgramIds, program.id]
+                                }));
+                              } else {
+                                setNewProgram(prev => ({
+                                  ...prev,
+                                  nestedProgramIds: prev.nestedProgramIds.filter(id => id !== program.id)
+                                }));
+                              }
+                            }}
+                            className="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                          />
+                          <div className="flex-1">
+                            <label 
+                              htmlFor={`nested-program-${program.id}`}
+                              className="cursor-pointer"
+                            >
+                              <h4 className="font-medium text-gray-900">{program.name}</h4>
+                              <p className="text-sm text-gray-600 truncate">{program.description}</p>
+                              <div className="flex items-center space-x-2 mt-1">
+                                <Badge variant="outline" className="text-xs">
+                                  {program.totalCourses} courses
+                                </Badge>
+                                <Badge variant="outline" className="text-xs">
+                                  {program.difficulty}
+                                </Badge>
+                              </div>
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {newProgram.nestedProgramIds.length > 0 && (
+                    <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+                      <h4 className="font-medium text-indigo-900 mb-2">Selected Nested Programs:</h4>
+                      <div className="space-y-2">
+                        {newProgram.nestedProgramIds.map(programId => {
+                          const program = getAvailablePrograms().find(p => p.id === programId);
+                          return program ? (
+                            <div key={programId} className="flex items-center justify-between bg-white rounded-lg p-2">
+                              <div>
+                                <span className="font-medium text-gray-900">{program.name}</span>
+                                <span className="text-sm text-gray-600 ml-2">({program.duration})</span>
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setNewProgram(prev => ({
+                                    ...prev,
+                                    nestedProgramIds: prev.nestedProgramIds.filter(id => id !== programId)
+                                  }));
+                                }}
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          ) : null;
+                        })}
+                      </div>
+                      <p className="text-xs text-indigo-600 mt-2">
+                        💡 Students will complete these programs before accessing courses in this program.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {/* Final Test Configuration */}
               <div className="space-y-4 border-t pt-6">
                 <div className="flex items-center space-x-2">
