@@ -36,7 +36,7 @@ const Login = () => {
     
     if (result.success) {
       if (result.requires_password_change) {
-        // Show password change modal
+        // Show password change modal and don't navigate
         setShowPasswordChangeModal(true);
         toast({
           title: "Welcome!",
