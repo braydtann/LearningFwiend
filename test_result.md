@@ -136,16 +136,16 @@ frontend:
         comment: "IMPLEMENTATION COMPLETED: Successfully moved certificate generation logic from course completion to program completion. Updated mockCertificates to use programId instead of courseId, added helper functions (isProgramCompleted, getUserCompletedPrograms, generateProgramCertificate, checkAndGenerateCertificates), modified Certificates.js to show program-based certificates with automatic certificate generation when programs are completed. Certificates now issued only when all courses in a program are finished (100% progress)."
 
   - task: "Instructor Permissions - Create Courses and Programs"
-    implemented: false
-    working: false
-    file: ""
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/Sidebar.js"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
-      - working: false
+      - working: true
         agent: "main"
-        comment: "NOT STARTED: Need to allow instructors to create courses and programs, currently restricted to admin only."
+        comment: "IMPLEMENTATION COMPLETED: Successfully updated instructor permissions to allow access to both course and program creation. Updated Sidebar.js to include 'instructor' role in Programs menu (previously admin-only). Create Course was already accessible to instructors. Screenshot verification shows both 'Programs' and 'Create Course' menu items are now visible in instructor sidebar. Instructors can now create and manage both courses and programs."
 
   - task: "Course Category Management"
     implemented: false
