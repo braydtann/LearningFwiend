@@ -433,6 +433,45 @@ const FinalTest = () => {
                       </div>
                     </div>
                   )}
+
+                  {(finalTest.questions[currentQuestionIndex].type === 'record-screen' || 
+                    finalTest.questions[currentQuestionIndex].type === 'record_screen') && (
+                    <div className="space-y-4">
+                      <ScreenRecorder
+                        questionId={`finaltest_${isProgram ? programId : courseId}_q${currentQuestionIndex}`}
+                        onRecordingComplete={(blob, duration) => {
+                          handleAnswerChange(finalTest.questions[currentQuestionIndex].id, {
+                            hasRecording: !!blob,
+                            duration: duration,
+                            size: blob ? blob.size : 0,
+                            timestamp: new Date().toISOString(),
+                            blob: blob
+                          });
+                        }}
+                        maxDuration={finalTest.questions[currentQuestionIndex].maxRecordingTime ? 
+                          finalTest.questions[currentQuestionIndex].maxRecordingTime * 60 : 1800}
+                        disabled={testState === 'submitted'}
+                      />
+                      
+                      {finalTest.questions[currentQuestionIndex].instructions && (
+                        <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                          <h5 className="font-medium text-purple-900 mb-2">📋 Instructions:</h5>
+                          <p className="text-sm text-purple-800 whitespace-pre-wrap">
+                            {finalTest.questions[currentQuestionIndex].instructions}
+                          </p>
+                          
+                          {finalTest.questions[currentQuestionIndex].requiredTools && (
+                            <div className="mt-3">
+                              <h6 className="font-medium text-purple-900 text-sm">Required Tools:</h6>
+                              <p className="text-sm text-purple-700">
+                                {finalTest.questions[currentQuestionIndex].requiredTools}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
