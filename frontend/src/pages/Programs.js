@@ -93,6 +93,7 @@ const Programs = () => {
         description: newProgram.description,
         courseIds: newProgram.courseIds,
         courseOrder: newProgram.courseOrder.length > 0 ? newProgram.courseOrder : newProgram.courseIds,
+        nestedProgramIds: newProgram.nestedProgramIds, // Include nested programs
         duration: newProgram.duration || '8 weeks',
         difficulty: newProgram.difficulty,
         deadline: newProgram.deadline,
