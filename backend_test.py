@@ -934,6 +934,34 @@ class BackendTester:
         # Test 6: Error Handling
         self.test_error_handling()
         
+        print("\n" + "=" * 60)
+        print("🔐 AUTHENTICATION SYSTEM TESTS")
+        print("=" * 60)
+        
+        # Authentication Test 1: Setup admin user
+        self.test_admin_user_creation()
+        
+        # Authentication Test 2: User login tests
+        self.test_user_login()
+        
+        # Authentication Test 3: Create test users
+        self.test_create_test_users()
+        
+        # Authentication Test 4: Password change
+        self.test_password_change()
+        
+        # Authentication Test 5: Admin get users
+        self.test_admin_get_users()
+        
+        # Authentication Test 6: Get current user
+        self.test_get_current_user()
+        
+        # Authentication Test 7: Admin password reset
+        self.test_admin_password_reset()
+        
+        # Authentication Test 8: Password validation
+        self.test_password_validation()
+        
         return self.generate_summary()
     
     def generate_summary(self):
