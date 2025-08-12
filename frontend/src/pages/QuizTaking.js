@@ -137,6 +137,10 @@ const QuizTaking = () => {
         const userOrder = userAnswer || [];
         correct = correctOrder.length === userOrder.length && 
                  correctOrder.every((item, index) => item === userOrder[index]);
+      } else if (question.type === 'record-screen' || question.type === 'record_screen') {
+        // Screen recording questions require manual grading
+        // For now, mark as completed if recording exists
+        correct = userAnswer && userAnswer.hasRecording && userAnswer.duration > 0;
       }
       
       if (correct) {
