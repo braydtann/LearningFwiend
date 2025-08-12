@@ -80,109 +80,108 @@ const Login = () => {
           <p className="text-gray-600">Sign in to your account</p>
         </div>
 
-          <Card className="shadow-xl border-0">
-            <CardHeader>
-              <CardTitle className="text-center text-xl">Welcome Back</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="usernameOrEmail">Username or Email</Label>
+        <Card className="shadow-xl border-0">
+          <CardHeader>
+            <CardTitle className="text-center text-xl">Welcome Back</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="usernameOrEmail">Username or Email</Label>
+                <Input
+                  id="usernameOrEmail"
+                  type="text"
+                  placeholder="Enter your username or email"
+                  value={usernameOrEmail}
+                  onChange={(e) => setUsernameOrEmail(e.target.value)}
+                  required
+                  className="h-12"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <div className="relative">
                   <Input
-                    id="usernameOrEmail"
-                    type="text"
-                    placeholder="Enter your username or email"
-                    value={usernameOrEmail}
-                    onChange={(e) => setUsernameOrEmail(e.target.value)}
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="h-12"
+                    className="h-12 pr-12"
                   />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-2 top-2 h-8 w-8 p-0"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
                 </div>
+              </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Enter your password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      className="h-12 pr-12"
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute right-2 top-2 h-8 w-8 p-0"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </Button>
-                  </div>
-                </div>
+              <Button 
+                type="submit" 
+                className="w-full h-12 bg-blue-600 hover:bg-blue-700"
+                disabled={loading}
+              >
+                {loading ? 'Signing in...' : 'Sign In'}
+              </Button>
+            </form>
 
-                <Button 
-                  type="submit" 
-                  className="w-full h-12 bg-blue-600 hover:bg-blue-700"
-                  disabled={loading}
+            {/* OAuth Separator */}
+            <div className="my-6 flex items-center">
+              <div className="flex-1 border-t border-gray-300"></div>
+              <div className="mx-4 text-sm text-gray-500">or</div>
+              <div className="flex-1 border-t border-gray-300"></div>
+            </div>
+
+            {/* LoginPal OAuth Button */}
+            <LoginPalButton />
+
+            {/* Quick Login Demo Buttons */}
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <p className="text-sm text-gray-500 text-center mb-3">Quick Demo Login:</p>
+              <div className="space-y-2">
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  onClick={() => quickLogin('admin')}
+                  type="button"
                 >
-                  {loading ? 'Signing in...' : 'Sign In'}
+                  <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                  Login as Admin
                 </Button>
-              </form>
-
-              {/* OAuth Separator */}
-              <div className="my-6 flex items-center">
-                <div className="flex-1 border-t border-gray-300"></div>
-                <div className="mx-4 text-sm text-gray-500">or</div>
-                <div className="flex-1 border-t border-gray-300"></div>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  onClick={() => quickLogin('instructor')}
+                  type="button"
+                >
+                  <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                  Login as Instructor
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  onClick={() => quickLogin('learner')}
+                  type="button"
+                >
+                  <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                  Login as Student
+                </Button>
               </div>
-
-              {/* LoginPal OAuth Button */}
-              <LoginPalButton />
-
-              {/* Quick Login Demo Buttons */}
-              <div className="mt-6 pt-6 border-t border-gray-200">
-                <p className="text-sm text-gray-500 text-center mb-3">Quick Demo Login:</p>
-                <div className="space-y-2">
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start"
-                    onClick={() => quickLogin('admin')}
-                    type="button"
-                  >
-                    <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
-                    Login as Admin
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start"
-                    onClick={() => quickLogin('instructor')}
-                    type="button"
-                  >
-                    <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                    Login as Instructor
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start"
-                    onClick={() => quickLogin('learner')}
-                    type="button"
-                  >
-                    <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                    Login as Student
-                  </Button>
-                </div>
-                <div className="mt-3 p-2 bg-blue-50 rounded-lg">
-                  <p className="text-xs text-blue-700 text-center">
-                    <strong>Note:</strong> All demo accounts use temporary passwords and will require password change on first login.
-                  </p>
-                </div>
+              <div className="mt-3 p-2 bg-blue-50 rounded-lg">
+                <p className="text-xs text-blue-700 text-center">
+                  <strong>Note:</strong> All demo accounts use temporary passwords and will require password change on first login.
+                </p>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
