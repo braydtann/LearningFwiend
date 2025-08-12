@@ -88,8 +88,8 @@ const Certificates = () => {
               <Award className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No certificates yet</h3>
               <p className="text-gray-600 mb-4">Complete programs to earn your first certificate</p>
-              <Button onClick={() => window.location.href = '/courses'}>
-                Browse Courses
+              <Button onClick={() => window.location.href = '/programs'}>
+                Browse Programs
               </Button>
             </div>
           ) : (
