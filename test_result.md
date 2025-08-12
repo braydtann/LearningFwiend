@@ -810,12 +810,14 @@ backend:
 
 metadata:
   created_by: "main_agent"
-  version: "1.2"
-  test_sequence: 3
+  version: "1.3"
+  test_sequence: 4
   run_ui: true
   phase1_testing_date: "2024-12-08"
-  critical_issues_found: false
+  critical_issues_found: true
   phase1_testing_completed: true
+  comprehensive_e2e_testing_date: "2025-01-12"
+  comprehensive_e2e_testing_completed: true
 
 test_plan:
   current_focus:
