@@ -30,10 +30,14 @@ import LoginPalStatus from './pages/LoginPalStatus';
 
 // Components
 import Layout from './components/Layout';
+import ProtectedRouteComponent from './components/ProtectedRoute';
 
 const ProtectedRoute = ({ children }) => {
-  const { user } = useAuth();
-  return user ? <Layout>{children}</Layout> : <Navigate to="/login" />;
+  return (
+    <ProtectedRouteComponent>
+      <Layout>{children}</Layout>
+    </ProtectedRouteComponent>
+  );
 };
 
 const AuthRoute = ({ children }) => {
