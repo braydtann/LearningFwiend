@@ -196,16 +196,16 @@ frontend:
         comment: "FEATURE ALREADY IMPLEMENTED: After comprehensive code inspection, discovered that admin user department editing functionality is already fully implemented in Users.js. The edit user modal (lines 416-434) includes department selection dropdown with mockDepartments integration, role-based visibility (shows for instructors and learners, hidden for admins), and proper update handling in handleUpdateUser function. Feature was already working as requested - admins can edit user departments after user creation through the edit user interface."
 
   - task: "Nested Programs (1-level)"
-    implemented: false
-    working: false
-    file: ""
+    implemented: true
+    working: true
+    file: "/app/frontend/src/data/mockData.js, /app/frontend/src/pages/Programs.js"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
-      - working: false
+      - working: true
         agent: "main"
-        comment: "NOT STARTED: Enable adding programs as part of other programs with 1-level nesting limit."
+        comment: "IMPLEMENTATION COMPLETED: Successfully implemented 1-level nested programs functionality. Added nestedProgramIds field to program data structure, created helper functions (getAvailablePrograms, getNestedPrograms, hasNestedPrograms, canNestProgram, getTotalProgramCourses), added comprehensive UI in Programs.js create modal with checkbox selection for available programs, selection display, and proper validation. Updated program display to show nested programs with indigo-themed design. Added sample nested program (Technology Mastery Path) containing Full Stack Development and Digital Marketing programs. Feature enforces 1-level nesting limit and prevents circular nesting."
 
   - task: "Record Screen Question Type"
     implemented: true
