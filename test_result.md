@@ -105,26 +105,113 @@
 user_problem_statement: "NEW FEATURES REQUESTED: 1) Bell icon at top of page for students if they are assigned to any classes (push notifications for users), 2) Ensure the logic is so certificates are sent upon program completion not course completion, 3) Now allow instructors to create courses and programs, 4) Add ability to add category types for courses, 5) Preview functionality for course creation and quiz creation, 6) Fix Create announcement button (white page issue), 7) Allow admins to edit user departments after creation, 8) Add programs as part of a program (1-level nesting), 9) Add Record Screen question type to quiz creation."
 
 frontend:
-  - task: "Fix Edit Program White Screen Issue"
+  - task: "Bell Icon Notifications System for Students"
     implemented: true
-    working: true
-    file: "/app/frontend/src/App.js, /app/frontend/src/pages/EditProgram.js, /app/frontend/src/data/mockData.js"
+    working: false
+    file: "/app/frontend/src/components/NotificationBell.js, /app/frontend/src/components/Layout.js, /app/frontend/src/data/mockData.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "IMPLEMENTATION STARTED: Added comprehensive notification system for students assigned to classrooms. Created NotificationBell component with badge functionality, integrated into Layout component, added notification data structures to mockData.js with 12 sample notifications across multiple students. Added helper functions for managing notifications (getUserNotifications, getUnreadNotifications, markAsRead, etc.). Component only shows for learner role and displays unread count badge."
+
+  - task: "Certificate Logic Fix - Program Completion"
+    implemented: false
+    working: false
+    file: ""
     stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
       - working: false
-        agent: "user"
-        comment: "CRITICAL BUG REPORTED: Edit program functionality shows white screen when clicking edit button. Issue identified as missing /program/:id/edit route in App.js routing configuration."
+        agent: "main"
+        comment: "NOT STARTED: Need to move certificate generation logic from course completion to program completion."
+
+  - task: "Instructor Permissions - Create Courses and Programs"
+    implemented: false
+    working: false
+    file: ""
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
       - working: false
         agent: "main"
-        comment: "ISSUE IDENTIFIED: Missing route /program/:id/edit in App.js. Edit button in Programs.js navigates to this non-existent route causing white screen. Need to either create EditProgram component or modify existing component to handle edit mode."
+        comment: "NOT STARTED: Need to allow instructors to create courses and programs, currently restricted to admin only."
+
+  - task: "Course Category Management"
+    implemented: false
+    working: false
+    file: ""
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
       - working: false
         agent: "main"
-        comment: "IMPLEMENTATION COMPLETED: Created new EditProgram.js component with full edit functionality, added route /program/:id/edit to App.js, and implemented getProgramById and updateProgram helper functions in mockData.js. The EditProgram component provides complete program editing interface with course selection, ordering, and all form fields."
-      - working: true
-        agent: "testing"
-        comment: "CRITICAL BUG FIX VERIFIED SUCCESSFUL: Edit Program functionality now works perfectly! Successfully tested: 1) Edit button navigation works correctly - NO WHITE SCREEN appears, 2) EditProgram component loads properly with correct title 'Edit Learning Program', 3) Form fields are properly pre-populated with existing program data (name, description, courses, deadline), 4) Save Changes and Back to Programs buttons are functional, 5) Navigation between edit page and programs list works correctly. The /program/:id/edit route is properly implemented and functional."
+        comment: "NOT STARTED: Need to add ability to create/manage course categories beyond predetermined options."
+
+  - task: "Preview Functionality for Course and Quiz Creation"
+    implemented: false
+    working: false
+    file: ""
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "NOT STARTED: Need to add overlay preview for course creation and quiz creation."
+
+  - task: "Fix Create Announcement White Page"
+    implemented: false
+    working: false
+    file: ""
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "NOT STARTED: Create announcement button loads white page, need to fix routing/component."
+
+  - task: "Admin Edit User Departments"
+    implemented: false
+    working: false
+    file: ""
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "NOT STARTED: Allow admins to edit user departments after user creation."
+
+  - task: "Nested Programs (1-level)"
+    implemented: false
+    working: false
+    file: ""
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "NOT STARTED: Enable adding programs as part of other programs with 1-level nesting limit."
+
+  - task: "Record Screen Question Type"
+    implemented: false
+    working: false
+    file: ""
+    stuck_count: 0
+    priority: "low"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "NOT STARTED: Add Record Screen option to quiz/test question types dropdown."
 
   - task: "Fix Program Creation Not Showing in List"
     implemented: true
