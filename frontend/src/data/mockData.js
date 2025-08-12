@@ -871,6 +871,76 @@ export const getUserCertificates = (userId) => {
   return mockCertificates.filter(cert => cert.userId === userId);
 };
 
+// Check if user has completed all courses in a program
+export const isProgramCompleted = (userId, programId) => {
+  const program = mockPrograms.find(p => p.id === programId);
+  if (!program) return false;
+  
+  // Check if all courses in the program are completed (100% progress)
+  const allCoursesCompleted = program.courseOrder.every(courseId => {
+    const enrollment = mockEnrollments.find(e => 
+      e.userId === userId && e.courseId === courseId
+    );
+    return enrollment && enrollment.progress === 100;
+  });
+  
+  return allCoursesCompleted;
+};
+
+// Get completed programs for a user
+export const getUserCompletedPrograms = (userId) => {
+  return mockPrograms.filter(program => isProgramCompleted(userId, program.id));
+};
+
+// Generate certificate for program completion
+export const generateProgramCertificate = (userId, programId) => {
+  const program = mockPrograms.find(p => p.id === programId);
+  const user = mockUsers.find(u => u.id === userId);
+  
+  if (!program || !user || !isProgramCompleted(userId, programId)) {
+    return null;
+  }
+  
+  // Check if certificate already exists
+  const existingCert = mockCertificates.find(cert => 
+    cert.userId === userId && cert.programId === programId
+  );
+  
+  if (existingCert) {
+    return existingCert;
+  }
+  
+  // Create new certificate
+  const newCertificate = {
+    id: Date.now().toString(),
+    userId: userId,
+    programId: programId,
+    programName: program.name,
+    issuedAt: new Date().toISOString().split('T')[0],
+    certificateUrl: `/certificates/cert-prog-${programId}-${userId}.pdf`
+  };
+  
+  // Add to mock certificates
+  mockCertificates.push(newCertificate);
+  
+  return newCertificate;
+};
+
+// Auto-generate certificates for all completed programs
+export const checkAndGenerateCertificates = (userId) => {
+  const completedPrograms = getUserCompletedPrograms(userId);
+  const newCertificates = [];
+  
+  completedPrograms.forEach(program => {
+    const certificate = generateProgramCertificate(userId, program.id);
+    if (certificate) {
+      newCertificates.push(certificate);
+    }
+  });
+  
+  return newCertificates;
+};
+
 export const mockClassrooms = [
   {
     id: '1',
