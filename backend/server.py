@@ -382,6 +382,55 @@ async def admin_get_all_users(admin_user: UserResponse = Depends(get_admin_user)
     users = await db.users.find().to_list(1000)
     return [UserResponse(**user) for user in users]
 
+@api_router.delete("/auth/admin/users/{user_id}")
+async def admin_delete_user(
+    user_id: str,
+    admin_user: UserResponse = Depends(get_admin_user)
+):
+    """Admin endpoint to delete a user."""
+    # Prevent admin from deleting themselves
+    if user_id == admin_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot delete your own admin account"
+        )
+    
+    # Find the user to be deleted
+    user_to_delete = await db.users.find_one({"id": user_id})
+    if not user_to_delete:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    # Check if this is the last admin user (prevent deleting the last admin)
+    if user_to_delete.get('role') == 'admin':
+        admin_count = await db.users.count_documents({"role": "admin", "is_active": True})
+        if admin_count <= 1:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Cannot delete the last admin user. At least one admin must remain."
+            )
+    
+    # Delete the user
+    result = await db.users.delete_one({"id": user_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found or already deleted"
+        )
+    
+    return {
+        "message": f"User {user_to_delete['username']} has been successfully deleted",
+        "deleted_user": {
+            "id": user_id,
+            "username": user_to_delete['username'],
+            "email": user_to_delete['email'],
+            "role": user_to_delete['role']
+        }
+    }
+
 @api_router.get("/auth/me", response_model=UserResponse)
 async def get_current_user_info(current_user: UserResponse = Depends(get_current_user)):
     """Get current user information."""
