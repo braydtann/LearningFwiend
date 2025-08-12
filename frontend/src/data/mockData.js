@@ -69,7 +69,68 @@ export const mockCategories = [
 ];
 
 // Courses data - Replace with your course management system
-export const mockCourses = [];
+export const mockCourses = [
+  {
+    id: '1',
+    title: 'Introduction to HTML & CSS',
+    description: 'Learn the basics of web development',
+    programId: '1',
+    departmentId: '1',
+    duration: '2 weeks',
+    createdAt: '2024-01-01',
+    isActive: true
+  },
+  {
+    id: '2', 
+    title: 'JavaScript Fundamentals',
+    description: 'Master JavaScript programming',
+    programId: '1',
+    departmentId: '1',
+    duration: '3 weeks',
+    createdAt: '2024-01-01',
+    isActive: true
+  },
+  {
+    id: '3',
+    title: 'Python for Data Science',
+    description: 'Python programming for data analysis',
+    programId: '2',
+    departmentId: '5', 
+    duration: '4 weeks',
+    createdAt: '2024-01-01',
+    isActive: true
+  },
+  {
+    id: '4',
+    title: 'Social Media Marketing',
+    description: 'Effective social media strategies',
+    programId: '3',
+    departmentId: '4',
+    duration: '2 weeks',
+    createdAt: '2024-01-01',
+    isActive: true
+  },
+  {
+    id: '5',
+    title: 'Leadership Principles',
+    description: 'Core leadership and management skills',
+    programId: '4', 
+    departmentId: '3',
+    duration: '3 weeks',
+    createdAt: '2024-01-01',
+    isActive: true
+  },
+  {
+    id: '6',
+    title: 'AWS Cloud Basics',
+    description: 'Introduction to Amazon Web Services',
+    programId: '5',
+    departmentId: '2',
+    duration: '2 weeks', 
+    createdAt: '2024-01-01',
+    isActive: true
+  }
+];
 
 // Programs data - Replace with your program management system
 export const mockPrograms = [
