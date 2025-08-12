@@ -304,3 +304,50 @@ export const getQuizAttempts = () => mockQuizAttempts;
 export const getQuizResults = () => mockQuizResults;
 export const getStudentClassroomAssignments = () => [];
 export const hasUnreadClassroomAssignments = () => false;
+
+// Missing functions needed by components - Add your implementations
+export const getInstructorQuizAnalytics = (instructorId) => ({
+  totalQuizzes: 0,
+  totalAttempts: 0,
+  averageScore: 0,
+  quizzes: []
+});
+
+export const getEnrolledCourses = (userId) => [];
+
+export const getStudentClassrooms = (userId) => [];
+
+export const getUserQuizResults = (userId) => [];
+
+export const getCurrentUser = () => mockUsers[0] || null;
+
+export const setCurrentUser = (user) => {
+  // Replace with actual user persistence logic
+  return user;
+};
+
+export const getClassroomStudents = (classroomId) => [];
+
+export const getClassroomsForTrainer = (trainerId) => [];
+
+export const getClassroomAccessStatus = (classroomId, userId) => ({
+  hasAccess: false,
+  reason: 'No data available'
+});
+
+export const getCourseProgress = (userId, courseId) => ({
+  progress: 0,
+  completedLessons: 0,
+  totalLessons: 0
+});
+
+export const getUserClassroomAccess = (userId) => [];
+
+export const getUsersByDepartment = (departmentId) => 
+  mockUsers.filter(user => user.departmentId === departmentId);
+
+export const getCourseProgressionStatus = (userId, programId) => ({
+  currentCourseIndex: 0,
+  canAccessCourse: () => true,
+  completedCourses: []
+});
