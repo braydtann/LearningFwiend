@@ -20,10 +20,38 @@ export const mockUsers = [
 export const mockDepartments = [
   {
     id: '1',
-    name: 'Administration',
-    description: 'System administration and management',
+    name: 'Computer Science',
+    description: 'Computer Science and Software Development',
     createdAt: '2024-01-01',
-    memberCount: 1
+    memberCount: 25
+  },
+  {
+    id: '2', 
+    name: 'Information Technology',
+    description: 'Information Technology and Systems',
+    createdAt: '2024-01-01',
+    memberCount: 18
+  },
+  {
+    id: '3',
+    name: 'Business Administration', 
+    description: 'Business and Management Studies',
+    createdAt: '2024-01-01',
+    memberCount: 22
+  },
+  {
+    id: '4',
+    name: 'Digital Marketing',
+    description: 'Digital Marketing and Communications',
+    createdAt: '2024-01-01', 
+    memberCount: 15
+  },
+  {
+    id: '5',
+    name: 'Data Science',
+    description: 'Data Science and Analytics',
+    createdAt: '2024-01-01',
+    memberCount: 12
   }
 ];
 
