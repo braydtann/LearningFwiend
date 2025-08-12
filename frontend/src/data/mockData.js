@@ -785,6 +785,7 @@ export const mockPrograms = [
     description: 'Complete full-stack development program covering frontend, backend, and deployment',
     courseIds: ['1', '2'], // React Development, Python for Data Science
     courseOrder: ['1', '2'], // Specific order for courses
+    nestedProgramIds: [], // For 1-level program nesting
     duration: '16 weeks',
     difficulty: 'Intermediate',
     createdBy: '1', // Admin
