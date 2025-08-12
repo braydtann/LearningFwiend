@@ -642,7 +642,7 @@ const QuizTaking = () => {
                         }}
                         maxDuration={quiz.questions[currentQuestionIndex].maxRecordingTime ? 
                           quiz.questions[currentQuestionIndex].maxRecordingTime * 60 : 1800}
-                        disabled={isSubmitted}
+                        disabled={quizState === 'submitted'}
                       />
                       
                       {quiz.questions[currentQuestionIndex].instructions && (
