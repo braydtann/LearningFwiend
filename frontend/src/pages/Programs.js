@@ -36,6 +36,7 @@ const Programs = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isQuizPreviewOpen, setIsQuizPreviewOpen] = useState(false);
   const [newProgram, setNewProgram] = useState({
     name: '',
     description: '',
