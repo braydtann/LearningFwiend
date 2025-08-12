@@ -934,6 +934,18 @@ backend:
         agent: "testing"
         comment: "COMPREHENSIVE E2E PRODUCTION READINESS VERIFICATION: LoginPal OAuth placeholder endpoints verified for production deployment. Status endpoint returns proper placeholder response (status: placeholder, ready: false). Users endpoint working (user count: 0). Webhook endpoint accepts and stores webhook data correctly. All endpoints (/auth/loginpal/status, /users, /webhook, /sync-user, /user-role) tested and working perfectly. All endpoints ready for future LoginPal integration with no functionality degradation. Production-ready status confirmed."
 
+  - task: "Admin User Deletion Functionality"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "COMPREHENSIVE USER DELETION TESTING COMPLETED SUCCESSFULLY: ✅ DELETE /api/auth/admin/users/{user_id} endpoint fully functional with all security safeguards working correctly, ✅ Successful user deletion verified - admin can delete learner and instructor users with proper success response and user details, ✅ Admin self-deletion prevention working perfectly - returns 400 'Cannot delete your own admin account' when admin tries to delete themselves, ✅ Non-existent user handling correct - returns 404 'User not found' for invalid user IDs, ✅ Role-based access control enforced - non-admin users receive 403 'Admin access required' when attempting deletion, ✅ Last admin protection implemented - system prevents deletion of the last remaining admin user, ✅ Invalid user ID handling working - properly handles malformed UUIDs and returns appropriate errors, ✅ Unauthorized access prevention - returns 403 Forbidden when no authentication token provided, ✅ All test scenarios passed: successful deletion of instructor and student users, admin self-deletion blocked, non-admin access denied, proper error messages for all edge cases. User deletion functionality is production-ready with comprehensive security measures in place."
+
 metadata:
   created_by: "main_agent"
   version: "1.3"
