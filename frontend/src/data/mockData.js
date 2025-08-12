@@ -839,6 +839,7 @@ export const mockPrograms = [
     description: 'Comprehensive digital marketing program from basics to advanced strategies',
     courseIds: ['3'], // Digital Marketing Mastery
     courseOrder: ['3'],
+    nestedProgramIds: [], // For 1-level program nesting
     duration: '8 weeks',
     difficulty: 'Beginner',
     createdBy: '1',
