@@ -762,6 +762,16 @@ const Users = () => {
                       >
                         <Key className="w-4 h-4 text-orange-500" />
                       </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => openDeleteModal(user)}
+                        title="Delete User"
+                        className="hover:bg-red-50 hover:border-red-300"
+                        disabled={user.id === user.id} // Will be handled by backend logic
+                      >
+                        <Trash2 className="w-4 h-4 text-red-500" />
+                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>
