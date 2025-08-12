@@ -226,6 +226,7 @@ const QuizPreview = ({ isOpen, onClose, quizData }) => {
         );
 
       case 'record_screen':
+      case 'record-screen':
         return (
           <div className="space-y-4">
             <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
