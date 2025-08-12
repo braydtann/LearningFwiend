@@ -329,7 +329,10 @@ const Classrooms = () => {
                 </div>
                 
                 <div className="flex items-center justify-end space-x-3 pt-4">
-                  <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>
+                  <Button variant="outline" onClick={() => {
+                    setIsCreateModalOpen(false);
+                    resetForm();
+                  }}>
                     Cancel
                   </Button>
                   <Button onClick={handleCreateClassroom}>
