@@ -24,9 +24,8 @@ const Login = () => {
   useEffect(() => {
     if (user && !requiresPasswordChange) {
       navigate('/dashboard');
-    } else if (user && requiresPasswordChange) {
-      setShowPasswordChangeModal(true);
     }
+    // Don't automatically show modal here - let login success handle it
   }, [user, requiresPasswordChange, navigate]);
 
   const handleSubmit = async (e) => {
