@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Badge } from '../components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { mockCourses, getCategories } from '../data/mockData';
-import { ArrowLeft, Plus, Trash2, Upload, FileText } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Upload, FileText, Eye } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 
 const CreateCourse = () => {
