@@ -164,12 +164,22 @@ const CourseDetail = () => {
                 className="w-full h-full object-cover"
               />
               {(selectedLesson?.type === 'video' || selectedLesson?.type === 'presentation') && 
-               (selectedLesson.videoUrl || selectedLesson.presentationUrl) && (
+               (selectedLesson.videoUrl || selectedLesson.presentationUrl || selectedLesson.embedCode) && (
                 <div className="absolute inset-0 bg-black">
                   {(() => {
+                    // Handle Canva presentations with embed code (priority)
+                    if (selectedLesson.type === 'presentation' && selectedLesson.embedCode) {
+                      return (
+                        <div 
+                          className="w-full h-full"
+                          dangerouslySetInnerHTML={{ __html: selectedLesson.embedCode }}
+                        />
+                      );
+                    }
+                    
                     const url = selectedLesson.videoUrl || selectedLesson.presentationUrl;
                     
-                    // Handle Canva presentations
+                    // Handle Canva presentations with URL (fallback)
                     if (selectedLesson.type === 'presentation' || url.includes('canva.com')) {
                       // Convert Canva sharing link to embed format
                       if (url.includes('canva.com/design/')) {
