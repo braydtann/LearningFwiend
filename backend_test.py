@@ -394,7 +394,7 @@ class BackendTester:
     def test_user_login(self):
         """Test user login with different user types"""
         test_users = [
-            {"username": "admin", "password": "Admin123!", "role": "admin"},
+            {"username": "admin", "password": "NewAdmin123!", "role": "admin"},
             {"username": "instructor", "password": "Instructor123!", "role": "instructor"},
             {"username": "student", "password": "Student123!", "role": "learner"}
         ]
