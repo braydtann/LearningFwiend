@@ -101,9 +101,9 @@ const Certificates = () => {
                     <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg p-6 text-white mb-4">
                       <div className="text-center">
                         <Award className="h-12 w-12 mx-auto mb-3" />
-                        <h3 className="text-lg font-bold mb-2">Certificate of Completion</h3>
+                        <h3 className="text-lg font-bold mb-2">Program Certificate</h3>
                         <div className="border-t border-white/20 pt-3">
-                          <p className="text-sm opacity-90">{certificate.courseName}</p>
+                          <p className="text-sm opacity-90">{certificate.programName}</p>
                         </div>
                       </div>
                     </div>
