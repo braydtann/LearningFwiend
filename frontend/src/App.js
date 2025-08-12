@@ -24,6 +24,7 @@ import Profile from './pages/Profile';
 import Analytics from './pages/Analytics';
 import Certificates from './pages/Certificates';
 import Categories from './pages/Categories';
+import Notifications from './pages/Notifications';
 import Announcements from './pages/Announcements';
 import LoginPalStatus from './pages/LoginPalStatus';
 
