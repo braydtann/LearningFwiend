@@ -447,6 +447,87 @@ const FinalTestQuestionInterface = ({
             </div>
           )}
 
+          {/* Record Screen Questions */}
+          {question.type === 'record-screen' && (
+            <div className="space-y-4">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="flex items-center space-x-3 mb-3">
+                  <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-red-900">Screen Recording Question</h4>
+                    <p className="text-sm text-red-700">Students will record their screen to demonstrate their knowledge</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-red-900">Recording Instructions</Label>
+                    <Textarea
+                      placeholder="Provide clear instructions for what the student should demonstrate on screen..."
+                      rows={3}
+                      value={question.instructions || ''}
+                      onChange={(e) => onQuestionChange(questionIndex, 'instructions', e.target.value)}
+                      className="border-red-300 focus:border-red-500"
+                    />
+                    <p className="text-xs text-red-600">
+                      Be specific about what actions the student should perform and what they should show.
+                    </p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-red-900">Max Recording Time (minutes)</Label>
+                      <Input
+                        type="number"
+                        placeholder="5"
+                        min="1"
+                        max="30"
+                        value={question.maxRecordingTime || ''}
+                        onChange={(e) => onQuestionChange(questionIndex, 'maxRecordingTime', parseInt(e.target.value) || 5)}
+                        className="border-red-300 focus:border-red-500"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-red-900">Required Software/Tools</Label>
+                      <Input
+                        placeholder="e.g., VS Code, Browser, Excel"
+                        value={question.requiredTools || ''}
+                        onChange={(e) => onQuestionChange(questionIndex, 'requiredTools', e.target.value)}
+                        className="border-red-300 focus:border-red-500"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-red-900">Evaluation Criteria</Label>
+                    <Textarea
+                      placeholder="What criteria will be used to grade this recording? Be specific about what constitutes a good answer..."
+                      rows={2}
+                      value={question.evaluationCriteria || ''}
+                      onChange={(e) => onQuestionChange(questionIndex, 'evaluationCriteria', e.target.value)}
+                      className="border-red-300 focus:border-red-500"
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <h5 className="font-medium text-blue-900 mb-2">💡 Tips for Screen Recording Questions:</h5>
+                <ul className="text-sm text-blue-800 space-y-1">
+                  <li>• Provide step-by-step instructions</li>
+                  <li>• Specify the expected outcome or result</li>
+                  <li>• Mention any files or resources students need</li>
+                  <li>• Set a reasonable time limit for the task</li>
+                </ul>
+              </div>
+            </div>
+          )}
+
           {/* Explanation for all question types */}
           <div className="space-y-2">
             <Label className="text-sm">Explanation (Optional)</Label>
