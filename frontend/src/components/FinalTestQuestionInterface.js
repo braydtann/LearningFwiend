@@ -58,6 +58,7 @@ const FinalTestQuestionInterface = ({
                   <SelectItem value="short-answer">Short Answer</SelectItem>
                   <SelectItem value="long-form-answer">Long Form Answer</SelectItem>
                   <SelectItem value="chronological-order">Chronological Order</SelectItem>
+                  <SelectItem value="record-screen">Record Screen</SelectItem>
                 </SelectContent>
               </Select>
             </div>
