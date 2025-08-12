@@ -53,10 +53,19 @@ const Users = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isPasswordResetModalOpen, setIsPasswordResetModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedUserForReset, setSelectedUserForReset] = useState(null);
   const [selectedUserForDelete, setSelectedUserForDelete] = useState(null);
+  const [selectedUserForEdit, setSelectedUserForEdit] = useState(null);
   const [showTempPassword, setShowTempPassword] = useState(false);
   const [showResetPassword, setShowResetPassword] = useState(false);
+  const [editUserData, setEditUserData] = useState({
+    full_name: '',
+    email: '',
+    role: 'learner',
+    department: '',
+    is_active: true
+  });
   const [newUser, setNewUser] = useState({
     full_name: '',
     username: '',
