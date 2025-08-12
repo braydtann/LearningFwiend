@@ -122,15 +122,18 @@ frontend:
 
   - task: "Password Change Modal for First Login"
     implemented: true
-    working: "NA"
+    working: false
     file: "/app/frontend/src/components/PasswordChangeModal.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "IMPLEMENTATION COMPLETED: Created comprehensive password change modal component with password strength validation (6 chars + number + special char), visual password strength indicators, confirm password field with mismatch detection, form validation with proper error handling, show/hide password functionality for all fields, and integration with backend password change API. Modal appears automatically when user has temporary password and prevents system access until password is changed. Includes security notices and proper UI feedback."
+      - working: false
+        agent: "testing"
+        comment: "CRITICAL ISSUE FOUND: Password change modal component is properly implemented with all required features (password strength validation, show/hide functionality, API integration), but modal is NOT appearing when users with temporary passwords log in. Backend API confirms users have first_login_required: true, but frontend modal trigger logic is not working correctly. Users can access dashboard despite having temporary passwords. The modal component itself works when triggered, but the automatic trigger on login with temporary password is failing. This breaks the security requirement that users must change temporary passwords before accessing the system."
 
   - task: "Admin User Creation with Temporary Password"
     implemented: true
