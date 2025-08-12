@@ -14,7 +14,7 @@ import { useToast } from '../hooks/use-toast';
 
 const Users = () => {
   const { toast } = useToast();
-  const { user, isAdmin, createUser, resetUserPassword, getAllUsers } = useAuth();
+  const { user, isAdmin, createUser, resetUserPassword, getAllUsers, deleteUser } = useAuth();
   
   // Redirect non-admin users
   if (!isAdmin) {
