@@ -811,6 +811,13 @@ const QuizTaking = () => {
                             </div>
                           )}
 
+                          {(question.type === 'record-screen' || question.type === 'record_screen') && (
+                            <div className="mt-2 p-2 bg-blue-50 rounded text-blue-800">
+                              <span className="font-medium">Screen Recording: </span>
+                              This recording will be reviewed by your instructor for grading. Your score may be updated after manual review.
+                            </div>
+                          )}
+
                           {question.explanation && (
                             <div className="mt-2 p-2 bg-blue-50 rounded text-blue-800">
                               <span className="font-medium">Explanation: </span>
