@@ -1460,9 +1460,10 @@ export const addProgram = (newProgram) => {
 
 // Notification system data structures
 export const mockNotifications = [
+  // Mike Johnson (ID: 8) notifications
   {
     id: '1',
-    userId: '8', // Mike Johnson
+    userId: '8',
     type: 'classroom_assignment',
     title: 'Assigned to New Classroom',
     message: 'You have been assigned to "Q1 2024 New Agent Training" classroom.',
@@ -1473,7 +1474,44 @@ export const mockNotifications = [
   },
   {
     id: '2',
-    userId: '8', // Mike Johnson
+    userId: '8',
+    type: 'classroom_assignment',
+    title: 'Assigned to New Classroom',
+    message: 'You have been assigned to "Advanced Python Bootcamp" classroom.',
+    classroomId: '2',
+    isRead: false,
+    createdAt: '2024-02-15T10:30:00Z',
+    actionUrl: '/classroom/2'
+  },
+  
+  // Jennifer Williams (ID: 9) notifications
+  {
+    id: '3',
+    userId: '9',
+    type: 'classroom_assignment',
+    title: 'Assigned to New Classroom',
+    message: 'You have been assigned to "Q1 2024 New Agent Training" classroom.',
+    classroomId: '1',
+    isRead: true,
+    createdAt: '2024-03-01T09:00:00Z',
+    actionUrl: '/classroom/1'
+  },
+  {
+    id: '4',
+    userId: '9',
+    type: 'classroom_assignment',
+    title: 'Assigned to New Classroom',
+    message: 'You have been assigned to "Web Development Intensive" classroom.',
+    classroomId: '3',
+    isRead: false,
+    createdAt: '2024-03-15T14:15:00Z',
+    actionUrl: '/classroom/3'
+  },
+  
+  // David Brown (ID: 10) notifications
+  {
+    id: '5',
+    userId: '10',
     type: 'classroom_assignment',
     title: 'Assigned to New Classroom',
     message: 'You have been assigned to "Advanced Python Bootcamp" classroom.',
@@ -1483,25 +1521,90 @@ export const mockNotifications = [
     actionUrl: '/classroom/2'
   },
   {
-    id: '3',
-    userId: '9', // Jennifer Williams - Example of read notification
-    type: 'classroom_assignment',
-    title: 'Assigned to New Classroom',
-    message: 'You have been assigned to "Web Development Intensive" classroom.',
-    classroomId: '3',
-    isRead: true,
-    createdAt: '2024-02-20T14:15:00Z',
-    actionUrl: '/classroom/3'
-  },
-  {
-    id: '4',
-    userId: '10', // David Brown
+    id: '6',
+    userId: '10',
     type: 'classroom_assignment',
     title: 'Assigned to New Classroom',
     message: 'You have been assigned to "Data Science Fundamentals" classroom.',
     classroomId: '4',
     isRead: false,
-    createdAt: '2024-03-05T11:45:00Z',
+    createdAt: '2024-04-01T11:45:00Z',
+    actionUrl: '/classroom/4'
+  },
+  
+  // Maria Garcia (ID: 11) notifications
+  {
+    id: '7',
+    userId: '11',
+    type: 'classroom_assignment',
+    title: 'Assigned to New Classroom',
+    message: 'You have been assigned to "Q1 2024 New Agent Training" classroom.',
+    classroomId: '1',
+    isRead: true,
+    createdAt: '2024-03-01T09:00:00Z',
+    actionUrl: '/classroom/1'
+  },
+  
+  // Linda Anderson (ID: 13) notifications
+  {
+    id: '8',
+    userId: '13',
+    type: 'classroom_assignment',
+    title: 'Assigned to New Classroom',
+    message: 'You have been assigned to "Advanced Python Bootcamp" classroom.',
+    classroomId: '2',
+    isRead: false,
+    createdAt: '2024-02-15T10:30:00Z',
+    actionUrl: '/classroom/2'
+  },
+  {
+    id: '9',
+    userId: '13',
+    type: 'classroom_assignment',
+    title: 'Assigned to New Classroom',
+    message: 'You have been assigned to "Data Science Fundamentals" classroom.',
+    classroomId: '4',
+    isRead: false,
+    createdAt: '2024-04-01T11:45:00Z',
+    actionUrl: '/classroom/4'
+  },
+  
+  // Kevin Lee (ID: 14) notifications
+  {
+    id: '10',
+    userId: '14',
+    type: 'classroom_assignment',
+    title: 'Assigned to New Classroom',
+    message: 'You have been assigned to "Web Development Intensive" classroom.',
+    classroomId: '3',
+    isRead: false,
+    createdAt: '2024-03-15T14:15:00Z',
+    actionUrl: '/classroom/3'
+  },
+  
+  // Jessica Clark (ID: 17) notifications
+  {
+    id: '11',
+    userId: '17',
+    type: 'classroom_assignment',
+    title: 'Assigned to New Classroom',
+    message: 'You have been assigned to "Web Development Intensive" classroom.',
+    classroomId: '3',
+    isRead: true,
+    createdAt: '2024-03-15T14:15:00Z',
+    actionUrl: '/classroom/3'
+  },
+  
+  // Christopher Moore (ID: 18) notifications
+  {
+    id: '12',
+    userId: '18',
+    type: 'classroom_assignment',
+    title: 'Assigned to New Classroom',
+    message: 'You have been assigned to "Data Science Fundamentals" classroom.',
+    classroomId: '4',
+    isRead: false,
+    createdAt: '2024-04-01T11:45:00Z',
     actionUrl: '/classroom/4'
   }
 ];
