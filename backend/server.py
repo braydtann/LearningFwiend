@@ -128,6 +128,19 @@ class AdminPasswordResetRequest(BaseModel):
             raise ValueError('Password must contain at least one special character')
         return v
 
+class UserUpdateRequest(BaseModel):
+    full_name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    role: Optional[str] = None
+    department: Optional[str] = None
+    is_active: Optional[bool] = None
+    
+    @validator('role')
+    def validate_role(cls, v):
+        if v is not None and v not in ['admin', 'instructor', 'learner']:
+            raise ValueError('Role must be admin, instructor, or learner')
+        return v
+
 class AdminPasswordResetResponse(BaseModel):
     message: str
     user_id: str
