@@ -554,7 +554,7 @@ class BackendTester:
         
         try:
             password_change_data = {
-                "current_password": "Admin123!",
+                "current_password": "NewAdmin123!",
                 "new_password": "NewAdmin123!"
             }
             
