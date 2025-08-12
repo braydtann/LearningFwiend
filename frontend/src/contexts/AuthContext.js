@@ -305,6 +305,7 @@ export const AuthProvider = ({ children }) => {
     resetUserPassword,
     getAllUsers,
     deleteUser,
+    updateUser,
     checkAuthStatus,
     isAdmin: user?.role === 'admin',
     isInstructor: user?.role === 'instructor',
