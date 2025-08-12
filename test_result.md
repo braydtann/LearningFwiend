@@ -107,11 +107,11 @@ user_problem_statement: "NEW FEATURES REQUESTED: 1) Bell icon at top of page for
 frontend:
   - task: "Bell Icon Notifications System for Students"
     implemented: true
-    working: true
+    working: false
     file: "/app/frontend/src/components/NotificationBell.js, /app/frontend/src/components/Layout.js, /app/frontend/src/data/mockData.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "main"
@@ -122,6 +122,9 @@ frontend:
       - working: true
         agent: "main"
         comment: "CRITICAL BUG FIXED: Identified and fixed React Rules of Hooks violation. The NotificationBell component had early return before useEffect hooks, causing inconsistent hook calls between renders. Moved conditional rendering check after all hook declarations. Component now properly calls hooks in consistent order and only renders JSX for learner role. Also added proper cleanup for event listeners in useEffect."
+      - working: false
+        agent: "testing"
+        comment: "CRITICAL BUG FOUND: Comprehensive E2E testing reveals notification bell works correctly (✅ bell icon visible for students, ✅ red badge shows count '2', ✅ dropdown opens with notifications, ✅ 'Mark all read' functional), BUT 'View all notifications' button navigates to /notifications route which is NOT DEFINED in App.js, causing blank page. Need to add /notifications route to App.js to fix this critical navigation issue."
 
   - task: "Certificate Logic Fix - Program Completion"
     implemented: true
