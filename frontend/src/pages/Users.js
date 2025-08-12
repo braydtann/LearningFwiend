@@ -952,6 +952,15 @@ const Users = () => {
                       <Button 
                         size="sm" 
                         variant="outline"
+                        onClick={() => openEditModal(user)}
+                        title="Edit User"
+                        className="hover:bg-blue-50 hover:border-blue-300"
+                      >
+                        <Edit className="w-4 h-4 text-blue-500" />
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
                         onClick={() => openPasswordResetModal(user)}
                         title="Reset Password"
                       >
