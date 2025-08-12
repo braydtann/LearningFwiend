@@ -769,6 +769,10 @@ const QuizTaking = () => {
                                       ? question.items[index] 
                                       : question.items[index]?.text || ''
                                   ).join(' → ') || 'No answer'
+                                : (question.type === 'record-screen' || question.type === 'record_screen')
+                                ? (answer?.answer?.hasRecording 
+                                    ? `Screen recording completed (Duration: ${Math.floor(answer.answer.duration / 60)}:${(answer.answer.duration % 60).toString().padStart(2, '0')}, Size: ${(answer.answer.size / (1024 * 1024)).toFixed(2)}MB)`
+                                    : 'No recording submitted')
                                 : answer?.answer || 'No answer'}
                             </span>
                           </div>
