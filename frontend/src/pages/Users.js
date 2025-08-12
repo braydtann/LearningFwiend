@@ -522,6 +522,129 @@ const Users = () => {
         </Dialog>
       </div>
 
+      {/* Edit User Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <Edit className="w-5 h-5 text-blue-500" />
+              <span>Edit User</span>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {selectedUserForEdit && (
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                    <UserPlus className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">{selectedUserForEdit.full_name}</p>
+                    <p className="text-sm text-gray-600">Username: {selectedUserForEdit.username}</p>
+                    <Badge className={getRoleBadgeColor(selectedUserForEdit.role)} size="sm">
+                      {selectedUserForEdit.role}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="edit_full_name">Full Name</Label>
+              <Input
+                id="edit_full_name"
+                placeholder="Enter full name"
+                value={editUserData.full_name}
+                onChange={(e) => setEditUserData(prev => ({ ...prev, full_name: e.target.value }))}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="edit_email">Email Address</Label>
+              <Input
+                id="edit_email"
+                type="email"
+                placeholder="Enter email address"
+                value={editUserData.email}
+                onChange={(e) => setEditUserData(prev => ({ ...prev, email: e.target.value }))}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="edit_role">Role</Label>
+              <Select value={editUserData.role} onValueChange={(value) => setEditUserData(prev => ({ ...prev, role: value }))}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="learner">Student</SelectItem>
+                  <SelectItem value="instructor">Instructor</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {editUserData.role !== 'admin' && (
+              <div className="space-y-2">
+                <Label htmlFor="edit_department">Department</Label>
+                <Select value={editUserData.department} onValueChange={(value) => setEditUserData(prev => ({ ...prev, department: value }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select department" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {mockDepartments.map(dept => (
+                      <SelectItem key={dept.id} value={dept.name}>
+                        <div className="flex items-center">
+                          <Building2 className="w-4 h-4 mr-2" />
+                          {dept.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="edit_is_active"
+                checked={editUserData.is_active}
+                onChange={(e) => setEditUserData(prev => ({ ...prev, is_active: e.target.checked }))}
+                className="w-4 h-4 text-blue-600 rounded"
+              />
+              <Label htmlFor="edit_is_active">User is active</Label>
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-center">
+                <AlertTriangle className="w-5 h-5 text-blue-600 mr-2" />
+                <div>
+                  <p className="text-sm text-blue-800 font-medium">Note</p>
+                  <p className="text-sm text-blue-700">
+                    Username cannot be changed. To reset password, use the password reset option.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-end space-x-3 pt-4">
+              <Button variant="outline" onClick={() => {
+                setIsEditModalOpen(false);
+                setSelectedUserForEdit(null);
+                setEditUserData({ full_name: '', email: '', role: 'learner', department: '', is_active: true });
+              }}>
+                Cancel
+              </Button>
+              <Button onClick={handleEditUser} className="bg-blue-600 hover:bg-blue-700">
+                <Edit className="w-4 h-4 mr-2" />
+                Update User
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Delete User Modal */}
       <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
         <DialogContent>
