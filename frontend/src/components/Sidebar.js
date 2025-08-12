@@ -46,7 +46,7 @@ const Sidebar = () => {
       path: '/programs', 
       icon: Award, 
       label: 'Programs', 
-      roles: ['admin'] 
+      roles: ['admin', 'instructor'] 
     },
     { 
       path: '/classrooms', 
