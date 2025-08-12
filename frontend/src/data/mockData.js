@@ -375,6 +375,7 @@ export const mockCourses = [
     enrolledStudents: 38,
     totalLessons: 18,
     isPublic: true,
+    enrollmentType: 'assignment', // Assignment only
     status: 'published',
     createdAt: '2024-01-25',
     modules: [
