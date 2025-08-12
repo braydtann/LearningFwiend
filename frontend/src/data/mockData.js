@@ -990,6 +990,54 @@ export const checkAndGenerateCertificates = (userId) => {
   return newCertificates;
 };
 
+// Category management helper functions
+export const getCategories = () => {
+  return mockCategories.filter(category => category.isActive);
+};
+
+export const getAllCategories = () => {
+  return mockCategories;
+};
+
+export const getCategoryById = (categoryId) => {
+  return mockCategories.find(category => category.id === categoryId);
+};
+
+export const addCategory = (newCategory) => {
+  const category = {
+    id: Date.now().toString(),
+    createdAt: new Date().toISOString().split('T')[0],
+    isActive: true,
+    courseCount: 0,
+    ...newCategory
+  };
+  
+  mockCategories.push(category);
+  return category;
+};
+
+export const updateCategory = (categoryId, updatedCategory) => {
+  const categoryIndex = mockCategories.findIndex(c => c.id === categoryId);
+  if (categoryIndex === -1) return false;
+  
+  mockCategories[categoryIndex] = {
+    ...mockCategories[categoryIndex],
+    ...updatedCategory,
+    id: categoryId // Ensure ID doesn't change
+  };
+  
+  return true;
+};
+
+export const deleteCategory = (categoryId) => {
+  const categoryIndex = mockCategories.findIndex(c => c.id === categoryId);
+  if (categoryIndex === -1) return false;
+  
+  // Soft delete - mark as inactive
+  mockCategories[categoryIndex].isActive = false;
+  return true;
+};
+
 export const mockClassrooms = [
   {
     id: '1',
