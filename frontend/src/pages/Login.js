@@ -185,15 +185,7 @@ const Login = () => {
           </Card>
         </div>
       </div>
-
-      {/* Password Change Modal */}
-      <PasswordChangeModal
-        isOpen={showPasswordChangeModal}
-        onClose={() => setShowPasswordChangeModal(false)}
-        onSuccess={handlePasswordChangeSuccess}
-        currentUser={user}
-      />
-    </>
+    </div>
   );
 };
 
