@@ -1280,3 +1280,121 @@ export const addProgram = (newProgram) => {
   mockPrograms.push(newProgram);
   return true;
 };
+
+// Notification system data structures
+export const mockNotifications = [
+  {
+    id: '1',
+    userId: '8', // Mike Johnson
+    type: 'classroom_assignment',
+    title: 'Assigned to New Classroom',
+    message: 'You have been assigned to "Q1 2024 New Agent Training" classroom.',
+    classroomId: '1',
+    isRead: false,
+    createdAt: '2024-03-01T09:00:00Z',
+    actionUrl: '/classroom/1'
+  },
+  {
+    id: '2',
+    userId: '8', // Mike Johnson
+    type: 'classroom_assignment',
+    title: 'Assigned to New Classroom',
+    message: 'You have been assigned to "Advanced Python Bootcamp" classroom.',
+    classroomId: '2',
+    isRead: false,
+    createdAt: '2024-02-15T10:30:00Z',
+    actionUrl: '/classroom/2'
+  },
+  {
+    id: '3',
+    userId: '9', // Jennifer Williams - Example of read notification
+    type: 'classroom_assignment',
+    title: 'Assigned to New Classroom',
+    message: 'You have been assigned to "Web Development Intensive" classroom.',
+    classroomId: '3',
+    isRead: true,
+    createdAt: '2024-02-20T14:15:00Z',
+    actionUrl: '/classroom/3'
+  },
+  {
+    id: '4',
+    userId: '10', // David Brown
+    type: 'classroom_assignment',
+    title: 'Assigned to New Classroom',
+    message: 'You have been assigned to "Data Science Fundamentals" classroom.',
+    classroomId: '4',
+    isRead: false,
+    createdAt: '2024-03-05T11:45:00Z',
+    actionUrl: '/classroom/4'
+  }
+];
+
+// Helper functions for notifications
+export const getUserNotifications = (userId) => {
+  return mockNotifications.filter(notification => notification.userId === userId);
+};
+
+export const getUnreadNotifications = (userId) => {
+  return mockNotifications.filter(notification => 
+    notification.userId === userId && !notification.isRead
+  );
+};
+
+export const markNotificationAsRead = (notificationId) => {
+  const notification = mockNotifications.find(n => n.id === notificationId);
+  if (notification) {
+    notification.isRead = true;
+  }
+  return true;
+};
+
+export const markAllNotificationsAsRead = (userId) => {
+  mockNotifications.forEach(notification => {
+    if (notification.userId === userId) {
+      notification.isRead = true;
+    }
+  });
+  return true;
+};
+
+export const addNotification = (notification) => {
+  const newNotification = {
+    id: Date.now().toString(),
+    createdAt: new Date().toISOString(),
+    isRead: false,
+    ...notification
+  };
+  mockNotifications.push(newNotification);
+  return newNotification;
+};
+
+// Check if student is assigned to classrooms (for notification badge logic)
+export const getStudentClassroomAssignments = (userId) => {
+  // Find classrooms where the student is assigned
+  const assignedClassrooms = mockClassrooms.filter(classroom => 
+    classroom.studentIds.includes(userId)
+  );
+  
+  // Also check classroom enrollments
+  const enrolledClassrooms = mockClassroomEnrollments
+    .filter(enrollment => enrollment.studentId === userId)
+    .map(enrollment => mockClassrooms.find(c => c.id === enrollment.classroomId))
+    .filter(Boolean);
+  
+  // Combine and deduplicate
+  const allClassrooms = [...assignedClassrooms];
+  enrolledClassrooms.forEach(classroom => {
+    if (!allClassrooms.find(c => c.id === classroom.id)) {
+      allClassrooms.push(classroom);
+    }
+  });
+  
+  return allClassrooms;
+};
+
+export const hasUnreadClassroomAssignments = (userId) => {
+  const unreadNotifications = getUnreadNotifications(userId);
+  return unreadNotifications.some(notification => 
+    notification.type === 'classroom_assignment'
+  );
+};
