@@ -955,10 +955,11 @@ export const mockClassrooms = [
 ];
 
 export const mockClassroomEnrollments = [
+  // Q1 2024 New Agent Training enrollments
   {
     id: '1',
     classroomId: '1',
-    studentId: '3',
+    studentId: '8', // Mike Johnson
     enrolledAt: '2024-03-01',
     progress: 45,
     completedCourses: [],
@@ -970,8 +971,36 @@ export const mockClassroomEnrollments = [
   },
   {
     id: '2',
+    classroomId: '1',
+    studentId: '9', // Jennifer Williams
+    enrolledAt: '2024-03-01',
+    progress: 38,
+    completedCourses: [],
+    testScores: [
+      { courseId: '1', score: 78, completedAt: '2024-03-12' }
+    ],
+    totalTimeSpent: 950, // minutes
+    lastAccessed: '2024-03-18'
+  },
+  {
+    id: '3',
+    classroomId: '1',
+    studentId: '11', // Maria Garcia
+    enrolledAt: '2024-03-01',
+    progress: 52,
+    completedCourses: [],
+    testScores: [
+      { courseId: '1', score: 92, completedAt: '2024-03-20' }
+    ],
+    totalTimeSpent: 1350, // minutes
+    lastAccessed: '2024-03-22'
+  },
+  
+  // Advanced Python Bootcamp enrollments
+  {
+    id: '4',
     classroomId: '2',
-    studentId: '3',
+    studentId: '8', // Mike Johnson
     enrolledAt: '2024-02-15',
     progress: 25,
     completedCourses: [],
@@ -980,6 +1009,110 @@ export const mockClassroomEnrollments = [
     ],
     totalTimeSpent: 800, // minutes
     lastAccessed: '2024-03-18'
+  },
+  {
+    id: '5',
+    classroomId: '2',
+    studentId: '10', // David Brown
+    enrolledAt: '2024-02-15',
+    progress: 32,
+    completedCourses: [],
+    testScores: [
+      { courseId: '2', score: 84, completedAt: '2024-02-28' }
+    ],
+    totalTimeSpent: 920, // minutes
+    lastAccessed: '2024-03-15'
+  },
+  {
+    id: '6',
+    classroomId: '2',
+    studentId: '13', // Linda Anderson
+    enrolledAt: '2024-02-15',
+    progress: 18,
+    completedCourses: [],
+    testScores: [
+      { courseId: '2', score: 72, completedAt: '2024-02-25' }
+    ],
+    totalTimeSpent: 650, // minutes
+    lastAccessed: '2024-03-10'
+  },
+
+  // Web Development Intensive enrollments
+  {
+    id: '7',
+    classroomId: '3',
+    studentId: '9', // Jennifer Williams
+    enrolledAt: '2024-03-15',
+    progress: 35,
+    completedCourses: [],
+    testScores: [
+      { courseId: '1', score: 88, completedAt: '2024-03-25' }
+    ],
+    totalTimeSpent: 780, // minutes
+    lastAccessed: '2024-03-28'
+  },
+  {
+    id: '8',
+    classroomId: '3',
+    studentId: '14', // Kevin Lee
+    enrolledAt: '2024-03-15',
+    progress: 42,
+    completedCourses: [],
+    testScores: [
+      { courseId: '1', score: 81, completedAt: '2024-03-22' }
+    ],
+    totalTimeSpent: 890, // minutes
+    lastAccessed: '2024-03-30'
+  },
+  {
+    id: '9',
+    classroomId: '3',
+    studentId: '17', // Jessica Clark
+    enrolledAt: '2024-03-15',
+    progress: 28,
+    completedCourses: [],
+    testScores: [],
+    totalTimeSpent: 520, // minutes
+    lastAccessed: '2024-03-26'
+  },
+
+  // Data Science Fundamentals enrollments
+  {
+    id: '10',
+    classroomId: '4',
+    studentId: '10', // David Brown
+    enrolledAt: '2024-04-01',
+    progress: 20,
+    completedCourses: [],
+    testScores: [
+      { courseId: '3', score: 75, completedAt: '2024-04-10' }
+    ],
+    totalTimeSpent: 640, // minutes
+    lastAccessed: '2024-04-15'
+  },
+  {
+    id: '11',
+    classroomId: '4',
+    studentId: '13', // Linda Anderson
+    enrolledAt: '2024-04-01',
+    progress: 25,
+    completedCourses: [],
+    testScores: [
+      { courseId: '3', score: 79, completedAt: '2024-04-08' }
+    ],
+    totalTimeSpent: 720, // minutes
+    lastAccessed: '2024-04-18'
+  },
+  {
+    id: '12',
+    classroomId: '4',
+    studentId: '18', // Christopher Moore
+    enrolledAt: '2024-04-01',
+    progress: 15,
+    completedCourses: [],
+    testScores: [],
+    totalTimeSpent: 480, // minutes
+    lastAccessed: '2024-04-12'
   }
 ];
 
