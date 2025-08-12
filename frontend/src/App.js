@@ -174,6 +174,12 @@ function App() {
               </ProtectedRoute>
             } />
             
+            <Route path="/categories" element={
+              <Layout>
+                <Categories />
+              </Layout>
+            } />
+            
             <Route path="/announcements" element={
               <ProtectedRoute>
                 <Announcements />
