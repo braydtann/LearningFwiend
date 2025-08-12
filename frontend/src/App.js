@@ -181,6 +181,12 @@ function App() {
               </Layout>
             } />
             
+            <Route path="/notifications" element={
+              <Layout>
+                <Notifications />
+              </Layout>
+            } />
+            
             <Route path="/announcements" element={
               <ProtectedRoute>
                 <Announcements />
