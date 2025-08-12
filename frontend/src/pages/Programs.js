@@ -154,6 +154,7 @@ const Programs = () => {
         description: '',
         courseIds: [],
         courseOrder: [],
+        nestedProgramIds: [], // Reset nested programs
         duration: '',
         difficulty: 'Beginner',
         deadline: '',
