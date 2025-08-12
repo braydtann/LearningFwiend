@@ -872,13 +872,13 @@ export const mockClassrooms = [
     trainerId: '2', // Sarah Wilson
     trainerName: 'Sarah Wilson',
     courseIds: ['1', '3'], // React Development and Digital Marketing
-    studentIds: ['3'], // Mike Johnson
+    studentIds: ['8', '9', '11'], // Mike Johnson, Jennifer Williams, Maria Garcia
     startDate: '2024-03-01',
     endDate: '2024-04-30',
     status: 'active',
     createdAt: '2024-02-20',
     metrics: {
-      totalStudents: 1,
+      totalStudents: 3,
       completedStudents: 0,
       averageProgress: 45,
       averageTimeToCompletion: null,
@@ -894,17 +894,61 @@ export const mockClassrooms = [
     trainerId: '2',
     trainerName: 'Sarah Wilson',
     courseIds: ['2'], // Python for Data Science
-    studentIds: ['3'],
+    studentIds: ['8', '10', '13'], // Mike Johnson, David Brown, Linda Anderson
     startDate: '2024-02-15',
     endDate: '2024-05-15',
     status: 'active',
     createdAt: '2024-02-01',
     metrics: {
-      totalStudents: 1,
+      totalStudents: 3,
       completedStudents: 0,
       averageProgress: 25,
       averageTimeToCompletion: null,
       averageTestScore: 78,
+      completionRate: 0
+    }
+  },
+  {
+    id: '3',
+    name: 'Web Development Intensive',
+    batchId: 'BATCH-2024-WD-003',
+    description: 'Comprehensive web development training covering modern frameworks',
+    trainerId: '3', // Sarah Wilson
+    trainerName: 'Sarah Wilson',
+    courseIds: ['1', '2'], // React Development, Advanced JavaScript
+    studentIds: ['9', '14', '17'], // Jennifer Williams, Kevin Lee, Jessica Clark
+    startDate: '2024-03-15',
+    endDate: '2024-06-15',
+    status: 'active',
+    createdAt: '2024-03-01',
+    metrics: {
+      totalStudents: 3,
+      completedStudents: 0,
+      averageProgress: 35,
+      averageTimeToCompletion: null,
+      averageTestScore: 82,
+      completionRate: 0
+    }
+  },
+  {
+    id: '4',
+    name: 'Data Science Fundamentals',
+    batchId: 'BATCH-2024-DS-004',
+    description: 'Introduction to data science concepts and Python programming',
+    trainerId: '4', // Dr. Michael Chen
+    trainerName: 'Dr. Michael Chen',
+    courseIds: ['3', '4'], // Python for Data Science, Machine Learning
+    studentIds: ['10', '13', '18'], // David Brown, Linda Anderson, Christopher Moore
+    startDate: '2024-04-01',
+    endDate: '2024-07-01',
+    status: 'active',
+    createdAt: '2024-03-15',
+    metrics: {
+      totalStudents: 3,
+      completedStudents: 0,
+      averageProgress: 20,
+      averageTimeToCompletion: null,
+      averageTestScore: 75,
       completionRate: 0
     }
   }
