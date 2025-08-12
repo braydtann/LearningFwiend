@@ -1,14 +1,24 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { useAuth } from '../contexts/AuthContext';
-import { getUserCertificates } from '../data/mockData';
+import { getUserCertificates, checkAndGenerateCertificates } from '../data/mockData';
 import { Award, Download, Share2, Calendar } from 'lucide-react';
 
 const Certificates = () => {
   const { user } = useAuth();
-  const certificates = getUserCertificates(user?.id);
+  const [certificates, setCertificates] = React.useState([]);
+
+  useEffect(() => {
+    if (user?.id) {
+      // Check and generate any new certificates for completed programs
+      checkAndGenerateCertificates(user.id);
+      // Get all certificates for the user
+      const userCertificates = getUserCertificates(user.id);
+      setCertificates(userCertificates);
+    }
+  }, [user?.id]);
 
   const handleDownload = (certificateId) => {
     // Mock download functionality
