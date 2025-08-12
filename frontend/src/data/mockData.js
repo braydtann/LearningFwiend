@@ -669,11 +669,19 @@ export const mockEnrollments = [
 export const mockCertificates = [
   {
     id: '1',
-    userId: '3',
-    courseId: '1',
-    courseName: 'React Development Fundamentals',
-    issuedAt: '2024-03-15',
-    certificateUrl: '/certificates/cert-1.pdf'
+    userId: '8', // Mike Johnson
+    programId: '1',
+    programName: 'Full Stack Development Certification',
+    issuedAt: '2024-04-15',
+    certificateUrl: '/certificates/cert-prog-1.pdf'
+  },
+  {
+    id: '2',
+    userId: '9', // Jennifer Williams
+    programId: '2',
+    programName: 'Digital Marketing Professional',
+    issuedAt: '2024-05-20',
+    certificateUrl: '/certificates/cert-prog-2.pdf'
   }
 ];
 
