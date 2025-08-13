@@ -93,11 +93,11 @@ const EditProgram = () => {
     setSaving(true);
     try {
       const programData = {
-        title: program.title,
-        description: program.description,
-        courseIds: program.courseIds,
-        nestedProgramIds: program.nestedProgramIds || [],
-        duration: program.duration
+        title: program?.title,
+        description: program?.description,
+        courseIds: program?.courseIds || [],
+        nestedProgramIds: program?.nestedProgramIds || [],
+        duration: program?.duration
       };
 
       const result = await updateProgram(id, programData);
