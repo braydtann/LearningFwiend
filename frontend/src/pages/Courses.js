@@ -105,10 +105,8 @@ const Courses = () => {
     }
   };
 
-  const availableCourses = courses;
-
   // Filter and sort courses
-  const filteredCourses = availableCourses
+  const filteredCourses = courses
     .filter(course => {
       const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            course.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -127,7 +125,7 @@ const Courses = () => {
       }
     });
 
-  const categories = ['all', ...new Set(mockCourses.map(course => course.category))];
+  const categories = ['all', ...new Set(courses.map(course => course.category))];
 
 
 
