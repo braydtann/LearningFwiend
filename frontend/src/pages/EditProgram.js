@@ -482,7 +482,7 @@ const EditProgram = () => {
                 <label key={course.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={program.courseIds.includes(course.id)}
+                    checked={program?.courseIds?.includes(course.id) || false}
                     onChange={(e) => handleCourseSelection(course.id, e.target.checked)}
                     className="rounded"
                   />
