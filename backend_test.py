@@ -1405,6 +1405,661 @@ class BackendTester:
             )
         return False
     
+    # =============================================================================
+    # PROGRAMS API TESTS - CLOUD MIGRATION TESTING
+    # =============================================================================
+    
+    def test_programs_get_all_active(self):
+        """Test GET /api/programs - Retrieve all active programs"""
+        if "admin" not in self.auth_tokens and "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Programs API - GET All Active", 
+                "SKIP", 
+                "No admin or instructor token available",
+                "Authentication required for programs access"
+            )
+            return False
+        
+        # Use admin token if available, otherwise instructor
+        token = self.auth_tokens.get("admin") or self.auth_tokens.get("instructor")
+        
+        try:
+            response = requests.get(
+                f"{BACKEND_URL}/programs",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {token}'
+                }
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                if isinstance(data, list):
+                    self.log_result(
+                        "Programs API - GET All Active", 
+                        "PASS", 
+                        f"Successfully retrieved {len(data)} active programs",
+                        f"Programs found: {[p.get('title', 'No title') for p in data[:3]]}"  # Show first 3
+                    )
+                    return data
+                else:
+                    self.log_result(
+                        "Programs API - GET All Active", 
+                        "FAIL", 
+                        "Response is not a list",
+                        f"Response type: {type(data)}"
+                    )
+            else:
+                self.log_result(
+                    "Programs API - GET All Active", 
+                    "FAIL", 
+                    f"Request failed with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Programs API - GET All Active", 
+                "FAIL", 
+                "Failed to retrieve active programs",
+                str(e)
+            )
+        return False
+    
+    def test_programs_create_new(self):
+        """Test POST /api/programs - Create new program with backend data structure"""
+        if "admin" not in self.auth_tokens and "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Programs API - POST Create New", 
+                "SKIP", 
+                "No admin or instructor token available",
+                "Authentication required for program creation"
+            )
+            return False
+        
+        # Use admin token if available, otherwise instructor
+        token = self.auth_tokens.get("admin") or self.auth_tokens.get("instructor")
+        
+        # Test program data as specified in the review request
+        test_program_data = {
+            "title": "Test Program Migration",
+            "description": "Testing cloud migration functionality",
+            "courseIds": [],
+            "nestedProgramIds": [],
+            "duration": "4 weeks"
+        }
+        
+        try:
+            response = requests.post(
+                f"{BACKEND_URL}/programs",
+                json=test_program_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {token}'
+                }
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                required_fields = ['id', 'title', 'description', 'instructorId', 'instructor', 'isActive', 'courseCount', 'created_at', 'updated_at']
+                
+                if all(field in data for field in required_fields):
+                    # Verify backend creates the expected fields
+                    if (data.get('title') == test_program_data['title'] and
+                        data.get('description') == test_program_data['description'] and
+                        data.get('duration') == test_program_data['duration'] and
+                        data.get('isActive') == True and
+                        data.get('courseCount') == 0):  # Empty courseIds should result in courseCount 0
+                        
+                        self.log_result(
+                            "Programs API - POST Create New", 
+                            "PASS", 
+                            f"Successfully created program '{data.get('title')}'",
+                            f"Program ID: {data.get('id')}, Instructor: {data.get('instructor')}, Active: {data.get('isActive')}"
+                        )
+                        return data  # Return created program for further testing
+                    else:
+                        self.log_result(
+                            "Programs API - POST Create New", 
+                            "FAIL", 
+                            "Created program data doesn't match expected values",
+                            f"Expected title: {test_program_data['title']}, Got: {data.get('title')}"
+                        )
+                else:
+                    self.log_result(
+                        "Programs API - POST Create New", 
+                        "FAIL", 
+                        "Response missing required backend fields",
+                        f"Missing: {[f for f in required_fields if f not in data]}"
+                    )
+            else:
+                self.log_result(
+                    "Programs API - POST Create New", 
+                    "FAIL", 
+                    f"Program creation failed with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Programs API - POST Create New", 
+                "FAIL", 
+                "Failed to create new program",
+                str(e)
+            )
+        return False
+    
+    def test_programs_get_specific(self, program_id=None):
+        """Test GET /api/programs/{program_id} - Get specific program by ID"""
+        if "admin" not in self.auth_tokens and "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Programs API - GET Specific", 
+                "SKIP", 
+                "No admin or instructor token available",
+                "Authentication required for program access"
+            )
+            return False
+        
+        # If no program_id provided, try to get one from existing programs
+        if not program_id:
+            programs = self.test_programs_get_all_active()
+            if programs and len(programs) > 0:
+                program_id = programs[0].get('id')
+            else:
+                self.log_result(
+                    "Programs API - GET Specific", 
+                    "SKIP", 
+                    "No program ID available for testing",
+                    "Need existing program or program_id parameter"
+                )
+                return False
+        
+        token = self.auth_tokens.get("admin") or self.auth_tokens.get("instructor")
+        
+        try:
+            response = requests.get(
+                f"{BACKEND_URL}/programs/{program_id}",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {token}'
+                }
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                required_fields = ['id', 'title', 'description', 'instructorId', 'instructor', 'isActive', 'courseCount']
+                
+                if all(field in data for field in required_fields):
+                    if data.get('id') == program_id:
+                        self.log_result(
+                            "Programs API - GET Specific", 
+                            "PASS", 
+                            f"Successfully retrieved program '{data.get('title')}'",
+                            f"Program ID: {program_id}, Instructor: {data.get('instructor')}"
+                        )
+                        return data
+                    else:
+                        self.log_result(
+                            "Programs API - GET Specific", 
+                            "FAIL", 
+                            "Retrieved program ID doesn't match requested ID",
+                            f"Requested: {program_id}, Got: {data.get('id')}"
+                        )
+                else:
+                    self.log_result(
+                        "Programs API - GET Specific", 
+                        "FAIL", 
+                        "Response missing required fields",
+                        f"Missing: {[f for f in required_fields if f not in data]}"
+                    )
+            elif response.status_code == 404:
+                self.log_result(
+                    "Programs API - GET Specific", 
+                    "PASS", 
+                    f"Correctly returned 404 for program ID: {program_id}",
+                    "Program not found as expected"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Programs API - GET Specific", 
+                    "FAIL", 
+                    f"Request failed with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Programs API - GET Specific", 
+                "FAIL", 
+                "Failed to retrieve specific program",
+                str(e)
+            )
+        return False
+    
+    def test_programs_update_existing(self, program_id=None, program_data=None):
+        """Test PUT /api/programs/{program_id} - Update existing program"""
+        if "admin" not in self.auth_tokens and "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Programs API - PUT Update", 
+                "SKIP", 
+                "No admin or instructor token available",
+                "Authentication required for program updates"
+            )
+            return False
+        
+        # If no program provided, create one first
+        if not program_id or not program_data:
+            created_program = self.test_programs_create_new()
+            if not created_program:
+                self.log_result(
+                    "Programs API - PUT Update", 
+                    "SKIP", 
+                    "Could not create test program for update testing",
+                    "Program creation failed"
+                )
+                return False
+            program_id = created_program.get('id')
+            program_data = created_program
+        
+        token = self.auth_tokens.get("admin") or self.auth_tokens.get("instructor")
+        
+        # Update the program data
+        updated_data = {
+            "title": f"{program_data.get('title', 'Test Program')} - Updated",
+            "description": f"{program_data.get('description', 'Test description')} - Updated via API test",
+            "courseIds": program_data.get('courseIds', []),
+            "nestedProgramIds": program_data.get('nestedProgramIds', []),
+            "duration": "6 weeks"  # Changed from original 4 weeks
+        }
+        
+        try:
+            response = requests.put(
+                f"{BACKEND_URL}/programs/{program_id}",
+                json=updated_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {token}'
+                }
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if (data.get('title') == updated_data['title'] and
+                    data.get('description') == updated_data['description'] and
+                    data.get('duration') == updated_data['duration'] and
+                    data.get('id') == program_id):
+                    
+                    self.log_result(
+                        "Programs API - PUT Update", 
+                        "PASS", 
+                        f"Successfully updated program '{data.get('title')}'",
+                        f"Updated fields: title, description, duration"
+                    )
+                    return data
+                else:
+                    self.log_result(
+                        "Programs API - PUT Update", 
+                        "FAIL", 
+                        "Updated program data doesn't match expected values",
+                        f"Expected title: {updated_data['title']}, Got: {data.get('title')}"
+                    )
+            elif response.status_code == 404:
+                self.log_result(
+                    "Programs API - PUT Update", 
+                    "FAIL", 
+                    f"Program not found for update: {program_id}",
+                    "Program may have been deleted or doesn't exist"
+                )
+            elif response.status_code == 403:
+                self.log_result(
+                    "Programs API - PUT Update", 
+                    "FAIL", 
+                    "Access denied - user cannot update this program",
+                    "User may not own this program"
+                )
+            else:
+                self.log_result(
+                    "Programs API - PUT Update", 
+                    "FAIL", 
+                    f"Program update failed with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Programs API - PUT Update", 
+                "FAIL", 
+                "Failed to update program",
+                str(e)
+            )
+        return False
+    
+    def test_programs_delete(self, program_id=None):
+        """Test DELETE /api/programs/{program_id} - Delete program"""
+        if "admin" not in self.auth_tokens and "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Programs API - DELETE", 
+                "SKIP", 
+                "No admin or instructor token available",
+                "Authentication required for program deletion"
+            )
+            return False
+        
+        # If no program_id provided, create one first
+        if not program_id:
+            created_program = self.test_programs_create_new()
+            if not created_program:
+                self.log_result(
+                    "Programs API - DELETE", 
+                    "SKIP", 
+                    "Could not create test program for deletion testing",
+                    "Program creation failed"
+                )
+                return False
+            program_id = created_program.get('id')
+        
+        token = self.auth_tokens.get("admin") or self.auth_tokens.get("instructor")
+        
+        try:
+            response = requests.delete(
+                f"{BACKEND_URL}/programs/{program_id}",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {token}'
+                }
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'message' in data and 'successfully deleted' in data['message'].lower():
+                    self.log_result(
+                        "Programs API - DELETE", 
+                        "PASS", 
+                        f"Successfully deleted program {program_id}",
+                        f"Message: {data.get('message')}"
+                    )
+                    
+                    # Verify program is actually deleted by trying to retrieve it
+                    verify_response = requests.get(
+                        f"{BACKEND_URL}/programs/{program_id}",
+                        timeout=TEST_TIMEOUT,
+                        headers={'Authorization': f'Bearer {token}'}
+                    )
+                    
+                    if verify_response.status_code == 404:
+                        self.log_result(
+                            "Programs API - DELETE Verification", 
+                            "PASS", 
+                            "Confirmed program was deleted (404 on retrieval)",
+                            "Deletion verified successfully"
+                        )
+                        return True
+                    else:
+                        self.log_result(
+                            "Programs API - DELETE Verification", 
+                            "FAIL", 
+                            f"Program still exists after deletion (status: {verify_response.status_code})",
+                            "Deletion may not have been completed"
+                        )
+                else:
+                    self.log_result(
+                        "Programs API - DELETE", 
+                        "FAIL", 
+                        "Unexpected response format for deletion",
+                        f"Response: {data}"
+                    )
+            elif response.status_code == 404:
+                self.log_result(
+                    "Programs API - DELETE", 
+                    "PASS", 
+                    f"Program not found for deletion: {program_id}",
+                    "404 response is valid for non-existent program"
+                )
+                return True
+            elif response.status_code == 403:
+                self.log_result(
+                    "Programs API - DELETE", 
+                    "FAIL", 
+                    "Access denied - user cannot delete this program",
+                    "User may not own this program"
+                )
+            else:
+                self.log_result(
+                    "Programs API - DELETE", 
+                    "FAIL", 
+                    f"Program deletion failed with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Programs API - DELETE", 
+                "FAIL", 
+                "Failed to delete program",
+                str(e)
+            )
+        return False
+    
+    def test_programs_authentication_admin_instructor(self):
+        """Test authentication with admin and instructor users for programs"""
+        test_results = []
+        
+        # Test with admin user
+        if "admin" in self.auth_tokens:
+            try:
+                response = requests.get(
+                    f"{BACKEND_URL}/programs",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+                )
+                
+                if response.status_code == 200:
+                    test_results.append(("admin", "PASS", "Admin can access programs API"))
+                else:
+                    test_results.append(("admin", "FAIL", f"Admin access failed: {response.status_code}"))
+            except requests.exceptions.RequestException as e:
+                test_results.append(("admin", "FAIL", f"Admin request failed: {str(e)}"))
+        
+        # Test with instructor user
+        if "instructor" in self.auth_tokens:
+            try:
+                response = requests.get(
+                    f"{BACKEND_URL}/programs",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {self.auth_tokens["instructor"]}'}
+                )
+                
+                if response.status_code == 200:
+                    test_results.append(("instructor", "PASS", "Instructor can access programs API"))
+                else:
+                    test_results.append(("instructor", "FAIL", f"Instructor access failed: {response.status_code}"))
+            except requests.exceptions.RequestException as e:
+                test_results.append(("instructor", "FAIL", f"Instructor request failed: {str(e)}"))
+        
+        # Test with student user (should be denied)
+        if "learner" in self.auth_tokens:
+            try:
+                response = requests.get(
+                    f"{BACKEND_URL}/programs",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {self.auth_tokens["learner"]}'}
+                )
+                
+                if response.status_code == 403:
+                    test_results.append(("learner", "PASS", "Student correctly denied access to programs API"))
+                else:
+                    test_results.append(("learner", "FAIL", f"Student access should be denied, got: {response.status_code}"))
+            except requests.exceptions.RequestException as e:
+                test_results.append(("learner", "FAIL", f"Student request failed: {str(e)}"))
+        
+        # Log all results
+        for role, status, message in test_results:
+            self.log_result(
+                f"Programs Authentication - {role.title()}", 
+                status, 
+                message,
+                f"Role-based access control test for {role}"
+            )
+        
+        return len([r for r in test_results if r[1] == "PASS"]) > 0
+    
+    def test_programs_error_handling(self):
+        """Test error handling for invalid requests"""
+        if "admin" not in self.auth_tokens and "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Programs Error Handling", 
+                "SKIP", 
+                "No admin or instructor token available",
+                "Authentication required for error handling tests"
+            )
+            return False
+        
+        token = self.auth_tokens.get("admin") or self.auth_tokens.get("instructor")
+        error_tests = []
+        
+        # Test 1: Invalid program ID access
+        try:
+            response = requests.get(
+                f"{BACKEND_URL}/programs/invalid-program-id",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {token}'}
+            )
+            
+            if response.status_code == 404:
+                error_tests.append(("Invalid Program ID", "PASS", "Correctly returned 404 for invalid program ID"))
+            else:
+                error_tests.append(("Invalid Program ID", "FAIL", f"Expected 404, got {response.status_code}"))
+        except requests.exceptions.RequestException as e:
+            error_tests.append(("Invalid Program ID", "FAIL", f"Request failed: {str(e)}"))
+        
+        # Test 2: Missing required fields in program creation
+        try:
+            invalid_program_data = {
+                "description": "Missing title field"
+                # Missing required 'title' field
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/programs",
+                json=invalid_program_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {token}'
+                }
+            )
+            
+            if response.status_code == 422:  # Validation error
+                error_tests.append(("Missing Required Fields", "PASS", "Correctly rejected program with missing title"))
+            else:
+                error_tests.append(("Missing Required Fields", "FAIL", f"Expected 422, got {response.status_code}"))
+        except requests.exceptions.RequestException as e:
+            error_tests.append(("Missing Required Fields", "FAIL", f"Request failed: {str(e)}"))
+        
+        # Test 3: Unauthorized access (no token)
+        try:
+            response = requests.get(
+                f"{BACKEND_URL}/programs",
+                timeout=TEST_TIMEOUT
+                # No Authorization header
+            )
+            
+            if response.status_code == 403:
+                error_tests.append(("Unauthorized Access", "PASS", "Correctly denied access without token"))
+            else:
+                error_tests.append(("Unauthorized Access", "FAIL", f"Expected 403, got {response.status_code}"))
+        except requests.exceptions.RequestException as e:
+            error_tests.append(("Unauthorized Access", "FAIL", f"Request failed: {str(e)}"))
+        
+        # Log all error handling test results
+        for test_name, status, message in error_tests:
+            self.log_result(
+                f"Programs Error Handling - {test_name}", 
+                status, 
+                message,
+                "Error handling validation"
+            )
+        
+        return len([t for t in error_tests if t[1] == "PASS"]) > 0
+    
+    def test_programs_data_structure_validation(self):
+        """Test that programs use correct data structure (title instead of name, etc.)"""
+        if "admin" not in self.auth_tokens and "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Programs Data Structure", 
+                "SKIP", 
+                "No admin or instructor token available",
+                "Authentication required for data structure validation"
+            )
+            return False
+        
+        # Create a test program to validate structure
+        created_program = self.test_programs_create_new()
+        if not created_program:
+            self.log_result(
+                "Programs Data Structure", 
+                "FAIL", 
+                "Could not create test program for data structure validation",
+                "Program creation failed"
+            )
+            return False
+        
+        # Validate the data structure
+        expected_fields = {
+            'id': str,
+            'title': str,  # Should be 'title', not 'name'
+            'description': str,
+            'instructorId': str,
+            'instructor': str,
+            'isActive': bool,
+            'courseCount': int,
+            'created_at': str,
+            'updated_at': str,
+            'courseIds': list,
+            'nestedProgramIds': list
+        }
+        
+        validation_results = []
+        
+        for field, expected_type in expected_fields.items():
+            if field in created_program:
+                actual_type = type(created_program[field])
+                if field in ['created_at', 'updated_at']:
+                    # These should be datetime strings
+                    if isinstance(created_program[field], str):
+                        validation_results.append((field, "PASS", f"Field present with correct type"))
+                    else:
+                        validation_results.append((field, "FAIL", f"Expected string datetime, got {actual_type}"))
+                elif actual_type == expected_type:
+                    validation_results.append((field, "PASS", f"Field present with correct type"))
+                else:
+                    validation_results.append((field, "FAIL", f"Expected {expected_type}, got {actual_type}"))
+            else:
+                validation_results.append((field, "FAIL", f"Required field missing"))
+        
+        # Check that 'name' field is NOT present (should be 'title')
+        if 'name' in created_program:
+            validation_results.append(("name_field_check", "FAIL", "Program still uses 'name' field instead of 'title'"))
+        else:
+            validation_results.append(("name_field_check", "PASS", "Program correctly uses 'title' field instead of 'name'"))
+        
+        # Log all validation results
+        passed_validations = 0
+        for field, status, message in validation_results:
+            self.log_result(
+                f"Programs Data Structure - {field}", 
+                status, 
+                message,
+                f"Field validation for {field}"
+            )
+            if status == "PASS":
+                passed_validations += 1
+        
+        # Clean up test program
+        if created_program.get('id'):
+            self.test_programs_delete(created_program['id'])
+        
+        return passed_validations > len(validation_results) * 0.8  # 80% pass rate
+    
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Backend Testing Suite for LearningFwiend LMS")
