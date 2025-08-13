@@ -12,35 +12,100 @@ import { BookOpen, Clock, Users, Search, Filter, Play, Star } from 'lucide-react
 import { useToast } from '../hooks/use-toast';
 
 const Courses = () => {
-  const { user, isLearner } = useAuth();
+  const { user, isAdmin, isInstructor, isLearner, getAllCourses, getMyCourses, enrollInCourse, unenrollFromCourse } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('recent');
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [enrollments, setEnrollments] = useState([]);
 
   const enrolledCourses = isLearner ? getEnrolledCourses(user?.id) : [];
   const enrolledCourseIds = enrolledCourses.map(course => course.id);
 
-  // Get available courses based on user role
-  const getAvailableCourses = () => {
-    // Get courses from localStorage (user-created courses)
-    const userCourses = JSON.parse(localStorage.getItem('user_courses') || '[]');
-    
-    // Combine mock courses with user-created courses
-    const allCourses = [...mockCourses, ...userCourses];
-    
-    if (user?.role === 'instructor') {
-      return allCourses.filter(course => 
-        course.instructorId === user.id || 
-        course.instructor === user.full_name ||
-        course.instructor === user.username
-      );
+  // Load courses on component mount
+  useEffect(() => {
+    loadCourses();
+  }, []);
+
+  const loadCourses = async () => {
+    setLoading(true);
+    try {
+      if (isInstructor || isAdmin) {
+        // For instructors and admins, get their courses
+        const result = await getMyCourses();
+        if (result.success) {
+          setCourses(result.courses);
+        } else {
+          toast({
+            title: "Error loading courses",
+            description: result.error,
+            variant: "destructive",
+          });
+        }
+      } else {
+        // For students, get all available courses
+        const result = await getAllCourses();
+        if (result.success) {
+          setCourses(result.courses);
+        } else {
+          toast({
+            title: "Error loading courses",
+            description: result.error,
+            variant: "destructive",
+          });
+        }
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load courses",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
-    return allCourses.filter(course => course.status === 'published');
   };
 
-  const availableCourses = getAvailableCourses();
+  const handleEnroll = async (courseId) => {
+    const result = await enrollInCourse(courseId);
+    if (result.success) {
+      toast({
+        title: "Enrolled successfully!",
+        description: "You have been enrolled in the course.",
+      });
+      // Reload courses to update enrollment status
+      loadCourses();
+    } else {
+      toast({
+        title: "Enrollment failed",
+        description: result.error,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleUnenroll = async (courseId) => {
+    const result = await unenrollFromCourse(courseId);
+    if (result.success) {
+      toast({
+        title: "Unenrolled successfully!",
+        description: "You have been removed from the course.",
+      });
+      // Reload courses to update enrollment status
+      loadCourses();
+    } else {
+      toast({
+        title: "Unenroll failed",
+        description: result.error,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const availableCourses = courses;
 
   // Filter and sort courses
   const filteredCourses = availableCourses
