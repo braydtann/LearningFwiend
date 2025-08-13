@@ -829,6 +829,18 @@ backend:
         agent: "testing"
         comment: "COMPREHENSIVE E2E PRODUCTION READINESS VERIFICATION: All API endpoints verified for production deployment. POST /api/status successfully creates entries, GET /api/status retrieves 18+ entries from database. LoginPal OAuth placeholder endpoints working correctly (status, users, webhook, sync-user, user-role). Error handling properly returns 422 for validation errors. All 6 core endpoints tested and functional. Production-ready status confirmed."
 
+  - task: "Programs API Cloud Migration Testing"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "COMPREHENSIVE PROGRAMS API TESTING COMPLETED SUCCESSFULLY: ✅ All 5 core Programs API endpoints fully functional for cloud migration - GET /api/programs (retrieves all active programs), POST /api/programs (creates new program with backend data structure), GET /api/programs/{program_id} (gets specific program by ID), PUT /api/programs/{program_id} (updates existing program), DELETE /api/programs/{program_id} (deletes program), ✅ Authentication system verified - admin (admin/NewAdmin123!) and instructor (instructor/Instructor123!) users can access and manage programs, ✅ Backend data structure validation confirmed - programs use 'title' instead of 'name', backend automatically creates programId, instructorId, instructor, isActive, courseCount, created_at, updated_at fields, ✅ Test program creation successful with specified data: {'title': 'Test Program Migration', 'description': 'Testing cloud migration functionality', 'courseIds': [], 'nestedProgramIds': [], 'duration': '4 weeks'}, ✅ Error handling verified - invalid program ID returns 404, missing required fields return 422 validation errors, unauthorized access returns 403, ✅ Empty state and populated state testing confirmed - API handles both scenarios correctly, ✅ Role-based access control working - instructors can create/manage programs, students properly denied access, ✅ CRUD operations fully functional - create, read, update, delete all working with proper data persistence and validation. Programs API is production-ready for cloud migration with 100% test success rate (14/14 tests passed)."
+
   - task: "Database Connectivity and Integration"
     implemented: true
     working: true
