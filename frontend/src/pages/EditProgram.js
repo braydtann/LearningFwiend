@@ -412,12 +412,12 @@ const EditProgram = () => {
           {/* Basic Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Program Name *</Label>
+              <Label htmlFor="title">Program Name *</Label>
               <Input
-                id="name"
+                id="title"
                 placeholder="Enter program name"
-                value={program.name}
-                onChange={(e) => setProgram(prev => ({ ...prev, name: e.target.value }))}
+                value={program?.title || ''}
+                onChange={(e) => setProgram(prev => ({ ...prev, title: e.target.value }))}
               />
             </div>
             
