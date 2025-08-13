@@ -144,14 +144,14 @@ const EditProgram = () => {
   };
 
   const moveCourseUp = (index) => {
-    if (index === 0) return;
+    if (index === 0 || !program?.courseOrder) return;
     const newOrder = [...program.courseOrder];
     [newOrder[index], newOrder[index - 1]] = [newOrder[index - 1], newOrder[index]];
     setProgram(prev => ({ ...prev, courseOrder: newOrder }));
   };
 
   const moveCourseDown = (index) => {
-    if (index === program.courseOrder.length - 1) return;
+    if (!program?.courseOrder || index === program.courseOrder.length - 1) return;
     const newOrder = [...program.courseOrder];
     [newOrder[index], newOrder[index + 1]] = [newOrder[index + 1], newOrder[index]];
     setProgram(prev => ({ ...prev, courseOrder: newOrder }));
@@ -160,8 +160,8 @@ const EditProgram = () => {
   const removeCourseFromOrder = (courseId) => {
     setProgram(prev => ({
       ...prev,
-      courseIds: prev.courseIds.filter(id => id !== courseId),
-      courseOrder: prev.courseOrder.filter(id => id !== courseId)
+      courseIds: prev?.courseIds?.filter(id => id !== courseId) || [],
+      courseOrder: prev?.courseOrder?.filter(id => id !== courseId) || []
     }));
   };
 
