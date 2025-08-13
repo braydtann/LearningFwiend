@@ -117,16 +117,16 @@ const Profile = () => {
               {/* Avatar */}
               <div className="flex items-center space-x-6">
                 <Avatar className="h-24 w-24">
-                  <AvatarImage src={formData.avatar} alt={formData.name} />
+                  <AvatarImage src={formData.avatar} alt={formData.full_name} />
                   <AvatarFallback className="text-2xl">
-                    {formData.name?.charAt(0) || 'U'}
+                    {formData.full_name?.charAt(0) || 'U'}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">{formData.name}</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">{formData.full_name}</h3>
                   <p className="text-gray-600 capitalize">{user?.role}</p>
                   <p className="text-sm text-gray-500">
-                    Member since {new Date(user?.joinDate).toLocaleDateString()}
+                    Member since {new Date(user?.created_at).toLocaleDateString()}
                   </p>
                 </div>
               </div>
@@ -134,11 +134,11 @@ const Profile = () => {
               {/* Form Fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Full Name</Label>
+                  <Label htmlFor="full_name">Full Name</Label>
                   <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
+                    id="full_name"
+                    value={formData.full_name}
+                    onChange={(e) => handleInputChange('full_name', e.target.value)}
                     disabled={!isEditing}
                   />
                 </div>
