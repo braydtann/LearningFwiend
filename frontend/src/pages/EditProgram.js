@@ -105,7 +105,7 @@ const EditProgram = () => {
       if (result.success) {
         toast({
           title: "Program updated successfully!",
-          description: `${program.title} has been updated.`,
+          description: `${program?.title} has been updated.`,
         });
         navigate(`/program/${id}`);
       } else {
