@@ -478,7 +478,7 @@ const EditProgram = () => {
           <div className="space-y-4">
             <Label>Select Courses *</Label>
             <div className="grid grid-cols-1 gap-3 max-h-48 overflow-y-auto border rounded-md p-4">
-              {mockCourses.map(course => (
+              {courses.map(course => (
                 <label key={course.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer">
                   <input
                     type="checkbox"
