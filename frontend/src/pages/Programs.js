@@ -766,7 +766,7 @@ const Programs = () => {
               <div>
                 <p className="text-green-600 text-sm font-medium">Active Programs</p>
                 <p className="text-2xl font-bold text-green-700">
-                  {programs.filter(p => p.status === 'active').length}
+                  {programs.filter(p => p.isActive).length}
                 </p>
               </div>
               <BarChart className="h-8 w-8 text-green-600" />
@@ -778,26 +778,26 @@ const Programs = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-orange-600 text-sm font-medium">Total Enrollments</p>
+                <p className="text-orange-600 text-sm font-medium">Total Courses</p>
                 <p className="text-2xl font-bold text-orange-700">
-                  {programs.reduce((sum, p) => sum + p.enrolledStudents, 0)}
+                  {programs.reduce((sum, p) => sum + (p.courseCount || 0), 0)}
                 </p>
               </div>
-              <Users className="h-8 w-8 text-orange-600" />
+              <BookOpen className="h-8 w-8 text-orange-600" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-red-50 border-red-200">
+        <Card className="bg-purple-50 border-purple-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-red-600 text-sm font-medium">Urgent Deadlines</p>
-                <p className="text-2xl font-bold text-red-700">
-                  {programs.filter(p => p.deadlineStatus?.status === 'urgent' || p.deadlineStatus?.status === 'overdue').length}
+                <p className="text-purple-600 text-sm font-medium">My Programs</p>
+                <p className="text-2xl font-bold text-purple-700">
+                  {programs.filter(p => p.instructorId === user?.id).length}
                 </p>
               </div>
-              <AlertTriangle className="h-8 w-8 text-red-600" />
+              <Users className="h-8 w-8 text-purple-600" />
             </div>
           </CardContent>
         </Card>
