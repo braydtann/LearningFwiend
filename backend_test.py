@@ -2140,6 +2140,41 @@ class BackendTester:
         # User Deletion Test 7: Unauthorized access
         self.test_unauthorized_deletion_attempt()
         
+        print("\n" + "=" * 60)
+        print("📚 PROGRAMS API TESTS - CLOUD MIGRATION")
+        print("=" * 60)
+        
+        # Programs API Test 1: Authentication testing
+        self.test_programs_authentication_admin_instructor()
+        
+        # Programs API Test 2: Get all active programs
+        self.test_programs_get_all_active()
+        
+        # Programs API Test 3: Create new program
+        created_program = self.test_programs_create_new()
+        
+        # Programs API Test 4: Get specific program
+        if created_program:
+            self.test_programs_get_specific(created_program.get('id'))
+        else:
+            self.test_programs_get_specific()  # Try with existing programs
+        
+        # Programs API Test 5: Update existing program
+        if created_program:
+            self.test_programs_update_existing(created_program.get('id'), created_program)
+        else:
+            self.test_programs_update_existing()  # Create and update
+        
+        # Programs API Test 6: Delete program
+        # Note: We'll create a separate program for deletion to avoid conflicts
+        self.test_programs_delete()
+        
+        # Programs API Test 7: Error handling
+        self.test_programs_error_handling()
+        
+        # Programs API Test 8: Data structure validation
+        self.test_programs_data_structure_validation()
+        
         return self.generate_summary()
     
     def generate_summary(self):
