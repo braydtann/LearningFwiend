@@ -612,10 +612,39 @@ const CreateCourse = () => {
       return;
     }
 
-    // In real app, would make API call to save course
+    // Create course object with proper structure
+    const newCourse = {
+      id: isEditing ? id : `course_${Date.now()}`,
+      ...courseData,
+      instructorId: user?.id,
+      instructor: user?.full_name || user?.username,
+      createdAt: isEditing ? existingCourse?.createdAt : new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      status: 'published',
+      enrolledStudents: existingCourse?.enrolledStudents || 0,
+      rating: existingCourse?.rating || 4.5,
+      reviews: existingCourse?.reviews || []
+    };
+
+    // Store in localStorage for now (until backend course API is implemented)
+    const existingCourses = JSON.parse(localStorage.getItem('user_courses') || '[]');
+    
+    if (isEditing) {
+      // Update existing course
+      const courseIndex = existingCourses.findIndex(c => c.id === id);
+      if (courseIndex >= 0) {
+        existingCourses[courseIndex] = newCourse;
+      }
+    } else {
+      // Add new course
+      existingCourses.push(newCourse);
+    }
+    
+    localStorage.setItem('user_courses', JSON.stringify(existingCourses));
+
     toast({
       title: isEditing ? "Course updated!" : "Course created!",
-      description: `Your course has been ${isEditing ? 'updated' : 'created'} successfully.`,
+      description: `Your course "${courseData.title}" has been ${isEditing ? 'updated' : 'created'} successfully and is now visible under "My Courses".`,
     });
     
     navigate('/courses');
