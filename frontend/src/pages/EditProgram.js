@@ -145,7 +145,7 @@ const EditProgram = () => {
 
   const moveCourseUp = (index) => {
     if (index === 0 || !program?.courseOrder) return;
-    const newOrder = [...program.courseOrder];
+    const newOrder = [...(program?.courseOrder || [])];
     [newOrder[index], newOrder[index - 1]] = [newOrder[index - 1], newOrder[index]];
     setProgram(prev => ({ ...prev, courseOrder: newOrder }));
   };
