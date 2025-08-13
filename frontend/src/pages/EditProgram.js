@@ -81,22 +81,10 @@ const EditProgram = () => {
   }, [id, getProgramById, getAllCourses, toast]);
 
   const handleSaveProgram = async () => {
-    if (!program.name || !program.description || program.courseIds.length === 0 || !program.deadline) {
+    if (!program.title || !program.description || program.courseIds.length === 0) {
       toast({
         title: "Missing required fields",
-        description: "Please fill in all required information including deadline and select at least one course.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Validate deadline is in the future
-    const today = new Date();
-    const selectedDeadline = new Date(program.deadline);
-    if (selectedDeadline <= today) {
-      toast({
-        title: "Invalid deadline",
-        description: "Program deadline must be in the future.",
+        description: "Please fill in all required information and select at least one course.",
         variant: "destructive",
       });
       return;
@@ -104,24 +92,28 @@ const EditProgram = () => {
 
     setSaving(true);
     try {
-      const updatedProgram = {
-        ...program,
-        courseOrder: program.courseOrder.length > 0 ? program.courseOrder : program.courseIds,
-        totalCourses: program.courseIds.length,
-        estimatedHours: program.courseIds.length * 20,
+      const programData = {
+        title: program.title,
+        description: program.description,
+        courseIds: program.courseIds,
+        nestedProgramIds: program.nestedProgramIds || [],
+        duration: program.duration
       };
 
-      // Update the program (this would normally be an API call)
-      const success = updateProgram(id, updatedProgram);
+      const result = await updateProgram(id, programData);
       
-      if (success) {
+      if (result.success) {
         toast({
           title: "Program updated successfully!",
-          description: `${program.name} has been updated with ${program.courseIds.length} courses.`,
+          description: `${program.title} has been updated.`,
         });
-        navigate('/programs');
+        navigate(`/program/${id}`);
       } else {
-        throw new Error('Failed to update program');
+        toast({
+          title: "Error updating program",
+          description: result.error,
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error('Error updating program:', error);
