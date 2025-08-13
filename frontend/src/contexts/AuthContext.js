@@ -646,6 +646,9 @@ export const AuthProvider = ({ children }) => {
     createProgram,
     getAllPrograms,
     getMyPrograms,
+    getProgramById,
+    updateProgram,
+    deleteProgram,
     // User role helpers
     isAdmin: user?.role === 'admin',
     isInstructor: user?.role === 'instructor',
