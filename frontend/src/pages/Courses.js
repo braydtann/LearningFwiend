@@ -129,13 +129,7 @@ const Courses = () => {
 
   const categories = ['all', ...new Set(mockCourses.map(course => course.category))];
 
-  const handleEnroll = (courseId) => {
-    toast({
-      title: "Enrolled successfully!",
-      description: "You can now access the course content.",
-    });
-    // In real app, would make API call to enroll
-  };
+
 
   const handleViewCourse = (courseId) => {
     navigate(`/course/${courseId}`);
