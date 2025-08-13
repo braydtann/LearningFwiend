@@ -102,111 +102,68 @@ const Programs = () => {
     loadData();
   }, [getAllPrograms, getAllCourses, toast]);
 
-  const handleCreateProgram = () => {
-    if (!newProgram.name || !newProgram.description || newProgram.courseIds.length === 0 || !newProgram.deadline) {
+  const handleCreateProgram = async () => {
+    if (!newProgram.title || !newProgram.description || newProgram.courseIds.length === 0) {
       toast({
         title: "Missing required fields",
-        description: "Please fill in all required information including deadline and select at least one course.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Validate deadline is in the future
-    const today = new Date();
-    const selectedDeadline = new Date(newProgram.deadline);
-    if (selectedDeadline <= today) {
-      toast({
-        title: "Invalid deadline",
-        description: "Program deadline must be in the future.",
+        description: "Please fill in all required information and select at least one course.",
         variant: "destructive",
       });
       return;
     }
 
     try {
-      // Create new program object
-      const newProgramObj = {
-        id: `${Date.now()}`, // Use timestamp for unique ID
-        name: newProgram.name,
+      // Prepare program data for backend
+      const programData = {
+        title: newProgram.title,
         description: newProgram.description,
         courseIds: newProgram.courseIds,
-        courseOrder: newProgram.courseOrder.length > 0 ? newProgram.courseOrder : newProgram.courseIds,
-        nestedProgramIds: newProgram.nestedProgramIds, // Include nested programs
+        nestedProgramIds: newProgram.nestedProgramIds,
         duration: newProgram.duration || '8 weeks',
-        difficulty: newProgram.difficulty,
-        deadline: newProgram.deadline,
-        createdBy: user?.id || '1',
-        createdAt: new Date().toISOString().split('T')[0],
-        status: 'active',
-        enrolledStudents: 0,
-        totalCourses: newProgram.courseIds.length,
-        estimatedHours: newProgram.courseIds.length * 20,
-        finalTest: {
-          id: `ft-prog-${Date.now()}`,
-          title: newProgram.finalTest.title || `${newProgram.name} Final Assessment`,
-          description: newProgram.finalTest.description || `Comprehensive assessment for the ${newProgram.name} program`,
-          timeLimit: newProgram.finalTest.timeLimit || 90,
-          passingScore: newProgram.finalTest.passingScore || 75,
-          maxAttempts: newProgram.finalTest.maxAttempts || 2,
-          questions: newProgram.finalTest.questions.length > 0 
-            ? newProgram.finalTest.questions 
-            : [
-                {
-                  id: 'q1',
-                  type: 'multiple-choice',
-                  question: `What are the key learning objectives of the ${newProgram.name} program?`,
-                  options: ['Comprehensive skill development', 'Basic knowledge only', 'Theory without practice', 'Limited scope learning'],
-                  correctAnswer: 0,
-                  points: 10
-                }
-              ]
+        // Note: Backend will add instructorId, instructor, and other metadata
+      };
+
+      const result = await createProgram(programData);
+      
+      if (result.success) {
+        // Refresh programs list
+        const programsResult = await getAllPrograms();
+        if (programsResult.success) {
+          setPrograms(programsResult.programs);
         }
-      };
 
-      // Add deadline status
-      const programWithStatus = {
-        ...newProgramObj,
-        deadlineStatus: getProgramDeadlineStatus(newProgramObj.deadline)
-      };
-      
-      // Add program to mock data first
-      addProgram(programWithStatus);
-      
-      // Update state to reflect the change immediately
-      setPrograms(prevPrograms => {
-        console.log('Adding program to state:', programWithStatus);
-        console.log('Previous programs count:', prevPrograms.length);
-        const updatedPrograms = [...prevPrograms, programWithStatus];
-        console.log('New programs count:', updatedPrograms.length);
-        return updatedPrograms;
-      });
+        toast({
+          title: "Program created successfully!",
+          description: `${newProgram.title} has been created with ${newProgram.courseIds.length} courses.`,
+        });
 
-      toast({
-        title: "Program created successfully!",
-        description: `${newProgram.name} has been created with ${newProgram.courseIds.length} courses and deadline set for ${new Date(newProgram.deadline).toLocaleDateString()}.`,
-      });
-
-      // Reset form
-      setNewProgram({
-        name: '',
-        description: '',
-        courseIds: [],
-        courseOrder: [],
-        nestedProgramIds: [], // Reset nested programs
-        duration: '',
-        difficulty: 'Beginner',
-        deadline: '',
-        finalTest: {
+        // Reset form
+        setNewProgram({
           title: '',
           description: '',
-          timeLimit: 90,
-          passingScore: 75,
-          maxAttempts: 2,
-          questions: []
-        }
-      });
-      setIsCreateModalOpen(false);
+          courseIds: [],
+          courseOrder: [],
+          nestedProgramIds: [],
+          duration: '',
+          difficulty: 'Beginner',
+          deadline: '',
+          finalTest: {
+            title: '',
+            description: '',
+            timeLimit: 90,
+            passingScore: 75,
+            maxAttempts: 2,
+            questions: []
+          }
+        });
+        setIsCreateModalOpen(false);
+      } else {
+        toast({
+          title: "Error creating program",
+          description: result.error,
+          variant: "destructive",
+        });
+      }
       
     } catch (error) {
       console.error('Error creating program:', error);
