@@ -131,14 +131,14 @@ const EditProgram = () => {
     if (checked) {
       setProgram(prev => ({
         ...prev,
-        courseIds: [...prev.courseIds, courseId],
-        courseOrder: [...prev.courseOrder, courseId]
+        courseIds: [...(prev?.courseIds || []), courseId],
+        courseOrder: [...(prev?.courseOrder || []), courseId]
       }));
     } else {
       setProgram(prev => ({
         ...prev,
-        courseIds: prev.courseIds.filter(id => id !== courseId),
-        courseOrder: prev.courseOrder.filter(id => id !== courseId)
+        courseIds: prev?.courseIds?.filter(id => id !== courseId) || [],
+        courseOrder: prev?.courseOrder?.filter(id => id !== courseId) || []
       }));
     }
   };
