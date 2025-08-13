@@ -634,6 +634,252 @@ async def get_current_user_info(current_user: UserResponse = Depends(get_current
 
 
 # =============================================================================
+# COURSE MANAGEMENT ENDPOINTS
+# =============================================================================
+
+@api_router.post("/courses", response_model=CourseResponse)
+async def create_course(
+    course_data: CourseCreate,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Create a new course."""
+    # Only instructors and admins can create courses
+    if current_user.role not in ['instructor', 'admin']:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only instructors and admins can create courses"
+        )
+    
+    # Create course document
+    course_dict = {
+        "id": str(uuid.uuid4()),
+        **course_data.dict(),
+        "instructorId": current_user.id,
+        "instructor": current_user.full_name,
+        "status": "published",
+        "enrolledStudents": 0,
+        "rating": 4.5,
+        "reviews": [],
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
+    }
+    
+    # Insert course into database
+    await db.courses.insert_one(course_dict)
+    
+    return CourseResponse(**course_dict)
+
+@api_router.get("/courses", response_model=List[CourseResponse])
+async def get_all_courses(current_user: UserResponse = Depends(get_current_user)):
+    """Get all published courses (course catalog)."""
+    courses = await db.courses.find({"status": "published"}).to_list(1000)
+    return [CourseResponse(**course) for course in courses]
+
+@api_router.get("/courses/my-courses", response_model=List[CourseResponse])
+async def get_my_courses(current_user: UserResponse = Depends(get_current_user)):
+    """Get courses created by current user or enrolled in."""
+    if current_user.role in ['instructor', 'admin']:
+        # Get courses created by this instructor
+        created_courses = await db.courses.find({"instructorId": current_user.id}).to_list(1000)
+        return [CourseResponse(**course) for course in created_courses]
+    else:
+        # Get courses student is enrolled in
+        enrollments = await db.enrollments.find({"userId": current_user.id}).to_list(1000)
+        course_ids = [enrollment['courseId'] for enrollment in enrollments]
+        
+        if not course_ids:
+            return []
+            
+        enrolled_courses = await db.courses.find({"id": {"$in": course_ids}}).to_list(1000)
+        return [CourseResponse(**course) for course in enrolled_courses]
+
+@api_router.get("/courses/{course_id}", response_model=CourseResponse)
+async def get_course(
+    course_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Get a specific course by ID."""
+    course = await db.courses.find_one({"id": course_id})
+    if not course:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Course not found"
+        )
+    
+    return CourseResponse(**course)
+
+@api_router.put("/courses/{course_id}", response_model=CourseResponse)
+async def update_course(
+    course_id: str,
+    course_data: CourseCreate,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Update a course (only by course creator or admin)."""
+    # Find the course
+    course = await db.courses.find_one({"id": course_id})
+    if not course:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Course not found"
+        )
+    
+    # Check permissions
+    if current_user.role != 'admin' and course['instructorId'] != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only edit your own courses"
+        )
+    
+    # Update course
+    update_data = course_data.dict()
+    update_data["updated_at"] = datetime.utcnow()
+    
+    result = await db.courses.update_one(
+        {"id": course_id},
+        {"$set": update_data}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Course not found or no changes made"
+        )
+    
+    # Get updated course
+    updated_course = await db.courses.find_one({"id": course_id})
+    return CourseResponse(**updated_course)
+
+@api_router.delete("/courses/{course_id}")
+async def delete_course(
+    course_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Delete a course (only by course creator or admin)."""
+    # Find the course
+    course = await db.courses.find_one({"id": course_id})
+    if not course:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Course not found"
+        )
+    
+    # Check permissions
+    if current_user.role != 'admin' and course['instructorId'] != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only delete your own courses"
+        )
+    
+    # Delete the course
+    result = await db.courses.delete_one({"id": course_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Course not found"
+        )
+    
+    return {"message": f"Course '{course['title']}' has been successfully deleted"}
+
+
+# =============================================================================
+# ENROLLMENT ENDPOINTS
+# =============================================================================
+
+@api_router.post("/enrollments", response_model=EnrollmentResponse)
+async def enroll_in_course(
+    enrollment_data: EnrollmentCreate,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Enroll current user in a course."""
+    # Only learners can enroll (instructors manage their own courses)
+    if current_user.role != 'learner':
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only students can enroll in courses"
+        )
+    
+    # Check if course exists
+    course = await db.courses.find_one({"id": enrollment_data.courseId})
+    if not course:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Course not found"
+        )
+    
+    # Check if already enrolled
+    existing_enrollment = await db.enrollments.find_one({
+        "userId": current_user.id,
+        "courseId": enrollment_data.courseId
+    })
+    
+    if existing_enrollment:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You are already enrolled in this course"
+        )
+    
+    # Create enrollment
+    enrollment_dict = {
+        "id": str(uuid.uuid4()),
+        "userId": current_user.id,
+        "courseId": enrollment_data.courseId,
+        "enrolledAt": datetime.utcnow(),
+        "progress": 0.0,
+        "completedAt": None,
+        "status": "active"
+    }
+    
+    await db.enrollments.insert_one(enrollment_dict)
+    
+    # Update course enrollment count
+    await db.courses.update_one(
+        {"id": enrollment_data.courseId},
+        {"$inc": {"enrolledStudents": 1}}
+    )
+    
+    return EnrollmentResponse(**enrollment_dict)
+
+@api_router.get("/enrollments", response_model=List[EnrollmentResponse])
+async def get_my_enrollments(current_user: UserResponse = Depends(get_current_user)):
+    """Get current user's course enrollments."""
+    enrollments = await db.enrollments.find({"userId": current_user.id}).to_list(1000)
+    return [EnrollmentResponse(**enrollment) for enrollment in enrollments]
+
+@api_router.delete("/enrollments/{course_id}")
+async def unenroll_from_course(
+    course_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Unenroll from a course."""
+    # Find enrollment
+    enrollment = await db.enrollments.find_one({
+        "userId": current_user.id,
+        "courseId": course_id
+    })
+    
+    if not enrollment:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Enrollment not found"
+        )
+    
+    # Delete enrollment
+    await db.enrollments.delete_one({
+        "userId": current_user.id,
+        "courseId": course_id
+    })
+    
+    # Update course enrollment count
+    await db.courses.update_one(
+        {"id": course_id},
+        {"$inc": {"enrolledStudents": -1}}
+    )
+    
+    return {"message": "Successfully unenrolled from course"}
+
+
+# =============================================================================
 # EXISTING MODELS AND ENDPOINTS (PRESERVED)
 # =============================================================================
 
