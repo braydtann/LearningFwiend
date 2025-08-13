@@ -119,7 +119,7 @@ const ProgramDetail = () => {
         </Button>
         <div className="h-6 border-l border-gray-300"></div>
         <nav className="text-sm text-gray-500">
-          <span>Programs</span> / <span className="text-gray-900">{program.name}</span>
+          <span>Programs</span> / <span className="text-gray-900">{program.title}</span>
         </nav>
       </div>
 
@@ -129,12 +129,9 @@ const ProgramDetail = () => {
           <div className="flex items-start justify-between mb-6">
             <div className="flex-1">
               <div className="flex items-center space-x-3 mb-4">
-                <h1 className="text-3xl font-bold text-gray-900">{program.name}</h1>
-                <Badge className={getDifficultyColor(program.difficulty)}>
-                  {program.difficulty}
-                </Badge>
-                <Badge variant={program.status === 'active' ? 'default' : 'secondary'}>
-                  {program.status}
+                <h1 className="text-3xl font-bold text-gray-900">{program.title}</h1>
+                <Badge variant={program.isActive ? 'default' : 'secondary'}>
+                  {program.isActive ? 'Active' : 'Inactive'}
                 </Badge>
               </div>
               <p className="text-lg text-gray-600 mb-6">{program.description}</p>
@@ -144,7 +141,7 @@ const ProgramDetail = () => {
                   <BookOpen className="h-5 w-5 text-gray-500" />
                   <div>
                     <p className="text-sm text-gray-500">Courses</p>
-                    <p className="font-medium">{program.totalCourses}</p>
+                    <p className="font-medium">{program.courseCount || 0}</p>
                   </div>
                 </div>
                 
@@ -152,7 +149,7 @@ const ProgramDetail = () => {
                   <Users className="h-5 w-5 text-gray-500" />
                   <div>
                     <p className="text-sm text-gray-500">Enrolled Students</p>
-                    <p className="font-medium">{program.enrolledStudents}</p>
+                    <p className="font-medium">0</p>
                   </div>
                 </div>
                 
@@ -160,35 +157,56 @@ const ProgramDetail = () => {
                   <Clock className="h-5 w-5 text-gray-500" />
                   <div>
                     <p className="text-sm text-gray-500">Duration</p>
-                    <p className="font-medium">{program.duration}</p>
+                    <p className="font-medium">{program.duration || 'N/A'}</p>
                   </div>
                 </div>
 
                 <div className="flex items-center space-x-3">
-                  <Target className="h-5 w-5 text-gray-500" />
+                  <Calendar className="h-5 w-5 text-gray-500" />
                   <div>
-                    <p className="text-sm text-gray-500">Estimated Hours</p>
-                    <p className="font-medium">{program.estimatedHours}h</p>
+                    <p className="text-sm text-gray-500">Created</p>
+                    <p className="font-medium">{new Date(program.created_at).toLocaleDateString()}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <div className="flex items-center space-x-3">
+                  <Award className="h-5 w-5 text-purple-500" />
+                  <div>
+                    <p className="text-sm text-gray-500">Created by</p>
+                    <p className="font-medium">{program.instructor || 'Unknown'}</p>
                   </div>
                 </div>
               </div>
             </div>
+            
+            {(user?.role === 'admin' || program.instructorId === user?.id) && (
+              <div className="flex flex-col space-y-2">
+                <Button 
+                  onClick={() => navigate(`/program/${program.id}/edit`)}
+                  className="flex items-center space-x-2"
+                >
+                  <span>Edit Program</span>
+                </Button>
+              </div>
+            )}
           </div>
 
           <div className="bg-blue-50 p-6 rounded-lg">
             <h3 className="text-lg font-semibold text-blue-900 mb-4">Program Statistics</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="text-center">
-                <div className="text-2xl font-bold text-blue-700">{program.enrolledStudents}</div>
+                <div className="text-2xl font-bold text-blue-700">0</div>
                 <div className="text-sm text-blue-600">Total Enrollments</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-green-700">85%</div>
-                <div className="text-sm text-green-600">Completion Rate</div>
+                <div className="text-2xl font-bold text-green-700">{program.courseCount || 0}</div>
+                <div className="text-sm text-green-600">Total Courses</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-orange-700">4.8</div>
-                <div className="text-sm text-orange-600">Average Rating</div>
+                <div className="text-2xl font-bold text-orange-700">{program.isActive ? 'Active' : 'Inactive'}</div>
+                <div className="text-sm text-orange-600">Status</div>
               </div>
             </div>
           </div>
