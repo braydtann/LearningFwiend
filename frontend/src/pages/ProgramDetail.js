@@ -219,65 +219,84 @@ const ProgramDetail = () => {
           <CardTitle className="text-xl">Learning Path</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-6">
-            {courses.map((course, index) => (
-              <div key={course.id} className="relative">
-                {/* Connector Line */}
-                {index < courses.length - 1 && (
-                  <div className="absolute left-6 top-20 w-0.5 h-16 bg-gray-200"></div>
-                )}
-                
-                <Card className={`transition-shadow ${
-                  course.status === 'locked' 
-                    ? 'border-gray-300 bg-gray-50' 
-                    : course.status === 'completed'
-                    ? 'border-green-300 bg-green-50 hover:shadow-md'
-                    : 'hover:shadow-md'
-                }`}>
-                  <CardContent className="p-6">
-                    <div className="flex items-start space-x-4">
-                      {/* Step Number with Status Icon */}
-                      <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0 ${
-                        course.status === 'locked' 
-                          ? 'bg-gray-400 text-white'
-                          : course.status === 'completed'
-                          ? 'bg-green-600 text-white'
-                          : course.status === 'in-progress'
-                          ? 'bg-orange-600 text-white'
-                          : 'bg-blue-600 text-white'
-                      }`}>
-                        {course.status === 'locked' ? (
-                          <Lock className="w-5 h-5" />
-                        ) : course.status === 'completed' ? (
-                          <CheckCircle className="w-5 h-5" />
-                        ) : (
-                          index + 1
-                        )}
+          {courses.length === 0 ? (
+            <div className="text-center py-8">
+              <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No Courses Added</h3>
+              <p className="text-gray-600">This program doesn't have any courses assigned yet.</p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {courses.map((course, index) => (
+                <div key={course.id} className="relative">
+                  {/* Connector Line */}
+                  {index < courses.length - 1 && (
+                    <div className="absolute left-6 top-20 w-0.5 h-16 bg-gray-200"></div>
+                  )}
+                  
+                  <Card className="hover:shadow-md transition-shadow">
+                    <CardContent className="p-6">
+                      <div className="flex items-start space-x-4">
+                        {/* Step Number */}
+                        <div className="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-lg flex-shrink-0">
+                          {index + 1}
+                        </div>
+                        
+                        {/* Course Thumbnail */}
+                        <img 
+                          src={course.thumbnail || 'https://via.placeholder.com/80'} 
+                          alt={course.title}
+                          className="w-20 h-20 rounded-lg object-cover flex-shrink-0"
+                        />
+                        
+                        {/* Course Details */}
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <h3 className="text-lg font-semibold text-gray-900">
+                              {course.title}
+                            </h3>
+                            <Badge variant="outline" className="border-blue-500 text-blue-700 bg-blue-50">
+                              Available
+                            </Badge>
+                          </div>
+                          
+                          <p className="text-gray-600 mb-3 line-clamp-2">
+                            {course.description || 'No description available'}
+                          </p>
+                          
+                          <div className="flex items-center space-x-4 text-sm text-gray-500 mb-4">
+                            <div className="flex items-center space-x-1">
+                              <BookOpen className="w-4 h-4" />
+                              <span>{course.category || 'General'}</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <Clock className="w-4 h-4" />
+                              <span>{course.duration || 'N/A'}</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <Target className="w-4 h-4" />
+                              <span>{course.level || 'Beginner'}</span>
+                            </div>
+                          </div>
+                          
+                          <Button 
+                            size="sm"
+                            onClick={() => navigate(`/course/${course.id}`)}
+                            className="flex items-center space-x-2"
+                          >
+                            <Play className="w-4 h-4" />
+                            <span>Start Course</span>
+                          </Button>
+                        </div>
                       </div>
-                      
-                      {/* Course Thumbnail */}
-                      <img 
-                        src={course.thumbnail} 
-                        alt={course.title}
-                        className={`w-20 h-20 rounded-lg object-cover flex-shrink-0 ${
-                          course.status === 'locked' ? 'grayscale opacity-50' : ''
-                        }`}
-                      />
-                      
-                      {/* Course Details */}
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <h3 className={`text-lg font-semibold mb-0 ${
-                            course.status === 'locked' ? 'text-gray-500' : 'text-gray-900'
-                          }`}>
-                            {course.title}
-                          </h3>
-                          <Badge variant="outline" className={
-                            course.status === 'locked' ? 'border-gray-400 text-gray-500' :
-                            course.status === 'completed' ? 'border-green-500 text-green-700 bg-green-50' :
-                            course.status === 'in-progress' ? 'border-orange-500 text-orange-700 bg-orange-50' :
-                            'border-blue-500 text-blue-700 bg-blue-50'
-                          }>
+                    </CardContent>
+                  </Card>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
                             {course.status === 'locked' ? 'Locked' :
                              course.status === 'completed' ? 'Completed' :
                              course.status === 'in-progress' ? 'In Progress' : 'Available'}
