@@ -10,11 +10,12 @@ import { Badge } from '../components/ui/badge';
 import { useToast } from '../hooks/use-toast';
 
 const Profile = () => {
-  const { user } = useAuth();
+  const { user, updateUser, checkAuthStatus } = useAuth();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    name: user?.name || '',
+    full_name: user?.full_name || '',
     email: user?.email || '',
     bio: user?.bio || '',
     avatar: user?.avatar || ''
@@ -27,17 +28,62 @@ const Profile = () => {
     }));
   };
 
-  const handleSave = () => {
-    toast({
-      title: "Profile updated!",
-      description: "Your profile has been successfully updated.",
-    });
-    setIsEditing(false);
+  const handleSave = async () => {
+    setLoading(true);
+    
+    try {
+      // Prepare update data - only send fields that changed
+      const updateData = {};
+      if (formData.full_name !== user?.full_name) {
+        updateData.full_name = formData.full_name;
+      }
+      if (formData.email !== user?.email) {
+        updateData.email = formData.email;
+      }
+      // Note: bio and avatar aren't supported by backend yet, but ready for future implementation
+      
+      if (Object.keys(updateData).length === 0) {
+        toast({
+          title: "No changes made",
+          description: "Please make some changes before saving.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      const result = await updateUser(user.id, updateData);
+
+      if (result.success) {
+        toast({
+          title: "Profile updated!",
+          description: "Your profile has been successfully updated.",
+        });
+        setIsEditing(false);
+        
+        // Refresh user data to reflect changes
+        await checkAuthStatus();
+      } else {
+        toast({
+          title: "Update failed",
+          description: result.error || "Failed to update profile.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCancel = () => {
     setFormData({
-      name: user?.name || '',
+      full_name: user?.full_name || '',
       email: user?.email || '',
       bio: user?.bio || '',
       avatar: user?.avatar || ''
