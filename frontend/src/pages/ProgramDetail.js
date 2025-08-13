@@ -1,11 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Progress } from '../components/ui/progress';
-import { mockPrograms, getCourseProgressionStatus } from '../data/mockData';
 import { 
   ArrowLeft,
   Award, 
@@ -23,16 +22,70 @@ import {
 const ProgramDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, getProgramById, getAllCourses } = useAuth();
   
-  const program = mockPrograms.find(p => p.id === id);
-  const courses = getCourseProgressionStatus(user?.id, id);
+  const [program, setProgram] = useState(null);
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  if (!program) {
+  useEffect(() => {
+    const loadProgramDetails = async () => {
+      setLoading(true);
+      setError(null);
+      
+      try {
+        // Load program details
+        const programResult = await getProgramById(id);
+        if (programResult.success) {
+          setProgram(programResult.program);
+          
+          // Load courses if program has courseIds
+          if (programResult.program.courseIds && programResult.program.courseIds.length > 0) {
+            const coursesResult = await getAllCourses();
+            if (coursesResult.success) {
+              // Filter courses to only show those in this program
+              const programCourses = coursesResult.courses.filter(course => 
+                programResult.program.courseIds.includes(course.id)
+              );
+              setCourses(programCourses);
+            }
+          }
+        } else {
+          setError(programResult.error);
+        }
+      } catch (err) {
+        console.error('Error loading program details:', err);
+        setError('Failed to load program details');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      loadProgramDetails();
+    }
+  }, [id, getProgramById, getAllCourses]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Loading program details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !program) {
     return (
       <div className="text-center py-12">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">Program not found</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">
+          {error || 'Program not found'}
+        </h1>
         <Button onClick={() => navigate('/programs')}>
+          <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Programs
         </Button>
       </div>
