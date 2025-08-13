@@ -59,10 +59,48 @@ const Programs = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Initialize programs on component mount
+  // Initialize programs and courses on component mount
   useEffect(() => {
-    setPrograms(getProgramsWithDeadlineStatus());
-  }, []);
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        // Load programs
+        const programsResult = await getAllPrograms();
+        if (programsResult.success) {
+          setPrograms(programsResult.programs);
+        } else {
+          toast({
+            title: "Error loading programs",
+            description: programsResult.error,
+            variant: "destructive",
+          });
+        }
+
+        // Load courses
+        const coursesResult = await getAllCourses();
+        if (coursesResult.success) {
+          setCourses(coursesResult.courses);
+        } else {
+          toast({
+            title: "Error loading courses",
+            description: coursesResult.error,
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        console.error('Error loading data:', error);
+        toast({
+          title: "Error loading data",
+          description: "Failed to load programs and courses",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [getAllPrograms, getAllCourses, toast]);
 
   const handleCreateProgram = () => {
     if (!newProgram.name || !newProgram.description || newProgram.courseIds.length === 0 || !newProgram.deadline) {
