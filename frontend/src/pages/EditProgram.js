@@ -424,7 +424,7 @@ const EditProgram = () => {
             <div className="space-y-2">
               <Label htmlFor="difficulty">Difficulty Level</Label>
               <Select 
-                value={program.difficulty} 
+                value={program?.difficulty || 'Beginner'} 
                 onValueChange={(value) => setProgram(prev => ({ ...prev, difficulty: value }))}
               >
                 <SelectTrigger>
