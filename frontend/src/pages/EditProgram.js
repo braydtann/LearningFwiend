@@ -501,7 +501,7 @@ const EditProgram = () => {
           </div>
 
           {/* Course Ordering */}
-          {program.courseOrder.length > 0 && (
+          {program?.courseOrder?.length > 0 && (
             <div className="space-y-4">
               <Label>Course Order (Use arrows to reorder)</Label>
               <div className="space-y-2 border rounded-md p-4 bg-gray-50">
