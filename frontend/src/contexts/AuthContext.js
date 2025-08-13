@@ -549,6 +549,17 @@ export const AuthProvider = ({ children }) => {
     deleteUser,
     updateUser,
     checkAuthStatus,
+    // Course management
+    createCourse,
+    getAllCourses,
+    getMyCourses,
+    enrollInCourse,
+    unenrollFromCourse,
+    // Program management
+    createProgram,
+    getAllPrograms,
+    getMyPrograms,
+    // User role helpers
     isAdmin: user?.role === 'admin',
     isInstructor: user?.role === 'instructor',
     isLearner: user?.role === 'learner'
