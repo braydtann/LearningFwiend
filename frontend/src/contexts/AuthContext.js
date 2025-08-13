@@ -536,6 +536,93 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const getProgramById = async (programId) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/programs/${programId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const program = await response.json();
+        return { success: true, program };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to fetch program' 
+        };
+      }
+    } catch (error) {
+      console.error('Fetch program error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const updateProgram = async (programId, programData) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/programs/${programId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(programData),
+      });
+
+      if (response.ok) {
+        const updatedProgram = await response.json();
+        return { success: true, program: updatedProgram };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to update program' 
+        };
+      }
+    } catch (error) {
+      console.error('Update program error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const deleteProgram = async (programId) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/programs/${programId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        return { success: true };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to delete program' 
+        };
+      }
+    } catch (error) {
+      console.error('Delete program error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
   const value = {
     user,
     loading,
