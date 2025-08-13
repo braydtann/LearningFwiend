@@ -141,6 +141,113 @@ class UserUpdateRequest(BaseModel):
             raise ValueError('Role must be admin, instructor, or learner')
         return v
 
+# =============================================================================
+# COURSE AND PROGRAM MODELS
+# =============================================================================
+
+class CourseModule(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    title: str
+    lessons: List[dict] = []
+
+class CourseCreate(BaseModel):
+    title: str
+    description: str
+    category: str
+    duration: Optional[str] = None
+    thumbnailUrl: Optional[str] = None
+    accessType: Optional[str] = "open"  # open, restricted, invitation
+    modules: List[CourseModule] = []
+    canvaEmbedCode: Optional[str] = None
+    
+class CourseInDB(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    title: str
+    description: str
+    category: str
+    duration: Optional[str] = None
+    thumbnailUrl: Optional[str] = None
+    accessType: str = "open"
+    modules: List[CourseModule] = []
+    canvaEmbedCode: Optional[str] = None
+    instructorId: str
+    instructor: str
+    status: str = "published"  # draft, published, archived
+    enrolledStudents: int = 0
+    rating: float = 4.5
+    reviews: List[dict] = []
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class CourseResponse(BaseModel):
+    id: str
+    title: str
+    description: str
+    category: str
+    duration: Optional[str] = None
+    thumbnailUrl: Optional[str] = None
+    accessType: str
+    modules: List[dict] = []
+    canvaEmbedCode: Optional[str] = None
+    instructorId: str
+    instructor: str
+    status: str
+    enrolledStudents: int
+    rating: float
+    reviews: List[dict] = []
+    created_at: datetime
+    updated_at: datetime
+
+class ProgramCreate(BaseModel):
+    title: str
+    description: str
+    departmentId: Optional[str] = None
+    duration: Optional[str] = None
+    courseIds: List[str] = []
+    nestedProgramIds: List[str] = []
+    
+class ProgramInDB(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    title: str
+    description: str
+    departmentId: Optional[str] = None
+    duration: Optional[str] = None
+    courseIds: List[str] = []
+    nestedProgramIds: List[str] = []
+    instructorId: str
+    instructor: str
+    isActive: bool = True
+    courseCount: int = 0
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class ProgramResponse(BaseModel):
+    id: str
+    title: str
+    description: str
+    departmentId: Optional[str] = None
+    duration: Optional[str] = None
+    courseIds: List[str] = []
+    nestedProgramIds: List[str] = []
+    instructorId: str
+    instructor: str
+    isActive: bool
+    courseCount: int
+    created_at: datetime
+    updated_at: datetime
+
+class EnrollmentCreate(BaseModel):
+    courseId: str
+
+class EnrollmentResponse(BaseModel):
+    id: str
+    userId: str
+    courseId: str
+    enrolledAt: datetime
+    progress: float = 0.0
+    completedAt: Optional[datetime] = None
+    status: str = "active"  # active, completed, dropped
+
 class AdminPasswordResetResponse(BaseModel):
     message: str
     user_id: str
