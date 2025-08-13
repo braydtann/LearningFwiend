@@ -31,13 +31,13 @@ import {
 import { useToast } from '../hooks/use-toast';
 
 const Programs = () => {
-  const { user } = useAuth();
+  const { user, getAllPrograms, getAllCourses, createProgram } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isQuizPreviewOpen, setIsQuizPreviewOpen] = useState(false);
   const [newProgram, setNewProgram] = useState({
-    name: '',
+    title: '',
     description: '',
     courseIds: [],
     courseOrder: [],
@@ -56,6 +56,8 @@ const Programs = () => {
   });
 
   const [programs, setPrograms] = useState([]);
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // Initialize programs on component mount
   useEffect(() => {
