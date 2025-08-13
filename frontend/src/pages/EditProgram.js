@@ -445,7 +445,7 @@ const EditProgram = () => {
               id="description"
               placeholder="Describe the learning outcomes and goals of this program"
               rows={3}
-              value={program.description}
+              value={program?.description || ''}
               onChange={(e) => setProgram(prev => ({ ...prev, description: e.target.value }))}
             />
           </div>
