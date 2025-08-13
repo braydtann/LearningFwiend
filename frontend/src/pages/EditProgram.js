@@ -81,7 +81,7 @@ const EditProgram = () => {
   }, [id, getProgramById, getAllCourses, toast]);
 
   const handleSaveProgram = async () => {
-    if (!program.title || !program.description || program.courseIds.length === 0) {
+    if (!program?.title || !program?.description || !program?.courseIds?.length) {
       toast({
         title: "Missing required fields",
         description: "Please fill in all required information and select at least one course.",
