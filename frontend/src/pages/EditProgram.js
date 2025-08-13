@@ -20,23 +20,16 @@ import {
 import { useToast } from '../hooks/use-toast';
 
 const EditProgram = () => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { user, getProgramById, updateProgram, getAllCourses } = useAuth();
   const { toast } = useToast();
   
-  const [program, setProgram] = useState({
-    name: '',
-    description: '',
-    courseIds: [],
-    courseOrder: [],
-    duration: '',
-    difficulty: 'Beginner',
-    deadline: ''
-  });
-  
+  const [program, setProgram] = useState(null);
+  const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
 
   // Load program data on component mount
   useEffect(() => {
