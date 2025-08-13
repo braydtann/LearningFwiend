@@ -31,55 +31,54 @@ const EditProgram = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
-  // Load program data on component mount
   useEffect(() => {
-    const loadProgram = async () => {
+    const loadProgramAndCourses = async () => {
+      setLoading(true);
+      setError(null);
+      
       try {
-        const programData = getProgramById(id);
-        if (!programData) {
+        // Load program details
+        const programResult = await getProgramById(id);
+        if (programResult.success) {
+          setProgram({
+            ...programResult.program,
+            courseOrder: programResult.program.courseIds || [],
+            finalTest: {
+              title: '',
+              description: '',
+              timeLimit: 90,
+              passingScore: 75,
+              maxAttempts: 2,
+              questions: []
+            }
+          });
+        } else {
+          setError(programResult.error);
+        }
+
+        // Load courses
+        const coursesResult = await getAllCourses();
+        if (coursesResult.success) {
+          setCourses(coursesResult.courses);
+        } else {
           toast({
-            title: "Program not found",
-            description: "The requested program could not be found.",
+            title: "Error loading courses",
+            description: coursesResult.error,
             variant: "destructive",
           });
-          navigate('/programs');
-          return;
         }
-        
-        setProgram({
-          id: programData.id,
-          name: programData.name,
-          description: programData.description,
-          courseIds: programData.courseIds || [],
-          courseOrder: programData.courseOrder || programData.courseIds || [],
-          duration: programData.duration || '',
-          difficulty: programData.difficulty || 'Beginner',
-          deadline: programData.deadline || '',
-          finalTest: programData.finalTest || {
-            title: `${programData.name} Final Assessment`,
-            description: `Comprehensive assessment for the ${programData.name} program`,
-            timeLimit: 90,
-            passingScore: 75,
-            maxAttempts: 2,
-            questions: []
-          }
-        });
-      } catch (error) {
-        console.error('Error loading program:', error);
-        toast({
-          title: "Error loading program",
-          description: "There was an error loading the program data.",
-          variant: "destructive",
-        });
+      } catch (err) {
+        console.error('Error loading program and courses:', err);
+        setError('Failed to load program details');
       } finally {
         setLoading(false);
       }
     };
 
     if (id) {
-      loadProgram();
+      loadProgramAndCourses();
     }
-  }, [id, toast, navigate]);
+  }, [id, getProgramById, getAllCourses, toast]);
 
   const handleSaveProgram = async () => {
     if (!program.name || !program.description || program.courseIds.length === 0 || !program.deadline) {
