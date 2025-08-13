@@ -180,10 +180,10 @@ const Profile = () => {
 
               {isEditing && (
                 <div className="flex items-center space-x-4 pt-4">
-                  <Button onClick={handleSave}>
-                    Save Changes
+                  <Button onClick={handleSave} disabled={loading}>
+                    {loading ? 'Saving...' : 'Save Changes'}
                   </Button>
-                  <Button variant="outline" onClick={handleCancel}>
+                  <Button variant="outline" onClick={handleCancel} disabled={loading}>
                     Cancel
                   </Button>
                 </div>
