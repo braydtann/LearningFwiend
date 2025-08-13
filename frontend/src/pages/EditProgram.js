@@ -427,30 +427,23 @@ const EditProgram = () => {
           {/* Basic Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="title">Program Name *</Label>
+              <Label htmlFor="name">Program Title *</Label>
               <Input
-                id="title"
-                placeholder="Enter program name"
+                id="name"
+                placeholder="Enter program title"
                 value={program?.title || ''}
                 onChange={(e) => setProgram(prev => ({ ...prev, title: e.target.value }))}
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="difficulty">Difficulty Level</Label>
-              <Select 
-                value={program?.difficulty || 'Beginner'} 
-                onValueChange={(value) => setProgram(prev => ({ ...prev, difficulty: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Beginner">Beginner</SelectItem>
-                  <SelectItem value="Intermediate">Intermediate</SelectItem>
-                  <SelectItem value="Advanced">Advanced</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="duration">Estimated Duration</Label>
+              <Input
+                id="duration"
+                placeholder="e.g., 12 weeks, 3 months"
+                value={program?.duration || ''}
+                onChange={(e) => setProgram(prev => ({ ...prev, duration: e.target.value }))}
+              />
             </div>
           </div>
 
@@ -463,18 +456,6 @@ const EditProgram = () => {
               value={program?.description || ''}
               onChange={(e) => setProgram(prev => ({ ...prev, description: e.target.value }))}
             />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="duration">Estimated Duration</Label>
-              <Input
-                id="duration"
-                placeholder="e.g., 12 weeks, 3 months"
-                value={program?.duration || ''}
-                onChange={(e) => setProgram(prev => ({ ...prev, duration: e.target.value }))}
-              />
-            </div>
           </div>
 
           {/* Course Selection */}
@@ -490,17 +471,22 @@ const EditProgram = () => {
                     className="rounded"
                   />
                   <img 
-                    src={course.thumbnail} 
+                    src={course.thumbnail || 'https://via.placeholder.com/48'} 
                     alt={course.title}
                     className="w-12 h-12 rounded-lg object-cover"
                   />
                   <div className="flex-1">
                     <h4 className="font-medium text-gray-900">{course.title}</h4>
-                    <p className="text-sm text-gray-600">{course.category} • {course.duration}</p>
+                    <p className="text-sm text-gray-600">{course.category} • {course.duration || 'N/A'}</p>
                   </div>
                 </label>
               ))}
             </div>
+            {courses.length === 0 && (
+              <p className="text-sm text-gray-500 text-center py-4">
+                No courses available. Create some courses first.
+              </p>
+            )}
           </div>
 
           {/* Course Ordering */}
@@ -508,7 +494,7 @@ const EditProgram = () => {
             <div className="space-y-4">
               <Label>Course Order (Use arrows to reorder)</Label>
               <div className="space-y-2 border rounded-md p-4 bg-gray-50">
-                {program?.courseOrder?.map((courseId, index) => {
+                {program.courseOrder.map((courseId, index) => {
                   const course = courses.find(c => c.id === courseId);
                   return (
                     <div
@@ -519,13 +505,13 @@ const EditProgram = () => {
                         {index + 1}
                       </div>
                       <img 
-                        src={course?.thumbnail} 
+                        src={course?.thumbnail || 'https://via.placeholder.com/40'} 
                         alt={course?.title}
                         className="w-10 h-10 rounded-lg object-cover"
                       />
                       <div className="flex-1">
                         <h5 className="font-medium text-gray-900">{course?.title}</h5>
-                        <p className="text-sm text-gray-600">{course?.duration}</p>
+                        <p className="text-sm text-gray-600">{course?.duration || 'N/A'}</p>
                       </div>
                       <div className="flex items-center space-x-1">
                         <Button
