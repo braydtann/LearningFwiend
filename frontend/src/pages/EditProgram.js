@@ -152,7 +152,7 @@ const EditProgram = () => {
 
   const moveCourseDown = (index) => {
     if (!program?.courseOrder || index === program.courseOrder.length - 1) return;
-    const newOrder = [...program.courseOrder];
+    const newOrder = [...(program?.courseOrder || [])];
     [newOrder[index], newOrder[index + 1]] = [newOrder[index + 1], newOrder[index]];
     setProgram(prev => ({ ...prev, courseOrder: newOrder }));
   };
