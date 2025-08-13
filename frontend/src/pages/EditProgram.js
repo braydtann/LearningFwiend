@@ -540,7 +540,7 @@ const EditProgram = () => {
                           size="sm"
                           variant="outline"
                           onClick={() => moveCourseDown(index)}
-                          disabled={index === program.courseOrder.length - 1}
+                          disabled={index === (program?.courseOrder?.length - 1)}
                         >
                           <ArrowDown className="w-4 h-4" />
                         </Button>
