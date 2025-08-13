@@ -1612,8 +1612,8 @@ const CreateCourse = () => {
               <Eye className="w-4 h-4 mr-2" />
               Preview Course
             </Button>
-            <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
-              {isEditing ? 'Update Course' : 'Create Course'}
+            <Button type="submit" className="bg-blue-600 hover:bg-blue-700" disabled={isSubmitting}>
+              {isSubmitting ? 'Creating...' : (isEditing ? 'Update Course' : 'Create Course')}
             </Button>
           </div>
         </div>
