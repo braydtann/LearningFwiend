@@ -505,7 +505,7 @@ const EditProgram = () => {
             <div className="space-y-4">
               <Label>Course Order (Use arrows to reorder)</Label>
               <div className="space-y-2 border rounded-md p-4 bg-gray-50">
-                {program.courseOrder.map((courseId, index) => {
+                {program?.courseOrder?.map((courseId, index) => {
                   const course = courses.find(c => c.id === courseId);
                   return (
                     <div
