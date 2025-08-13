@@ -456,7 +456,7 @@ const EditProgram = () => {
               <Input
                 id="duration"
                 placeholder="e.g., 12 weeks, 3 months"
-                value={program.duration}
+                value={program?.duration || ''}
                 onChange={(e) => setProgram(prev => ({ ...prev, duration: e.target.value }))}
               />
             </div>
