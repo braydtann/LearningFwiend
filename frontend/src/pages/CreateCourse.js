@@ -600,7 +600,7 @@ const CreateCourse = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!courseData.title || !courseData.description || !courseData.category) {
@@ -612,42 +612,46 @@ const CreateCourse = () => {
       return;
     }
 
-    // Create course object with proper structure
-    const newCourse = {
-      id: isEditing ? id : `course_${Date.now()}`,
-      ...courseData,
-      instructorId: user?.id,
-      instructor: user?.full_name || user?.username,
-      createdAt: isEditing ? existingCourse?.createdAt : new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      status: 'published',
-      enrolledStudents: existingCourse?.enrolledStudents || 0,
-      rating: existingCourse?.rating || 4.5,
-      reviews: existingCourse?.reviews || []
-    };
+    try {
+      setIsSubmitting(true);
 
-    // Store in localStorage for now (until backend course API is implemented)
-    const existingCourses = JSON.parse(localStorage.getItem('user_courses') || '[]');
-    
-    if (isEditing) {
-      // Update existing course
-      const courseIndex = existingCourses.findIndex(c => c.id === id);
-      if (courseIndex >= 0) {
-        existingCourses[courseIndex] = newCourse;
+      // Prepare course data for API
+      const coursePayload = {
+        title: courseData.title,
+        description: courseData.description,
+        category: courseData.category,
+        duration: courseData.duration,
+        thumbnailUrl: courseData.thumbnailUrl,
+        accessType: courseData.accessType || 'open',
+        modules: courseData.modules || [],
+        canvaEmbedCode: courseData.canvaEmbedCode
+      };
+
+      const result = await createCourse(coursePayload);
+
+      if (result.success) {
+        toast({
+          title: isEditing ? "Course updated!" : "Course created!",
+          description: `Your course "${courseData.title}" has been ${isEditing ? 'updated' : 'created'} successfully and is now available in the course catalog.`,
+        });
+        
+        navigate('/courses');
+      } else {
+        toast({
+          title: "Course creation failed",
+          description: result.error,
+          variant: "destructive",
+        });
       }
-    } else {
-      // Add new course
-      existingCourses.push(newCourse);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred while creating the course.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
-    
-    localStorage.setItem('user_courses', JSON.stringify(existingCourses));
-
-    toast({
-      title: isEditing ? "Course updated!" : "Course created!",
-      description: `Your course "${courseData.title}" has been ${isEditing ? 'updated' : 'created'} successfully and is now visible under "My Courses".`,
-    });
-    
-    navigate('/courses');
   };
 
   return (
