@@ -523,17 +523,22 @@ const Programs = () => {
                         className="rounded"
                       />
                       <img 
-                        src={course.thumbnail} 
+                        src={course.thumbnail || 'https://via.placeholder.com/48'} 
                         alt={course.title}
                         className="w-12 h-12 rounded-lg object-cover"
                       />
                       <div className="flex-1">
                         <h4 className="font-medium text-gray-900">{course.title}</h4>
-                        <p className="text-sm text-gray-600">{course.category} • {course.duration}</p>
+                        <p className="text-sm text-gray-600">{course.category} • {course.duration || 'N/A'}</p>
                       </div>
                     </label>
                   ))}
                 </div>
+                {courses.length === 0 && (
+                  <p className="text-sm text-gray-500 text-center py-4">
+                    {loading ? 'Loading courses...' : 'No courses available. Create some courses first.'}
+                  </p>
+                )}
               </div>
 
               {/* Course Ordering */}
