@@ -1,24 +1,21 @@
 import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate, useParams } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { Badge } from '../components/ui/badge';
-import FinalTestQuestionInterface from '../components/FinalTestQuestionInterface';
 import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { getProgramById, mockCourses, updateProgram } from '../data/mockData';
+import FinalTestQuestionInterface from '../components/FinalTestQuestionInterface';
 import { 
+  ArrowLeft, 
   Save, 
-  ArrowLeft,
-  ArrowUp,
-  ArrowDown,
-  Trash2,
-  Calendar,
-  Trophy,
-  Plus
+  Plus, 
+  Trash2, 
+  ArrowUp, 
+  ArrowDown, 
+  Trophy 
 } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 
