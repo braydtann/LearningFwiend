@@ -23,10 +23,20 @@ const Courses = () => {
 
   // Get available courses based on user role
   const getAvailableCourses = () => {
+    // Get courses from localStorage (user-created courses)
+    const userCourses = JSON.parse(localStorage.getItem('user_courses') || '[]');
+    
+    // Combine mock courses with user-created courses
+    const allCourses = [...mockCourses, ...userCourses];
+    
     if (user?.role === 'instructor') {
-      return mockCourses.filter(course => course.instructorId === user.id);
+      return allCourses.filter(course => 
+        course.instructorId === user.id || 
+        course.instructor === user.full_name ||
+        course.instructor === user.username
+      );
     }
-    return mockCourses.filter(course => course.status === 'published');
+    return allCourses.filter(course => course.status === 'published');
   };
 
   const availableCourses = getAvailableCourses();
