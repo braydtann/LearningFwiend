@@ -811,14 +811,19 @@ const Programs = () => {
           <CardTitle className="text-xl">Learning Programs</CardTitle>
         </CardHeader>
         <CardContent>
-          {programs.length === 0 ? (
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading programs...</p>
+            </div>
+          ) : programs.length === 0 ? (
             <div className="text-center py-12">
               <Award className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No programs created yet</h3>
-              <p className="text-gray-600 mb-4">Create your first learning program to combine courses into structured paths</p>
+              <p className="text-gray-600 mb-4">Create your first learning program to get started</p>
               <Button onClick={() => setIsCreateModalOpen(true)}>
                 <Plus className="w-4 h-4 mr-2" />
-                Create Your First Program
+                Create Program
               </Button>
             </div>
           ) : (
@@ -826,77 +831,41 @@ const Programs = () => {
               {programs.map((program) => (
                 <Card key={program.id} className="hover:shadow-lg transition-shadow">
                   <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                          {program.name}
-                        </h3>
-                        <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                          {program.description}
-                        </p>
+                    <div className="space-y-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h3 className="text-lg font-semibold text-gray-900 mb-2">{program.title}</h3>
+                          <p className="text-sm text-gray-600 leading-relaxed">{program.description}</p>
+                        </div>
+                        <Badge className="ml-2">
+                          {program.isActive ? 'Active' : 'Inactive'}
+                        </Badge>
                       </div>
-                      <Badge className={getDifficultyColor(program.difficulty)}>
-                        {program.difficulty}
-                      </Badge>
-                    </div>
 
-                    <div className="space-y-3">
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div className="flex items-center text-gray-600">
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center text-blue-600">
                           <BookOpen className="w-4 h-4 mr-1" />
-                          <span>{program.totalCourses} courses</span>
+                          <span>{program.courseCount || 0} courses</span>
                         </div>
                         <div className="flex items-center text-gray-600">
                           <Users className="w-4 h-4 mr-1" />
-                          <span>{program.enrolledStudents} students</span>
+                          <span>0 students</span>
                         </div>
                       </div>
 
-                      <div className="flex items-center text-sm text-gray-600">
-                        <Clock className="w-4 h-4 mr-1" />
-                        <span>{program.duration} • {program.estimatedHours}h estimated</span>
-                      </div>
-
-                      {/* Nested Programs Information */}
-                      {program.nestedProgramIds && program.nestedProgramIds.length > 0 && (
-                        <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3">
-                          <div className="flex items-center text-sm text-indigo-800 mb-2">
-                            <Award className="w-4 h-4 mr-1" />
-                            <span className="font-medium">Includes {program.nestedProgramIds.length} nested program{program.nestedProgramIds.length > 1 ? 's' : ''}:</span>
-                          </div>
-                          <div className="space-y-1">
-                            {getNestedPrograms(program.id).map((nestedProgram, index) => (
-                              <div key={nestedProgram.id} className="text-xs text-indigo-700">
-                                {index + 1}. {nestedProgram.name} ({nestedProgram.totalCourses} courses)
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Deadline Information */}
-                      {program.deadline && (
-                        <div className={`flex items-center text-sm p-2 rounded-lg ${
-                          program.deadlineStatus?.status === 'overdue' 
-                            ? 'bg-red-50 border border-red-200 text-red-800' 
-                            : program.deadlineStatus?.status === 'urgent'
-                            ? 'bg-orange-50 border border-orange-200 text-orange-800'
-                            : program.deadlineStatus?.status === 'warning'
-                            ? 'bg-yellow-50 border border-yellow-200 text-yellow-800'
-                            : 'bg-green-50 border border-green-200 text-green-800'
-                        }`}>
-                          <Calendar className="w-4 h-4 mr-1" />
-                          <span className="font-medium">
-                            Deadline: {new Date(program.deadline).toLocaleDateString()}
-                          </span>
-                          {program.deadlineStatus?.status === 'overdue' && (
-                            <AlertTriangle className="w-4 h-4 ml-2" />
-                          )}
+                      {program.duration && (
+                        <div className="flex items-center text-sm text-gray-600">
+                          <Clock className="w-4 h-4 mr-1" />
+                          <span>{program.duration}</span>
                         </div>
                       )}
 
                       <div className="text-sm text-gray-600">
-                        <strong>Created:</strong> {new Date(program.createdAt).toLocaleDateString()}
+                        <strong>Created by:</strong> {program.instructor || 'Unknown'}
+                      </div>
+
+                      <div className="text-sm text-gray-600">
+                        <strong>Created:</strong> {new Date(program.created_at).toLocaleDateString()}
                       </div>
                     </div>
 
@@ -909,13 +878,15 @@ const Programs = () => {
                         <Eye className="w-4 h-4 mr-1" />
                         View Details
                       </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => navigate(`/program/${program.id}/edit`)}
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
+                      {(user?.role === 'admin' || program.instructorId === user?.id) && (
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => navigate(`/program/${program.id}/edit`)}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
