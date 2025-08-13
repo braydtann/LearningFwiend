@@ -880,6 +880,148 @@ async def unenroll_from_course(
 
 
 # =============================================================================
+# PROGRAM MANAGEMENT ENDPOINTS
+# =============================================================================
+
+@api_router.post("/programs", response_model=ProgramResponse)
+async def create_program(
+    program_data: ProgramCreate,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Create a new program."""
+    # Only instructors and admins can create programs
+    if current_user.role not in ['instructor', 'admin']:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only instructors and admins can create programs"
+        )
+    
+    # Create program document
+    program_dict = {
+        "id": str(uuid.uuid4()),
+        **program_data.dict(),
+        "instructorId": current_user.id,
+        "instructor": current_user.full_name,
+        "isActive": True,
+        "courseCount": len(program_data.courseIds),
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
+    }
+    
+    # Insert program into database
+    await db.programs.insert_one(program_dict)
+    
+    return ProgramResponse(**program_dict)
+
+@api_router.get("/programs", response_model=List[ProgramResponse])
+async def get_all_programs(current_user: UserResponse = Depends(get_current_user)):
+    """Get all active programs."""
+    programs = await db.programs.find({"isActive": True}).to_list(1000)
+    return [ProgramResponse(**program) for program in programs]
+
+@api_router.get("/programs/my-programs", response_model=List[ProgramResponse])
+async def get_my_programs(current_user: UserResponse = Depends(get_current_user)):
+    """Get programs created by current user."""
+    if current_user.role not in ['instructor', 'admin']:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only instructors and admins can access program management"
+        )
+    
+    programs = await db.programs.find({"instructorId": current_user.id}).to_list(1000)
+    return [ProgramResponse(**program) for program in programs]
+
+@api_router.get("/programs/{program_id}", response_model=ProgramResponse)
+async def get_program(
+    program_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Get a specific program by ID."""
+    program = await db.programs.find_one({"id": program_id})
+    if not program:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Program not found"
+        )
+    
+    return ProgramResponse(**program)
+
+@api_router.put("/programs/{program_id}", response_model=ProgramResponse)
+async def update_program(
+    program_id: str,
+    program_data: ProgramCreate,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Update a program (only by program creator or admin)."""
+    # Find the program
+    program = await db.programs.find_one({"id": program_id})
+    if not program:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Program not found"
+        )
+    
+    # Check permissions
+    if current_user.role != 'admin' and program['instructorId'] != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only edit your own programs"
+        )
+    
+    # Update program
+    update_data = program_data.dict()
+    update_data["updated_at"] = datetime.utcnow()
+    update_data["courseCount"] = len(program_data.courseIds)
+    
+    result = await db.programs.update_one(
+        {"id": program_id},
+        {"$set": update_data}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Program not found or no changes made"
+        )
+    
+    # Get updated program
+    updated_program = await db.programs.find_one({"id": program_id})
+    return ProgramResponse(**updated_program)
+
+@api_router.delete("/programs/{program_id}")
+async def delete_program(
+    program_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Delete a program (only by program creator or admin)."""
+    # Find the program
+    program = await db.programs.find_one({"id": program_id})
+    if not program:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Program not found"
+        )
+    
+    # Check permissions
+    if current_user.role != 'admin' and program['instructorId'] != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only delete your own programs"
+        )
+    
+    # Delete the program
+    result = await db.programs.delete_one({"id": program_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Program not found"
+        )
+    
+    return {"message": f"Program '{program['title']}' has been successfully deleted"}
+
+
+# =============================================================================
 # EXISTING MODELS AND ENDPOINTS (PRESERVED)
 # =============================================================================
 
