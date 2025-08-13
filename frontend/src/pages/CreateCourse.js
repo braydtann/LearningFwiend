@@ -17,10 +17,11 @@ import CoursePreview from '../components/CoursePreview';
 const CreateCourse = () => {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { user } = useAuth();
+  const { user, createCourse } = useAuth();
   const { toast } = useToast();
   
   const isEditing = Boolean(id);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const existingCourse = id ? mockCourses.find(c => c.id === id) : null;
   
   const [courseData, setCourseData] = useState({
