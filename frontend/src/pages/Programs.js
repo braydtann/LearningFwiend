@@ -448,12 +448,12 @@ const Programs = () => {
               {/* Basic Information */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Program Name *</Label>
+                  <Label htmlFor="name">Program Title *</Label>
                   <Input
                     id="name"
-                    placeholder="Enter program name"
-                    value={newProgram.name}
-                    onChange={(e) => setNewProgram(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Enter program title"
+                    value={newProgram.title}
+                    onChange={(e) => setNewProgram(prev => ({ ...prev, title: e.target.value }))}
                   />
                 </div>
                 
