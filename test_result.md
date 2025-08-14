@@ -803,11 +803,11 @@ frontend:
 
   - task: "Announcements Frontend Backend Integration"
     implemented: true
-    working: "NA"
+    working: false
     file: "/app/frontend/src/pages/Announcements.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
@@ -815,6 +815,9 @@ frontend:
       - working: "NA"
         agent: "main"
         comment: "IMPLEMENTATION COMPLETED: Successfully migrated Announcements.js from mock data to backend APIs. ✅ Removed mockAnnouncements and mockCourses imports, ✅ Added useEffect to load announcements and courses on mount via getAllAnnouncements() and getAllCourses(), ✅ Updated createAnnouncement to use backend API with proper error handling, ✅ Added loading states throughout UI (stats cards, announcement list), ✅ Updated course dropdown to use backend courses data, ✅ Added helper functions (getThisWeekCount, getCourseById), ✅ Updated date handling for backend format (created_at vs createdAt), ✅ Added null-safe author and image handling with fallbacks, ✅ Maintained existing UI/UX with role-based functionality (learners vs instructors). Component now fully integrated with backend with no mock data dependencies."
+      - working: false
+        agent: "testing"
+        comment: "CRITICAL AUTHENTICATION ISSUE DETECTED: ✅ Backend announcements APIs are implemented and working (GET /api/announcements successfully retrieved 4 announcements), ❌ CRITICAL ISSUE: Instructor/Admin authentication failing with 401 'User not found' errors when trying to create, update, or delete announcements. This is a JWT token validation issue where the backend cannot find the user associated with the token. The APIs exist and work for read operations but fail for write operations due to authentication problems. This will prevent frontend from creating/editing announcements. Root cause: JWT token contains user ID but backend user lookup is failing."
 
   - task: "Certificates Frontend Backend Integration"
     implemented: true
