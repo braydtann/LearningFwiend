@@ -2803,8 +2803,16 @@ async def create_certificate(
             detail="Only instructors and admins can create certificates"
         )
     
+    # Get the actual student ID (from either studentId or userId)
+    student_id = certificate_data.get_student_id()
+    if not student_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Either studentId or userId must be provided"
+        )
+    
     # Verify student exists and is a learner
-    student = await db.users.find_one({"id": certificate_data.studentId})
+    student = await db.users.find_one({"id": student_id})
     if not student:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
