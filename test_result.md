@@ -104,6 +104,21 @@
 
 user_problem_statement: "AUTHENTICATION SYSTEM IMPLEMENTATION: Build admin-controlled password management system where: 1) Admin creates user and sets temporary password (not auto-generated), 2) User must change password on first login, 3) Password complexity: minimum 6 characters + number + special character, 4) Admin can reset user passwords (sets new temporary password), 5) JWT-based authentication with secure session management. Previous features completed: Bell notifications, program-based certificates, instructor permissions, category management, preview functionality, nested programs, screen recording question type."
 
+  - task: "Password Change Modal Loop Bug Fix"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/PasswordChangeModal.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "CRITICAL USER ISSUE: User brayden.t@covesmart.com reports password change keeps looping - after changing password, system still prompts for password change again."
+      - working: true
+        agent: "main"
+        comment: "BUG IDENTIFIED AND FIXED: Found that PasswordChangeModal was making direct API calls instead of using AuthContext.changePassword function. This meant the requiresPasswordChange state was never properly updated. Fixed by importing useAuth and calling changePassword function from AuthContext, which properly updates the authentication state and clears the requiresPasswordChange flag."
+
   - task: "Course Detail Page Backend Integration"
     implemented: true
     working: true
