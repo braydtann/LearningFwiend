@@ -373,28 +373,34 @@ const Classrooms = () => {
                 <div className="space-y-2">
                   <Label>Select Courses</Label>
                   <div className="grid grid-cols-1 gap-2 max-h-32 overflow-y-auto border rounded-md p-2">
-                    {mockCourses.map(course => (
-                      <label key={course.id} className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          checked={newClassroom.courseIds.includes(course.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setNewClassroom(prev => ({
-                                ...prev,
-                                courseIds: [...prev.courseIds, course.id]
-                              }));
-                            } else {
-                              setNewClassroom(prev => ({
-                                ...prev,
-                                courseIds: prev.courseIds.filter(id => id !== course.id)
-                              }));
-                            }
-                          }}
-                        />
-                        <span className="text-sm">{course.title}</span>
-                      </label>
-                    ))}
+                    {loadingCourses ? (
+                      <div className="text-sm text-gray-500 p-2">Loading courses...</div>
+                    ) : allCourses.length === 0 ? (
+                      <div className="text-sm text-gray-500 p-2">No courses available</div>
+                    ) : (
+                      allCourses.map(course => (
+                        <label key={course.id} className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            checked={newClassroom.courseIds.includes(course.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setNewClassroom(prev => ({
+                                  ...prev,
+                                  courseIds: [...prev.courseIds, course.id]
+                                }));
+                              } else {
+                                setNewClassroom(prev => ({
+                                  ...prev,
+                                  courseIds: prev.courseIds.filter(id => id !== course.id)
+                                }));
+                              }
+                            }}
+                          />
+                          <span className="text-sm">{course.title}</span>
+                        </label>
+                      ))
+                    )}
                   </div>
                 </div>
                 
