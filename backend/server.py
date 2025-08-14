@@ -2839,7 +2839,7 @@ async def create_certificate(
         # Check if student is enrolled in the course (flexible for admins)
         enrollment = await db.enrollments.find_one({
             "courseId": certificate_data.courseId,
-            "studentId": certificate_data.studentId,
+            "studentId": student_id,
             "isActive": True
         })
         
