@@ -272,7 +272,11 @@ const Announcements = () => {
           <CardTitle className="text-xl">Recent Announcements</CardTitle>
         </CardHeader>
         <CardContent>
-          {announcements.length === 0 ? (
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="text-gray-500">Loading announcements...</div>
+            </div>
+          ) : announcements.length === 0 ? (
             <div className="text-center py-12">
               <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No announcements yet</h3>
@@ -286,10 +290,10 @@ const Announcements = () => {
           ) : (
             <div className="space-y-6">
               {announcements.map((announcement) => {
-                const course = mockCourses.find(c => c.id === announcement.courseId);
+                const course = getCourseById(announcement.courseId);
                 
                 return (
-                  <Card key={announcement.id} className="hover:shadow-md transition-shadow">
+                  <Card key={announcement.id || announcement.announcementId} className="hover:shadow-md transition-shadow">
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex-1">
@@ -304,11 +308,12 @@ const Announcements = () => {
                             )}
                           </div>
                           <div className="flex items-center text-sm text-gray-600 mb-3">
-                            <span>by {announcement.author}</span>
+                            <span>by {announcement.author || announcement.instructor || 'Unknown'}</span>
                             <span className="mx-2">•</span>
                             <div className="flex items-center">
                               <Calendar className="w-4 h-4 mr-1" />
-                              {new Date(announcement.createdAt).toLocaleDateString()}
+                              {announcement.created_at ? new Date(announcement.created_at).toLocaleDateString() :
+                               announcement.createdAt ? new Date(announcement.createdAt).toLocaleDateString() : 'N/A'}
                             </div>
                           </div>
                         </div>
@@ -324,9 +329,12 @@ const Announcements = () => {
                         <div className="mt-4 pt-4 border-t border-gray-200">
                           <div className="flex items-center space-x-3">
                             <img 
-                              src={course.thumbnail} 
+                              src={course.thumbnailUrl || course.thumbnail || '/api/placeholder/40/40'} 
                               alt={course.title}
                               className="w-10 h-10 rounded-lg object-cover"
+                              onError={(e) => {
+                                e.target.src = '/api/placeholder/40/40';
+                              }}
                             />
                             <div>
                               <p className="font-medium text-gray-900">{course.title}</p>
