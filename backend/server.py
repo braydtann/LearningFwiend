@@ -2710,11 +2710,16 @@ async def toggle_pin_announcement(
 # =============================================================================
 
 class CertificateCreate(BaseModel):
-    studentId: str
+    studentId: Optional[str] = None
+    userId: Optional[str] = None  # Accept both studentId and userId
     courseId: Optional[str] = None
     programId: Optional[str] = None
     type: str = "completion"  # completion, achievement, participation
     template: str = "default"  # default, premium, custom
+    
+    def get_student_id(self):
+        """Get student ID from either studentId or userId field"""
+        return self.studentId or self.userId
     
 class CertificateInDB(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
