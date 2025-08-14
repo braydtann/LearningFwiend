@@ -68,15 +68,11 @@ const CreateCourse = () => {
         setCategories(result.categories.map(cat => cat.name));
       } else {
         // Fallback to mock categories if backend fails
-        const mockCats = getCategories();
-        setCategories(mockCats.map(cat => cat.name));
         console.warn('Failed to load categories from backend, using mock data:', result.error);
       }
     } catch (error) {
       // Fallback to mock categories
       console.error('Error loading categories:', error);
-      const mockCats = getCategories();
-      setCategories(mockCats.map(cat => cat.name));
     } finally {
       setLoadingCategories(false);
     }
