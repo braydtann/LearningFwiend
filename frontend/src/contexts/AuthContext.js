@@ -1366,6 +1366,432 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // =============================================================================
+  // ANNOUNCEMENT MANAGEMENT FUNCTIONS  
+  // =============================================================================
+
+  const createAnnouncement = async (announcementData) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/announcements`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(announcementData),
+      });
+
+      if (response.ok) {
+        const newAnnouncement = await response.json();
+        return { success: true, announcement: newAnnouncement };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to create announcement' 
+        };
+      }
+    } catch (error) {
+      console.error('Create announcement error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const getAllAnnouncements = async (filters = {}) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const queryParams = new URLSearchParams();
+      
+      if (filters.type) queryParams.append('type', filters.type);
+      if (filters.priority) queryParams.append('priority', filters.priority);
+      if (filters.course_id) queryParams.append('course_id', filters.course_id);
+      if (filters.limit) queryParams.append('limit', filters.limit);
+      
+      const url = `${backendUrl}/api/announcements${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+      
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const announcements = await response.json();
+        return { success: true, announcements };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to fetch announcements' 
+        };
+      }
+    } catch (error) {
+      console.error('Fetch announcements error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const getMyAnnouncements = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/announcements/my-announcements`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const announcements = await response.json();
+        return { success: true, announcements };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to fetch your announcements' 
+        };
+      }
+    } catch (error) {
+      console.error('Fetch my announcements error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const getAnnouncementById = async (announcementId) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/announcements/${announcementId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const announcement = await response.json();
+        return { success: true, announcement };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to fetch announcement' 
+        };
+      }
+    } catch (error) {
+      console.error('Fetch announcement error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const updateAnnouncement = async (announcementId, announcementData) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/announcements/${announcementId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(announcementData),
+      });
+
+      if (response.ok) {
+        const updatedAnnouncement = await response.json();
+        return { success: true, announcement: updatedAnnouncement };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to update announcement' 
+        };
+      }
+    } catch (error) {
+      console.error('Update announcement error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const deleteAnnouncement = async (announcementId) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/announcements/${announcementId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        return { success: true };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to delete announcement' 
+        };
+      }
+    } catch (error) {
+      console.error('Delete announcement error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const togglePinAnnouncement = async (announcementId) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/announcements/${announcementId}/pin`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        return { success: true };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to toggle pin status' 
+        };
+      }
+    } catch (error) {
+      console.error('Toggle pin announcement error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  // =============================================================================
+  // CERTIFICATE MANAGEMENT FUNCTIONS  
+  // =============================================================================
+
+  const createCertificate = async (certificateData) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/certificates`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(certificateData),
+      });
+
+      if (response.ok) {
+        const newCertificate = await response.json();
+        return { success: true, certificate: newCertificate };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to create certificate' 
+        };
+      }
+    } catch (error) {
+      console.error('Create certificate error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const getAllCertificates = async (filters = {}) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const queryParams = new URLSearchParams();
+      
+      if (filters.student_id) queryParams.append('student_id', filters.student_id);
+      if (filters.course_id) queryParams.append('course_id', filters.course_id);
+      if (filters.program_id) queryParams.append('program_id', filters.program_id);
+      if (filters.type) queryParams.append('type', filters.type);
+      if (filters.status) queryParams.append('status', filters.status);
+      
+      const url = `${backendUrl}/api/certificates${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+      
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const certificates = await response.json();
+        return { success: true, certificates };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to fetch certificates' 
+        };
+      }
+    } catch (error) {
+      console.error('Fetch certificates error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const getMyCertificates = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/certificates/my-certificates`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const certificates = await response.json();
+        return { success: true, certificates };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to fetch your certificates' 
+        };
+      }
+    } catch (error) {
+      console.error('Fetch my certificates error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const getCertificateById = async (certificateId) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/certificates/${certificateId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const certificate = await response.json();
+        return { success: true, certificate };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to fetch certificate' 
+        };
+      }
+    } catch (error) {
+      console.error('Fetch certificate error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const verifyCertificate = async (verificationCode) => {
+    try {
+      const response = await fetch(`${backendUrl}/api/certificates/verify/${verificationCode}`);
+
+      if (response.ok) {
+        const verificationResult = await response.json();
+        return { success: true, verification: verificationResult };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to verify certificate' 
+        };
+      }
+    } catch (error) {
+      console.error('Verify certificate error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const updateCertificate = async (certificateId, certificateData) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/certificates/${certificateId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(certificateData),
+      });
+
+      if (response.ok) {
+        const updatedCertificate = await response.json();
+        return { success: true, certificate: updatedCertificate };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to update certificate' 
+        };
+      }
+    } catch (error) {
+      console.error('Update certificate error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const revokeCertificate = async (certificateId) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/certificates/${certificateId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        return { success: true };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to revoke certificate' 
+        };
+      }
+    } catch (error) {
+      console.error('Revoke certificate error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
   const value = {
     user,
     loading,
