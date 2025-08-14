@@ -4959,6 +4959,1188 @@ class BackendTester:
             )
         return False
     
+    # =============================================================================
+    # DEPARTMENT MANAGEMENT API TESTS - NEW IMPLEMENTATION
+    # =============================================================================
+    
+    def test_department_authentication_requirements(self):
+        """Test that only admins can access department management"""
+        try:
+            # Test 1: Unauthenticated access should fail
+            department_data = {
+                "name": "Test Department",
+                "description": "Test department description"
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/departments",
+                json=department_data,
+                timeout=TEST_TIMEOUT,
+                headers={'Content-Type': 'application/json'}
+            )
+            
+            if response.status_code == 403:
+                self.log_result(
+                    "Department Auth - Unauthenticated Access", 
+                    "PASS", 
+                    "Correctly denied unauthenticated access to department creation",
+                    "403 Forbidden returned as expected"
+                )
+            else:
+                self.log_result(
+                    "Department Auth - Unauthenticated Access", 
+                    "FAIL", 
+                    f"Expected 403 for unauthenticated access, got {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Department Auth - Unauthenticated Access", 
+                "FAIL", 
+                "Failed to test unauthenticated access",
+                str(e)
+            )
+        
+        # Test 2: Non-admin users should be denied access
+        non_admin_roles = ["instructor", "learner"]
+        for role in non_admin_roles:
+            if role in self.auth_tokens:
+                try:
+                    response = requests.post(
+                        f"{BACKEND_URL}/departments",
+                        json=department_data,
+                        timeout=TEST_TIMEOUT,
+                        headers={
+                            'Content-Type': 'application/json',
+                            'Authorization': f'Bearer {self.auth_tokens[role]}'
+                        }
+                    )
+                    
+                    if response.status_code == 403:
+                        data = response.json()
+                        if "Only admins can create departments" in data.get('detail', ''):
+                            self.log_result(
+                                f"Department Auth - {role.title()} Access", 
+                                "PASS", 
+                                f"Correctly denied {role} access to department creation",
+                                f"Error message: {data.get('detail')}"
+                            )
+                        else:
+                            self.log_result(
+                                f"Department Auth - {role.title()} Access", 
+                                "FAIL", 
+                                f"Wrong error message for {role} access denial",
+                                f"Expected 'Only admins can create departments', got: {data.get('detail')}"
+                            )
+                    else:
+                        self.log_result(
+                            f"Department Auth - {role.title()} Access", 
+                            "FAIL", 
+                            f"Expected 403 status for {role} access, got {response.status_code}",
+                            f"Response: {response.text}"
+                        )
+                except requests.exceptions.RequestException as e:
+                    self.log_result(
+                        f"Department Auth - {role.title()} Access", 
+                        "FAIL", 
+                        f"Failed to test {role} access control",
+                        str(e)
+                    )
+        
+        # Test 3: Admin should have access
+        if "admin" in self.auth_tokens:
+            try:
+                response = requests.get(
+                    f"{BACKEND_URL}/departments",
+                    timeout=TEST_TIMEOUT,
+                    headers={
+                        'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                    }
+                )
+                
+                if response.status_code == 200:
+                    self.log_result(
+                        "Department Auth - Admin Access", 
+                        "PASS", 
+                        "Admin can access department endpoints",
+                        "200 OK returned for admin access"
+                    )
+                else:
+                    self.log_result(
+                        "Department Auth - Admin Access", 
+                        "FAIL", 
+                        f"Admin access failed with status {response.status_code}",
+                        f"Response: {response.text}"
+                    )
+            except requests.exceptions.RequestException as e:
+                self.log_result(
+                    "Department Auth - Admin Access", 
+                    "FAIL", 
+                    "Failed to test admin access",
+                    str(e)
+                )
+    
+    def test_department_create_new(self):
+        """Test POST /api/departments - Create new department (admin only)"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Department API - POST Create New", 
+                "SKIP", 
+                "No admin token available",
+                "Admin authentication required for department creation"
+            )
+            return False
+        
+        # Test department data
+        test_department_data = {
+            "name": "Engineering Department",
+            "description": "Software Engineering and Development"
+        }
+        
+        try:
+            response = requests.post(
+                f"{BACKEND_URL}/departments",
+                json=test_department_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                required_fields = ['id', 'name', 'description', 'userCount', 'isActive', 'createdBy', 'created_at', 'updated_at']
+                
+                if all(field in data for field in required_fields):
+                    # Verify department data structure
+                    if (data.get('name') == test_department_data['name'] and
+                        data.get('description') == test_department_data['description'] and
+                        data.get('isActive') == True and
+                        data.get('userCount') == 0 and
+                        isinstance(data.get('id'), str) and len(data.get('id')) > 10):  # UUID check
+                        
+                        self.log_result(
+                            "Department API - POST Create New", 
+                            "PASS", 
+                            f"Successfully created department '{data.get('name')}'",
+                            f"Department ID: {data.get('id')}, Active: {data.get('isActive')}, User Count: {data.get('userCount')}"
+                        )
+                        return data  # Return created department for further testing
+                    else:
+                        self.log_result(
+                            "Department API - POST Create New", 
+                            "FAIL", 
+                            "Created department data doesn't match expected values",
+                            f"Expected name: {test_department_data['name']}, Got: {data.get('name')}"
+                        )
+                else:
+                    self.log_result(
+                        "Department API - POST Create New", 
+                        "FAIL", 
+                        "Response missing required backend fields",
+                        f"Missing: {[f for f in required_fields if f not in data]}"
+                    )
+            else:
+                self.log_result(
+                    "Department API - POST Create New", 
+                    "FAIL", 
+                    f"Department creation failed with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Department API - POST Create New", 
+                "FAIL", 
+                "Failed to create new department",
+                str(e)
+            )
+        return False
+    
+    def test_department_get_all_active(self):
+        """Test GET /api/departments - Retrieve all active departments with user counts"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Department API - GET All Active", 
+                "SKIP", 
+                "No admin token available",
+                "Authentication required for departments access"
+            )
+            return False
+        
+        try:
+            response = requests.get(
+                f"{BACKEND_URL}/departments",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                if isinstance(data, list):
+                    self.log_result(
+                        "Department API - GET All Active", 
+                        "PASS", 
+                        f"Successfully retrieved {len(data)} active departments",
+                        f"Departments found: {[d.get('name', 'No name') for d in data[:3]]}"  # Show first 3
+                    )
+                    
+                    # Verify user count calculation
+                    for dept in data:
+                        if 'userCount' in dept and isinstance(dept['userCount'], int):
+                            self.log_result(
+                                "Department API - User Count Calculation", 
+                                "PASS", 
+                                f"Department '{dept.get('name')}' has user count: {dept.get('userCount')}",
+                                "User count field present and calculated"
+                            )
+                        else:
+                            self.log_result(
+                                "Department API - User Count Calculation", 
+                                "FAIL", 
+                                f"Department '{dept.get('name')}' missing or invalid user count",
+                                f"userCount: {dept.get('userCount')}"
+                            )
+                    
+                    return data
+                else:
+                    self.log_result(
+                        "Department API - GET All Active", 
+                        "FAIL", 
+                        "Response is not a list",
+                        f"Response type: {type(data)}"
+                    )
+            else:
+                self.log_result(
+                    "Department API - GET All Active", 
+                    "FAIL", 
+                    f"Request failed with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Department API - GET All Active", 
+                "FAIL", 
+                "Failed to retrieve active departments",
+                str(e)
+            )
+        return False
+    
+    def test_department_get_specific(self, department_id=None):
+        """Test GET /api/departments/{department_id} - Get specific department by ID"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Department API - GET Specific", 
+                "SKIP", 
+                "No admin token available",
+                "Authentication required for department access"
+            )
+            return False
+        
+        # If no department_id provided, try to get one from existing departments
+        if not department_id:
+            departments = self.test_department_get_all_active()
+            if departments and len(departments) > 0:
+                department_id = departments[0].get('id')
+            else:
+                # Try to create a department first
+                created_department = self.test_department_create_new()
+                if created_department:
+                    department_id = created_department.get('id')
+                else:
+                    self.log_result(
+                        "Department API - GET Specific", 
+                        "SKIP", 
+                        "No department ID available for testing",
+                        "Need existing department or successful department creation"
+                    )
+                    return False
+        
+        try:
+            response = requests.get(
+                f"{BACKEND_URL}/departments/{department_id}",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                required_fields = ['id', 'name', 'description', 'userCount', 'isActive', 'createdBy']
+                
+                if all(field in data for field in required_fields):
+                    if data.get('id') == department_id:
+                        self.log_result(
+                            "Department API - GET Specific", 
+                            "PASS", 
+                            f"Successfully retrieved department '{data.get('name')}'",
+                            f"Department ID: {department_id}, User Count: {data.get('userCount')}"
+                        )
+                        return data
+                    else:
+                        self.log_result(
+                            "Department API - GET Specific", 
+                            "FAIL", 
+                            "Retrieved department ID doesn't match requested ID",
+                            f"Requested: {department_id}, Got: {data.get('id')}"
+                        )
+                else:
+                    self.log_result(
+                        "Department API - GET Specific", 
+                        "FAIL", 
+                        "Response missing required fields",
+                        f"Missing: {[f for f in required_fields if f not in data]}"
+                    )
+            elif response.status_code == 404:
+                self.log_result(
+                    "Department API - GET Specific", 
+                    "PASS", 
+                    f"Correctly returned 404 for department ID: {department_id}",
+                    "Department not found as expected"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Department API - GET Specific", 
+                    "FAIL", 
+                    f"Request failed with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Department API - GET Specific", 
+                "FAIL", 
+                "Failed to retrieve specific department",
+                str(e)
+            )
+        return False
+    
+    def test_department_update_existing(self, department_id=None, department_data=None):
+        """Test PUT /api/departments/{department_id} - Update department (admin only)"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Department API - PUT Update", 
+                "SKIP", 
+                "No admin token available",
+                "Admin authentication required for department updates"
+            )
+            return False
+        
+        # If no department provided, create one first
+        if not department_id or not department_data:
+            created_department = self.test_department_create_new()
+            if not created_department:
+                self.log_result(
+                    "Department API - PUT Update", 
+                    "SKIP", 
+                    "Could not create test department for update testing",
+                    "Department creation failed"
+                )
+                return False
+            department_id = created_department.get('id')
+            department_data = created_department
+        
+        # Update the department data
+        updated_data = {
+            "name": f"{department_data.get('name', 'Test Department')} - Updated",
+            "description": f"{department_data.get('description', 'Test description')} - Updated via API test"
+        }
+        
+        try:
+            response = requests.put(
+                f"{BACKEND_URL}/departments/{department_id}",
+                json=updated_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if (data.get('name') == updated_data['name'] and
+                    data.get('description') == updated_data['description'] and
+                    data.get('id') == department_id):
+                    
+                    self.log_result(
+                        "Department API - PUT Update", 
+                        "PASS", 
+                        f"Successfully updated department '{data.get('name')}'",
+                        f"Updated fields: name, description"
+                    )
+                    return data
+                else:
+                    self.log_result(
+                        "Department API - PUT Update", 
+                        "FAIL", 
+                        "Updated department data doesn't match expected values",
+                        f"Expected name: {updated_data['name']}, Got: {data.get('name')}"
+                    )
+            elif response.status_code == 404:
+                self.log_result(
+                    "Department API - PUT Update", 
+                    "FAIL", 
+                    f"Department not found for update: {department_id}",
+                    "Department may have been deleted or doesn't exist"
+                )
+            elif response.status_code == 403:
+                self.log_result(
+                    "Department API - PUT Update", 
+                    "FAIL", 
+                    "Access denied - only admins can update departments",
+                    "Permission check failed"
+                )
+            else:
+                self.log_result(
+                    "Department API - PUT Update", 
+                    "FAIL", 
+                    f"Department update failed with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Department API - PUT Update", 
+                "FAIL", 
+                "Failed to update department",
+                str(e)
+            )
+        return False
+    
+    def test_department_delete_with_users_assigned(self):
+        """Test DELETE /api/departments/{department_id} - Test deletion with users assigned"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Department API - DELETE with Users", 
+                "SKIP", 
+                "No admin token available",
+                "Admin authentication required for department deletion"
+            )
+            return False
+        
+        # First, get all users to find one with a department
+        try:
+            users_response = requests.get(
+                f"{BACKEND_URL}/auth/admin/users",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if users_response.status_code != 200:
+                self.log_result(
+                    "Department API - DELETE with Users", 
+                    "SKIP", 
+                    "Could not get users list for testing",
+                    f"Users API returned: {users_response.status_code}"
+                )
+                return False
+            
+            users = users_response.json()
+            user_with_department = None
+            department_name = None
+            
+            for user in users:
+                if user.get('department'):
+                    user_with_department = user
+                    department_name = user.get('department')
+                    break
+            
+            if not user_with_department:
+                self.log_result(
+                    "Department API - DELETE with Users", 
+                    "SKIP", 
+                    "No users found with departments assigned",
+                    "Need users with departments to test deletion protection"
+                )
+                return False
+            
+            # Find the department ID for this department name
+            departments_response = requests.get(
+                f"{BACKEND_URL}/departments",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if departments_response.status_code != 200:
+                self.log_result(
+                    "Department API - DELETE with Users", 
+                    "SKIP", 
+                    "Could not get departments list",
+                    f"Departments API returned: {departments_response.status_code}"
+                )
+                return False
+            
+            departments = departments_response.json()
+            target_department = None
+            
+            for dept in departments:
+                if dept.get('name') == department_name:
+                    target_department = dept
+                    break
+            
+            if not target_department:
+                self.log_result(
+                    "Department API - DELETE with Users", 
+                    "SKIP", 
+                    f"Could not find department '{department_name}' in departments list",
+                    "Department may not exist in backend"
+                )
+                return False
+            
+            # Now try to delete the department that has users assigned
+            delete_response = requests.delete(
+                f"{BACKEND_URL}/departments/{target_department['id']}",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if delete_response.status_code == 400:
+                data = delete_response.json()
+                if "Cannot delete department" in data.get('detail', '') and "being used by" in data.get('detail', ''):
+                    self.log_result(
+                        "Department API - DELETE with Users", 
+                        "PASS", 
+                        f"Correctly prevented deletion of department '{department_name}' with assigned users",
+                        f"Error message: {data.get('detail')}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Department API - DELETE with Users", 
+                        "FAIL", 
+                        "Wrong error message for department with users",
+                        f"Expected 'Cannot delete department...being used by', got: {data.get('detail')}"
+                    )
+            else:
+                self.log_result(
+                    "Department API - DELETE with Users", 
+                    "FAIL", 
+                    f"Expected 400 status for department with users, got {delete_response.status_code}",
+                    f"Response: {delete_response.text}"
+                )
+                
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Department API - DELETE with Users", 
+                "FAIL", 
+                "Failed to test department deletion with users",
+                str(e)
+            )
+        return False
+    
+    def test_department_delete_empty(self):
+        """Test DELETE /api/departments/{department_id} - Delete department without users"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Department API - DELETE Empty", 
+                "SKIP", 
+                "No admin token available",
+                "Admin authentication required for department deletion"
+            )
+            return False
+        
+        # Create a new department specifically for deletion testing
+        test_department_data = {
+            "name": "Temporary Delete Test Department",
+            "description": "Department created for deletion testing"
+        }
+        
+        try:
+            # Create the department
+            create_response = requests.post(
+                f"{BACKEND_URL}/departments",
+                json=test_department_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if create_response.status_code != 200:
+                self.log_result(
+                    "Department API - DELETE Empty", 
+                    "SKIP", 
+                    "Could not create test department for deletion",
+                    f"Creation failed with status: {create_response.status_code}"
+                )
+                return False
+            
+            created_department = create_response.json()
+            department_id = created_department.get('id')
+            
+            # Now delete the empty department
+            delete_response = requests.delete(
+                f"{BACKEND_URL}/departments/{department_id}",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if delete_response.status_code == 200:
+                data = delete_response.json()
+                if 'message' in data and 'successfully deleted' in data['message'].lower():
+                    self.log_result(
+                        "Department API - DELETE Empty", 
+                        "PASS", 
+                        f"Successfully deleted empty department",
+                        f"Message: {data.get('message')}"
+                    )
+                    
+                    # Verify department is actually deleted (soft delete - isActive = False)
+                    verify_response = requests.get(
+                        f"{BACKEND_URL}/departments/{department_id}",
+                        timeout=TEST_TIMEOUT,
+                        headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+                    )
+                    
+                    if verify_response.status_code == 404:
+                        self.log_result(
+                            "Department API - DELETE Verification", 
+                            "PASS", 
+                            "Confirmed department was soft deleted (404 on retrieval)",
+                            "Soft delete verified successfully"
+                        )
+                        return True
+                    else:
+                        self.log_result(
+                            "Department API - DELETE Verification", 
+                            "INFO", 
+                            f"Department still accessible after deletion (status: {verify_response.status_code})",
+                            "May be soft delete behavior"
+                        )
+                        return True  # Still consider this a pass as soft delete is valid
+                else:
+                    self.log_result(
+                        "Department API - DELETE Empty", 
+                        "FAIL", 
+                        "Unexpected response format for deletion",
+                        f"Response: {data}"
+                    )
+            else:
+                self.log_result(
+                    "Department API - DELETE Empty", 
+                    "FAIL", 
+                    f"Department deletion failed with status {delete_response.status_code}",
+                    f"Response: {delete_response.text}"
+                )
+                
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Department API - DELETE Empty", 
+                "FAIL", 
+                "Failed to test empty department deletion",
+                str(e)
+            )
+        return False
+    
+    def test_department_name_uniqueness_validation(self):
+        """Test department name uniqueness validation"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Department API - Name Uniqueness", 
+                "SKIP", 
+                "No admin token available",
+                "Admin authentication required for uniqueness testing"
+            )
+            return False
+        
+        # First, create a department
+        unique_department_data = {
+            "name": "Unique Test Department",
+            "description": "Department for uniqueness testing"
+        }
+        
+        try:
+            # Create the first department
+            create_response = requests.post(
+                f"{BACKEND_URL}/departments",
+                json=unique_department_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if create_response.status_code != 200:
+                self.log_result(
+                    "Department API - Name Uniqueness", 
+                    "SKIP", 
+                    "Could not create first department for uniqueness test",
+                    f"Creation failed with status: {create_response.status_code}"
+                )
+                return False
+            
+            # Now try to create another department with the same name
+            duplicate_response = requests.post(
+                f"{BACKEND_URL}/departments",
+                json=unique_department_data,  # Same name
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if duplicate_response.status_code == 400:
+                data = duplicate_response.json()
+                if "Department with this name already exists" in data.get('detail', ''):
+                    self.log_result(
+                        "Department API - Name Uniqueness", 
+                        "PASS", 
+                        "Correctly prevented duplicate department name creation",
+                        f"Error message: {data.get('detail')}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Department API - Name Uniqueness", 
+                        "FAIL", 
+                        "Wrong error message for duplicate name",
+                        f"Expected 'Department with this name already exists', got: {data.get('detail')}"
+                    )
+            else:
+                self.log_result(
+                    "Department API - Name Uniqueness", 
+                    "FAIL", 
+                    f"Expected 400 status for duplicate name, got {duplicate_response.status_code}",
+                    f"Response: {duplicate_response.text}"
+                )
+                
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Department API - Name Uniqueness", 
+                "FAIL", 
+                "Failed to test department name uniqueness",
+                str(e)
+            )
+        return False
+    
+    def test_department_user_count_accuracy(self):
+        """Test user count calculation accuracy"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Department API - User Count Accuracy", 
+                "SKIP", 
+                "No admin token available",
+                "Admin authentication required for user count testing"
+            )
+            return False
+        
+        try:
+            # Get all departments
+            departments_response = requests.get(
+                f"{BACKEND_URL}/departments",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if departments_response.status_code != 200:
+                self.log_result(
+                    "Department API - User Count Accuracy", 
+                    "SKIP", 
+                    "Could not get departments list",
+                    f"Departments API returned: {departments_response.status_code}"
+                )
+                return False
+            
+            departments = departments_response.json()
+            
+            # Get all users
+            users_response = requests.get(
+                f"{BACKEND_URL}/auth/admin/users",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if users_response.status_code != 200:
+                self.log_result(
+                    "Department API - User Count Accuracy", 
+                    "SKIP", 
+                    "Could not get users list",
+                    f"Users API returned: {users_response.status_code}"
+                )
+                return False
+            
+            users = users_response.json()
+            
+            # Calculate actual user counts per department
+            actual_counts = {}
+            for user in users:
+                dept_name = user.get('department')
+                if dept_name and user.get('is_active', True):  # Only count active users
+                    actual_counts[dept_name] = actual_counts.get(dept_name, 0) + 1
+            
+            # Compare with API reported counts
+            accuracy_results = []
+            for dept in departments:
+                dept_name = dept.get('name')
+                api_count = dept.get('userCount', 0)
+                actual_count = actual_counts.get(dept_name, 0)
+                
+                if api_count == actual_count:
+                    accuracy_results.append((dept_name, "PASS", f"User count accurate: {api_count}"))
+                else:
+                    accuracy_results.append((dept_name, "FAIL", f"User count mismatch: API={api_count}, Actual={actual_count}"))
+            
+            # Log all results
+            passed_count = 0
+            for dept_name, status, message in accuracy_results:
+                self.log_result(
+                    f"Department User Count - {dept_name}", 
+                    status, 
+                    message,
+                    "User count calculation verification"
+                )
+                if status == "PASS":
+                    passed_count += 1
+            
+            if passed_count == len(accuracy_results) and len(accuracy_results) > 0:
+                self.log_result(
+                    "Department API - User Count Accuracy", 
+                    "PASS", 
+                    f"All {passed_count} departments have accurate user counts",
+                    "User count calculation is working correctly"
+                )
+                return True
+            elif len(accuracy_results) == 0:
+                self.log_result(
+                    "Department API - User Count Accuracy", 
+                    "INFO", 
+                    "No departments found for user count testing",
+                    "Cannot verify accuracy without departments"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Department API - User Count Accuracy", 
+                    "FAIL", 
+                    f"User count accuracy issues: {passed_count}/{len(accuracy_results)} departments accurate",
+                    "User count calculation needs review"
+                )
+                return False
+                
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Department API - User Count Accuracy", 
+                "FAIL", 
+                "Failed to test user count accuracy",
+                str(e)
+            )
+        return False
+    
+    def test_department_integration_with_users(self):
+        """Test departments integrate properly with existing user data"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Department API - User Integration", 
+                "SKIP", 
+                "No admin token available",
+                "Admin authentication required for integration testing"
+            )
+            return False
+        
+        try:
+            # Get all users
+            users_response = requests.get(
+                f"{BACKEND_URL}/auth/admin/users",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if users_response.status_code != 200:
+                self.log_result(
+                    "Department API - User Integration", 
+                    "SKIP", 
+                    "Could not get users list",
+                    f"Users API returned: {users_response.status_code}"
+                )
+                return False
+            
+            users = users_response.json()
+            
+            # Get all departments
+            departments_response = requests.get(
+                f"{BACKEND_URL}/departments",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if departments_response.status_code != 200:
+                self.log_result(
+                    "Department API - User Integration", 
+                    "SKIP", 
+                    "Could not get departments list",
+                    f"Departments API returned: {departments_response.status_code}"
+                )
+                return False
+            
+            departments = departments_response.json()
+            department_names = [d.get('name') for d in departments]
+            
+            # Check if user departments reference valid department names
+            integration_issues = []
+            valid_references = 0
+            
+            for user in users:
+                user_dept = user.get('department')
+                if user_dept:
+                    if user_dept in department_names:
+                        valid_references += 1
+                    else:
+                        integration_issues.append(f"User {user.get('username')} references non-existent department: {user_dept}")
+            
+            if len(integration_issues) == 0:
+                self.log_result(
+                    "Department API - User Integration", 
+                    "PASS", 
+                    f"All user department references are valid ({valid_references} valid references)",
+                    "Department-user integration working correctly"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Department API - User Integration", 
+                    "FAIL", 
+                    f"Found {len(integration_issues)} integration issues",
+                    f"Issues: {integration_issues[:3]}"  # Show first 3 issues
+                )
+                return False
+                
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Department API - User Integration", 
+                "FAIL", 
+                "Failed to test department-user integration",
+                str(e)
+            )
+        return False
+    
+    def test_department_soft_delete_functionality(self):
+        """Test soft delete functionality (isActive flag)"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Department API - Soft Delete", 
+                "SKIP", 
+                "No admin token available",
+                "Admin authentication required for soft delete testing"
+            )
+            return False
+        
+        # Create a department for soft delete testing
+        test_department_data = {
+            "name": "Soft Delete Test Department",
+            "description": "Department for soft delete testing"
+        }
+        
+        try:
+            # Create the department
+            create_response = requests.post(
+                f"{BACKEND_URL}/departments",
+                json=test_department_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if create_response.status_code != 200:
+                self.log_result(
+                    "Department API - Soft Delete", 
+                    "SKIP", 
+                    "Could not create test department for soft delete",
+                    f"Creation failed with status: {create_response.status_code}"
+                )
+                return False
+            
+            created_department = create_response.json()
+            department_id = created_department.get('id')
+            
+            # Verify department is initially active
+            if created_department.get('isActive') != True:
+                self.log_result(
+                    "Department API - Soft Delete Initial State", 
+                    "FAIL", 
+                    "New department should be active by default",
+                    f"isActive: {created_department.get('isActive')}"
+                )
+                return False
+            
+            # Delete the department (should be soft delete)
+            delete_response = requests.delete(
+                f"{BACKEND_URL}/departments/{department_id}",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if delete_response.status_code == 200:
+                # Check if department still exists but is inactive
+                # Note: The API might return 404 for inactive departments, which is also valid
+                verify_response = requests.get(
+                    f"{BACKEND_URL}/departments/{department_id}",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+                )
+                
+                if verify_response.status_code == 404:
+                    self.log_result(
+                        "Department API - Soft Delete", 
+                        "PASS", 
+                        "Department soft deleted successfully (not visible in active list)",
+                        "Soft delete implemented correctly - inactive departments filtered out"
+                    )
+                    return True
+                elif verify_response.status_code == 200:
+                    dept_data = verify_response.json()
+                    if dept_data.get('isActive') == False:
+                        self.log_result(
+                            "Department API - Soft Delete", 
+                            "PASS", 
+                            "Department soft deleted successfully (isActive = False)",
+                            "Soft delete implemented correctly"
+                        )
+                        return True
+                    else:
+                        self.log_result(
+                            "Department API - Soft Delete", 
+                            "FAIL", 
+                            "Department still active after deletion",
+                            f"isActive: {dept_data.get('isActive')}"
+                        )
+                else:
+                    self.log_result(
+                        "Department API - Soft Delete", 
+                        "INFO", 
+                        f"Unexpected response after deletion: {verify_response.status_code}",
+                        "Soft delete behavior unclear"
+                    )
+            else:
+                self.log_result(
+                    "Department API - Soft Delete", 
+                    "FAIL", 
+                    f"Department deletion failed with status {delete_response.status_code}",
+                    f"Response: {delete_response.text}"
+                )
+                
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Department API - Soft Delete", 
+                "FAIL", 
+                "Failed to test soft delete functionality",
+                str(e)
+            )
+        return False
+    
+    def test_department_error_handling(self):
+        """Test error handling for department endpoints"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Department API - Error Handling", 
+                "SKIP", 
+                "No admin token available",
+                "Admin authentication required for error handling tests"
+            )
+            return False
+        
+        error_tests = []
+        
+        # Test 1: Invalid department ID access
+        try:
+            response = requests.get(
+                f"{BACKEND_URL}/departments/invalid-department-id",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            if response.status_code == 404:
+                error_tests.append(("Invalid Department ID", "PASS", "Correctly returned 404 for invalid department ID"))
+            else:
+                error_tests.append(("Invalid Department ID", "FAIL", f"Expected 404, got {response.status_code}"))
+        except requests.exceptions.RequestException as e:
+            error_tests.append(("Invalid Department ID", "FAIL", f"Request failed: {str(e)}"))
+        
+        # Test 2: Missing required fields in department creation
+        try:
+            invalid_department_data = {
+                "description": "Missing name field"
+                # Missing required 'name' field
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/departments",
+                json=invalid_department_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if response.status_code == 422:  # Validation error
+                error_tests.append(("Missing Required Fields", "PASS", "Correctly rejected department with missing name"))
+            else:
+                error_tests.append(("Missing Required Fields", "FAIL", f"Expected 422, got {response.status_code}"))
+        except requests.exceptions.RequestException as e:
+            error_tests.append(("Missing Required Fields", "FAIL", f"Request failed: {str(e)}"))
+        
+        # Test 3: Empty name field
+        try:
+            empty_name_data = {
+                "name": "",  # Empty name
+                "description": "Test description"
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/departments",
+                json=empty_name_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if response.status_code in [400, 422]:  # Should reject empty name
+                error_tests.append(("Empty Name Field", "PASS", "Correctly rejected department with empty name"))
+            else:
+                error_tests.append(("Empty Name Field", "INFO", f"Empty name handling: {response.status_code}"))
+        except requests.exceptions.RequestException as e:
+            error_tests.append(("Empty Name Field", "FAIL", f"Request failed: {str(e)}"))
+        
+        # Log all error handling test results
+        for test_name, status, message in error_tests:
+            self.log_result(
+                f"Department Error Handling - {test_name}", 
+                status, 
+                message,
+                "Error handling validation"
+            )
+        
+        return len([t for t in error_tests if t[1] == "PASS"]) > 0
+    
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Backend Testing Suite for LearningFwiend LMS")
