@@ -343,6 +343,632 @@ class BackendTester:
         return False
     
     # =============================================================================
+    # CRITICAL PASSWORD CHANGE LOOP BUG INVESTIGATION
+    # =============================================================================
+    
+    def test_check_specific_user_status(self):
+        """Check the status of user brayden.t@covesmart.com"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Check User Status - brayden.t@covesmart.com", 
+                "SKIP", 
+                "No admin token available, skipping user status check",
+                "Admin login required first"
+            )
+            return False
+        
+        try:
+            # Get all users to find brayden.t@covesmart.com
+            response = requests.get(
+                f"{BACKEND_URL}/auth/admin/users",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                users = response.json()
+                target_user = None
+                
+                for user in users:
+                    if user.get('email') == 'brayden.t@covesmart.com':
+                        target_user = user
+                        break
+                
+                if target_user:
+                    self.log_result(
+                        "Check User Status - brayden.t@covesmart.com", 
+                        "PASS", 
+                        f"Found user brayden.t@covesmart.com",
+                        f"User details: ID={target_user.get('id')}, first_login_required={target_user.get('first_login_required')}, is_active={target_user.get('is_active')}, created_at={target_user.get('created_at')}"
+                    )
+                    return target_user
+                else:
+                    # User doesn't exist, let's create them for testing
+                    self.log_result(
+                        "Check User Status - brayden.t@covesmart.com", 
+                        "INFO", 
+                        "User brayden.t@covesmart.com not found, will create for testing",
+                        "Creating test user to reproduce the issue"
+                    )
+                    
+                    # Create the user
+                    user_data = {
+                        "email": "brayden.t@covesmart.com",
+                        "username": "brayden.t",
+                        "full_name": "Brayden Test User",
+                        "role": "learner",
+                        "department": "Testing",
+                        "temporary_password": "TempPass123!"
+                    }
+                    
+                    create_response = requests.post(
+                        f"{BACKEND_URL}/auth/admin/create-user",
+                        json=user_data,
+                        timeout=TEST_TIMEOUT,
+                        headers={
+                            'Content-Type': 'application/json',
+                            'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                        }
+                    )
+                    
+                    if create_response.status_code == 200:
+                        created_user = create_response.json()
+                        self.log_result(
+                            "Create Test User - brayden.t@covesmart.com", 
+                            "PASS", 
+                            "Successfully created test user brayden.t@covesmart.com",
+                            f"User ID: {created_user.get('id')}, first_login_required: {created_user.get('first_login_required')}"
+                        )
+                        return created_user
+                    else:
+                        self.log_result(
+                            "Create Test User - brayden.t@covesmart.com", 
+                            "FAIL", 
+                            f"Failed to create test user with status {create_response.status_code}",
+                            f"Response: {create_response.text}"
+                        )
+            else:
+                self.log_result(
+                    "Check User Status - brayden.t@covesmart.com", 
+                    "FAIL", 
+                    f"Failed to get users list with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Check User Status - brayden.t@covesmart.com", 
+                "FAIL", 
+                "Failed to check user status",
+                str(e)
+            )
+        return False
+    
+    def test_password_change_workflow_complete(self):
+        """Test the complete password change workflow to identify the loop issue"""
+        # First, ensure we have the test user
+        test_user = self.test_check_specific_user_status()
+        if not test_user:
+            self.log_result(
+                "Password Change Workflow - Complete Test", 
+                "FAIL", 
+                "Could not find or create test user brayden.t@covesmart.com",
+                "Test user required for workflow testing"
+            )
+            return False
+        
+        try:
+            # Step 1: Login with temporary password
+            login_data = {
+                "username_or_email": "brayden.t@covesmart.com",
+                "password": "TempPass123!"
+            }
+            
+            login_response = requests.post(
+                f"{BACKEND_URL}/auth/login",
+                json=login_data,
+                timeout=TEST_TIMEOUT,
+                headers={'Content-Type': 'application/json'}
+            )
+            
+            if login_response.status_code != 200:
+                self.log_result(
+                    "Password Change Workflow - Login Step", 
+                    "FAIL", 
+                    f"Failed to login with temporary password, status: {login_response.status_code}",
+                    f"Response: {login_response.text}"
+                )
+                return False
+            
+            login_data_response = login_response.json()
+            user_token = login_data_response.get('access_token')
+            requires_password_change = login_data_response.get('requires_password_change')
+            
+            self.log_result(
+                "Password Change Workflow - Login Step", 
+                "PASS", 
+                f"Successfully logged in, requires_password_change: {requires_password_change}",
+                f"Token received, user data: {login_data_response.get('user', {})}"
+            )
+            
+            # Step 2: Change password
+            password_change_data = {
+                "current_password": "TempPass123!",
+                "new_password": "NewPassword123!"
+            }
+            
+            change_response = requests.post(
+                f"{BACKEND_URL}/auth/change-password",
+                json=password_change_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {user_token}'
+                }
+            )
+            
+            if change_response.status_code != 200:
+                self.log_result(
+                    "Password Change Workflow - Change Step", 
+                    "FAIL", 
+                    f"Failed to change password, status: {change_response.status_code}",
+                    f"Response: {change_response.text}"
+                )
+                return False
+            
+            change_data_response = change_response.json()
+            self.log_result(
+                "Password Change Workflow - Change Step", 
+                "PASS", 
+                "Successfully changed password",
+                f"Response: {change_data_response}"
+            )
+            
+            # Step 3: Login again with new password to check if loop issue exists
+            login_data_new = {
+                "username_or_email": "brayden.t@covesmart.com",
+                "password": "NewPassword123!"
+            }
+            
+            login_response_new = requests.post(
+                f"{BACKEND_URL}/auth/login",
+                json=login_data_new,
+                timeout=TEST_TIMEOUT,
+                headers={'Content-Type': 'application/json'}
+            )
+            
+            if login_response_new.status_code != 200:
+                self.log_result(
+                    "Password Change Workflow - Verification Step", 
+                    "FAIL", 
+                    f"Failed to login with new password, status: {login_response_new.status_code}",
+                    f"Response: {login_response_new.text}"
+                )
+                return False
+            
+            login_data_new_response = login_response_new.json()
+            requires_password_change_after = login_data_new_response.get('requires_password_change')
+            
+            # This is the critical check - if requires_password_change is still True, we have the loop bug
+            if requires_password_change_after:
+                self.log_result(
+                    "Password Change Workflow - CRITICAL BUG DETECTED", 
+                    "FAIL", 
+                    "PASSWORD CHANGE LOOP BUG CONFIRMED: User still required to change password after successful change",
+                    f"requires_password_change should be False but is: {requires_password_change_after}. User flags not properly updated in database."
+                )
+                
+                # Get user details again to see current database state
+                if "admin" in self.auth_tokens:
+                    users_response = requests.get(
+                        f"{BACKEND_URL}/auth/admin/users",
+                        timeout=TEST_TIMEOUT,
+                        headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+                    )
+                    
+                    if users_response.status_code == 200:
+                        users = users_response.json()
+                        for user in users:
+                            if user.get('email') == 'brayden.t@covesmart.com':
+                                self.log_result(
+                                    "Password Change Workflow - Database State Check", 
+                                    "INFO", 
+                                    "Current user database state after password change",
+                                    f"first_login_required: {user.get('first_login_required')}, is_temporary_password: Not visible in response, last_login: {user.get('last_login')}"
+                                )
+                                break
+                
+                return False
+            else:
+                self.log_result(
+                    "Password Change Workflow - Complete Test", 
+                    "PASS", 
+                    "Password change workflow working correctly - no loop detected",
+                    f"requires_password_change correctly set to: {requires_password_change_after}"
+                )
+                return True
+                
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Password Change Workflow - Complete Test", 
+                "FAIL", 
+                "Failed to complete password change workflow test",
+                str(e)
+            )
+        return False
+    
+    def test_password_change_database_update_verification(self):
+        """Verify that password change properly updates database flags"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Password Change DB Update Verification", 
+                "SKIP", 
+                "No admin token available, skipping database verification",
+                "Admin login required first"
+            )
+            return False
+        
+        try:
+            # Create a fresh test user for this specific test
+            test_user_data = {
+                "email": "password.test@covesmart.com",
+                "username": "password.test",
+                "full_name": "Password Test User",
+                "role": "learner",
+                "department": "Testing",
+                "temporary_password": "TempTest123!"
+            }
+            
+            create_response = requests.post(
+                f"{BACKEND_URL}/auth/admin/create-user",
+                json=test_user_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if create_response.status_code not in [200, 400]:  # 400 if user already exists
+                self.log_result(
+                    "Password Change DB Update - User Creation", 
+                    "FAIL", 
+                    f"Failed to create test user, status: {create_response.status_code}",
+                    f"Response: {create_response.text}"
+                )
+                return False
+            
+            # Get user details before password change
+            users_response = requests.get(
+                f"{BACKEND_URL}/auth/admin/users",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            if users_response.status_code != 200:
+                self.log_result(
+                    "Password Change DB Update - Get Users Before", 
+                    "FAIL", 
+                    f"Failed to get users, status: {users_response.status_code}",
+                    f"Response: {users_response.text}"
+                )
+                return False
+            
+            users = users_response.json()
+            test_user_before = None
+            for user in users:
+                if user.get('email') == 'password.test@covesmart.com':
+                    test_user_before = user
+                    break
+            
+            if not test_user_before:
+                self.log_result(
+                    "Password Change DB Update - Find User Before", 
+                    "FAIL", 
+                    "Could not find test user in database",
+                    "User should exist after creation"
+                )
+                return False
+            
+            self.log_result(
+                "Password Change DB Update - User State Before", 
+                "INFO", 
+                "User state before password change",
+                f"first_login_required: {test_user_before.get('first_login_required')}, created_at: {test_user_before.get('created_at')}"
+            )
+            
+            # Login and change password
+            login_data = {
+                "username_or_email": "password.test@covesmart.com",
+                "password": "TempTest123!"
+            }
+            
+            login_response = requests.post(
+                f"{BACKEND_URL}/auth/login",
+                json=login_data,
+                timeout=TEST_TIMEOUT,
+                headers={'Content-Type': 'application/json'}
+            )
+            
+            if login_response.status_code != 200:
+                self.log_result(
+                    "Password Change DB Update - Login", 
+                    "FAIL", 
+                    f"Failed to login, status: {login_response.status_code}",
+                    f"Response: {login_response.text}"
+                )
+                return False
+            
+            user_token = login_response.json().get('access_token')
+            
+            # Change password
+            password_change_data = {
+                "current_password": "TempTest123!",
+                "new_password": "NewTest123!"
+            }
+            
+            change_response = requests.post(
+                f"{BACKEND_URL}/auth/change-password",
+                json=password_change_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {user_token}'
+                }
+            )
+            
+            if change_response.status_code != 200:
+                self.log_result(
+                    "Password Change DB Update - Change Password", 
+                    "FAIL", 
+                    f"Failed to change password, status: {change_response.status_code}",
+                    f"Response: {change_response.text}"
+                )
+                return False
+            
+            # Get user details after password change
+            users_response_after = requests.get(
+                f"{BACKEND_URL}/auth/admin/users",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            if users_response_after.status_code != 200:
+                self.log_result(
+                    "Password Change DB Update - Get Users After", 
+                    "FAIL", 
+                    f"Failed to get users after password change, status: {users_response_after.status_code}",
+                    f"Response: {users_response_after.text}"
+                )
+                return False
+            
+            users_after = users_response_after.json()
+            test_user_after = None
+            for user in users_after:
+                if user.get('email') == 'password.test@covesmart.com':
+                    test_user_after = user
+                    break
+            
+            if not test_user_after:
+                self.log_result(
+                    "Password Change DB Update - Find User After", 
+                    "FAIL", 
+                    "Could not find test user in database after password change",
+                    "User should still exist after password change"
+                )
+                return False
+            
+            # Compare before and after states
+            first_login_before = test_user_before.get('first_login_required')
+            first_login_after = test_user_after.get('first_login_required')
+            
+            self.log_result(
+                "Password Change DB Update - User State After", 
+                "INFO", 
+                "User state after password change",
+                f"first_login_required: {first_login_after} (was: {first_login_before}), last_login: {test_user_after.get('last_login')}"
+            )
+            
+            # Check if the database was properly updated
+            if first_login_before == True and first_login_after == False:
+                self.log_result(
+                    "Password Change DB Update Verification", 
+                    "PASS", 
+                    "Database properly updated - first_login_required changed from True to False",
+                    f"Password change correctly updated user flags in database"
+                )
+                return True
+            elif first_login_before == True and first_login_after == True:
+                self.log_result(
+                    "Password Change DB Update Verification", 
+                    "FAIL", 
+                    "CRITICAL BUG: Database NOT updated - first_login_required still True after password change",
+                    f"This confirms the password change loop bug - database update is failing"
+                )
+                return False
+            else:
+                self.log_result(
+                    "Password Change DB Update Verification", 
+                    "INFO", 
+                    f"Unexpected state: first_login_required before: {first_login_before}, after: {first_login_after}",
+                    "May need further investigation"
+                )
+                return False
+                
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Password Change DB Update Verification", 
+                "FAIL", 
+                "Failed to verify database update",
+                str(e)
+            )
+        return False
+    
+    def test_password_change_api_detailed(self):
+        """Detailed test of the password change API endpoint"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Password Change API - Detailed Test", 
+                "SKIP", 
+                "No admin token available, skipping detailed API test",
+                "Admin login required first"
+            )
+            return False
+        
+        try:
+            # Create a test user specifically for API testing
+            api_test_user_data = {
+                "email": "api.test@covesmart.com",
+                "username": "api.test",
+                "full_name": "API Test User",
+                "role": "learner",
+                "department": "Testing",
+                "temporary_password": "ApiTest123!"
+            }
+            
+            create_response = requests.post(
+                f"{BACKEND_URL}/auth/admin/create-user",
+                json=api_test_user_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if create_response.status_code not in [200, 400]:
+                self.log_result(
+                    "Password Change API - User Creation", 
+                    "FAIL", 
+                    f"Failed to create API test user, status: {create_response.status_code}",
+                    f"Response: {create_response.text}"
+                )
+                return False
+            
+            # Login to get user token
+            login_data = {
+                "username_or_email": "api.test@covesmart.com",
+                "password": "ApiTest123!"
+            }
+            
+            login_response = requests.post(
+                f"{BACKEND_URL}/auth/login",
+                json=login_data,
+                timeout=TEST_TIMEOUT,
+                headers={'Content-Type': 'application/json'}
+            )
+            
+            if login_response.status_code != 200:
+                self.log_result(
+                    "Password Change API - Login for Token", 
+                    "FAIL", 
+                    f"Failed to login for API test, status: {login_response.status_code}",
+                    f"Response: {login_response.text}"
+                )
+                return False
+            
+            user_token = login_response.json().get('access_token')
+            
+            # Test the password change API with detailed logging
+            password_change_data = {
+                "current_password": "ApiTest123!",
+                "new_password": "NewApiTest123!"
+            }
+            
+            self.log_result(
+                "Password Change API - Request Details", 
+                "INFO", 
+                "Making password change API request",
+                f"Endpoint: POST {BACKEND_URL}/auth/change-password, Data: {password_change_data}"
+            )
+            
+            change_response = requests.post(
+                f"{BACKEND_URL}/auth/change-password",
+                json=password_change_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {user_token}'
+                }
+            )
+            
+            self.log_result(
+                "Password Change API - Response Details", 
+                "INFO", 
+                f"Password change API response: Status {change_response.status_code}",
+                f"Response headers: {dict(change_response.headers)}, Response body: {change_response.text}"
+            )
+            
+            if change_response.status_code == 200:
+                response_data = change_response.json()
+                expected_message = "Password changed successfully"
+                
+                if response_data.get('message') == expected_message:
+                    self.log_result(
+                        "Password Change API - Detailed Test", 
+                        "PASS", 
+                        "Password change API working correctly",
+                        f"Received expected success message: {expected_message}"
+                    )
+                    
+                    # Verify the password actually changed by trying to login with new password
+                    verify_login_data = {
+                        "username_or_email": "api.test@covesmart.com",
+                        "password": "NewApiTest123!"
+                    }
+                    
+                    verify_response = requests.post(
+                        f"{BACKEND_URL}/auth/login",
+                        json=verify_login_data,
+                        timeout=TEST_TIMEOUT,
+                        headers={'Content-Type': 'application/json'}
+                    )
+                    
+                    if verify_response.status_code == 200:
+                        verify_data = verify_response.json()
+                        self.log_result(
+                            "Password Change API - Verification Login", 
+                            "PASS", 
+                            "Successfully logged in with new password",
+                            f"requires_password_change: {verify_data.get('requires_password_change')}"
+                        )
+                        return True
+                    else:
+                        self.log_result(
+                            "Password Change API - Verification Login", 
+                            "FAIL", 
+                            f"Failed to login with new password, status: {verify_response.status_code}",
+                            f"Response: {verify_response.text}"
+                        )
+                        return False
+                else:
+                    self.log_result(
+                        "Password Change API - Detailed Test", 
+                        "FAIL", 
+                        f"Unexpected response message",
+                        f"Expected: '{expected_message}', Got: '{response_data.get('message')}'"
+                    )
+                    return False
+            else:
+                self.log_result(
+                    "Password Change API - Detailed Test", 
+                    "FAIL", 
+                    f"Password change API failed with status {change_response.status_code}",
+                    f"Response: {change_response.text}"
+                )
+                return False
+                
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Password Change API - Detailed Test", 
+                "FAIL", 
+                "Failed to complete detailed API test",
+                str(e)
+            )
+        return False
+
+    # =============================================================================
     # AUTHENTICATION SYSTEM TESTS
     # =============================================================================
     
