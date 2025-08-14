@@ -114,7 +114,11 @@ const Certificates = () => {
           <CardTitle className="text-xl">Earned Certificates</CardTitle>
         </CardHeader>
         <CardContent>
-          {certificates.length === 0 ? (
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="text-gray-500">Loading certificates...</div>
+            </div>
+          ) : certificates.length === 0 ? (
             <div className="text-center py-12">
               <Award className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No certificates yet</h3>
@@ -126,15 +130,20 @@ const Certificates = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {certificates.map((certificate) => (
-                <Card key={certificate.id} className="hover:shadow-lg transition-shadow">
+                <Card key={certificate.id || certificate.certificateId} className="hover:shadow-lg transition-shadow">
                   <CardContent className="p-6">
                     {/* Certificate Visual */}
                     <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg p-6 text-white mb-4">
                       <div className="text-center">
                         <Award className="h-12 w-12 mx-auto mb-3" />
-                        <h3 className="text-lg font-bold mb-2">Program Certificate</h3>
+                        <h3 className="text-lg font-bold mb-2">
+                          {certificate.certificateType === 'program' ? 'Program Certificate' : 
+                           certificate.certificateType === 'course' ? 'Course Certificate' : 'Certificate'}
+                        </h3>
                         <div className="border-t border-white/20 pt-3">
-                          <p className="text-sm opacity-90">{certificate.programName}</p>
+                          <p className="text-sm opacity-90">
+                            {certificate.programName || certificate.courseName || certificate.title || 'Achievement'}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -142,19 +151,22 @@ const Certificates = () => {
                     {/* Certificate Details */}
                     <div className="space-y-3">
                       <div>
-                        <h4 className="font-semibold text-gray-900">{certificate.programName}</h4>
+                        <h4 className="font-semibold text-gray-900">
+                          {certificate.programName || certificate.courseName || certificate.title || 'Achievement'}
+                        </h4>
                         <div className="flex items-center text-sm text-gray-600 mt-1">
                           <Calendar className="w-4 h-4 mr-1" />
-                          Issued {new Date(certificate.issuedAt).toLocaleDateString()}
+                          Issued {certificate.issued_at ? new Date(certificate.issued_at).toLocaleDateString() :
+                                  certificate.issuedAt ? new Date(certificate.issuedAt).toLocaleDateString() : 'N/A'}
                         </div>
                       </div>
 
                       <div className="flex items-center space-x-2">
                         <Badge className="bg-green-100 text-green-800">
-                          Verified
+                          {certificate.status === 'active' ? 'Verified' : certificate.status || 'Verified'}
                         </Badge>
                         <Badge variant="outline">
-                          Certificate ID: {certificate.id}
+                          ID: {certificate.certificateNumber || certificate.id || certificate.certificateId}
                         </Badge>
                       </div>
 
@@ -163,7 +175,7 @@ const Certificates = () => {
                         <Button 
                           size="sm" 
                           className="flex-1"
-                          onClick={() => handleDownload(certificate.id)}
+                          onClick={() => handleDownload(certificate.id || certificate.certificateId)}
                         >
                           <Download className="w-4 h-4 mr-1" />
                           Download
@@ -171,7 +183,7 @@ const Certificates = () => {
                         <Button 
                           size="sm" 
                           variant="outline"
-                          onClick={() => handleShare(certificate.id)}
+                          onClick={() => handleShare(certificate.id || certificate.certificateId)}
                         >
                           <Share2 className="w-4 h-4" />
                         </Button>
