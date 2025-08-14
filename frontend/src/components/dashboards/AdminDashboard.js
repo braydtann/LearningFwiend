@@ -8,19 +8,61 @@ import { Users, BookOpen, TrendingUp, UserCheck, BarChart, Settings } from 'luci
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const { getAllUsers, getAllCourses } = useAuth();
+  
+  const [users, setUsers] = useState([]);
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  const loadDashboardData = async () => {
+    setLoading(true);
+    try {
+      // Load users
+      const usersResult = await getAllUsers();
+      if (usersResult.success) {
+        setUsers(usersResult.users);
+      }
+
+      // Load courses
+      const coursesResult = await getAllCourses();
+      if (coursesResult.success) {
+        setCourses(coursesResult.courses);
+      }
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
   
   const stats = {
-    totalUsers: mockUsers.length,
-    totalCourses: mockCourses.length,
-    totalEnrollments: mockEnrollments.length,
-    activeUsers: mockUsers.filter(user => user.role !== 'admin').length,
-    instructors: mockUsers.filter(user => user.role === 'instructor').length,
-    students: mockUsers.filter(user => user.role === 'learner').length,
-    publishedCourses: mockCourses.filter(course => course.status === 'published').length
+    totalUsers: users.length,
+    totalCourses: courses.length,
+    totalEnrollments: 0, // TODO: Add enrollment count when backend supports it
+    activeUsers: users.filter(user => user.role !== 'admin').length,
+    instructors: users.filter(user => user.role === 'instructor').length,
+    students: users.filter(user => user.role === 'learner').length,
+    publishedCourses: courses.filter(course => course.status === 'published').length
   };
 
-  const recentUsers = mockUsers.slice(-3);
-  const recentCourses = mockCourses.slice(-3);
+  const recentUsers = users.slice(-3);
+  const recentCourses = courses.slice(-3);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Loading Dashboard</h2>
+          <p className="text-gray-600">Please wait while we fetch the data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
