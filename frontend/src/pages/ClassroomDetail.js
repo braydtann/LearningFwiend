@@ -321,28 +321,29 @@ const ClassroomDetail = () => {
                             <h4 className="font-semibold text-gray-900 mb-2">{course.title}</h4>
                             <p className="text-sm text-gray-600 mb-3 line-clamp-2">{course.description}</p>
                             <div className="flex items-center justify-between text-sm text-gray-500">
-                            <div className="flex items-center">
-                              <Clock className="w-4 h-4 mr-1" />
-                              {course.duration}
+                              <div className="flex items-center">
+                                <Clock className="w-4 h-4 mr-1" />
+                                {course.duration}
+                              </div>
+                              <div className="flex items-center">
+                                <BookOpen className="w-4 h-4 mr-1" />
+                                {course.totalLessons || course.modules?.length || 0} lessons
+                              </div>
                             </div>
-                            <div className="flex items-center">
-                              <BookOpen className="w-4 h-4 mr-1" />
-                              {course.totalLessons} lessons
-                            </div>
+                            <Button 
+                              size="sm" 
+                              className="w-full mt-3"
+                              onClick={() => navigate(`/course/${course.id}`)}
+                            >
+                              {isLearner ? 'Continue Learning' : 'View Course'}
+                            </Button>
                           </div>
-                          <Button 
-                            size="sm" 
-                            className="w-full mt-3"
-                            onClick={() => navigate(`/course/${course.id}`)}
-                          >
-                            {isLearner ? 'Continue Learning' : 'View Course'}
-                          </Button>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
