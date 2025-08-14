@@ -3633,6 +3633,574 @@ async def get_quiz_attempt(
     return QuizAttemptWithAnswersResponse(**attempt)
 
 
+# =============================================================================
+# ANALYTICS MODELS
+# =============================================================================
+
+class UserStatsResponse(BaseModel):
+    totalUsers: int
+    activeUsers: int
+    newUsersThisMonth: int
+    usersByRole: dict  # {"admin": 1, "instructor": 5, "learner": 150}
+    usersByDepartment: dict
+
+class CourseStatsResponse(BaseModel):
+    totalCourses: int
+    publishedCourses: int
+    draftCourses: int
+    coursesThisMonth: int
+    coursesByCategory: dict
+    enrollmentStats: dict  # {"total": 500, "thisMonth": 50}
+
+class QuizStatsResponse(BaseModel):
+    totalQuizzes: int
+    publishedQuizzes: int
+    totalAttempts: int
+    averageScore: float
+    passRate: float
+    quizzesThisMonth: int
+
+class EnrollmentStatsResponse(BaseModel):
+    totalEnrollments: int
+    activeEnrollments: int
+    completedEnrollments: int
+    enrollmentsThisMonth: int
+    topCourses: List[dict]  # Top 5 courses by enrollment
+
+class CertificateStatsResponse(BaseModel):
+    totalCertificates: int
+    certificatesThisMonth: int
+    certificatesByType: dict
+    certificatesByStatus: dict
+
+class SystemStatsResponse(BaseModel):
+    users: UserStatsResponse
+    courses: CourseStatsResponse
+    quizzes: QuizStatsResponse
+    enrollments: EnrollmentStatsResponse
+    certificates: CertificateStatsResponse
+    announcements: dict
+
+class CourseAnalyticsResponse(BaseModel):
+    courseId: str
+    courseName: str
+    totalEnrollments: int
+    activeEnrollments: int
+    completionRate: float
+    averageProgress: float
+    quizPerformance: dict
+    enrollmentTrend: List[dict]  # Monthly enrollment data
+
+class UserAnalyticsResponse(BaseModel):
+    userId: str
+    userName: str
+    role: str
+    enrolledCourses: int
+    completedCourses: int
+    averageScore: float
+    totalQuizAttempts: int
+    certificatesEarned: int
+    lastActivity: Optional[datetime] = None
+
+
+# =============================================================================
+# ANALYTICS ENDPOINTS
+# =============================================================================
+
+@api_router.get("/analytics/system-stats", response_model=SystemStatsResponse)
+async def get_system_stats(current_user: UserResponse = Depends(get_current_user)):
+    """Get comprehensive system statistics (admins and instructors only)."""
+    if current_user.role not in ['instructor', 'admin']:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only instructors and admins can view system statistics"
+        )
+    
+    # Calculate date ranges
+    now = datetime.utcnow()
+    start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    
+    try:
+        # User Statistics
+        total_users = await db.users.count_documents({"is_active": True})
+        active_users = await db.users.count_documents({"is_active": True})
+        new_users_this_month = await db.users.count_documents({
+            "created_at": {"$gte": start_of_month},
+            "is_active": True
+        })
+        
+        # Users by role
+        user_roles_pipeline = [
+            {"$match": {"is_active": True}},
+            {"$group": {"_id": "$role", "count": {"$sum": 1}}}
+        ]
+        users_by_role_cursor = db.users.aggregate(user_roles_pipeline)
+        users_by_role = {doc["_id"]: doc["count"] async for doc in users_by_role_cursor}
+        
+        # Users by department
+        dept_pipeline = [
+            {"$match": {"is_active": True, "department": {"$ne": None}}},
+            {"$group": {"_id": "$department", "count": {"$sum": 1}}}
+        ]
+        users_by_dept_cursor = db.users.aggregate(dept_pipeline)
+        users_by_department = {doc["_id"]: doc["count"] async for doc in users_by_dept_cursor}
+        
+        user_stats = UserStatsResponse(
+            totalUsers=total_users,
+            activeUsers=active_users,
+            newUsersThisMonth=new_users_this_month,
+            usersByRole=users_by_role,
+            usersByDepartment=users_by_department
+        )
+        
+        # Course Statistics
+        total_courses = await db.courses.count_documents({"is_active": True})
+        published_courses = await db.courses.count_documents({"status": "published", "is_active": True})
+        draft_courses = await db.courses.count_documents({"status": "draft", "is_active": True})
+        courses_this_month = await db.courses.count_documents({
+            "created_at": {"$gte": start_of_month},
+            "is_active": True
+        })
+        
+        # Courses by category
+        category_pipeline = [
+            {"$match": {"is_active": True}},
+            {"$group": {"_id": "$category", "count": {"$sum": 1}}}
+        ]
+        courses_by_cat_cursor = db.courses.aggregate(category_pipeline)
+        courses_by_category = {doc["_id"]: doc["count"] async for doc in courses_by_cat_cursor}
+        
+        total_enrollments = await db.enrollments.count_documents({"isActive": True})
+        enrollments_this_month = await db.enrollments.count_documents({
+            "created_at": {"$gte": start_of_month},
+            "isActive": True
+        })
+        
+        course_stats = CourseStatsResponse(
+            totalCourses=total_courses,
+            publishedCourses=published_courses,
+            draftCourses=draft_courses,
+            coursesThisMonth=courses_this_month,
+            coursesByCategory=courses_by_category,
+            enrollmentStats={"total": total_enrollments, "thisMonth": enrollments_this_month}
+        )
+        
+        # Quiz Statistics
+        total_quizzes = await db.quizzes.count_documents({"isActive": True})
+        published_quizzes = await db.quizzes.count_documents({"isPublished": True, "isActive": True})
+        quizzes_this_month = await db.quizzes.count_documents({
+            "created_at": {"$gte": start_of_month},
+            "isActive": True
+        })
+        
+        total_attempts = await db.quiz_attempts.count_documents({"isActive": True})
+        
+        # Calculate average score and pass rate
+        score_pipeline = [
+            {"$match": {"isActive": True}},
+            {"$group": {
+                "_id": None,
+                "avgScore": {"$avg": "$score"},
+                "totalPassed": {"$sum": {"$cond": ["$isPassed", 1, 0]}},
+                "totalAttempts": {"$sum": 1}
+            }}
+        ]
+        score_stats_cursor = db.quiz_attempts.aggregate(score_pipeline)
+        score_stats = await score_stats_cursor.to_list(1)
+        
+        average_score = score_stats[0]["avgScore"] if score_stats else 0.0
+        pass_rate = (score_stats[0]["totalPassed"] / score_stats[0]["totalAttempts"] * 100) if score_stats and score_stats[0]["totalAttempts"] > 0 else 0.0
+        
+        quiz_stats = QuizStatsResponse(
+            totalQuizzes=total_quizzes,
+            publishedQuizzes=published_quizzes,
+            totalAttempts=total_attempts,
+            averageScore=round(average_score, 2),
+            passRate=round(pass_rate, 2),
+            quizzesThisMonth=quizzes_this_month
+        )
+        
+        # Enrollment Statistics
+        active_enrollments = await db.enrollments.count_documents({"status": "active", "isActive": True})
+        completed_enrollments = await db.enrollments.count_documents({"status": "completed", "isActive": True})
+        
+        # Top courses by enrollment
+        top_courses_pipeline = [
+            {"$match": {"isActive": True}},
+            {"$group": {"_id": "$courseId", "count": {"$sum": 1}, "courseName": {"$first": "$courseName"}}},
+            {"$sort": {"count": -1}},
+            {"$limit": 5}
+        ]
+        top_courses_cursor = db.enrollments.aggregate(top_courses_pipeline)
+        top_courses = [
+            {"courseId": doc["_id"], "courseName": doc["courseName"], "enrollments": doc["count"]}
+            async for doc in top_courses_cursor
+        ]
+        
+        enrollment_stats = EnrollmentStatsResponse(
+            totalEnrollments=total_enrollments,
+            activeEnrollments=active_enrollments,
+            completedEnrollments=completed_enrollments,
+            enrollmentsThisMonth=enrollments_this_month,
+            topCourses=top_courses
+        )
+        
+        # Certificate Statistics
+        total_certificates = await db.certificates.count_documents({"isActive": True})
+        certificates_this_month = await db.certificates.count_documents({
+            "created_at": {"$gte": start_of_month},
+            "isActive": True
+        })
+        
+        # Certificates by type
+        cert_type_pipeline = [
+            {"$match": {"isActive": True}},
+            {"$group": {"_id": "$type", "count": {"$sum": 1}}}
+        ]
+        cert_type_cursor = db.certificates.aggregate(cert_type_pipeline)
+        certificates_by_type = {doc["_id"]: doc["count"] async for doc in cert_type_cursor}
+        
+        # Certificates by status
+        cert_status_pipeline = [
+            {"$match": {"isActive": True}},
+            {"$group": {"_id": "$status", "count": {"$sum": 1}}}
+        ]
+        cert_status_cursor = db.certificates.aggregate(cert_status_pipeline)
+        certificates_by_status = {doc["_id"]: doc["count"] async for doc in cert_status_cursor}
+        
+        certificate_stats = CertificateStatsResponse(
+            totalCertificates=total_certificates,
+            certificatesThisMonth=certificates_this_month,
+            certificatesByType=certificates_by_type,
+            certificatesByStatus=certificates_by_status
+        )
+        
+        # Announcement Statistics
+        total_announcements = await db.announcements.count_documents({"isActive": True})
+        announcements_this_month = await db.announcements.count_documents({
+            "created_at": {"$gte": start_of_month},
+            "isActive": True
+        })
+        
+        announcement_stats = {
+            "total": total_announcements,
+            "thisMonth": announcements_this_month,
+            "pinned": await db.announcements.count_documents({"isPinned": True, "isActive": True})
+        }
+        
+        return SystemStatsResponse(
+            users=user_stats,
+            courses=course_stats,
+            quizzes=quiz_stats,
+            enrollments=enrollment_stats,
+            certificates=certificate_stats,
+            announcements=announcement_stats
+        )
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error calculating system statistics: {str(e)}"
+        )
+
+@api_router.get("/analytics/course/{course_id}", response_model=CourseAnalyticsResponse)
+async def get_course_analytics(
+    course_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Get detailed analytics for a specific course."""
+    if current_user.role not in ['instructor', 'admin']:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only instructors and admins can view course analytics"
+        )
+    
+    # Verify course exists
+    course = await db.courses.find_one({"id": course_id, "is_active": True})
+    if not course:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Course not found"
+        )
+    
+    try:
+        # Basic enrollment stats
+        total_enrollments = await db.enrollments.count_documents({"courseId": course_id, "isActive": True})
+        active_enrollments = await db.enrollments.count_documents({
+            "courseId": course_id,
+            "status": "active",
+            "isActive": True
+        })
+        completed_enrollments = await db.enrollments.count_documents({
+            "courseId": course_id,
+            "status": "completed",
+            "isActive": True
+        })
+        
+        completion_rate = (completed_enrollments / total_enrollments * 100) if total_enrollments > 0 else 0
+        
+        # Average progress calculation
+        progress_pipeline = [
+            {"$match": {"courseId": course_id, "isActive": True}},
+            {"$group": {"_id": None, "avgProgress": {"$avg": "$progress"}}}
+        ]
+        progress_cursor = db.enrollments.aggregate(progress_pipeline)
+        progress_stats = await progress_cursor.to_list(1)
+        average_progress = progress_stats[0]["avgProgress"] if progress_stats else 0.0
+        
+        # Quiz performance for this course
+        quiz_performance = {}
+        course_quizzes = await db.quizzes.find({"courseId": course_id, "isActive": True}).to_list(100)
+        if course_quizzes:
+            quiz_ids = [quiz["id"] for quiz in course_quizzes]
+            quiz_stats_pipeline = [
+                {"$match": {"quizId": {"$in": quiz_ids}, "isActive": True}},
+                {"$group": {
+                    "_id": None,
+                    "totalAttempts": {"$sum": 1},
+                    "avgScore": {"$avg": "$score"},
+                    "passRate": {"$avg": {"$cond": ["$isPassed", 1, 0]}}
+                }}
+            ]
+            quiz_stats_cursor = db.quiz_attempts.aggregate(quiz_stats_pipeline)
+            quiz_stats = await quiz_stats_cursor.to_list(1)
+            
+            if quiz_stats:
+                quiz_performance = {
+                    "totalAttempts": quiz_stats[0]["totalAttempts"],
+                    "averageScore": round(quiz_stats[0]["avgScore"], 2),
+                    "passRate": round(quiz_stats[0]["passRate"] * 100, 2)
+                }
+        
+        # Enrollment trend (last 6 months)
+        enrollment_trend = []
+        for i in range(6):
+            month_start = (datetime.utcnow().replace(day=1) - timedelta(days=i*30)).replace(hour=0, minute=0, second=0, microsecond=0)
+            month_end = month_start.replace(month=month_start.month + 1) if month_start.month < 12 else month_start.replace(year=month_start.year + 1, month=1)
+            
+            month_enrollments = await db.enrollments.count_documents({
+                "courseId": course_id,
+                "created_at": {"$gte": month_start, "$lt": month_end},
+                "isActive": True
+            })
+            
+            enrollment_trend.insert(0, {
+                "month": month_start.strftime("%Y-%m"),
+                "enrollments": month_enrollments
+            })
+        
+        return CourseAnalyticsResponse(
+            courseId=course_id,
+            courseName=course["title"],
+            totalEnrollments=total_enrollments,
+            activeEnrollments=active_enrollments,
+            completionRate=round(completion_rate, 2),
+            averageProgress=round(average_progress, 2),
+            quizPerformance=quiz_performance,
+            enrollmentTrend=enrollment_trend
+        )
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error calculating course analytics: {str(e)}"
+        )
+
+@api_router.get("/analytics/user/{user_id}", response_model=UserAnalyticsResponse)
+async def get_user_analytics(
+    user_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Get detailed analytics for a specific user."""
+    # Permission check
+    if current_user.role == 'learner' and current_user.id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Learners can only view their own analytics"
+        )
+    elif current_user.role not in ['instructor', 'admin', 'learner']:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions"
+        )
+    
+    # Verify user exists
+    user = await db.users.find_one({"id": user_id, "is_active": True})
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    try:
+        # Enrollment statistics
+        enrolled_courses = await db.enrollments.count_documents({
+            "studentId": user_id,
+            "isActive": True
+        })
+        completed_courses = await db.enrollments.count_documents({
+            "studentId": user_id,
+            "status": "completed",
+            "isActive": True
+        })
+        
+        # Quiz performance
+        total_quiz_attempts = await db.quiz_attempts.count_documents({
+            "studentId": user_id,
+            "isActive": True
+        })
+        
+        avg_score_pipeline = [
+            {"$match": {"studentId": user_id, "isActive": True}},
+            {"$group": {"_id": None, "avgScore": {"$avg": "$score"}}}
+        ]
+        avg_score_cursor = db.quiz_attempts.aggregate(avg_score_pipeline)
+        avg_score_stats = await avg_score_cursor.to_list(1)
+        average_score = avg_score_stats[0]["avgScore"] if avg_score_stats else 0.0
+        
+        # Certificates earned
+        certificates_earned = await db.certificates.count_documents({
+            "studentId": user_id,
+            "isActive": True
+        })
+        
+        # Last activity (latest enrollment or quiz attempt)
+        last_enrollment = await db.enrollments.find({
+            "studentId": user_id,
+            "isActive": True
+        }).sort("created_at", -1).limit(1).to_list(1)
+        
+        last_quiz_attempt = await db.quiz_attempts.find({
+            "studentId": user_id,
+            "isActive": True
+        }).sort("created_at", -1).limit(1).to_list(1)
+        
+        last_activity = None
+        if last_enrollment or last_quiz_attempt:
+            enrollment_date = last_enrollment[0]["created_at"] if last_enrollment else datetime.min
+            quiz_date = last_quiz_attempt[0]["created_at"] if last_quiz_attempt else datetime.min
+            last_activity = max(enrollment_date, quiz_date)
+        
+        return UserAnalyticsResponse(
+            userId=user_id,
+            userName=user["full_name"],
+            role=user["role"],
+            enrolledCourses=enrolled_courses,
+            completedCourses=completed_courses,
+            averageScore=round(average_score, 2),
+            totalQuizAttempts=total_quiz_attempts,
+            certificatesEarned=certificates_earned,
+            lastActivity=last_activity
+        )
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error calculating user analytics: {str(e)}"
+        )
+
+@api_router.get("/analytics/dashboard")
+async def get_analytics_dashboard(current_user: UserResponse = Depends(get_current_user)):
+    """Get role-specific analytics dashboard data."""
+    if current_user.role not in ['instructor', 'admin', 'learner']:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Invalid user role"
+        )
+    
+    try:
+        dashboard_data = {}
+        
+        if current_user.role == 'learner':
+            # Student dashboard analytics
+            enrolled_courses = await db.enrollments.count_documents({
+                "studentId": current_user.id,
+                "isActive": True
+            })
+            completed_courses = await db.enrollments.count_documents({
+                "studentId": current_user.id,
+                "status": "completed",
+                "isActive": True
+            })
+            certificates_earned = await db.certificates.count_documents({
+                "studentId": current_user.id,
+                "isActive": True
+            })
+            
+            # Recent quiz attempts
+            recent_attempts = await db.quiz_attempts.find({
+                "studentId": current_user.id,
+                "isActive": True
+            }).sort("created_at", -1).limit(5).to_list(5)
+            
+            dashboard_data = {
+                "enrolledCourses": enrolled_courses,
+                "completedCourses": completed_courses,
+                "certificatesEarned": certificates_earned,
+                "recentQuizAttempts": [
+                    {
+                        "quizTitle": attempt["quizTitle"],
+                        "score": attempt["score"],
+                        "isPassed": attempt["isPassed"],
+                        "completedAt": attempt.get("completedAt")
+                    }
+                    for attempt in recent_attempts
+                ]
+            }
+            
+        elif current_user.role == 'instructor':
+            # Instructor dashboard analytics
+            created_courses = await db.courses.count_documents({
+                "instructor_id": current_user.id,
+                "is_active": True
+            })
+            created_quizzes = await db.quizzes.count_documents({
+                "createdBy": current_user.id,
+                "isActive": True
+            })
+            
+            # Students taught (unique students enrolled in instructor's courses)
+            instructor_courses = await db.courses.find({
+                "instructor_id": current_user.id,
+                "is_active": True
+            }).to_list(100)
+            
+            course_ids = [course["id"] for course in instructor_courses]
+            students_taught = len(await db.enrollments.distinct("studentId", {
+                "courseId": {"$in": course_ids},
+                "isActive": True
+            })) if course_ids else 0
+            
+            dashboard_data = {
+                "createdCourses": created_courses,
+                "createdQuizzes": created_quizzes,
+                "studentsTaught": students_taught,
+                "courseIds": course_ids
+            }
+            
+        elif current_user.role == 'admin':
+            # Admin dashboard analytics (simplified system overview)
+            total_users = await db.users.count_documents({"is_active": True})
+            total_courses = await db.courses.count_documents({"is_active": True})
+            total_enrollments = await db.enrollments.count_documents({"isActive": True})
+            total_certificates = await db.certificates.count_documents({"isActive": True})
+            
+            dashboard_data = {
+                "totalUsers": total_users,
+                "totalCourses": total_courses,
+                "totalEnrollments": total_enrollments,
+                "totalCertificates": total_certificates
+            }
+        
+        return {"status": "success", "data": dashboard_data}
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error generating dashboard analytics: {str(e)}"
+        )
+
+
 # Include the router in the main app
 app.include_router(api_router)
 
