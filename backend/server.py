@@ -2804,16 +2804,18 @@ async def create_certificate(
             )
         course_name = course['title']
         
-        # Check if student is enrolled in the course
+        # Check if student is enrolled in the course (flexible for admins)
         enrollment = await db.enrollments.find_one({
             "courseId": certificate_data.courseId,
             "studentId": certificate_data.studentId,
             "isActive": True
         })
-        if not enrollment:
+        
+        # Allow admins to issue certificates without strict enrollment requirement
+        if not enrollment and current_user.role != 'admin':
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Student must be enrolled in the course to receive a certificate"
+                detail="Student must be enrolled in the course to receive a certificate (or you must be an admin)"
             )
     
     # Validate program if program certificate
