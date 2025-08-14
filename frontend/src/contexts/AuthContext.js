@@ -984,6 +984,12 @@ export const AuthProvider = ({ children }) => {
     getCategoryById,
     updateCategory,
     deleteCategory,
+    // Department management
+    createDepartment,
+    getAllDepartments,
+    getDepartmentById,
+    updateDepartment,
+    deleteDepartment,
     // User role helpers
     isAdmin: user?.role === 'admin',
     isInstructor: user?.role === 'instructor',
