@@ -3105,14 +3105,14 @@ class QuestionResponse(BaseModel):
     created_at: datetime
 
 class QuizCreate(BaseModel):
-    title: str
-    description: Optional[str] = None
+    title: str = Field(..., min_length=1, max_length=200, description="Quiz title")
+    description: Optional[str] = Field(None, max_length=1000)
     courseId: Optional[str] = None  # Optional - can be standalone
     programId: Optional[str] = None  # Optional - can be standalone
-    questions: List[QuestionCreate]
-    timeLimit: Optional[int] = None  # Minutes
-    attempts: int = 1  # Number of allowed attempts
-    passingScore: float = 70.0  # Percentage
+    questions: List[QuestionCreate] = Field(..., min_items=1, description="Quiz must have at least one question")
+    timeLimit: Optional[int] = Field(None, ge=1, le=300, description="Time limit in minutes (1-300)")
+    attempts: int = Field(1, ge=1, le=10, description="Number of allowed attempts (1-10)")
+    passingScore: float = Field(70.0, ge=0.0, le=100.0, description="Passing score percentage")
     shuffleQuestions: bool = False
     showResults: bool = True  # Show results immediately after completion
     isPublished: bool = False
