@@ -1951,6 +1951,367 @@ async def delete_classroom(
     return {"message": f"Classroom '{classroom['name']}' has been successfully deleted"}
 
 
+# =============================================================================
+# ENROLLMENT MODELS
+# =============================================================================
+
+class EnrollmentCreate(BaseModel):
+    courseId: str
+    studentId: str
+    
+class EnrollmentInDB(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    courseId: str
+    studentId: str
+    courseName: str  # Denormalized for easy access
+    studentName: str  # Denormalized for easy access
+    enrollmentDate: datetime = Field(default_factory=datetime.utcnow)
+    status: str = "active"  # active, completed, dropped, suspended
+    progress: float = 0.0  # 0.0 to 100.0
+    lastAccessedAt: Optional[datetime] = None
+    completedAt: Optional[datetime] = None
+    grade: Optional[str] = None
+    isActive: bool = True
+    enrolledBy: str  # Who enrolled the student (instructor/admin/self)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class EnrollmentResponse(BaseModel):
+    id: str
+    courseId: str
+    studentId: str
+    courseName: str
+    studentName: str
+    enrollmentDate: datetime
+    status: str
+    progress: float
+    lastAccessedAt: Optional[datetime] = None
+    completedAt: Optional[datetime] = None
+    grade: Optional[str] = None
+    isActive: bool
+    enrolledBy: str
+    created_at: datetime
+    updated_at: datetime
+
+class EnrollmentUpdate(BaseModel):
+    status: Optional[str] = None
+    progress: Optional[float] = None
+    lastAccessedAt: Optional[datetime] = None
+    completedAt: Optional[datetime] = None
+    grade: Optional[str] = None
+
+class BulkEnrollmentCreate(BaseModel):
+    courseId: str
+    studentIds: List[str]
+
+
+# =============================================================================
+# ENROLLMENT ENDPOINTS
+# =============================================================================
+
+@api_router.post("/enrollments", response_model=EnrollmentResponse)
+async def create_enrollment(
+    enrollment_data: EnrollmentCreate,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Create a new enrollment (instructors, admins, or self-enrollment by learners)."""
+    
+    # Verify course exists
+    course = await db.courses.find_one({"id": enrollment_data.courseId})
+    if not course:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Course not found"
+        )
+    
+    # Verify student exists and is a learner
+    student = await db.users.find_one({"id": enrollment_data.studentId})
+    if not student:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Student not found"
+        )
+    
+    if student['role'] != 'learner':
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Only learners can be enrolled in courses"
+        )
+    
+    # Check permissions
+    if current_user.role == 'learner':
+        # Learners can only enroll themselves
+        if enrollment_data.studentId != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Learners can only enroll themselves"
+            )
+    elif current_user.role not in ['instructor', 'admin']:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only instructors, admins, or the learner themselves can create enrollments"
+        )
+    
+    # Check if enrollment already exists
+    existing_enrollment = await db.enrollments.find_one({
+        "courseId": enrollment_data.courseId,
+        "studentId": enrollment_data.studentId,
+        "isActive": True
+    })
+    
+    if existing_enrollment:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Student is already enrolled in this course"
+        )
+    
+    # Create enrollment dictionary
+    enrollment_dict = {
+        "id": str(uuid.uuid4()),
+        **enrollment_data.dict(),
+        "courseName": course['title'],
+        "studentName": student['full_name'],
+        "enrollmentDate": datetime.utcnow(),
+        "status": "active",
+        "progress": 0.0,
+        "isActive": True,
+        "enrolledBy": current_user.id,
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
+    }
+    
+    # Insert enrollment into database
+    await db.enrollments.insert_one(enrollment_dict)
+    
+    return EnrollmentResponse(**enrollment_dict)
+
+@api_router.post("/enrollments/bulk", response_model=List[EnrollmentResponse])
+async def create_bulk_enrollments(
+    enrollment_data: BulkEnrollmentCreate,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Create multiple enrollments at once (instructors and admins only)."""
+    if current_user.role not in ['instructor', 'admin']:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only instructors and admins can create bulk enrollments"
+        )
+    
+    # Verify course exists
+    course = await db.courses.find_one({"id": enrollment_data.courseId})
+    if not course:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Course not found"
+        )
+    
+    created_enrollments = []
+    errors = []
+    
+    for student_id in enrollment_data.studentIds:
+        # Verify student exists and is a learner
+        student = await db.users.find_one({"id": student_id})
+        if not student:
+            errors.append(f"Student {student_id} not found")
+            continue
+        
+        if student['role'] != 'learner':
+            errors.append(f"User {student_id} is not a learner")
+            continue
+        
+        # Check if enrollment already exists
+        existing_enrollment = await db.enrollments.find_one({
+            "courseId": enrollment_data.courseId,
+            "studentId": student_id,
+            "isActive": True
+        })
+        
+        if existing_enrollment:
+            errors.append(f"Student {student['full_name']} is already enrolled in this course")
+            continue
+        
+        # Create enrollment
+        enrollment_dict = {
+            "id": str(uuid.uuid4()),
+            "courseId": enrollment_data.courseId,
+            "studentId": student_id,
+            "courseName": course['title'],
+            "studentName": student['full_name'],
+            "enrollmentDate": datetime.utcnow(),
+            "status": "active",
+            "progress": 0.0,
+            "isActive": True,
+            "enrolledBy": current_user.id,
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow()
+        }
+        
+        await db.enrollments.insert_one(enrollment_dict)
+        created_enrollments.append(EnrollmentResponse(**enrollment_dict))
+    
+    if errors and not created_enrollments:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"No enrollments created. Errors: {'; '.join(errors)}"
+        )
+    
+    return created_enrollments
+
+@api_router.get("/enrollments", response_model=List[EnrollmentResponse])
+async def get_all_enrollments(current_user: UserResponse = Depends(get_current_user)):
+    """Get all active enrollments (admins and instructors only)."""
+    if current_user.role not in ['instructor', 'admin']:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only instructors and admins can view all enrollments"
+        )
+    
+    enrollments = await db.enrollments.find({"isActive": True}).to_list(1000)
+    return [EnrollmentResponse(**enrollment) for enrollment in enrollments]
+
+@api_router.get("/enrollments/my-enrollments", response_model=List[EnrollmentResponse])
+async def get_my_enrollments(current_user: UserResponse = Depends(get_current_user)):
+    """Get enrollments for current user."""
+    if current_user.role == 'learner':
+        # Students see their own enrollments
+        query = {"studentId": current_user.id, "isActive": True}
+    elif current_user.role in ['instructor', 'admin']:
+        # Instructors and admins see all enrollments
+        query = {"isActive": True}
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Invalid user role"
+        )
+    
+    enrollments = await db.enrollments.find(query).to_list(1000)
+    return [EnrollmentResponse(**enrollment) for enrollment in enrollments]
+
+@api_router.get("/enrollments/course/{course_id}", response_model=List[EnrollmentResponse])
+async def get_course_enrollments(
+    course_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Get all enrollments for a specific course."""
+    if current_user.role not in ['instructor', 'admin']:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only instructors and admins can view course enrollments"
+        )
+    
+    enrollments = await db.enrollments.find({"courseId": course_id, "isActive": True}).to_list(1000)
+    return [EnrollmentResponse(**enrollment) for enrollment in enrollments]
+
+@api_router.get("/enrollments/student/{student_id}", response_model=List[EnrollmentResponse])
+async def get_student_enrollments(
+    student_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Get all enrollments for a specific student."""
+    # Check permissions
+    if current_user.role == 'learner':
+        # Learners can only see their own enrollments
+        if student_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Learners can only view their own enrollments"
+            )
+    elif current_user.role not in ['instructor', 'admin']:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only instructors, admins, or the student themselves can view student enrollments"
+        )
+    
+    enrollments = await db.enrollments.find({"studentId": student_id, "isActive": True}).to_list(1000)
+    return [EnrollmentResponse(**enrollment) for enrollment in enrollments]
+
+@api_router.put("/enrollments/{enrollment_id}", response_model=EnrollmentResponse)
+async def update_enrollment(
+    enrollment_id: str,
+    enrollment_data: EnrollmentUpdate,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Update an enrollment (instructors and admins only)."""
+    if current_user.role not in ['instructor', 'admin']:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only instructors and admins can update enrollments"
+        )
+    
+    # Find the enrollment
+    enrollment = await db.enrollments.find_one({"id": enrollment_id})
+    if not enrollment:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Enrollment not found"
+        )
+    
+    # Update enrollment
+    update_data = {k: v for k, v in enrollment_data.dict().items() if v is not None}
+    update_data["updated_at"] = datetime.utcnow()
+    
+    # Set completion date if status is completed
+    if enrollment_data.status == "completed" and not enrollment.get('completedAt'):
+        update_data["completedAt"] = datetime.utcnow()
+    
+    result = await db.enrollments.update_one(
+        {"id": enrollment_id},
+        {"$set": update_data}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Enrollment not found or no changes made"
+        )
+    
+    # Get updated enrollment
+    updated_enrollment = await db.enrollments.find_one({"id": enrollment_id})
+    return EnrollmentResponse(**updated_enrollment)
+
+@api_router.delete("/enrollments/{enrollment_id}")
+async def delete_enrollment(
+    enrollment_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Delete/unenroll a student from a course."""
+    # Find the enrollment
+    enrollment = await db.enrollments.find_one({"id": enrollment_id})
+    if not enrollment:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Enrollment not found"
+        )
+    
+    # Check permissions
+    if current_user.role == 'learner':
+        # Learners can only unenroll themselves
+        if enrollment['studentId'] != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Learners can only unenroll themselves"
+            )
+    elif current_user.role not in ['instructor', 'admin']:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only instructors, admins, or the student themselves can delete enrollments"
+        )
+    
+    # Soft delete the enrollment (set isActive to False)
+    result = await db.enrollments.update_one(
+        {"id": enrollment_id},
+        {"$set": {"isActive": False, "status": "dropped", "updated_at": datetime.utcnow()}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Enrollment not found"
+        )
+    
+    return {"message": f"Student has been successfully unenrolled from {enrollment['courseName']}"}
+
+
 # Include the router in the main app
 app.include_router(api_router)
 
