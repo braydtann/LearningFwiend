@@ -212,7 +212,9 @@ const Announcements = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-blue-600 text-sm font-medium">Total Announcements</p>
-                <p className="text-2xl font-bold text-blue-700">{announcements.length}</p>
+                <p className="text-2xl font-bold text-blue-700">
+                  {loading ? '...' : announcements.length}
+                </p>
               </div>
               <MessageSquare className="h-8 w-8 text-blue-600" />
             </div>
@@ -224,7 +226,9 @@ const Announcements = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-green-600 text-sm font-medium">This Week</p>
-                <p className="text-2xl font-bold text-green-700">2</p>
+                <p className="text-2xl font-bold text-green-700">
+                  {loading ? '...' : getThisWeekCount()}
+                </p>
               </div>
               <Calendar className="h-8 w-8 text-green-600" />
             </div>
@@ -237,7 +241,7 @@ const Announcements = () => {
               <div>
                 <p className="text-orange-600 text-sm font-medium">Course Specific</p>
                 <p className="text-2xl font-bold text-orange-700">
-                  {announcements.filter(a => a.courseId).length}
+                  {loading ? '...' : announcements.filter(a => a.courseId).length}
                 </p>
               </div>
               <BookOpen className="h-8 w-8 text-orange-600" />
