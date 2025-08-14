@@ -26,14 +26,14 @@ const CreateCourse = () => {
   const [loadingCourse, setLoadingCourse] = useState(isEditing);
   
   const [courseData, setCourseData] = useState({
-    title: existingCourse?.title || '',
-    description: existingCourse?.description || '',
-    category: existingCourse?.category || '',
-    duration: existingCourse?.duration || '',
-    thumbnail: existingCourse?.thumbnail || '',
-    isPublic: existingCourse?.isPublic || true,
-    enrollmentType: existingCourse?.enrollmentType || 'open', // 'open' or 'assignment'
-    modules: existingCourse?.modules || [
+    title: '',
+    description: '',
+    category: '',
+    duration: '',
+    thumbnail: '',
+    isPublic: true,
+    enrollmentType: 'open', // 'open' or 'assignment'
+    modules: [
       {
         id: 'm1',
         title: '',
@@ -47,11 +47,79 @@ const CreateCourse = () => {
   const [categories, setCategories] = useState([]);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   
+  // Load course data if editing
   useEffect(() => {
-    // Load categories when component mounts
+    if (isEditing && id) {
+      loadCourseData();
+    }
+  }, [isEditing, id]);
+  
+  // Load categories when component mounts
+  useEffect(() => {
     const loadedCategories = getCategories();
     setCategories(loadedCategories.map(cat => cat.name));
   }, []);
+
+  const loadCourseData = async () => {
+    setLoadingCourse(true);
+    try {
+      const result = await getCourseById(id);
+      if (result.success) {
+        setBackendCourse(result.course);
+        // Initialize form with backend course data
+        setCourseData({
+          title: result.course.title || '',
+          description: result.course.description || '',
+          category: result.course.category || '',
+          duration: result.course.duration || '',
+          thumbnail: result.course.thumbnailUrl || result.course.thumbnail || '',
+          isPublic: true,
+          enrollmentType: 'open',
+          modules: result.course.modules || [
+            {
+              id: 'm1',
+              title: '',
+              lessons: [
+                { id: 'l1', title: '', type: 'video', duration: '', videoUrl: '', presentationUrl: '', content: '', quiz: null }
+              ]
+            }
+          ]
+        });
+      } else {
+        // Fallback to mock data
+        const mockCourse = mockCourses.find(c => c.id === id);
+        if (mockCourse) {
+          setCourseData({
+            title: mockCourse.title || '',
+            description: mockCourse.description || '',
+            category: mockCourse.category || '',
+            duration: mockCourse.duration || '',
+            thumbnail: mockCourse.thumbnail || '',
+            isPublic: mockCourse.isPublic || true,
+            enrollmentType: mockCourse.enrollmentType || 'open',
+            modules: mockCourse.modules || [
+              {
+                id: 'm1',
+                title: '',
+                lessons: [
+                  { id: 'l1', title: '', type: 'video', duration: '', videoUrl: '', presentationUrl: '', content: '', quiz: null }
+                ]
+              }
+            ]
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error loading course:', error);
+      toast({
+        title: "Error loading course",
+        description: "Failed to load course data",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingCourse(false);
+    }
+  };
 
   const handleCourseChange = (field, value) => {
     setCourseData(prev => ({
