@@ -3631,6 +3631,43 @@ class BackendTester:
         # Course API Test 8: Complete workflow
         self.test_complete_course_workflow()
         
+        print("\n" + "=" * 60)
+        print("🏷️  CATEGORY MANAGEMENT API TESTS - NEW IMPLEMENTATION")
+        print("=" * 60)
+        
+        # Category API Test 1: Authentication and authorization
+        self.test_category_authentication_requirements()
+        
+        # Category API Test 2: Create new categories
+        self.test_category_creation_api()
+        
+        # Category API Test 3: Get all categories with course counts
+        self.test_get_all_categories_api()
+        
+        # Category API Test 4: Get specific category by ID
+        self.test_get_category_by_id_api()
+        
+        # Category API Test 5: Update category permissions
+        self.test_category_update_permissions()
+        
+        # Category API Test 6: Delete category business logic
+        self.test_category_delete_business_logic()
+        
+        # Category API Test 7: Name uniqueness validation
+        self.test_category_name_uniqueness()
+        
+        # Category API Test 8: Course count calculation
+        self.test_category_course_count_calculation()
+        
+        # Category API Test 9: Soft delete functionality
+        self.test_category_soft_delete_functionality()
+        
+        # Category API Test 10: Integration with courses
+        self.test_category_course_integration()
+        
+        # Category API Test 11: Complete CRUD workflow
+        self.test_complete_category_workflow()
+        
         return self.generate_summary()
     
     def generate_summary(self):
