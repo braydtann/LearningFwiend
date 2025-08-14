@@ -173,7 +173,7 @@ const Departments = () => {
     setIsEditModalOpen(true);
   };
 
-  const handleUpdateDepartment = () => {
+  const handleUpdateDepartment = async () => {
     if (!editDepartment.name || !editDepartment.description) {
       toast({
         title: "Missing required fields",
@@ -183,21 +183,39 @@ const Departments = () => {
       return;
     }
 
-    // Update department in state
-    setDepartments(prev => prev.map(dept => 
-      dept.id === editDepartment.id 
-        ? { ...dept, name: editDepartment.name, description: editDepartment.description }
-        : dept
-    ));
+    try {
+      const result = await updateDepartment(editDepartment.id, {
+        name: editDepartment.name,
+        description: editDepartment.description
+      });
 
-    toast({
-      title: "Department updated successfully!",
-      description: `${editDepartment.name} department has been updated.`,
-    });
+      if (result.success) {
+        toast({
+          title: "Department updated successfully!",
+          description: `${editDepartment.name} department has been updated.`,
+        });
 
-    setEditDepartment({ id: '', name: '', description: '' });
-    setSelectedDepartment(null);
-    setIsEditModalOpen(false);
+        // Refresh departments list
+        await loadDepartments();
+
+        setEditDepartment({ id: '', name: '', description: '' });
+        setSelectedDepartment(null);
+        setIsEditModalOpen(false);
+      } else {
+        toast({
+          title: "Failed to update department",
+          description: result.error || "Unable to update department",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Update department error:', error);
+      toast({
+        title: "Error updating department",
+        description: "Network error occurred while updating department",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleCancelEdit = () => {
