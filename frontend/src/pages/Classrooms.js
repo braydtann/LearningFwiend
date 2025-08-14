@@ -52,9 +52,11 @@ const Classrooms = () => {
     endDate: ''
   });
 
-  // Load real users from backend on component mount
+  // Load real users, courses, and programs from backend on component mount
   useEffect(() => {
     loadUsers();
+    loadCourses();
+    loadPrograms();
   }, []);
 
   const loadUsers = async () => {
@@ -66,19 +68,60 @@ const Classrooms = () => {
           setRealUsers(result.users);
         } else {
           console.error('Failed to load users:', result.error);
-          // Fallback to mock users if backend fails
           setRealUsers(mockUsers);
         }
       } else {
-        // Fallback to mock users if getAllUsers not available
         setRealUsers(mockUsers);
       }
     } catch (error) {
       console.error('Error loading users:', error);
-      // Fallback to mock users
       setRealUsers(mockUsers);
     } finally {
       setLoadingUsers(false);
+    }
+  };
+
+  const loadCourses = async () => {
+    setLoadingCourses(true);
+    try {
+      if (getAllCourses) {
+        const result = await getAllCourses();
+        if (result.success) {
+          setRealCourses(result.courses);
+        } else {
+          console.error('Failed to load courses:', result.error);
+          setRealCourses(mockCourses);
+        }
+      } else {
+        setRealCourses(mockCourses);
+      }
+    } catch (error) {
+      console.error('Error loading courses:', error);
+      setRealCourses(mockCourses);
+    } finally {
+      setLoadingCourses(false);
+    }
+  };
+
+  const loadPrograms = async () => {
+    setLoadingPrograms(true);
+    try {
+      if (getAllPrograms) {
+        const result = await getAllPrograms();
+        if (result.success) {
+          setRealPrograms(result.programs);
+        } else {
+          console.error('Failed to load programs:', result.error);
+          setRealPrograms(mockPrograms);
+        }
+      } else {
+        setRealPrograms(mockPrograms);
+      }
+    } catch (error) {
+      console.error('Error loading programs:', error);
+      setRealPrograms(mockPrograms);
+    } finally {
+      setLoadingPrograms(false);
     }
   };
 
