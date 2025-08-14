@@ -1183,6 +1183,521 @@ class BackendTester:
         return False
 
     # =============================================================================
+    # JWT AUTHENTICATION DEBUGGING TESTS - PRIORITY 2 API ISSUE INVESTIGATION
+    # =============================================================================
+    
+    def test_jwt_authentication_debug_comprehensive(self):
+        """Comprehensive JWT authentication debugging for Priority 2 API issues"""
+        print("\n" + "="*80)
+        print("🔍 JWT AUTHENTICATION DEBUGGING - PRIORITY 2 API INVESTIGATION")
+        print("="*80)
+        
+        debug_results = []
+        
+        # Step 1: Test basic login and token generation
+        login_result = self.debug_jwt_login_token_generation()
+        debug_results.append(("JWT Login & Token Generation", login_result))
+        
+        # Step 2: Test token structure and payload
+        if login_result:
+            token_result = self.debug_jwt_token_structure()
+            debug_results.append(("JWT Token Structure Analysis", token_result))
+            
+            # Step 3: Test /api/auth/me endpoint
+            auth_me_result = self.debug_auth_me_endpoint()
+            debug_results.append(("GET /api/auth/me Endpoint", auth_me_result))
+            
+            # Step 4: Test database user verification
+            db_user_result = self.debug_database_user_verification()
+            debug_results.append(("Database User Verification", db_user_result))
+            
+            # Step 5: Test minimal authenticated endpoint
+            minimal_auth_result = self.debug_minimal_authenticated_endpoint()
+            debug_results.append(("Minimal Authentication Test", minimal_auth_result))
+        
+        # Summary of debugging results
+        print("\n" + "="*80)
+        print("🔍 JWT AUTHENTICATION DEBUG SUMMARY")
+        print("="*80)
+        
+        for test_name, result in debug_results:
+            status = "✅ PASS" if result else "❌ FAIL"
+            print(f"{status} {test_name}")
+        
+        passed_tests = sum(1 for _, result in debug_results if result)
+        total_tests = len(debug_results)
+        
+        if passed_tests == total_tests:
+            self.log_result(
+                "JWT Authentication Debug - Comprehensive", 
+                "PASS", 
+                f"All {total_tests} authentication debug tests passed",
+                "JWT authentication system working correctly"
+            )
+            return True
+        else:
+            self.log_result(
+                "JWT Authentication Debug - Comprehensive", 
+                "FAIL", 
+                f"Only {passed_tests}/{total_tests} authentication debug tests passed",
+                "JWT authentication issues detected - see detailed logs above"
+            )
+            return False
+    
+    def debug_jwt_login_token_generation(self):
+        """Debug JWT token generation with instructor credentials"""
+        print("\n🔐 Step 1: JWT Login & Token Generation Test")
+        print("-" * 50)
+        
+        # Test with instructor credentials (most common for Priority 2 APIs)
+        test_credentials = [
+            {"username": "instructor", "password": "Instructor123!", "role": "instructor"},
+            {"username": "admin", "password": "NewAdmin123!", "role": "admin"}
+        ]
+        
+        for creds in test_credentials:
+            try:
+                login_data = {
+                    "username_or_email": creds["username"],
+                    "password": creds["password"]
+                }
+                
+                print(f"  Testing login for {creds['role']}: {creds['username']}")
+                
+                response = requests.post(
+                    f"{BACKEND_URL}/auth/login",
+                    json=login_data,
+                    timeout=TEST_TIMEOUT,
+                    headers={'Content-Type': 'application/json'}
+                )
+                
+                print(f"  Login response status: {response.status_code}")
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    token = data.get('access_token')
+                    user_info = data.get('user', {})
+                    
+                    print(f"  ✅ Login successful for {creds['role']}")
+                    print(f"  Token received: {token[:20]}..." if token else "  ❌ No token received")
+                    print(f"  User ID: {user_info.get('id')}")
+                    print(f"  User Role: {user_info.get('role')}")
+                    print(f"  Requires password change: {data.get('requires_password_change')}")
+                    
+                    # Store token for further testing
+                    if token:
+                        self.auth_tokens[creds["role"]] = token
+                        
+                        self.log_result(
+                            f"JWT Debug - Login {creds['role'].title()}", 
+                            "PASS", 
+                            f"Successfully logged in {creds['username']} and received JWT token",
+                            f"User ID: {user_info.get('id')}, Role: {user_info.get('role')}"
+                        )
+                        return True
+                    else:
+                        print(f"  ❌ No access token in response")
+                        self.log_result(
+                            f"JWT Debug - Login {creds['role'].title()}", 
+                            "FAIL", 
+                            "Login successful but no access token received",
+                            f"Response: {data}"
+                        )
+                elif response.status_code == 401:
+                    print(f"  ❌ Login failed - Invalid credentials")
+                    self.log_result(
+                        f"JWT Debug - Login {creds['role'].title()}", 
+                        "FAIL", 
+                        "Login failed with 401 - Invalid credentials",
+                        f"Response: {response.text}"
+                    )
+                else:
+                    print(f"  ❌ Login failed with status {response.status_code}")
+                    print(f"  Response: {response.text}")
+                    self.log_result(
+                        f"JWT Debug - Login {creds['role'].title()}", 
+                        "FAIL", 
+                        f"Login failed with status {response.status_code}",
+                        f"Response: {response.text}"
+                    )
+                    
+            except requests.exceptions.RequestException as e:
+                print(f"  ❌ Login request failed: {str(e)}")
+                self.log_result(
+                    f"JWT Debug - Login {creds['role'].title()}", 
+                    "FAIL", 
+                    "Login request failed",
+                    str(e)
+                )
+        
+        return len(self.auth_tokens) > 0
+    
+    def debug_jwt_token_structure(self):
+        """Debug JWT token structure and payload"""
+        print("\n🔍 Step 2: JWT Token Structure Analysis")
+        print("-" * 50)
+        
+        if not self.auth_tokens:
+            print("  ❌ No tokens available for analysis")
+            return False
+        
+        # Use the first available token
+        role = list(self.auth_tokens.keys())[0]
+        token = self.auth_tokens[role]
+        
+        try:
+            import jwt
+            import json
+            
+            print(f"  Analyzing token for role: {role}")
+            print(f"  Token (first 50 chars): {token[:50]}...")
+            
+            # Decode token without verification to inspect payload
+            try:
+                # Split token to get header and payload
+                parts = token.split('.')
+                if len(parts) != 3:
+                    print(f"  ❌ Invalid JWT format - expected 3 parts, got {len(parts)}")
+                    return False
+                
+                # Decode header
+                import base64
+                header_data = parts[0] + '=' * (4 - len(parts[0]) % 4)  # Add padding
+                header = json.loads(base64.urlsafe_b64decode(header_data))
+                print(f"  JWT Header: {header}")
+                
+                # Decode payload
+                payload_data = parts[1] + '=' * (4 - len(parts[1]) % 4)  # Add padding
+                payload = json.loads(base64.urlsafe_b64decode(payload_data))
+                print(f"  JWT Payload: {payload}")
+                
+                # Check critical fields
+                user_id = payload.get('sub')
+                exp = payload.get('exp')
+                
+                if user_id:
+                    print(f"  ✅ User ID in 'sub' field: {user_id}")
+                    self.log_result(
+                        "JWT Debug - Token Structure", 
+                        "PASS", 
+                        f"JWT token contains user ID in 'sub' field: {user_id}",
+                        f"Token payload: {payload}"
+                    )
+                    return True
+                else:
+                    print(f"  ❌ No user ID found in 'sub' field")
+                    self.log_result(
+                        "JWT Debug - Token Structure", 
+                        "FAIL", 
+                        "JWT token missing user ID in 'sub' field",
+                        f"Token payload: {payload}"
+                    )
+                    return False
+                    
+            except Exception as decode_error:
+                print(f"  ❌ Failed to decode JWT token: {str(decode_error)}")
+                self.log_result(
+                    "JWT Debug - Token Structure", 
+                    "FAIL", 
+                    "Failed to decode JWT token",
+                    str(decode_error)
+                )
+                return False
+                
+        except ImportError:
+            print("  ⚠️  PyJWT not available for token analysis")
+            self.log_result(
+                "JWT Debug - Token Structure", 
+                "SKIP", 
+                "PyJWT library not available for token analysis",
+                "Cannot decode token structure"
+            )
+            return True  # Don't fail the test for missing library
+    
+    def debug_auth_me_endpoint(self):
+        """Debug GET /api/auth/me endpoint with JWT token"""
+        print("\n👤 Step 3: GET /api/auth/me Endpoint Test")
+        print("-" * 50)
+        
+        if not self.auth_tokens:
+            print("  ❌ No tokens available for /auth/me test")
+            return False
+        
+        # Test with each available token
+        for role, token in self.auth_tokens.items():
+            try:
+                print(f"  Testing /auth/me with {role} token")
+                
+                response = requests.get(
+                    f"{BACKEND_URL}/auth/me",
+                    timeout=TEST_TIMEOUT,
+                    headers={
+                        'Authorization': f'Bearer {token}'
+                    }
+                )
+                
+                print(f"  Response status: {response.status_code}")
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    print(f"  ✅ /auth/me successful for {role}")
+                    print(f"  User ID: {data.get('id')}")
+                    print(f"  Username: {data.get('username')}")
+                    print(f"  Email: {data.get('email')}")
+                    print(f"  Role: {data.get('role')}")
+                    print(f"  Active: {data.get('is_active')}")
+                    
+                    self.log_result(
+                        f"JWT Debug - /auth/me {role.title()}", 
+                        "PASS", 
+                        f"Successfully retrieved user info for {role}",
+                        f"User: {data.get('username')} ({data.get('role')}), ID: {data.get('id')}"
+                    )
+                    return True
+                    
+                elif response.status_code == 401:
+                    print(f"  ❌ 401 Unauthorized - Token validation failed")
+                    print(f"  Response: {response.text}")
+                    
+                    # This is the critical error we're debugging
+                    if "User not found" in response.text:
+                        print(f"  🚨 CRITICAL: 'User not found' error detected!")
+                        print(f"  This is the exact issue preventing Priority 2 API testing")
+                        
+                        self.log_result(
+                            f"JWT Debug - /auth/me {role.title()}", 
+                            "FAIL", 
+                            "CRITICAL: 'User not found' 401 error - This is the Priority 2 API blocking issue",
+                            f"Token validation failing with 'User not found' error"
+                        )
+                    else:
+                        self.log_result(
+                            f"JWT Debug - /auth/me {role.title()}", 
+                            "FAIL", 
+                            f"Token validation failed with 401",
+                            f"Response: {response.text}"
+                        )
+                else:
+                    print(f"  ❌ Unexpected status: {response.status_code}")
+                    print(f"  Response: {response.text}")
+                    self.log_result(
+                        f"JWT Debug - /auth/me {role.title()}", 
+                        "FAIL", 
+                        f"Unexpected response status {response.status_code}",
+                        f"Response: {response.text}"
+                    )
+                    
+            except requests.exceptions.RequestException as e:
+                print(f"  ❌ Request failed: {str(e)}")
+                self.log_result(
+                    f"JWT Debug - /auth/me {role.title()}", 
+                    "FAIL", 
+                    "Request to /auth/me failed",
+                    str(e)
+                )
+        
+        return False
+    
+    def debug_database_user_verification(self):
+        """Debug database user verification and ID matching"""
+        print("\n🗄️  Step 4: Database User Verification")
+        print("-" * 50)
+        
+        if "admin" not in self.auth_tokens:
+            print("  ⚠️  No admin token available for database verification")
+            return False
+        
+        try:
+            # Get all users from database
+            response = requests.get(
+                f"{BACKEND_URL}/auth/admin/users",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                users = response.json()
+                print(f"  ✅ Retrieved {len(users)} users from database")
+                
+                # Check for instructor and admin users
+                instructor_users = [u for u in users if u.get('role') == 'instructor']
+                admin_users = [u for u in users if u.get('role') == 'admin']
+                
+                print(f"  Instructor users found: {len(instructor_users)}")
+                print(f"  Admin users found: {len(admin_users)}")
+                
+                # Display user details
+                for user in users[:5]:  # Show first 5 users
+                    print(f"    User: {user.get('username')} | ID: {user.get('id')} | Role: {user.get('role')} | Active: {user.get('is_active')}")
+                
+                # Try to decode token and match user ID
+                if self.auth_tokens:
+                    role = list(self.auth_tokens.keys())[0]
+                    token = self.auth_tokens[role]
+                    
+                    try:
+                        import base64
+                        import json
+                        
+                        # Decode token payload
+                        parts = token.split('.')
+                        payload_data = parts[1] + '=' * (4 - len(parts[1]) % 4)
+                        payload = json.loads(base64.urlsafe_b64decode(payload_data))
+                        token_user_id = payload.get('sub')
+                        
+                        print(f"  Token user ID: {token_user_id}")
+                        
+                        # Find matching user in database
+                        matching_user = None
+                        for user in users:
+                            if user.get('id') == token_user_id:
+                                matching_user = user
+                                break
+                        
+                        if matching_user:
+                            print(f"  ✅ Found matching user in database:")
+                            print(f"    Username: {matching_user.get('username')}")
+                            print(f"    Role: {matching_user.get('role')}")
+                            print(f"    Active: {matching_user.get('is_active')}")
+                            
+                            self.log_result(
+                                "JWT Debug - Database User Match", 
+                                "PASS", 
+                                f"Token user ID matches database user: {matching_user.get('username')}",
+                                f"User ID: {token_user_id}, Role: {matching_user.get('role')}"
+                            )
+                            return True
+                        else:
+                            print(f"  ❌ No matching user found in database for token user ID: {token_user_id}")
+                            print(f"  🚨 This explains the 'User not found' error!")
+                            
+                            self.log_result(
+                                "JWT Debug - Database User Match", 
+                                "FAIL", 
+                                f"CRITICAL: Token user ID {token_user_id} not found in database - This causes 'User not found' errors",
+                                f"Available user IDs: {[u.get('id') for u in users[:3]]}"
+                            )
+                            return False
+                            
+                    except Exception as e:
+                        print(f"  ❌ Failed to decode token for user ID matching: {str(e)}")
+                        return False
+                
+                self.log_result(
+                    "JWT Debug - Database Users", 
+                    "PASS", 
+                    f"Successfully retrieved {len(users)} users from database",
+                    f"Instructors: {len(instructor_users)}, Admins: {len(admin_users)}"
+                )
+                return True
+                
+            else:
+                print(f"  ❌ Failed to retrieve users: {response.status_code}")
+                print(f"  Response: {response.text}")
+                self.log_result(
+                    "JWT Debug - Database Users", 
+                    "FAIL", 
+                    f"Failed to retrieve users from database: {response.status_code}",
+                    f"Response: {response.text}"
+                )
+                return False
+                
+        except requests.exceptions.RequestException as e:
+            print(f"  ❌ Database verification failed: {str(e)}")
+            self.log_result(
+                "JWT Debug - Database Users", 
+                "FAIL", 
+                "Database user verification failed",
+                str(e)
+            )
+            return False
+    
+    def debug_minimal_authenticated_endpoint(self):
+        """Test the simplest authenticated endpoint to isolate the issue"""
+        print("\n🔧 Step 5: Minimal Authentication Test")
+        print("-" * 50)
+        
+        if not self.auth_tokens:
+            print("  ❌ No tokens available for minimal auth test")
+            return False
+        
+        # Test the simplest authenticated endpoint: GET /api/auth/me
+        for role, token in self.auth_tokens.items():
+            try:
+                print(f"  Testing minimal auth with {role} token")
+                
+                # First, test a simple endpoint that should work
+                response = requests.get(
+                    f"{BACKEND_URL}/auth/me",
+                    timeout=TEST_TIMEOUT,
+                    headers={
+                        'Authorization': f'Bearer {token}'
+                    }
+                )
+                
+                if response.status_code == 200:
+                    print(f"  ✅ Basic authentication working for {role}")
+                    
+                    # Now test if the issue is specific to new APIs
+                    # Try accessing courses API (common Priority 2 endpoint)
+                    courses_response = requests.get(
+                        f"{BACKEND_URL}/courses",
+                        timeout=TEST_TIMEOUT,
+                        headers={
+                            'Authorization': f'Bearer {token}'
+                        }
+                    )
+                    
+                    print(f"  Courses API status: {courses_response.status_code}")
+                    
+                    if courses_response.status_code == 200:
+                        print(f"  ✅ Courses API accessible - not a general auth issue")
+                        self.log_result(
+                            "JWT Debug - Minimal Auth", 
+                            "PASS", 
+                            f"Authentication working for both /auth/me and /courses with {role} token",
+                            "Issue may be specific to certain endpoints or roles"
+                        )
+                        return True
+                    elif courses_response.status_code == 401:
+                        print(f"  ❌ Courses API returns 401 - authentication issue confirmed")
+                        if "User not found" in courses_response.text:
+                            print(f"  🚨 Same 'User not found' error in Courses API")
+                        self.log_result(
+                            "JWT Debug - Minimal Auth", 
+                            "FAIL", 
+                            f"Courses API returns 401 with {role} token - authentication issue confirmed",
+                            f"Response: {courses_response.text}"
+                        )
+                    else:
+                        print(f"  ⚠️  Courses API returns {courses_response.status_code}")
+                        
+                elif response.status_code == 401:
+                    print(f"  ❌ Basic authentication failing for {role}")
+                    if "User not found" in response.text:
+                        print(f"  🚨 'User not found' error in basic auth")
+                        self.log_result(
+                            "JWT Debug - Minimal Auth", 
+                            "FAIL", 
+                            f"CRITICAL: Basic authentication failing with 'User not found' for {role}",
+                            "This is a fundamental JWT authentication issue"
+                        )
+                    return False
+                    
+            except requests.exceptions.RequestException as e:
+                print(f"  ❌ Minimal auth test failed: {str(e)}")
+                self.log_result(
+                    "JWT Debug - Minimal Auth", 
+                    "FAIL", 
+                    "Minimal authentication test failed",
+                    str(e)
+                )
+        
+        return False
+
+    # =============================================================================
     # AUTHENTICATION SYSTEM TESTS
     # =============================================================================
     
