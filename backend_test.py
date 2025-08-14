@@ -3211,7 +3211,7 @@ class BackendTester:
         # Step 2: Verify it appears in course list
         print("   Step 2: Checking course appears in list...")
         all_courses = self.test_get_all_courses_api()
-        if all_courses:
+        if all_courses and created_course:
             course_found_in_list = any(c.get('id') == created_course.get('id') for c in all_courses)
             if not course_found_in_list:
                 self.log_result(
