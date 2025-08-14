@@ -284,20 +284,43 @@ const ClassroomDetail = () => {
               <CardTitle>Curriculum</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {courses.map((course) => (
-                  <Card key={course.id} className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-4">
-                      <div className="flex items-start space-x-4">
-                        <img 
-                          src={course.thumbnail} 
-                          alt={course.title}
-                          className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
-                        />
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-gray-900 mb-2">{course.title}</h4>
-                          <p className="text-sm text-gray-600 mb-3 line-clamp-2">{course.description}</p>
-                          <div className="flex items-center justify-between text-sm text-gray-500">
+              {loadingCourses ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="text-gray-500">Loading courses...</div>
+                </div>
+              ) : coursesError ? (
+                <div className="text-center py-8">
+                  <div className="text-amber-600 mb-2">⚠️ {coursesError}</div>
+                  <Button 
+                    onClick={loadCourses} 
+                    variant="outline" 
+                    size="sm"
+                  >
+                    Retry Loading Courses
+                  </Button>
+                </div>
+              ) : courses.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  No courses assigned to this classroom
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {courses.map((course) => (
+                    <Card key={course.id} className="hover:shadow-md transition-shadow">
+                      <CardContent className="p-4">
+                        <div className="flex items-start space-x-4">
+                          <img 
+                            src={course.thumbnailUrl || course.thumbnail || '/api/placeholder/64/64'} 
+                            alt={course.title}
+                            className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+                            onError={(e) => {
+                              e.target.src = '/api/placeholder/64/64';
+                            }}
+                          />
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-gray-900 mb-2">{course.title}</h4>
+                            <p className="text-sm text-gray-600 mb-3 line-clamp-2">{course.description}</p>
+                            <div className="flex items-center justify-between text-sm text-gray-500">
                             <div className="flex items-center">
                               <Clock className="w-4 h-4 mr-1" />
                               {course.duration}
