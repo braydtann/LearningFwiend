@@ -6784,6 +6784,7 @@ class BackendTester:
         certificate_success = False
         
         for i, cert_data in enumerate(test_certificates):
+            id_field = "studentId" if "studentId" in cert_data else "userId"
             try:
                 response = requests.post(
                     f"{BACKEND_URL}/certificates",
@@ -6797,7 +6798,6 @@ class BackendTester:
                 
                 if response.status_code == 200:
                     data = response.json()
-                    id_field = "studentId" if "studentId" in cert_data else "userId"
                     self.log_result(
                         f"Certificate APIs - POST with {id_field}", 
                         "PASS", 
@@ -6813,7 +6813,6 @@ class BackendTester:
                         f"Status: {response.status_code}, response: {response.text}"
                     )
             except requests.exceptions.RequestException as e:
-                id_field = "studentId" if "studentId" in cert_data else "userId"
                 self.log_result(
                     f"Certificate APIs - POST with {id_field}", 
                     "FAIL", 
