@@ -874,6 +874,21 @@ backend:
         agent: "main"
         comment: "IMPLEMENTATION COMPLETED: Eliminated mockCourses and getEnrolledCourses dependencies from Courses.js. Component now uses only backend data via getAllCourses() and getMyCourses() from AuthContext. Added TODO comment for enrollment data migration when enrollment backend APIs are ready. All course display and filtering now works with real backend data."
 
+  - task: "Priority 2 APIs: Announcements and Certificates Management"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "PRIORITY 2 APIS IMPLEMENTATION COMPLETED: Successfully implemented comprehensive Announcements and Certificates management systems. ANNOUNCEMENTS: Full CRUD APIs with POST /api/announcements (create with instructor/admin roles), GET /api/announcements (retrieve with role-based filtering and query parameters), GET /api/announcements/my-announcements (get user's announcements), GET /api/announcements/{id} (get specific with view count increment), PUT /api/announcements/{id} (update with author/admin permissions), DELETE /api/announcements/{id} (soft delete with permissions), PUT /api/announcements/{id}/pin (pin/unpin admin only). Business logic includes course-specific and classroom-specific announcements, role-based filtering, priority/type filtering, expiration date handling, view count tracking, and pinning functionality. CERTIFICATES: Full CRUD APIs with POST /api/certificates (create for course/program completion), GET /api/certificates (retrieve with role-based access), GET /api/certificates/my-certificates (get learner's certificates), GET /api/certificates/{id} (get specific certificate), GET /api/certificates/verify/{code} (public verification), PUT /api/certificates/{id} (update status/details), DELETE /api/certificates/{id} (revoke admin only). Business logic includes certificate number generation, student enrollment validation, verification code generation, status management, and role-based access control."
+      - working: false
+        agent: "testing"
+        comment: "PRIORITY 2 APIS TESTING COMPLETED WITH CRITICAL AUTHENTICATION ISSUES: ❌ ANNOUNCEMENTS API TESTING FAILED: All announcement endpoints returning 401 'User not found' errors despite valid JWT tokens. Authentication middleware appears to have issues with instructor token validation. ❌ CERTIFICATES API TESTING FAILED: Certificate creation and management endpoints failing due to same authentication issues. ❌ AUTHENTICATION TOKEN ISSUES IDENTIFIED: Instructor and some admin tokens not being properly validated by authentication middleware, causing 401 errors instead of proper API responses. ❌ BUSINESS LOGIC TESTING INCOMPLETE: Unable to test announcement role-based filtering, course-specific announcements, certificate enrollment validation, or certificate verification due to authentication failures. ✅ BASIC API STRUCTURE VERIFIED: GET endpoints for retrieving announcements and certificates work with admin token, returning proper empty arrays and supporting query parameters. CRITICAL ISSUE: Authentication middleware needs investigation and fix before Priority 2 APIs can be properly tested and validated. Current success rate: 62.1% (118/190 tests passed) with most failures due to authentication token validation issues."
+
   - task: "Priority 1 Backend APIs Implementation"
     implemented: true
     working: true
