@@ -186,7 +186,7 @@ const Announcements = () => {
                       <SelectValue placeholder="Select course or leave blank for general" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">General Announcement</SelectItem>
+                      <SelectItem value="general">General Announcement</SelectItem>
                       {courses.map(course => (
                         <SelectItem key={course.id || course.courseId} value={course.id || course.courseId}>
                           {course.title}
