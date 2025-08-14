@@ -6964,6 +6964,39 @@ class BackendTester:
         self.test_certificate_business_logic()
         self.test_certificate_enrollment_validation()
         
+        print("\n" + "🧠" * 60)
+        print("🧠 PRIORITY 3 API TESTING: QUIZ/ASSESSMENT MANAGEMENT")
+        print("🧠" * 60)
+        
+        # Quiz CRUD API tests
+        self.test_quiz_creation()
+        self.test_get_all_quizzes()
+        self.test_get_quiz_by_id()
+        self.test_get_my_quizzes()
+        self.test_update_quiz()
+        self.test_delete_quiz()
+        self.test_quiz_business_logic()
+        self.test_quiz_role_based_filtering()
+        
+        # Quiz Attempt API tests
+        self.test_quiz_attempt_submission()
+        self.test_get_quiz_attempts()
+        self.test_get_quiz_attempt_by_id()
+        self.test_quiz_scoring_algorithms()
+        self.test_quiz_attempt_limits()
+        
+        print("\n" + "📊" * 60)
+        print("📊 PRIORITY 3 API TESTING: ANALYTICS MANAGEMENT")
+        print("📊" * 60)
+        
+        # Analytics API tests
+        self.test_system_analytics()
+        self.test_course_analytics()
+        self.test_user_analytics()
+        self.test_analytics_dashboard()
+        self.test_analytics_permissions()
+        self.test_analytics_calculations()
+        
         return self.generate_summary()
     
     # =============================================================================
