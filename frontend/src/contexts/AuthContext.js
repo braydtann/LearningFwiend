@@ -801,6 +801,156 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // =============================================================================
+  // DEPARTMENT MANAGEMENT FUNCTIONS  
+  // =============================================================================
+
+  const createDepartment = async (departmentData) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/departments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(departmentData),
+      });
+
+      if (response.ok) {
+        const newDepartment = await response.json();
+        return { success: true, department: newDepartment };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to create department' 
+        };
+      }
+    } catch (error) {
+      console.error('Create department error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const getAllDepartments = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/departments`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const departments = await response.json();
+        return { success: true, departments };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to fetch departments' 
+        };
+      }
+    } catch (error) {
+      console.error('Fetch departments error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const getDepartmentById = async (departmentId) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/departments/${departmentId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const department = await response.json();
+        return { success: true, department };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to fetch department' 
+        };
+      }
+    } catch (error) {
+      console.error('Fetch department error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const updateDepartment = async (departmentId, departmentData) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/departments/${departmentId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(departmentData),
+      });
+
+      if (response.ok) {
+        const updatedDepartment = await response.json();
+        return { success: true, department: updatedDepartment };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to update department' 
+        };
+      }
+    } catch (error) {
+      console.error('Update department error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const deleteDepartment = async (departmentId) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/departments/${departmentId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        return { success: true };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to delete department' 
+        };
+      }
+    } catch (error) {
+      console.error('Delete department error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
   const value = {
     user,
     loading,
