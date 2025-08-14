@@ -2893,7 +2893,11 @@ async def create_certificate(
     certificate_dict = {
         "id": str(uuid.uuid4()),
         "certificateNumber": certificate_number,
-        **certificate_data.dict(),
+        "studentId": student_id,  # Use the resolved student ID
+        "courseId": certificate_data.courseId,
+        "programId": certificate_data.programId,
+        "type": certificate_data.type,
+        "template": certificate_data.template,
         "studentName": student['full_name'],
         "studentEmail": student['email'],
         "courseName": course_name,
