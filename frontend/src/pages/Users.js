@@ -16,6 +16,9 @@ const Users = () => {
   const { toast } = useToast();
   const { user, isAdmin, createUser, resetUserPassword, getAllUsers, deleteUser, updateUser } = useAuth();
   
+  // Add state for departments derived from users
+  const [availableDepartments, setAvailableDepartments] = useState([]);
+  
   // Redirect non-admin users
   if (!isAdmin) {
     return (
