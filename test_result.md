@@ -119,6 +119,21 @@ user_problem_statement: "AUTHENTICATION SYSTEM IMPLEMENTATION: Build admin-contr
         agent: "main"
         comment: "BUG IDENTIFIED AND FIXED: Found that PasswordChangeModal was making direct API calls instead of using AuthContext.changePassword function. This meant the requiresPasswordChange state was never properly updated. Fixed by importing useAuth and calling changePassword function from AuthContext, which properly updates the authentication state and clears the requiresPasswordChange flag."
 
+  - task: "Classroom Trainer Dropdown Empty Fix"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/Classrooms.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "USER ISSUE: When creating a classroom, the trainer dropdown is not displaying anything. User suspects this is because the role is 'instructor' instead of 'trainer'."
+      - working: true
+        agent: "main"
+        comment: "BUG IDENTIFIED AND FIXED: The classroom form was correctly filtering for 'instructor' role but only using mockUsers instead of real backend users. Since user created brayden.t@covesmart.com in backend, it wasn't showing in dropdown. Fixed by: 1) Added useEffect to load real users from backend via getAllUsers(), 2) Updated instructor filtering to use real users with fallback to mock users, 3) Updated dropdown to show full_name and username/email for better identification, 4) Added loading states and proper error handling."
+
   - task: "Course Detail Page Backend Integration"
     implemented: true
     working: true
