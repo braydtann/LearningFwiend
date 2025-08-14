@@ -370,7 +370,7 @@ const Classrooms = () => {
                             }
                           }}
                         />
-                        <span className="text-sm">{student.name}</span>
+                        <span className="text-sm">{student.full_name || student.name}</span>
                       </label>
                     ))}
                   </div>
