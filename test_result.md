@@ -1267,10 +1267,11 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Quiz/Assessment Management Backend API Implementation"
-    - "Analytics Management Backend API Implementation"
-  stuck_tasks:
-    - "Quiz/Assessment Management Backend API Implementation"
+    - "Departments Frontend Backend Integration"
+    - "Announcements Frontend Backend Integration"
+    - "Certificates Frontend Backend Integration"
+    - "Analytics Frontend Backend Integration"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
   backend_testing_complete: false
