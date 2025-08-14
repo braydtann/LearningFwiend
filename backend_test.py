@@ -6997,6 +6997,23 @@ class BackendTester:
         self.test_analytics_permissions()
         self.test_analytics_calculations()
         
+        print("\n" + "🎯" * 60)
+        print("🎯 FOCUSED TESTING OF QUICK FIXES - REVIEW REQUEST")
+        print("🎯" * 60)
+        
+        # Quiz API fixes
+        self.test_quiz_api_question_model_validation()
+        self.test_quiz_attempt_scoring_improvements()
+        
+        # Certificate API fixes
+        self.test_certificate_api_enrollment_validation()
+        
+        # Input validation improvements
+        self.test_input_validation_improvements()
+        
+        # Integration testing
+        self.test_end_to_end_workflows()
+        
         return self.generate_summary()
     
     # =============================================================================
