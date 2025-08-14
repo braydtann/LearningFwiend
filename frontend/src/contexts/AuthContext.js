@@ -1168,6 +1168,13 @@ export const AuthProvider = ({ children }) => {
     getDepartmentById,
     updateDepartment,
     deleteDepartment,
+    // Classroom management
+    createClassroom,
+    getAllClassrooms,
+    getMyClassrooms,
+    getClassroomById,
+    updateClassroom,
+    deleteClassroom,
     // User role helpers
     isAdmin: user?.role === 'admin',
     isInstructor: user?.role === 'instructor',
