@@ -70,7 +70,9 @@ const Certificates = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-green-600 text-sm font-medium">Total Certificates</p>
-                <p className="text-2xl font-bold text-green-700">{certificates.length}</p>
+                <p className="text-2xl font-bold text-green-700">
+                  {loading ? '...' : certificates.length}
+                </p>
               </div>
               <Award className="h-8 w-8 text-green-600" />
             </div>
@@ -82,7 +84,9 @@ const Certificates = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-blue-600 text-sm font-medium">Programs Completed</p>
-                <p className="text-2xl font-bold text-blue-700">{certificates.length}</p>
+                <p className="text-2xl font-bold text-blue-700">
+                  {loading ? '...' : certificates.length}
+                </p>
               </div>
               <Award className="h-8 w-8 text-blue-600" />
             </div>
@@ -94,7 +98,9 @@ const Certificates = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-purple-600 text-sm font-medium">Achievement Points</p>
-                <p className="text-2xl font-bold text-purple-700">{certificates.length * 100}</p>
+                <p className="text-2xl font-bold text-purple-700">
+                  {loading ? '...' : certificates.length * 100}
+                </p>
               </div>
               <Award className="h-8 w-8 text-purple-600" />
             </div>
