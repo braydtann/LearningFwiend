@@ -8,7 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { Label } from '../components/ui/label';
-import { mockDepartments } from '../data/mockData';
 import { Search, Filter, Plus, Edit, Trash2, UserPlus, Shield, AlertTriangle, Building2, Eye, EyeOff, Key, RefreshCw } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 
