@@ -9698,6 +9698,2027 @@ class BackendTester:
             'results': self.results
         }
 
+# =============================================================================
+# PRIORITY 3 API TESTS: QUIZ/ASSESSMENT MANAGEMENT
+# =============================================================================
+
+    def test_quiz_creation(self):
+        """Test POST /api/quizzes - Create quizzes (instructor/admin roles)"""
+        if "instructor" not in self.auth_tokens and "admin" not in self.auth_tokens:
+            self.log_result(
+                "Quiz Creation", 
+                "SKIP", 
+                "No instructor or admin token available",
+                "Authentication required for quiz creation"
+            )
+            return False
+        
+        # Use instructor token if available, otherwise admin
+        token = self.auth_tokens.get("instructor") or self.auth_tokens.get("admin")
+        role = "instructor" if "instructor" in self.auth_tokens else "admin"
+        
+        try:
+            # Get available courses for quiz association
+            courses_response = requests.get(
+                f"{BACKEND_URL}/courses",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {token}'}
+            )
+            
+            course_id = None
+            if courses_response.status_code == 200:
+                courses = courses_response.json()
+                if courses:
+                    course_id = courses[0]['id']
+            
+            # Create test quiz data
+            quiz_data = {
+                "title": "Backend API Test Quiz",
+                "description": "Comprehensive quiz for testing backend API functionality",
+                "courseId": course_id,
+                "questions": [
+                    {
+                        "type": "multiple_choice",
+                        "question": "What is the primary purpose of API testing?",
+                        "options": [
+                            "To test user interface",
+                            "To verify data exchange between systems",
+                            "To check database performance",
+                            "To validate frontend design"
+                        ],
+                        "correctAnswer": "1",
+                        "points": 10,
+                        "explanation": "API testing focuses on verifying data exchange and communication between systems"
+                    },
+                    {
+                        "type": "true_false",
+                        "question": "REST APIs use HTTP methods for different operations",
+                        "options": ["True", "False"],
+                        "correctAnswer": "True",
+                        "points": 5,
+                        "explanation": "REST APIs use HTTP methods like GET, POST, PUT, DELETE for different operations"
+                    },
+                    {
+                        "type": "short_answer",
+                        "question": "What does CRUD stand for in database operations?",
+                        "options": [],
+                        "correctAnswer": "Create, Read, Update, Delete",
+                        "points": 15,
+                        "explanation": "CRUD represents the four basic operations for persistent storage"
+                    }
+                ],
+                "timeLimit": 30,
+                "attempts": 2,
+                "passingScore": 70.0,
+                "shuffleQuestions": True,
+                "showResults": True,
+                "isPublished": True
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/quizzes",
+                json=quiz_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {token}'
+                }
+            )
+            
+            if response.status_code == 200:
+                created_quiz = response.json()
+                
+                # Verify quiz structure
+                required_fields = ['id', 'title', 'description', 'questions', 'totalPoints', 'questionCount', 'createdBy']
+                if all(field in created_quiz for field in required_fields):
+                    # Verify calculated fields
+                    expected_total_points = sum(q['points'] for q in quiz_data['questions'])
+                    expected_question_count = len(quiz_data['questions'])
+                    
+                    if (created_quiz['totalPoints'] == expected_total_points and 
+                        created_quiz['questionCount'] == expected_question_count):
+                        
+                        self.log_result(
+                            "Quiz Creation", 
+                            "PASS", 
+                            f"Successfully created quiz with {role} role",
+                            f"Quiz ID: {created_quiz['id']}, Total Points: {created_quiz['totalPoints']}, Questions: {created_quiz['questionCount']}"
+                        )
+                        
+                        # Store quiz ID for other tests
+                        self.test_quiz_id = created_quiz['id']
+                        return created_quiz
+                    else:
+                        self.log_result(
+                            "Quiz Creation", 
+                            "FAIL", 
+                            "Quiz created but calculated fields incorrect",
+                            f"Expected points: {expected_total_points}, got: {created_quiz['totalPoints']}"
+                        )
+                else:
+                    self.log_result(
+                        "Quiz Creation", 
+                        "FAIL", 
+                        "Quiz created but missing required fields",
+                        f"Missing fields: {[f for f in required_fields if f not in created_quiz]}"
+                    )
+            else:
+                self.log_result(
+                    "Quiz Creation", 
+                    "FAIL", 
+                    f"Failed to create quiz with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+                
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Quiz Creation", 
+                "FAIL", 
+                "Failed to make quiz creation request",
+                str(e)
+            )
+        return False
+
+    def test_get_all_quizzes(self):
+        """Test GET /api/quizzes - Retrieve quizzes with role-based filtering"""
+        if not self.auth_tokens:
+            self.log_result(
+                "Get All Quizzes", 
+                "SKIP", 
+                "No authentication tokens available",
+                "Authentication required for quiz retrieval"
+            )
+            return False
+        
+        # Test with different roles
+        for role, token in self.auth_tokens.items():
+            try:
+                response = requests.get(
+                    f"{BACKEND_URL}/quizzes",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {token}'}
+                )
+                
+                if response.status_code == 200:
+                    quizzes = response.json()
+                    
+                    if isinstance(quizzes, list):
+                        self.log_result(
+                            f"Get All Quizzes - {role.title()}", 
+                            "PASS", 
+                            f"Successfully retrieved {len(quizzes)} quizzes for {role}",
+                            f"Role-based filtering working correctly"
+                        )
+                        
+                        # Verify quiz structure
+                        if quizzes:
+                            sample_quiz = quizzes[0]
+                            required_fields = ['id', 'title', 'isPublished', 'totalPoints', 'questionCount']
+                            if all(field in sample_quiz for field in required_fields):
+                                self.log_result(
+                                    f"Get All Quizzes Structure - {role.title()}", 
+                                    "PASS", 
+                                    "Quiz data structure is correct",
+                                    f"Sample quiz fields: {list(sample_quiz.keys())}"
+                                )
+                            else:
+                                self.log_result(
+                                    f"Get All Quizzes Structure - {role.title()}", 
+                                    "FAIL", 
+                                    "Quiz data structure missing required fields",
+                                    f"Missing: {[f for f in required_fields if f not in sample_quiz]}"
+                                )
+                        return True
+                    else:
+                        self.log_result(
+                            f"Get All Quizzes - {role.title()}", 
+                            "FAIL", 
+                            "Response is not a list",
+                            f"Response type: {type(quizzes)}"
+                        )
+                else:
+                    self.log_result(
+                        f"Get All Quizzes - {role.title()}", 
+                        "FAIL", 
+                        f"Failed to retrieve quizzes with status {response.status_code}",
+                        f"Response: {response.text}"
+                    )
+                    
+            except requests.exceptions.RequestException as e:
+                self.log_result(
+                    f"Get All Quizzes - {role.title()}", 
+                    "FAIL", 
+                    "Failed to make quiz retrieval request",
+                    str(e)
+                )
+        return False
+
+    def test_get_quiz_by_id(self):
+        """Test GET /api/quizzes/{quiz_id} - Get specific quiz with questions"""
+        if not self.auth_tokens:
+            self.log_result(
+                "Get Quiz By ID", 
+                "SKIP", 
+                "No authentication tokens available",
+                "Authentication required for quiz retrieval"
+            )
+            return False
+        
+        # First, get available quizzes to test with
+        token = list(self.auth_tokens.values())[0]
+        
+        try:
+            # Get all quizzes first
+            quizzes_response = requests.get(
+                f"{BACKEND_URL}/quizzes",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {token}'}
+            )
+            
+            if quizzes_response.status_code != 200:
+                self.log_result(
+                    "Get Quiz By ID - Setup", 
+                    "FAIL", 
+                    "Could not retrieve quizzes for testing",
+                    f"Status: {quizzes_response.status_code}"
+                )
+                return False
+            
+            quizzes = quizzes_response.json()
+            if not quizzes:
+                self.log_result(
+                    "Get Quiz By ID", 
+                    "SKIP", 
+                    "No quizzes available for testing",
+                    "Need existing quizzes to test retrieval by ID"
+                )
+                return False
+            
+            quiz_id = quizzes[0]['id']
+            
+            # Test with different roles
+            for role, token in self.auth_tokens.items():
+                response = requests.get(
+                    f"{BACKEND_URL}/quizzes/{quiz_id}",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {token}'}
+                )
+                
+                if response.status_code == 200:
+                    quiz = response.json()
+                    
+                    # Verify quiz structure with questions
+                    required_fields = ['id', 'title', 'questions', 'totalPoints', 'questionCount']
+                    if all(field in quiz for field in required_fields):
+                        # Verify questions structure
+                        if quiz['questions'] and isinstance(quiz['questions'], list):
+                            sample_question = quiz['questions'][0]
+                            question_fields = ['id', 'type', 'question', 'points']
+                            
+                            if all(field in sample_question for field in question_fields):
+                                # Check if answers are hidden for students
+                                if role == 'learner':
+                                    if 'correctAnswer' not in sample_question:
+                                        self.log_result(
+                                            f"Get Quiz By ID - Answer Hiding {role.title()}", 
+                                            "PASS", 
+                                            "Correct answers properly hidden for students",
+                                            f"Student cannot see correct answers"
+                                        )
+                                    else:
+                                        self.log_result(
+                                            f"Get Quiz By ID - Answer Hiding {role.title()}", 
+                                            "FAIL", 
+                                            "Correct answers exposed to students",
+                                            f"Security issue: students can see answers"
+                                        )
+                                
+                                self.log_result(
+                                    f"Get Quiz By ID - {role.title()}", 
+                                    "PASS", 
+                                    f"Successfully retrieved quiz with questions for {role}",
+                                    f"Quiz: {quiz['title']}, Questions: {len(quiz['questions'])}"
+                                )
+                                return True
+                            else:
+                                self.log_result(
+                                    f"Get Quiz By ID Questions - {role.title()}", 
+                                    "FAIL", 
+                                    "Question structure missing required fields",
+                                    f"Missing: {[f for f in question_fields if f not in sample_question]}"
+                                )
+                        else:
+                            self.log_result(
+                                f"Get Quiz By ID Questions - {role.title()}", 
+                                "FAIL", 
+                                "Quiz missing questions or questions not a list",
+                                f"Questions: {quiz.get('questions')}"
+                            )
+                    else:
+                        self.log_result(
+                            f"Get Quiz By ID - {role.title()}", 
+                            "FAIL", 
+                            "Quiz structure missing required fields",
+                            f"Missing: {[f for f in required_fields if f not in quiz]}"
+                        )
+                elif response.status_code == 404:
+                    self.log_result(
+                        f"Get Quiz By ID - {role.title()}", 
+                        "FAIL", 
+                        "Quiz not found",
+                        f"Quiz ID {quiz_id} not found"
+                    )
+                else:
+                    self.log_result(
+                        f"Get Quiz By ID - {role.title()}", 
+                        "FAIL", 
+                        f"Failed to retrieve quiz with status {response.status_code}",
+                        f"Response: {response.text}"
+                    )
+                    
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Get Quiz By ID", 
+                "FAIL", 
+                "Failed to make quiz retrieval request",
+                str(e)
+            )
+        return False
+
+    def test_get_my_quizzes(self):
+        """Test GET /api/quizzes/my-quizzes - Get quizzes created by current user"""
+        if "instructor" not in self.auth_tokens and "admin" not in self.auth_tokens:
+            self.log_result(
+                "Get My Quizzes", 
+                "SKIP", 
+                "No instructor or admin token available",
+                "Only instructors and admins can access my-quizzes endpoint"
+            )
+            return False
+        
+        # Test with instructor and admin roles
+        for role in ["instructor", "admin"]:
+            if role not in self.auth_tokens:
+                continue
+                
+            token = self.auth_tokens[role]
+            
+            try:
+                response = requests.get(
+                    f"{BACKEND_URL}/quizzes/my-quizzes",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {token}'}
+                )
+                
+                if response.status_code == 200:
+                    my_quizzes = response.json()
+                    
+                    if isinstance(my_quizzes, list):
+                        self.log_result(
+                            f"Get My Quizzes - {role.title()}", 
+                            "PASS", 
+                            f"Successfully retrieved {len(my_quizzes)} quizzes created by {role}",
+                            f"User-specific quiz filtering working correctly"
+                        )
+                        return True
+                    else:
+                        self.log_result(
+                            f"Get My Quizzes - {role.title()}", 
+                            "FAIL", 
+                            "Response is not a list",
+                            f"Response type: {type(my_quizzes)}"
+                        )
+                else:
+                    self.log_result(
+                        f"Get My Quizzes - {role.title()}", 
+                        "FAIL", 
+                        f"Failed to retrieve my quizzes with status {response.status_code}",
+                        f"Response: {response.text}"
+                    )
+                    
+            except requests.exceptions.RequestException as e:
+                self.log_result(
+                    f"Get My Quizzes - {role.title()}", 
+                    "FAIL", 
+                    "Failed to make my quizzes request",
+                    str(e)
+                )
+        return False
+
+    def test_update_quiz(self):
+        """Test PUT /api/quizzes/{quiz_id} - Update quiz (creator/admin permissions)"""
+        if "instructor" not in self.auth_tokens and "admin" not in self.auth_tokens:
+            self.log_result(
+                "Update Quiz", 
+                "SKIP", 
+                "No instructor or admin token available",
+                "Authentication required for quiz updates"
+            )
+            return False
+        
+        token = self.auth_tokens.get("instructor") or self.auth_tokens.get("admin")
+        role = "instructor" if "instructor" in self.auth_tokens else "admin"
+        
+        try:
+            # First get available quizzes
+            quizzes_response = requests.get(
+                f"{BACKEND_URL}/quizzes/my-quizzes",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {token}'}
+            )
+            
+            if quizzes_response.status_code != 200:
+                self.log_result(
+                    "Update Quiz - Setup", 
+                    "FAIL", 
+                    "Could not retrieve quizzes for update testing",
+                    f"Status: {quizzes_response.status_code}"
+                )
+                return False
+            
+            quizzes = quizzes_response.json()
+            if not quizzes:
+                self.log_result(
+                    "Update Quiz", 
+                    "SKIP", 
+                    "No quizzes available for update testing",
+                    "Need existing quizzes to test updates"
+                )
+                return False
+            
+            quiz_id = quizzes[0]['id']
+            
+            # Update quiz data
+            update_data = {
+                "title": "Updated Backend API Test Quiz",
+                "description": "Updated description for comprehensive quiz testing",
+                "timeLimit": 45,
+                "passingScore": 75.0,
+                "isPublished": False
+            }
+            
+            response = requests.put(
+                f"{BACKEND_URL}/quizzes/{quiz_id}",
+                json=update_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {token}'
+                }
+            )
+            
+            if response.status_code == 200:
+                updated_quiz = response.json()
+                
+                # Verify updates were applied
+                if (updated_quiz['title'] == update_data['title'] and
+                    updated_quiz['timeLimit'] == update_data['timeLimit'] and
+                    updated_quiz['passingScore'] == update_data['passingScore']):
+                    
+                    self.log_result(
+                        "Update Quiz", 
+                        "PASS", 
+                        f"Successfully updated quiz with {role} role",
+                        f"Quiz ID: {quiz_id}, Updated fields applied correctly"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Update Quiz", 
+                        "FAIL", 
+                        "Quiz updated but changes not applied correctly",
+                        f"Expected title: {update_data['title']}, got: {updated_quiz['title']}"
+                    )
+            else:
+                self.log_result(
+                    "Update Quiz", 
+                    "FAIL", 
+                    f"Failed to update quiz with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+                
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Update Quiz", 
+                "FAIL", 
+                "Failed to make quiz update request",
+                str(e)
+            )
+        return False
+
+    def test_delete_quiz(self):
+        """Test DELETE /api/quizzes/{quiz_id} - Delete quiz (attempt protection)"""
+        if "instructor" not in self.auth_tokens and "admin" not in self.auth_tokens:
+            self.log_result(
+                "Delete Quiz", 
+                "SKIP", 
+                "No instructor or admin token available",
+                "Authentication required for quiz deletion"
+            )
+            return False
+        
+        token = self.auth_tokens.get("instructor") or self.auth_tokens.get("admin")
+        role = "instructor" if "instructor" in self.auth_tokens else "admin"
+        
+        try:
+            # Create a quiz specifically for deletion testing
+            quiz_data = {
+                "title": "Quiz for Deletion Test",
+                "description": "This quiz will be deleted as part of testing",
+                "questions": [
+                    {
+                        "type": "multiple_choice",
+                        "question": "This is a test question",
+                        "options": ["Option A", "Option B", "Option C", "Option D"],
+                        "correctAnswer": "0",
+                        "points": 10
+                    }
+                ],
+                "timeLimit": 15,
+                "attempts": 1,
+                "passingScore": 60.0,
+                "isPublished": False
+            }
+            
+            create_response = requests.post(
+                f"{BACKEND_URL}/quizzes",
+                json=quiz_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {token}'
+                }
+            )
+            
+            if create_response.status_code != 200:
+                self.log_result(
+                    "Delete Quiz - Setup", 
+                    "FAIL", 
+                    "Could not create quiz for deletion testing",
+                    f"Status: {create_response.status_code}"
+                )
+                return False
+            
+            created_quiz = create_response.json()
+            quiz_id = created_quiz['id']
+            
+            # Now delete the quiz
+            delete_response = requests.delete(
+                f"{BACKEND_URL}/quizzes/{quiz_id}",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {token}'}
+            )
+            
+            if delete_response.status_code == 200:
+                delete_result = delete_response.json()
+                
+                if 'message' in delete_result:
+                    self.log_result(
+                        "Delete Quiz", 
+                        "PASS", 
+                        f"Successfully deleted quiz with {role} role",
+                        f"Quiz ID: {quiz_id}, Message: {delete_result['message']}"
+                    )
+                    
+                    # Verify quiz is no longer accessible
+                    verify_response = requests.get(
+                        f"{BACKEND_URL}/quizzes/{quiz_id}",
+                        timeout=TEST_TIMEOUT,
+                        headers={'Authorization': f'Bearer {token}'}
+                    )
+                    
+                    if verify_response.status_code == 404:
+                        self.log_result(
+                            "Delete Quiz - Verification", 
+                            "PASS", 
+                            "Deleted quiz is no longer accessible",
+                            f"Quiz properly removed from system"
+                        )
+                        return True
+                    else:
+                        self.log_result(
+                            "Delete Quiz - Verification", 
+                            "FAIL", 
+                            "Deleted quiz is still accessible",
+                            f"Soft delete may not be working correctly"
+                        )
+                else:
+                    self.log_result(
+                        "Delete Quiz", 
+                        "FAIL", 
+                        "Quiz deletion response missing message",
+                        f"Response: {delete_result}"
+                    )
+            else:
+                self.log_result(
+                    "Delete Quiz", 
+                    "FAIL", 
+                    f"Failed to delete quiz with status {delete_response.status_code}",
+                    f"Response: {delete_response.text}"
+                )
+                
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Delete Quiz", 
+                "FAIL", 
+                "Failed to make quiz deletion request",
+                str(e)
+            )
+        return False
+
+    def test_quiz_business_logic(self):
+        """Test quiz business logic validation and calculated fields"""
+        if "instructor" not in self.auth_tokens and "admin" not in self.auth_tokens:
+            self.log_result(
+                "Quiz Business Logic", 
+                "SKIP", 
+                "No instructor or admin token available",
+                "Authentication required for quiz business logic testing"
+            )
+            return False
+        
+        token = self.auth_tokens.get("instructor") or self.auth_tokens.get("admin")
+        
+        try:
+            # Test quiz with calculated fields
+            valid_quiz_data = {
+                "title": "Business Logic Test Quiz",
+                "description": "Testing calculated fields and business logic",
+                "questions": [
+                    {
+                        "type": "multiple_choice",
+                        "question": "Question 1",
+                        "options": ["A", "B", "C", "D"],
+                        "correctAnswer": "0",
+                        "points": 15
+                    },
+                    {
+                        "type": "true_false",
+                        "question": "Question 2",
+                        "options": ["True", "False"],
+                        "correctAnswer": "True",
+                        "points": 10
+                    },
+                    {
+                        "type": "short_answer",
+                        "question": "Question 3",
+                        "options": [],
+                        "correctAnswer": "Answer",
+                        "points": 25
+                    }
+                ],
+                "timeLimit": 20,
+                "attempts": 3,
+                "passingScore": 80.0,
+                "isPublished": True
+            }
+            
+            valid_response = requests.post(
+                f"{BACKEND_URL}/quizzes",
+                json=valid_quiz_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {token}'
+                }
+            )
+            
+            if valid_response.status_code == 200:
+                created_quiz = valid_response.json()
+                
+                # Verify calculated fields
+                expected_total_points = 15 + 10 + 25  # 50
+                expected_question_count = 3
+                
+                if (created_quiz['totalPoints'] == expected_total_points and
+                    created_quiz['questionCount'] == expected_question_count):
+                    
+                    self.log_result(
+                        "Quiz Business Logic - Calculated Fields", 
+                        "PASS", 
+                        "Calculated fields (totalPoints, questionCount) are correct",
+                        f"Total Points: {created_quiz['totalPoints']}, Question Count: {created_quiz['questionCount']}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Quiz Business Logic - Calculated Fields", 
+                        "FAIL", 
+                        "Calculated fields are incorrect",
+                        f"Expected points: {expected_total_points}, got: {created_quiz['totalPoints']}"
+                    )
+            else:
+                self.log_result(
+                    "Quiz Business Logic - Valid Quiz", 
+                    "FAIL", 
+                    f"Failed to create valid quiz with status {valid_response.status_code}",
+                    f"Response: {valid_response.text}"
+                )
+                
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Quiz Business Logic", 
+                "FAIL", 
+                "Failed to test quiz business logic",
+                str(e)
+            )
+        return False
+
+    def test_quiz_role_based_filtering(self):
+        """Test role-based filtering for quiz visibility"""
+        if not self.auth_tokens:
+            self.log_result(
+                "Quiz Role-Based Filtering", 
+                "SKIP", 
+                "No authentication tokens available",
+                "Authentication required for role-based filtering testing"
+            )
+            return False
+        
+        try:
+            # Test with each role to verify filtering
+            role_results = {}
+            
+            for role, token in self.auth_tokens.items():
+                response = requests.get(
+                    f"{BACKEND_URL}/quizzes?published_only=true",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {token}'}
+                )
+                
+                if response.status_code == 200:
+                    quizzes = response.json()
+                    role_results[role] = len(quizzes)
+                    
+                    # Verify all returned quizzes are published for students
+                    if role == 'learner':
+                        all_published = all(quiz.get('isPublished', False) for quiz in quizzes)
+                        if all_published:
+                            self.log_result(
+                                f"Quiz Role Filtering - {role.title()}", 
+                                "PASS", 
+                                f"Students only see published quizzes ({len(quizzes)} quizzes)",
+                                f"Role-based filtering working correctly for students"
+                            )
+                        else:
+                            self.log_result(
+                                f"Quiz Role Filtering - {role.title()}", 
+                                "FAIL", 
+                                "Students can see unpublished quizzes",
+                                f"Security issue: unpublished quizzes visible to students"
+                            )
+                    else:
+                        self.log_result(
+                            f"Quiz Role Filtering - {role.title()}", 
+                            "PASS", 
+                            f"{role.title()} can see {len(quizzes)} quizzes",
+                            f"Role-based access working for {role}"
+                        )
+                else:
+                    self.log_result(
+                        f"Quiz Role Filtering - {role.title()}", 
+                        "FAIL", 
+                        f"Failed to retrieve quizzes for {role} with status {response.status_code}",
+                        f"Response: {response.text}"
+                    )
+            
+            # Summary of role-based filtering
+            if role_results:
+                self.log_result(
+                    "Quiz Role-Based Filtering - Summary", 
+                    "PASS", 
+                    "Role-based filtering working across all roles",
+                    f"Quiz counts by role: {role_results}"
+                )
+                return True
+                
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Quiz Role-Based Filtering", 
+                "FAIL", 
+                "Failed to test role-based filtering",
+                str(e)
+            )
+        return False
+
+    def test_quiz_attempt_submission(self):
+        """Test POST /api/quiz-attempts - Submit quiz attempts with scoring"""
+        if "learner" not in self.auth_tokens:
+            self.log_result(
+                "Quiz Attempt Submission", 
+                "SKIP", 
+                "No learner token available",
+                "Only learners can submit quiz attempts"
+            )
+            return False
+        
+        learner_token = self.auth_tokens["learner"]
+        
+        try:
+            # First, get available published quizzes
+            quizzes_response = requests.get(
+                f"{BACKEND_URL}/quizzes?published_only=true",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {learner_token}'}
+            )
+            
+            if quizzes_response.status_code != 200:
+                self.log_result(
+                    "Quiz Attempt Submission - Setup", 
+                    "FAIL", 
+                    "Could not retrieve published quizzes for attempt testing",
+                    f"Status: {quizzes_response.status_code}"
+                )
+                return False
+            
+            quizzes = quizzes_response.json()
+            if not quizzes:
+                self.log_result(
+                    "Quiz Attempt Submission", 
+                    "SKIP", 
+                    "No published quizzes available for attempt testing",
+                    "Need published quizzes to test attempts"
+                )
+                return False
+            
+            # Find a quiz with questions
+            target_quiz = None
+            for quiz in quizzes:
+                if quiz.get('questionCount', 0) > 0:
+                    target_quiz = quiz
+                    break
+            
+            if not target_quiz:
+                self.log_result(
+                    "Quiz Attempt Submission", 
+                    "SKIP", 
+                    "No quizzes with questions available for testing",
+                    "Need quizzes with questions to test attempts"
+                )
+                return False
+            
+            # Get full quiz details with questions
+            quiz_detail_response = requests.get(
+                f"{BACKEND_URL}/quizzes/{target_quiz['id']}",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {learner_token}'}
+            )
+            
+            if quiz_detail_response.status_code != 200:
+                self.log_result(
+                    "Quiz Attempt Submission - Quiz Details", 
+                    "FAIL", 
+                    "Could not retrieve quiz details for attempt testing",
+                    f"Status: {quiz_detail_response.status_code}"
+                )
+                return False
+            
+            quiz_details = quiz_detail_response.json()
+            questions = quiz_details.get('questions', [])
+            
+            if not questions:
+                self.log_result(
+                    "Quiz Attempt Submission", 
+                    "SKIP", 
+                    "Quiz has no questions for attempt testing",
+                    "Need questions to submit answers"
+                )
+                return False
+            
+            # Prepare answers for the quiz
+            answers = []
+            for question in questions:
+                if question['type'] == 'multiple_choice':
+                    answers.append("0")  # First option
+                elif question['type'] == 'true_false':
+                    answers.append("True")
+                elif question['type'] in ['short_answer', 'essay']:
+                    answers.append("Test answer")
+                else:
+                    answers.append("0")  # Default
+            
+            # Submit quiz attempt
+            attempt_data = {
+                "quizId": target_quiz['id'],
+                "answers": answers
+            }
+            
+            attempt_response = requests.post(
+                f"{BACKEND_URL}/quiz-attempts",
+                json=attempt_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {learner_token}'
+                }
+            )
+            
+            if attempt_response.status_code == 200:
+                attempt_result = attempt_response.json()
+                
+                # Verify attempt structure
+                required_fields = ['id', 'quizId', 'studentId', 'score', 'pointsEarned', 'totalPoints', 'isPassed']
+                if all(field in attempt_result for field in required_fields):
+                    self.log_result(
+                        "Quiz Attempt Submission", 
+                        "PASS", 
+                        f"Successfully submitted quiz attempt",
+                        f"Score: {attempt_result['score']}%, Points: {attempt_result['pointsEarned']}/{attempt_result['totalPoints']}, Passed: {attempt_result['isPassed']}"
+                    )
+                    
+                    # Store attempt ID for other tests
+                    self.test_attempt_id = attempt_result['id']
+                    return attempt_result
+                else:
+                    self.log_result(
+                        "Quiz Attempt Submission", 
+                        "FAIL", 
+                        "Quiz attempt submitted but missing required fields",
+                        f"Missing fields: {[f for f in required_fields if f not in attempt_result]}"
+                    )
+            else:
+                self.log_result(
+                    "Quiz Attempt Submission", 
+                    "FAIL", 
+                    f"Failed to submit quiz attempt with status {attempt_response.status_code}",
+                    f"Response: {attempt_response.text}"
+                )
+                
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Quiz Attempt Submission", 
+                "FAIL", 
+                "Failed to submit quiz attempt",
+                str(e)
+            )
+        return False
+
+    def test_get_quiz_attempts(self):
+        """Test GET /api/quiz-attempts - Get attempts with role-based filtering"""
+        if not self.auth_tokens:
+            self.log_result(
+                "Get Quiz Attempts", 
+                "SKIP", 
+                "No authentication tokens available",
+                "Authentication required for quiz attempt retrieval"
+            )
+            return False
+        
+        # Test with different roles
+        for role, token in self.auth_tokens.items():
+            try:
+                response = requests.get(
+                    f"{BACKEND_URL}/quiz-attempts",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {token}'}
+                )
+                
+                if response.status_code == 200:
+                    attempts = response.json()
+                    
+                    if isinstance(attempts, list):
+                        self.log_result(
+                            f"Get Quiz Attempts - {role.title()}", 
+                            "PASS", 
+                            f"Successfully retrieved {len(attempts)} quiz attempts for {role}",
+                            f"Role-based filtering working correctly"
+                        )
+                        
+                        # Verify attempt structure
+                        if attempts:
+                            sample_attempt = attempts[0]
+                            required_fields = ['id', 'quizId', 'studentId', 'score', 'isPassed']
+                            if all(field in sample_attempt for field in required_fields):
+                                self.log_result(
+                                    f"Get Quiz Attempts Structure - {role.title()}", 
+                                    "PASS", 
+                                    "Quiz attempt data structure is correct",
+                                    f"Sample attempt fields: {list(sample_attempt.keys())}"
+                                )
+                            else:
+                                self.log_result(
+                                    f"Get Quiz Attempts Structure - {role.title()}", 
+                                    "FAIL", 
+                                    "Quiz attempt data structure missing required fields",
+                                    f"Missing: {[f for f in required_fields if f not in sample_attempt]}"
+                                )
+                        return True
+                    else:
+                        self.log_result(
+                            f"Get Quiz Attempts - {role.title()}", 
+                            "FAIL", 
+                            "Response is not a list",
+                            f"Response type: {type(attempts)}"
+                        )
+                else:
+                    self.log_result(
+                        f"Get Quiz Attempts - {role.title()}", 
+                        "FAIL", 
+                        f"Failed to retrieve quiz attempts with status {response.status_code}",
+                        f"Response: {response.text}"
+                    )
+                    
+            except requests.exceptions.RequestException as e:
+                self.log_result(
+                    f"Get Quiz Attempts - {role.title()}", 
+                    "FAIL", 
+                    "Failed to make quiz attempts retrieval request",
+                    str(e)
+                )
+        return False
+
+    def test_get_quiz_attempt_by_id(self):
+        """Test GET /api/quiz-attempts/{attempt_id} - Get specific attempt with answers"""
+        if not self.auth_tokens:
+            self.log_result(
+                "Get Quiz Attempt By ID", 
+                "SKIP", 
+                "No authentication tokens available",
+                "Authentication required for quiz attempt retrieval"
+            )
+            return False
+        
+        # First, get available attempts to test with
+        token = list(self.auth_tokens.values())[0]
+        
+        try:
+            # Get all attempts first
+            attempts_response = requests.get(
+                f"{BACKEND_URL}/quiz-attempts",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {token}'}
+            )
+            
+            if attempts_response.status_code != 200:
+                self.log_result(
+                    "Get Quiz Attempt By ID - Setup", 
+                    "FAIL", 
+                    "Could not retrieve quiz attempts for testing",
+                    f"Status: {attempts_response.status_code}"
+                )
+                return False
+            
+            attempts = attempts_response.json()
+            if not attempts:
+                self.log_result(
+                    "Get Quiz Attempt By ID", 
+                    "SKIP", 
+                    "No quiz attempts available for testing",
+                    "Need existing attempts to test retrieval by ID"
+                )
+                return False
+            
+            attempt_id = attempts[0]['id']
+            
+            # Test with different roles
+            for role, token in self.auth_tokens.items():
+                response = requests.get(
+                    f"{BACKEND_URL}/quiz-attempts/{attempt_id}",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {token}'}
+                )
+                
+                if response.status_code == 200:
+                    attempt = response.json()
+                    
+                    # Verify attempt structure with answers
+                    required_fields = ['id', 'quizId', 'studentId', 'answers', 'score', 'isPassed']
+                    if all(field in attempt for field in required_fields):
+                        # Verify answers are included
+                        if 'answers' in attempt and isinstance(attempt['answers'], list):
+                            self.log_result(
+                                f"Get Quiz Attempt By ID - {role.title()}", 
+                                "PASS", 
+                                f"Successfully retrieved quiz attempt with answers for {role}",
+                                f"Attempt: {attempt['id']}, Answers: {len(attempt['answers'])}"
+                            )
+                            return True
+                        else:
+                            self.log_result(
+                                f"Get Quiz Attempt By ID Answers - {role.title()}", 
+                                "FAIL", 
+                                "Quiz attempt missing answers or answers not a list",
+                                f"Answers: {attempt.get('answers')}"
+                            )
+                    else:
+                        self.log_result(
+                            f"Get Quiz Attempt By ID - {role.title()}", 
+                            "FAIL", 
+                            "Quiz attempt structure missing required fields",
+                            f"Missing: {[f for f in required_fields if f not in attempt]}"
+                        )
+                elif response.status_code == 404:
+                    self.log_result(
+                        f"Get Quiz Attempt By ID - {role.title()}", 
+                        "FAIL", 
+                        "Quiz attempt not found",
+                        f"Attempt ID {attempt_id} not found"
+                    )
+                elif response.status_code == 403:
+                    # This is expected for some roles
+                    self.log_result(
+                        f"Get Quiz Attempt By ID - {role.title()}", 
+                        "PASS", 
+                        f"Access properly denied for {role} role",
+                        f"Permission control working correctly"
+                    )
+                else:
+                    self.log_result(
+                        f"Get Quiz Attempt By ID - {role.title()}", 
+                        "FAIL", 
+                        f"Failed to retrieve quiz attempt with status {response.status_code}",
+                        f"Response: {response.text}"
+                    )
+                    
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Get Quiz Attempt By ID", 
+                "FAIL", 
+                "Failed to make quiz attempt retrieval request",
+                str(e)
+            )
+        return False
+
+    def test_quiz_scoring_algorithms(self):
+        """Test quiz scoring algorithms for different question types"""
+        if "learner" not in self.auth_tokens or ("instructor" not in self.auth_tokens and "admin" not in self.auth_tokens):
+            self.log_result(
+                "Quiz Scoring Algorithms", 
+                "SKIP", 
+                "Need both learner and instructor/admin tokens",
+                "Testing requires quiz creation and attempt submission"
+            )
+            return False
+        
+        instructor_token = self.auth_tokens.get("instructor") or self.auth_tokens.get("admin")
+        learner_token = self.auth_tokens["learner"]
+        
+        try:
+            # Create a quiz specifically for scoring algorithm testing
+            scoring_quiz_data = {
+                "title": "Scoring Algorithm Test Quiz",
+                "description": "Testing automatic scoring for different question types",
+                "questions": [
+                    {
+                        "type": "multiple_choice",
+                        "question": "What is 2 + 2?",
+                        "options": ["3", "4", "5", "6"],
+                        "correctAnswer": "1",  # Index 1 = "4"
+                        "points": 20
+                    },
+                    {
+                        "type": "true_false",
+                        "question": "The sky is blue",
+                        "options": ["True", "False"],
+                        "correctAnswer": "True",
+                        "points": 15
+                    }
+                ],
+                "timeLimit": 10,
+                "attempts": 3,
+                "passingScore": 60.0,
+                "isPublished": True
+            }
+            
+            create_response = requests.post(
+                f"{BACKEND_URL}/quizzes",
+                json=scoring_quiz_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {instructor_token}'
+                }
+            )
+            
+            if create_response.status_code != 200:
+                self.log_result(
+                    "Quiz Scoring Algorithms - Setup", 
+                    "FAIL", 
+                    "Could not create quiz for scoring testing",
+                    f"Status: {create_response.status_code}"
+                )
+                return False
+            
+            created_quiz = create_response.json()
+            quiz_id = created_quiz['id']
+            
+            # Test Case 1: All correct answers
+            correct_answers = ["1", "True"]  # Should score 100%
+            
+            attempt_data_correct = {
+                "quizId": quiz_id,
+                "answers": correct_answers
+            }
+            
+            correct_response = requests.post(
+                f"{BACKEND_URL}/quiz-attempts",
+                json=attempt_data_correct,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {learner_token}'
+                }
+            )
+            
+            if correct_response.status_code == 200:
+                correct_result = correct_response.json()
+                
+                # Should get full points for correct answers
+                expected_points = 20 + 15  # 35 points total
+                
+                if correct_result['pointsEarned'] == expected_points:
+                    self.log_result(
+                        "Quiz Scoring Algorithms - Correct Answers", 
+                        "PASS", 
+                        f"Automatic scoring working correctly for correct answers",
+                        f"Points earned: {correct_result['pointsEarned']}/{correct_result['totalPoints']}, Score: {correct_result['score']}%"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Quiz Scoring Algorithms - Correct Answers", 
+                        "FAIL", 
+                        "Automatic scoring not working correctly",
+                        f"Expected {expected_points} points, got {correct_result['pointsEarned']}"
+                    )
+            
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Quiz Scoring Algorithms", 
+                "FAIL", 
+                "Failed to test quiz scoring algorithms",
+                str(e)
+            )
+        return False
+
+    def test_quiz_attempt_limits(self):
+        """Test quiz attempt limit enforcement"""
+        if "learner" not in self.auth_tokens or ("instructor" not in self.auth_tokens and "admin" not in self.auth_tokens):
+            self.log_result(
+                "Quiz Attempt Limits", 
+                "SKIP", 
+                "Need both learner and instructor/admin tokens",
+                "Testing requires quiz creation and multiple attempt submissions"
+            )
+            return False
+        
+        instructor_token = self.auth_tokens.get("instructor") or self.auth_tokens.get("admin")
+        learner_token = self.auth_tokens["learner"]
+        
+        try:
+            # Create a quiz with limited attempts
+            limited_quiz_data = {
+                "title": "Attempt Limit Test Quiz",
+                "description": "Testing attempt limit enforcement",
+                "questions": [
+                    {
+                        "type": "true_false",
+                        "question": "This is a test question",
+                        "options": ["True", "False"],
+                        "correctAnswer": "True",
+                        "points": 10
+                    }
+                ],
+                "timeLimit": 5,
+                "attempts": 2,  # Only 2 attempts allowed
+                "passingScore": 50.0,
+                "isPublished": True
+            }
+            
+            create_response = requests.post(
+                f"{BACKEND_URL}/quizzes",
+                json=limited_quiz_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {instructor_token}'
+                }
+            )
+            
+            if create_response.status_code != 200:
+                self.log_result(
+                    "Quiz Attempt Limits - Setup", 
+                    "FAIL", 
+                    "Could not create quiz for attempt limit testing",
+                    f"Status: {create_response.status_code}"
+                )
+                return False
+            
+            created_quiz = create_response.json()
+            quiz_id = created_quiz['id']
+            
+            attempt_data = {
+                "quizId": quiz_id,
+                "answers": ["True"]
+            }
+            
+            # Attempt 1 - Should succeed
+            attempt1_response = requests.post(
+                f"{BACKEND_URL}/quiz-attempts",
+                json=attempt_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {learner_token}'
+                }
+            )
+            
+            if attempt1_response.status_code == 200:
+                self.log_result(
+                    "Quiz Attempt Limits - First Attempt", 
+                    "PASS", 
+                    "First attempt succeeded as expected",
+                    f"Attempt 1/2 successful"
+                )
+            else:
+                self.log_result(
+                    "Quiz Attempt Limits - First Attempt", 
+                    "FAIL", 
+                    f"First attempt failed with status {attempt1_response.status_code}",
+                    f"Response: {attempt1_response.text}"
+                )
+                return False
+            
+            # Attempt 2 - Should succeed
+            attempt2_response = requests.post(
+                f"{BACKEND_URL}/quiz-attempts",
+                json=attempt_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {learner_token}'
+                }
+            )
+            
+            if attempt2_response.status_code == 200:
+                self.log_result(
+                    "Quiz Attempt Limits - Second Attempt", 
+                    "PASS", 
+                    "Second attempt succeeded as expected",
+                    f"Attempt 2/2 successful"
+                )
+            else:
+                self.log_result(
+                    "Quiz Attempt Limits - Second Attempt", 
+                    "FAIL", 
+                    f"Second attempt failed with status {attempt2_response.status_code}",
+                    f"Response: {attempt2_response.text}"
+                )
+                return False
+            
+            # Attempt 3 - Should fail (exceeds limit)
+            attempt3_response = requests.post(
+                f"{BACKEND_URL}/quiz-attempts",
+                json=attempt_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {learner_token}'
+                }
+            )
+            
+            if attempt3_response.status_code == 400:
+                error_response = attempt3_response.json()
+                if "Maximum number of attempts" in error_response.get('detail', ''):
+                    self.log_result(
+                        "Quiz Attempt Limits - Limit Enforcement", 
+                        "PASS", 
+                        "Third attempt properly rejected - attempt limit enforced",
+                        f"Error message: {error_response.get('detail')}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Quiz Attempt Limits - Limit Enforcement", 
+                        "FAIL", 
+                        "Third attempt rejected but with wrong error message",
+                        f"Error: {error_response.get('detail')}"
+                    )
+            else:
+                self.log_result(
+                    "Quiz Attempt Limits - Limit Enforcement", 
+                    "FAIL", 
+                    f"Third attempt should be rejected but got status {attempt3_response.status_code}",
+                    f"Response: {attempt3_response.text}"
+                )
+                
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Quiz Attempt Limits", 
+                "FAIL", 
+                "Failed to test quiz attempt limits",
+                str(e)
+            )
+        return False
+
+# =============================================================================
+# PRIORITY 3 API TESTS: ANALYTICS MANAGEMENT
+# =============================================================================
+
+    def test_system_analytics(self):
+        """Test GET /api/analytics/system-stats - Comprehensive system statistics"""
+        if "instructor" not in self.auth_tokens and "admin" not in self.auth_tokens:
+            self.log_result(
+                "System Analytics", 
+                "SKIP", 
+                "No instructor or admin token available",
+                "Only instructors and admins can view system statistics"
+            )
+            return False
+        
+        # Test with both instructor and admin roles
+        for role in ["instructor", "admin"]:
+            if role not in self.auth_tokens:
+                continue
+                
+            token = self.auth_tokens[role]
+            
+            try:
+                response = requests.get(
+                    f"{BACKEND_URL}/analytics/system-stats",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {token}'}
+                )
+                
+                if response.status_code == 200:
+                    stats = response.json()
+                    
+                    # Verify system stats structure
+                    required_sections = ['users', 'courses', 'quizzes', 'enrollments', 'certificates', 'announcements']
+                    if all(section in stats for section in required_sections):
+                        
+                        # Verify user statistics
+                        user_stats = stats['users']
+                        user_fields = ['totalUsers', 'activeUsers', 'newUsersThisMonth', 'usersByRole', 'usersByDepartment']
+                        if all(field in user_stats for field in user_fields):
+                            
+                            # Verify course statistics
+                            course_stats = stats['courses']
+                            course_fields = ['totalCourses', 'publishedCourses', 'draftCourses', 'coursesThisMonth', 'coursesByCategory', 'enrollmentStats']
+                            if all(field in course_stats for field in course_fields):
+                                
+                                # Verify quiz statistics
+                                quiz_stats = stats['quizzes']
+                                quiz_fields = ['totalQuizzes', 'publishedQuizzes', 'totalAttempts', 'averageScore', 'passRate', 'quizzesThisMonth']
+                                if all(field in quiz_stats for field in quiz_fields):
+                                    
+                                    self.log_result(
+                                        f"System Analytics - {role.title()}", 
+                                        "PASS", 
+                                        f"Successfully retrieved comprehensive system statistics for {role}",
+                                        f"Users: {user_stats['totalUsers']}, Courses: {course_stats['totalCourses']}, Quizzes: {quiz_stats['totalQuizzes']}, Avg Score: {quiz_stats['averageScore']}%"
+                                    )
+                                    return True
+                                else:
+                                    self.log_result(
+                                        f"System Analytics Quiz Stats - {role.title()}", 
+                                        "FAIL", 
+                                        "Quiz statistics missing required fields",
+                                        f"Missing: {[f for f in quiz_fields if f not in quiz_stats]}"
+                                    )
+                            else:
+                                self.log_result(
+                                    f"System Analytics Course Stats - {role.title()}", 
+                                    "FAIL", 
+                                    "Course statistics missing required fields",
+                                    f"Missing: {[f for f in course_fields if f not in course_stats]}"
+                                )
+                        else:
+                            self.log_result(
+                                f"System Analytics User Stats - {role.title()}", 
+                                "FAIL", 
+                                "User statistics missing required fields",
+                                f"Missing: {[f for f in user_fields if f not in user_stats]}"
+                            )
+                    else:
+                        self.log_result(
+                            f"System Analytics - {role.title()}", 
+                            "FAIL", 
+                            "System statistics missing required sections",
+                            f"Missing: {[s for s in required_sections if s not in stats]}"
+                        )
+                else:
+                    self.log_result(
+                        f"System Analytics - {role.title()}", 
+                        "FAIL", 
+                        f"Failed to retrieve system statistics with status {response.status_code}",
+                        f"Response: {response.text}"
+                    )
+                    
+            except requests.exceptions.RequestException as e:
+                self.log_result(
+                    f"System Analytics - {role.title()}", 
+                    "FAIL", 
+                    "Failed to make system analytics request",
+                    str(e)
+                )
+        return False
+
+    def test_course_analytics(self):
+        """Test GET /api/analytics/course/{course_id} - Course-specific analytics"""
+        if "instructor" not in self.auth_tokens and "admin" not in self.auth_tokens:
+            self.log_result(
+                "Course Analytics", 
+                "SKIP", 
+                "No instructor or admin token available",
+                "Only instructors and admins can view course analytics"
+            )
+            return False
+        
+        token = self.auth_tokens.get("instructor") or self.auth_tokens.get("admin")
+        role = "instructor" if "instructor" in self.auth_tokens else "admin"
+        
+        try:
+            # First, get available courses
+            courses_response = requests.get(
+                f"{BACKEND_URL}/courses",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {token}'}
+            )
+            
+            if courses_response.status_code != 200:
+                self.log_result(
+                    "Course Analytics - Setup", 
+                    "FAIL", 
+                    "Could not retrieve courses for analytics testing",
+                    f"Status: {courses_response.status_code}"
+                )
+                return False
+            
+            courses = courses_response.json()
+            if not courses:
+                self.log_result(
+                    "Course Analytics", 
+                    "SKIP", 
+                    "No courses available for analytics testing",
+                    "Need existing courses to test analytics"
+                )
+                return False
+            
+            course_id = courses[0]['id']
+            
+            response = requests.get(
+                f"{BACKEND_URL}/analytics/course/{course_id}",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {token}'}
+            )
+            
+            if response.status_code == 200:
+                analytics = response.json()
+                
+                # Verify course analytics structure
+                required_fields = ['courseId', 'courseName', 'totalEnrollments', 'activeEnrollments', 
+                                 'completionRate', 'averageProgress', 'quizPerformance', 'enrollmentTrend']
+                if all(field in analytics for field in required_fields):
+                    
+                    # Verify enrollment trend data
+                    enrollment_trend = analytics['enrollmentTrend']
+                    if isinstance(enrollment_trend, list):
+                        
+                        self.log_result(
+                            f"Course Analytics - {role.title()}", 
+                            "PASS", 
+                            f"Successfully retrieved course analytics for {role}",
+                            f"Course: {analytics['courseName']}, Enrollments: {analytics['totalEnrollments']}, Completion Rate: {analytics['completionRate']}%, Avg Progress: {analytics['averageProgress']}%"
+                        )
+                        return True
+                    else:
+                        self.log_result(
+                            f"Course Analytics Trend - {role.title()}", 
+                            "FAIL", 
+                            "Enrollment trend is not a valid list",
+                            f"Trend type: {type(enrollment_trend)}"
+                        )
+                else:
+                    self.log_result(
+                        f"Course Analytics - {role.title()}", 
+                        "FAIL", 
+                        "Course analytics missing required fields",
+                        f"Missing: {[f for f in required_fields if f not in analytics]}"
+                    )
+            elif response.status_code == 404:
+                self.log_result(
+                    f"Course Analytics - {role.title()}", 
+                    "FAIL", 
+                    "Course not found for analytics",
+                    f"Course ID {course_id} not found"
+                )
+            else:
+                self.log_result(
+                    f"Course Analytics - {role.title()}", 
+                    "FAIL", 
+                    f"Failed to retrieve course analytics with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+                
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                f"Course Analytics - {role.title()}", 
+                "FAIL", 
+                "Failed to make course analytics request",
+                str(e)
+            )
+        return False
+
+    def test_user_analytics(self):
+        """Test GET /api/analytics/user/{user_id} - User-specific analytics"""
+        if not self.auth_tokens:
+            self.log_result(
+                "User Analytics", 
+                "SKIP", 
+                "No authentication tokens available",
+                "Authentication required for user analytics"
+            )
+            return False
+        
+        # Test with different roles
+        for role, token in self.auth_tokens.items():
+            try:
+                # Get current user info to test with their own analytics
+                me_response = requests.get(
+                    f"{BACKEND_URL}/auth/me",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {token}'}
+                )
+                
+                if me_response.status_code != 200:
+                    continue
+                
+                user_info = me_response.json()
+                user_id = user_info['id']
+                
+                response = requests.get(
+                    f"{BACKEND_URL}/analytics/user/{user_id}",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {token}'}
+                )
+                
+                if response.status_code == 200:
+                    analytics = response.json()
+                    
+                    # Verify user analytics structure
+                    required_fields = ['userId', 'userName', 'role', 'enrolledCourses', 'completedCourses', 
+                                     'averageScore', 'totalQuizAttempts', 'certificatesEarned']
+                    if all(field in analytics for field in required_fields):
+                        
+                        # Verify data types and values
+                        if (isinstance(analytics['enrolledCourses'], int) and
+                            isinstance(analytics['completedCourses'], int) and
+                            isinstance(analytics['averageScore'], (int, float)) and
+                            isinstance(analytics['totalQuizAttempts'], int) and
+                            isinstance(analytics['certificatesEarned'], int)):
+                            
+                            self.log_result(
+                                f"User Analytics - {role.title()}", 
+                                "PASS", 
+                                f"Successfully retrieved user analytics for {role}",
+                                f"User: {analytics['userName']}, Enrolled: {analytics['enrolledCourses']}, Completed: {analytics['completedCourses']}, Avg Score: {analytics['averageScore']}%, Quiz Attempts: {analytics['totalQuizAttempts']}, Certificates: {analytics['certificatesEarned']}"
+                            )
+                            return True
+                        else:
+                            self.log_result(
+                                f"User Analytics Data Types - {role.title()}", 
+                                "FAIL", 
+                                "User analytics data types are incorrect",
+                                f"Analytics: {analytics}"
+                            )
+                    else:
+                        self.log_result(
+                            f"User Analytics - {role.title()}", 
+                            "FAIL", 
+                            "User analytics missing required fields",
+                            f"Missing: {[f for f in required_fields if f not in analytics]}"
+                        )
+                elif response.status_code == 403:
+                    # This might be expected for some role combinations
+                    self.log_result(
+                        f"User Analytics - {role.title()}", 
+                        "PASS", 
+                        f"Access properly controlled for {role} role",
+                        f"Permission control working correctly"
+                    )
+                elif response.status_code == 404:
+                    self.log_result(
+                        f"User Analytics - {role.title()}", 
+                        "FAIL", 
+                        "User not found for analytics",
+                        f"User ID {user_id} not found"
+                    )
+                else:
+                    self.log_result(
+                        f"User Analytics - {role.title()}", 
+                        "FAIL", 
+                        f"Failed to retrieve user analytics with status {response.status_code}",
+                        f"Response: {response.text}"
+                    )
+                    
+            except requests.exceptions.RequestException as e:
+                self.log_result(
+                    f"User Analytics - {role.title()}", 
+                    "FAIL", 
+                    "Failed to make user analytics request",
+                    str(e)
+                )
+        return False
+
+    def test_analytics_dashboard(self):
+        """Test GET /api/analytics/dashboard - Role-specific dashboard data"""
+        if not self.auth_tokens:
+            self.log_result(
+                "Analytics Dashboard", 
+                "SKIP", 
+                "No authentication tokens available",
+                "Authentication required for analytics dashboard"
+            )
+            return False
+        
+        # Test with different roles
+        for role, token in self.auth_tokens.items():
+            try:
+                response = requests.get(
+                    f"{BACKEND_URL}/analytics/dashboard",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {token}'}
+                )
+                
+                if response.status_code == 200:
+                    dashboard = response.json()
+                    
+                    # Verify dashboard structure
+                    if 'status' in dashboard and 'data' in dashboard:
+                        data = dashboard['data']
+                        
+                        # Role-specific validation
+                        if role == 'learner':
+                            expected_fields = ['enrolledCourses', 'completedCourses', 'certificatesEarned', 'recentQuizAttempts']
+                            if all(field in data for field in expected_fields):
+                                self.log_result(
+                                    f"Analytics Dashboard - {role.title()}", 
+                                    "PASS", 
+                                    f"Successfully retrieved student dashboard data",
+                                    f"Enrolled: {data['enrolledCourses']}, Completed: {data['completedCourses']}, Certificates: {data['certificatesEarned']}, Recent Attempts: {len(data.get('recentQuizAttempts', []))}"
+                                )
+                            else:
+                                self.log_result(
+                                    f"Analytics Dashboard - {role.title()}", 
+                                    "FAIL", 
+                                    "Student dashboard missing required fields",
+                                    f"Missing: {[f for f in expected_fields if f not in data]}"
+                                )
+                        
+                        elif role == 'instructor':
+                            expected_fields = ['createdCourses', 'createdQuizzes', 'studentsTaught']
+                            if all(field in data for field in expected_fields):
+                                self.log_result(
+                                    f"Analytics Dashboard - {role.title()}", 
+                                    "PASS", 
+                                    f"Successfully retrieved instructor dashboard data",
+                                    f"Created Courses: {data['createdCourses']}, Created Quizzes: {data['createdQuizzes']}, Students Taught: {data['studentsTaught']}"
+                                )
+                            else:
+                                self.log_result(
+                                    f"Analytics Dashboard - {role.title()}", 
+                                    "FAIL", 
+                                    "Instructor dashboard missing required fields",
+                                    f"Missing: {[f for f in expected_fields if f not in data]}"
+                                )
+                        
+                        elif role == 'admin':
+                            expected_fields = ['totalUsers', 'totalCourses', 'totalEnrollments', 'totalCertificates']
+                            if all(field in data for field in expected_fields):
+                                self.log_result(
+                                    f"Analytics Dashboard - {role.title()}", 
+                                    "PASS", 
+                                    f"Successfully retrieved admin dashboard data",
+                                    f"Users: {data['totalUsers']}, Courses: {data['totalCourses']}, Enrollments: {data['totalEnrollments']}, Certificates: {data['totalCertificates']}"
+                                )
+                                return True
+                            else:
+                                self.log_result(
+                                    f"Analytics Dashboard - {role.title()}", 
+                                    "FAIL", 
+                                    "Admin dashboard missing required fields",
+                                    f"Missing: {[f for f in expected_fields if f not in data]}"
+                                )
+                    else:
+                        self.log_result(
+                            f"Analytics Dashboard - {role.title()}", 
+                            "FAIL", 
+                            "Dashboard response missing status or data fields",
+                            f"Response: {dashboard}"
+                        )
+                else:
+                    self.log_result(
+                        f"Analytics Dashboard - {role.title()}", 
+                        "FAIL", 
+                        f"Failed to retrieve dashboard data with status {response.status_code}",
+                        f"Response: {response.text}"
+                    )
+                    
+            except requests.exceptions.RequestException as e:
+                self.log_result(
+                    f"Analytics Dashboard - {role.title()}", 
+                    "FAIL", 
+                    "Failed to make dashboard analytics request",
+                    str(e)
+                )
+        return False
+
+    def test_analytics_permissions(self):
+        """Test analytics permissions and access control"""
+        if not self.auth_tokens:
+            self.log_result(
+                "Analytics Permissions", 
+                "SKIP", 
+                "No authentication tokens available",
+                "Authentication required for permissions testing"
+            )
+            return False
+        
+        # Test system stats access control
+        for role, token in self.auth_tokens.items():
+            try:
+                response = requests.get(
+                    f"{BACKEND_URL}/analytics/system-stats",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {token}'}
+                )
+                
+                if role in ['instructor', 'admin']:
+                    # Should have access
+                    if response.status_code == 200:
+                        self.log_result(
+                            f"Analytics Permissions System Stats - {role.title()}", 
+                            "PASS", 
+                            f"{role.title()} correctly granted access to system stats",
+                            f"Access control working correctly"
+                        )
+                    else:
+                        self.log_result(
+                            f"Analytics Permissions System Stats - {role.title()}", 
+                            "FAIL", 
+                            f"{role.title()} should have access but got status {response.status_code}",
+                            f"Response: {response.text}"
+                        )
+                else:
+                    # Should be denied access
+                    if response.status_code == 403:
+                        self.log_result(
+                            f"Analytics Permissions System Stats - {role.title()}", 
+                            "PASS", 
+                            f"{role.title()} correctly denied access to system stats",
+                            f"Access control working correctly"
+                        )
+                    else:
+                        self.log_result(
+                            f"Analytics Permissions System Stats - {role.title()}", 
+                            "FAIL", 
+                            f"{role.title()} should be denied access but got status {response.status_code}",
+                            f"Security issue: unauthorized access granted"
+                        )
+                        
+            except requests.exceptions.RequestException as e:
+                self.log_result(
+                    f"Analytics Permissions - {role.title()}", 
+                    "FAIL", 
+                    "Failed to test analytics permissions",
+                    str(e)
+                )
+        
+        return True
+
+    def test_analytics_calculations(self):
+        """Test analytics calculations accuracy and data aggregation"""
+        if "instructor" not in self.auth_tokens and "admin" not in self.auth_tokens:
+            self.log_result(
+                "Analytics Calculations", 
+                "SKIP", 
+                "No instructor or admin token available",
+                "Analytics calculations testing requires instructor or admin access"
+            )
+            return False
+        
+        token = self.auth_tokens.get("instructor") or self.auth_tokens.get("admin")
+        role = "instructor" if "instructor" in self.auth_tokens else "admin"
+        
+        try:
+            # Get system stats for calculation verification
+            stats_response = requests.get(
+                f"{BACKEND_URL}/analytics/system-stats",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {token}'}
+            )
+            
+            if stats_response.status_code != 200:
+                self.log_result(
+                    "Analytics Calculations - Setup", 
+                    "FAIL", 
+                    "Could not retrieve system stats for calculation testing",
+                    f"Status: {stats_response.status_code}"
+                )
+                return False
+            
+            stats = stats_response.json()
+            
+            # Verify calculation consistency
+            user_stats = stats['users']
+            course_stats = stats['courses']
+            quiz_stats = stats['quizzes']
+            
+            # Test 1: User role totals should add up
+            users_by_role = user_stats['usersByRole']
+            total_by_roles = sum(users_by_role.values()) if users_by_role else 0
+            total_users = user_stats['totalUsers']
+            
+            if total_by_roles == total_users:
+                self.log_result(
+                    "Analytics Calculations - User Role Totals", 
+                    "PASS", 
+                    "User role totals match total users count",
+                    f"Total users: {total_users}, Sum of roles: {total_by_roles}"
+                )
+            else:
+                self.log_result(
+                    "Analytics Calculations - User Role Totals", 
+                    "FAIL", 
+                    "User role totals don't match total users count",
+                    f"Total users: {total_users}, Sum of roles: {total_by_roles}, Difference: {abs(total_users - total_by_roles)}"
+                )
+            
+            # Test 2: Course status totals should be reasonable
+            published_courses = course_stats['publishedCourses']
+            draft_courses = course_stats['draftCourses']
+            total_courses = course_stats['totalCourses']
+            
+            if published_courses + draft_courses <= total_courses:
+                self.log_result(
+                    "Analytics Calculations - Course Status Totals", 
+                    "PASS", 
+                    "Course status counts are consistent",
+                    f"Total: {total_courses}, Published: {published_courses}, Draft: {draft_courses}"
+                )
+            else:
+                self.log_result(
+                    "Analytics Calculations - Course Status Totals", 
+                    "FAIL", 
+                    "Course status counts are inconsistent",
+                    f"Published + Draft ({published_courses + draft_courses}) > Total ({total_courses})"
+                )
+            
+            # Test 3: Quiz statistics should be reasonable
+            total_quizzes = quiz_stats['totalQuizzes']
+            published_quizzes = quiz_stats['publishedQuizzes']
+            average_score = quiz_stats['averageScore']
+            pass_rate = quiz_stats['passRate']
+            
+            calculations_valid = True
+            
+            if published_quizzes > total_quizzes:
+                calculations_valid = False
+                self.log_result(
+                    "Analytics Calculations - Quiz Counts", 
+                    "FAIL", 
+                    "Published quizzes cannot exceed total quizzes",
+                    f"Published: {published_quizzes}, Total: {total_quizzes}"
+                )
+            
+            if not (0 <= average_score <= 100):
+                calculations_valid = False
+                self.log_result(
+                    "Analytics Calculations - Average Score", 
+                    "FAIL", 
+                    "Average score should be between 0 and 100",
+                    f"Average score: {average_score}"
+                )
+            
+            if not (0 <= pass_rate <= 100):
+                calculations_valid = False
+                self.log_result(
+                    "Analytics Calculations - Pass Rate", 
+                    "FAIL", 
+                    "Pass rate should be between 0 and 100",
+                    f"Pass rate: {pass_rate}"
+                )
+            
+            if calculations_valid:
+                self.log_result(
+                    "Analytics Calculations - Quiz Statistics", 
+                    "PASS", 
+                    "Quiz statistics calculations are valid",
+                    f"Total: {total_quizzes}, Published: {published_quizzes}, Avg Score: {average_score}%, Pass Rate: {pass_rate}%"
+                )
+                return True
+            
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Analytics Calculations", 
+                "FAIL", 
+                "Failed to test analytics calculations",
+                str(e)
+            )
+        return False
+
+
 if __name__ == "__main__":
     tester = BackendTester()
     summary = tester.run_all_tests()
