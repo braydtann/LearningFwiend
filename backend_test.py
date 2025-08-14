@@ -3233,11 +3233,14 @@ class BackendTester:
         
         # Step 3: Verify it can be retrieved by ID
         print("   Step 3: Retrieving course by ID...")
-        retrieved_course = self.test_get_course_by_id_api(created_course.get('id'))
-        if not retrieved_course:
+        if created_course:
+            retrieved_course = self.test_get_course_by_id_api(created_course.get('id'))
+            if not retrieved_course:
+                workflow_success = False
+        else:
             workflow_success = False
         
-        if workflow_success:
+        if workflow_success and created_course:
             self.log_result(
                 "Complete Course Workflow", 
                 "PASS", 
