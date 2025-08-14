@@ -9689,9 +9689,1057 @@ class BackendTester:
         return False
     
     # =============================================================================
-    # END CLASSROOM MANAGEMENT API TESTS
+    # FOCUSED TESTING OF QUICK FIXES - REVIEW REQUEST
     # =============================================================================
     
+    def test_quiz_api_question_model_validation(self):
+        """Test Quiz API Question Model Validation fixes"""
+        print("\n🧩 Testing Quiz API Question Model Validation")
+        print("-" * 50)
+        
+        if "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Quiz API Question Model Validation", 
+                "SKIP", 
+                "No instructor token available",
+                "Instructor login required for quiz creation"
+            )
+            return False
+        
+        try:
+            # Test 1: Create quiz with multiple_choice questions (correctAnswer as string index)
+            multiple_choice_quiz = {
+                "title": "Multiple Choice Validation Test",
+                "description": "Testing multiple choice question validation",
+                "questions": [
+                    {
+                        "type": "multiple_choice",
+                        "question": "What is 2 + 2?",
+                        "options": ["3", "4", "5", "6"],
+                        "correctAnswer": "1",  # Index as string
+                        "points": 10
+                    }
+                ],
+                "timeLimit": 30,
+                "attempts": 3,
+                "passingScore": 70.0,
+                "isPublished": True
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/quizzes",
+                json=multiple_choice_quiz,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                quiz_data = response.json()
+                self.log_result(
+                    "Quiz Creation - Multiple Choice", 
+                    "PASS", 
+                    "Successfully created quiz with multiple choice questions",
+                    f"Quiz ID: {quiz_data.get('id')}, Questions: {len(quiz_data.get('questions', []))}"
+                )
+                
+                # Store quiz ID for attempt testing
+                self.test_quiz_id = quiz_data.get('id')
+            else:
+                self.log_result(
+                    "Quiz Creation - Multiple Choice", 
+                    "FAIL", 
+                    f"Failed to create multiple choice quiz with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+                return False
+            
+            # Test 2: Create quiz with true_false questions (correctAnswer as text)
+            true_false_quiz = {
+                "title": "True False Validation Test",
+                "description": "Testing true/false question validation",
+                "questions": [
+                    {
+                        "type": "true_false",
+                        "question": "The sky is blue.",
+                        "options": [],
+                        "correctAnswer": "true",  # Text answer
+                        "points": 5
+                    }
+                ],
+                "timeLimit": 15,
+                "attempts": 2,
+                "passingScore": 80.0,
+                "isPublished": True
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/quizzes",
+                json=true_false_quiz,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                self.log_result(
+                    "Quiz Creation - True/False", 
+                    "PASS", 
+                    "Successfully created quiz with true/false questions",
+                    f"Quiz ID: {response.json().get('id')}"
+                )
+            else:
+                self.log_result(
+                    "Quiz Creation - True/False", 
+                    "FAIL", 
+                    f"Failed to create true/false quiz with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+                return False
+            
+            # Test 3: Create quiz with short_answer questions
+            short_answer_quiz = {
+                "title": "Short Answer Validation Test",
+                "description": "Testing short answer question validation",
+                "questions": [
+                    {
+                        "type": "short_answer",
+                        "question": "What is the capital of France?",
+                        "options": [],
+                        "correctAnswer": "Paris",  # Text answer
+                        "points": 15
+                    }
+                ],
+                "timeLimit": 20,
+                "attempts": 1,
+                "passingScore": 90.0,
+                "isPublished": True
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/quizzes",
+                json=short_answer_quiz,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                self.log_result(
+                    "Quiz Creation - Short Answer", 
+                    "PASS", 
+                    "Successfully created quiz with short answer questions",
+                    f"Quiz ID: {response.json().get('id')}"
+                )
+            else:
+                self.log_result(
+                    "Quiz Creation - Short Answer", 
+                    "FAIL", 
+                    f"Failed to create short answer quiz with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+                return False
+            
+            # Test 4: Test improved input validation
+            invalid_quiz = {
+                "title": "",  # Empty title should fail
+                "description": "Testing validation",
+                "questions": [],  # No questions should fail
+                "timeLimit": 500,  # Over limit should fail
+                "attempts": 15,  # Over limit should fail
+                "passingScore": 150.0,  # Over 100% should fail
+                "isPublished": True
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/quizzes",
+                json=invalid_quiz,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if response.status_code == 422:  # Validation error expected
+                self.log_result(
+                    "Quiz Validation - Input Validation", 
+                    "PASS", 
+                    "Properly rejected invalid quiz data with validation errors",
+                    f"Status: {response.status_code}"
+                )
+            else:
+                self.log_result(
+                    "Quiz Validation - Input Validation", 
+                    "FAIL", 
+                    f"Expected validation error (422) but got {response.status_code}",
+                    f"Response: {response.text}"
+                )
+                return False
+            
+            return True
+            
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Quiz API Question Model Validation", 
+                "FAIL", 
+                "Failed to test quiz question model validation",
+                str(e)
+            )
+            return False
+    
+    def test_quiz_attempt_scoring_improvements(self):
+        """Test Quiz Attempt Scoring improvements"""
+        print("\n🎯 Testing Quiz Attempt Scoring Improvements")
+        print("-" * 50)
+        
+        if "learner" not in self.auth_tokens:
+            self.log_result(
+                "Quiz Attempt Scoring", 
+                "SKIP", 
+                "No learner token available",
+                "Learner login required for quiz attempts"
+            )
+            return False
+        
+        if not hasattr(self, 'test_quiz_id') or not self.test_quiz_id:
+            self.log_result(
+                "Quiz Attempt Scoring", 
+                "SKIP", 
+                "No test quiz available",
+                "Quiz creation required first"
+            )
+            return False
+        
+        try:
+            # Test 1: Submit quiz attempt with multiple choice answers
+            attempt_data = {
+                "quizId": self.test_quiz_id,
+                "answers": ["1"]  # Correct answer for "What is 2 + 2?" (index 1 = "4")
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/quiz-attempts",
+                json=attempt_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["learner"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                attempt_result = response.json()
+                score = attempt_result.get('score', 0)
+                is_passed = attempt_result.get('isPassed', False)
+                points_earned = attempt_result.get('pointsEarned', 0)
+                total_points = attempt_result.get('totalPoints', 0)
+                
+                self.log_result(
+                    "Quiz Attempt - Multiple Choice Scoring", 
+                    "PASS", 
+                    f"Successfully submitted quiz attempt with improved scoring",
+                    f"Score: {score}%, Passed: {is_passed}, Points: {points_earned}/{total_points}"
+                )
+                
+                # Verify scoring logic
+                if score == 100.0 and is_passed and points_earned == total_points:
+                    self.log_result(
+                        "Quiz Scoring Logic - Correctness", 
+                        "PASS", 
+                        "Scoring logic working correctly for correct answers",
+                        f"Perfect score achieved: {score}%"
+                    )
+                else:
+                    self.log_result(
+                        "Quiz Scoring Logic - Correctness", 
+                        "FAIL", 
+                        "Scoring logic not working as expected",
+                        f"Expected 100% but got {score}%, Expected pass but got {is_passed}"
+                    )
+                    return False
+            else:
+                self.log_result(
+                    "Quiz Attempt - Multiple Choice Scoring", 
+                    "FAIL", 
+                    f"Failed to submit quiz attempt with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+                return False
+            
+            # Test 2: Test improved error handling with wrong answer count
+            wrong_attempt_data = {
+                "quizId": self.test_quiz_id,
+                "answers": ["1", "2", "3"]  # Too many answers
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/quiz-attempts",
+                json=wrong_attempt_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["learner"]}'
+                }
+            )
+            
+            if response.status_code == 400:  # Bad request expected
+                self.log_result(
+                    "Quiz Attempt - Error Handling", 
+                    "PASS", 
+                    "Properly handled incorrect answer count with error",
+                    f"Status: {response.status_code}"
+                )
+            else:
+                self.log_result(
+                    "Quiz Attempt - Error Handling", 
+                    "FAIL", 
+                    f"Expected error (400) for wrong answer count but got {response.status_code}",
+                    f"Response: {response.text}"
+                )
+                return False
+            
+            return True
+            
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Quiz Attempt Scoring Improvements", 
+                "FAIL", 
+                "Failed to test quiz attempt scoring improvements",
+                str(e)
+            )
+            return False
+    
+    def test_certificate_api_enrollment_validation(self):
+        """Test Certificate API Enrollment Validation flexibility"""
+        print("\n🏆 Testing Certificate API Enrollment Validation")
+        print("-" * 50)
+        
+        if "admin" not in self.auth_tokens or "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Certificate API Enrollment Validation", 
+                "SKIP", 
+                "Missing admin or instructor tokens",
+                "Both admin and instructor tokens required"
+            )
+            return False
+        
+        try:
+            # First, create a test course and student for certificate testing
+            test_course = {
+                "title": "Certificate Test Course",
+                "description": "Course for testing certificate enrollment validation",
+                "category": "Testing",
+                "accessType": "open"
+            }
+            
+            course_response = requests.post(
+                f"{BACKEND_URL}/courses",
+                json=test_course,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if course_response.status_code != 200:
+                self.log_result(
+                    "Certificate Test Setup - Course Creation", 
+                    "FAIL", 
+                    f"Failed to create test course with status {course_response.status_code}",
+                    f"Response: {course_response.text}"
+                )
+                return False
+            
+            course_data = course_response.json()
+            test_course_id = course_data.get('id')
+            
+            # Create a test student
+            test_student = {
+                "email": "certificate.test@example.com",
+                "username": "certificate.test",
+                "full_name": "Certificate Test Student",
+                "role": "learner",
+                "department": "Testing",
+                "temporary_password": "CertTest123!"
+            }
+            
+            student_response = requests.post(
+                f"{BACKEND_URL}/auth/admin/create-user",
+                json=test_student,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if student_response.status_code not in [200, 400]:  # 400 if already exists
+                self.log_result(
+                    "Certificate Test Setup - Student Creation", 
+                    "FAIL", 
+                    f"Failed to create test student with status {student_response.status_code}",
+                    f"Response: {student_response.text}"
+                )
+                return False
+            
+            # Get student ID (either from creation or find existing)
+            if student_response.status_code == 200:
+                student_data = student_response.json()
+                test_student_id = student_data.get('id')
+            else:
+                # Student already exists, find them
+                users_response = requests.get(
+                    f"{BACKEND_URL}/auth/admin/users",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+                )
+                
+                if users_response.status_code == 200:
+                    users = users_response.json()
+                    test_student_id = None
+                    for user in users:
+                        if user.get('email') == 'certificate.test@example.com':
+                            test_student_id = user.get('id')
+                            break
+                    
+                    if not test_student_id:
+                        self.log_result(
+                            "Certificate Test Setup - Find Student", 
+                            "FAIL", 
+                            "Could not find test student",
+                            "Student required for certificate testing"
+                        )
+                        return False
+                else:
+                    return False
+            
+            # Test 1: Admin can create certificate WITHOUT student enrollment (should work now)
+            certificate_data_admin = {
+                "studentId": test_student_id,
+                "courseId": test_course_id,
+                "type": "completion",
+                "template": "default"
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/certificates",
+                json=certificate_data_admin,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                self.log_result(
+                    "Certificate Creation - Admin Override", 
+                    "PASS", 
+                    "Admin successfully created certificate without student enrollment",
+                    f"Certificate ID: {response.json().get('id')}"
+                )
+            else:
+                self.log_result(
+                    "Certificate Creation - Admin Override", 
+                    "FAIL", 
+                    f"Admin failed to create certificate without enrollment with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+                return False
+            
+            # Test 2: Instructor WITHOUT enrollment should fail
+            response = requests.post(
+                f"{BACKEND_URL}/certificates",
+                json=certificate_data_admin,  # Same data but with instructor token
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if response.status_code == 400:  # Should fail for instructor without enrollment
+                self.log_result(
+                    "Certificate Creation - Instructor Enrollment Check", 
+                    "PASS", 
+                    "Instructor correctly denied certificate creation without enrollment",
+                    f"Status: {response.status_code}"
+                )
+            else:
+                self.log_result(
+                    "Certificate Creation - Instructor Enrollment Check", 
+                    "FAIL", 
+                    f"Expected 400 error for instructor without enrollment but got {response.status_code}",
+                    f"Response: {response.text}"
+                )
+                return False
+            
+            # Test 3: Create enrollment and then instructor should succeed
+            enrollment_data = {
+                "courseId": test_course_id
+            }
+            
+            # First login as student to create enrollment
+            student_login = {
+                "username_or_email": "certificate.test@example.com",
+                "password": "CertTest123!"
+            }
+            
+            login_response = requests.post(
+                f"{BACKEND_URL}/auth/login",
+                json=student_login,
+                timeout=TEST_TIMEOUT,
+                headers={'Content-Type': 'application/json'}
+            )
+            
+            if login_response.status_code == 200:
+                student_token = login_response.json().get('access_token')
+                
+                # Create enrollment
+                enrollment_response = requests.post(
+                    f"{BACKEND_URL}/enrollments",
+                    json=enrollment_data,
+                    timeout=TEST_TIMEOUT,
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Authorization': f'Bearer {student_token}'
+                    }
+                )
+                
+                if enrollment_response.status_code == 200:
+                    # Now instructor should be able to create certificate
+                    response = requests.post(
+                        f"{BACKEND_URL}/certificates",
+                        json={
+                            "studentId": test_student_id,
+                            "courseId": test_course_id,
+                            "type": "achievement",
+                            "template": "premium"
+                        },
+                        timeout=TEST_TIMEOUT,
+                        headers={
+                            'Content-Type': 'application/json',
+                            'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                        }
+                    )
+                    
+                    if response.status_code == 200:
+                        self.log_result(
+                            "Certificate Creation - Instructor With Enrollment", 
+                            "PASS", 
+                            "Instructor successfully created certificate with student enrollment",
+                            f"Certificate ID: {response.json().get('id')}"
+                        )
+                    else:
+                        self.log_result(
+                            "Certificate Creation - Instructor With Enrollment", 
+                            "FAIL", 
+                            f"Instructor failed to create certificate with enrollment with status {response.status_code}",
+                            f"Response: {response.text}"
+                        )
+                        return False
+                else:
+                    self.log_result(
+                        "Certificate Test Setup - Enrollment Creation", 
+                        "FAIL", 
+                        f"Failed to create enrollment with status {enrollment_response.status_code}",
+                        f"Response: {enrollment_response.text}"
+                    )
+                    return False
+            else:
+                self.log_result(
+                    "Certificate Test Setup - Student Login", 
+                    "FAIL", 
+                    f"Failed to login as student with status {login_response.status_code}",
+                    f"Response: {login_response.text}"
+                )
+                return False
+            
+            return True
+            
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Certificate API Enrollment Validation", 
+                "FAIL", 
+                "Failed to test certificate enrollment validation",
+                str(e)
+            )
+            return False
+    
+    def test_input_validation_improvements(self):
+        """Test stricter input validation improvements"""
+        print("\n✅ Testing Input Validation Improvements")
+        print("-" * 50)
+        
+        if "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Input Validation Improvements", 
+                "SKIP", 
+                "No instructor token available",
+                "Instructor login required for validation testing"
+            )
+            return False
+        
+        try:
+            # Test 1: Course creation with empty title (should fail)
+            invalid_course = {
+                "title": "",  # Empty title
+                "description": "Test course",
+                "category": "Testing",
+                "accessType": "open"
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/courses",
+                json=invalid_course,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if response.status_code == 422:  # Validation error expected
+                self.log_result(
+                    "Input Validation - Empty Course Title", 
+                    "PASS", 
+                    "Properly rejected course with empty title",
+                    f"Status: {response.status_code}"
+                )
+            else:
+                self.log_result(
+                    "Input Validation - Empty Course Title", 
+                    "FAIL", 
+                    f"Expected validation error (422) but got {response.status_code}",
+                    f"Response: {response.text}"
+                )
+                return False
+            
+            # Test 2: Course creation with invalid accessType (should fail)
+            invalid_access_course = {
+                "title": "Valid Title",
+                "description": "Test course",
+                "category": "Testing",
+                "accessType": "invalid_access_type"  # Invalid access type
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/courses",
+                json=invalid_access_course,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if response.status_code == 422:  # Validation error expected
+                self.log_result(
+                    "Input Validation - Invalid Access Type", 
+                    "PASS", 
+                    "Properly rejected course with invalid access type",
+                    f"Status: {response.status_code}"
+                )
+            else:
+                self.log_result(
+                    "Input Validation - Invalid Access Type", 
+                    "FAIL", 
+                    f"Expected validation error (422) but got {response.status_code}",
+                    f"Response: {response.text}"
+                )
+                return False
+            
+            # Test 3: Quiz creation with no questions (should fail)
+            invalid_quiz = {
+                "title": "Valid Quiz Title",
+                "description": "Test quiz",
+                "questions": [],  # No questions
+                "timeLimit": 30,
+                "attempts": 1,
+                "passingScore": 70.0,
+                "isPublished": True
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/quizzes",
+                json=invalid_quiz,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if response.status_code == 422:  # Validation error expected
+                self.log_result(
+                    "Input Validation - Quiz No Questions", 
+                    "PASS", 
+                    "Properly rejected quiz with no questions",
+                    f"Status: {response.status_code}"
+                )
+            else:
+                self.log_result(
+                    "Input Validation - Quiz No Questions", 
+                    "FAIL", 
+                    f"Expected validation error (422) but got {response.status_code}",
+                    f"Response: {response.text}"
+                )
+                return False
+            
+            # Test 4: Quiz creation with invalid time limits (should fail)
+            invalid_time_quiz = {
+                "title": "Valid Quiz Title",
+                "description": "Test quiz",
+                "questions": [
+                    {
+                        "type": "multiple_choice",
+                        "question": "Test question?",
+                        "options": ["A", "B", "C", "D"],
+                        "correctAnswer": "0",
+                        "points": 10
+                    }
+                ],
+                "timeLimit": 500,  # Over 300 minute limit
+                "attempts": 1,
+                "passingScore": 70.0,
+                "isPublished": True
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/quizzes",
+                json=invalid_time_quiz,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if response.status_code == 422:  # Validation error expected
+                self.log_result(
+                    "Input Validation - Quiz Invalid Time Limit", 
+                    "PASS", 
+                    "Properly rejected quiz with invalid time limit",
+                    f"Status: {response.status_code}"
+                )
+            else:
+                self.log_result(
+                    "Input Validation - Quiz Invalid Time Limit", 
+                    "FAIL", 
+                    f"Expected validation error (422) but got {response.status_code}",
+                    f"Response: {response.text}"
+                )
+                return False
+            
+            # Test 5: Verify proper error messages for validation failures
+            response = requests.post(
+                f"{BACKEND_URL}/courses",
+                json={"title": "", "description": "Test", "category": "Test"},
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if response.status_code == 422:
+                try:
+                    error_data = response.json()
+                    if 'detail' in error_data:
+                        self.log_result(
+                            "Input Validation - Error Messages", 
+                            "PASS", 
+                            "Proper error messages provided for validation failures",
+                            f"Error details: {error_data['detail']}"
+                        )
+                    else:
+                        self.log_result(
+                            "Input Validation - Error Messages", 
+                            "FAIL", 
+                            "Validation error response missing detailed error messages",
+                            f"Response: {error_data}"
+                        )
+                        return False
+                except:
+                    self.log_result(
+                        "Input Validation - Error Messages", 
+                        "FAIL", 
+                        "Could not parse validation error response",
+                        f"Response: {response.text}"
+                    )
+                    return False
+            else:
+                return False
+            
+            return True
+            
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Input Validation Improvements", 
+                "FAIL", 
+                "Failed to test input validation improvements",
+                str(e)
+            )
+            return False
+    
+    def test_end_to_end_workflows(self):
+        """Test end-to-end workflows to ensure no regression"""
+        print("\n🔄 Testing End-to-End Workflows")
+        print("-" * 50)
+        
+        if not all(role in self.auth_tokens for role in ["admin", "instructor", "learner"]):
+            self.log_result(
+                "End-to-End Workflows", 
+                "SKIP", 
+                "Missing required tokens",
+                "Admin, instructor, and learner tokens required"
+            )
+            return False
+        
+        try:
+            # Workflow 1: Create course → Create quiz for course → Student takes quiz → Issue certificate
+            
+            # Step 1: Create course
+            workflow_course = {
+                "title": "E2E Workflow Test Course",
+                "description": "Course for end-to-end workflow testing",
+                "category": "Testing",
+                "accessType": "open"
+            }
+            
+            course_response = requests.post(
+                f"{BACKEND_URL}/courses",
+                json=workflow_course,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if course_response.status_code != 200:
+                self.log_result(
+                    "E2E Workflow - Course Creation", 
+                    "FAIL", 
+                    f"Failed to create workflow course with status {course_response.status_code}",
+                    f"Response: {course_response.text}"
+                )
+                return False
+            
+            course_data = course_response.json()
+            workflow_course_id = course_data.get('id')
+            
+            # Step 2: Create quiz for course
+            workflow_quiz = {
+                "title": "E2E Workflow Quiz",
+                "description": "Quiz for workflow testing",
+                "courseId": workflow_course_id,
+                "questions": [
+                    {
+                        "type": "multiple_choice",
+                        "question": "What is the purpose of this quiz?",
+                        "options": ["Testing", "Learning", "Fun", "All of the above"],
+                        "correctAnswer": "3",  # "All of the above"
+                        "points": 100
+                    }
+                ],
+                "timeLimit": 10,
+                "attempts": 1,
+                "passingScore": 80.0,
+                "isPublished": True
+            }
+            
+            quiz_response = requests.post(
+                f"{BACKEND_URL}/quizzes",
+                json=workflow_quiz,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if quiz_response.status_code != 200:
+                self.log_result(
+                    "E2E Workflow - Quiz Creation", 
+                    "FAIL", 
+                    f"Failed to create workflow quiz with status {quiz_response.status_code}",
+                    f"Response: {quiz_response.text}"
+                )
+                return False
+            
+            quiz_data = quiz_response.json()
+            workflow_quiz_id = quiz_data.get('id')
+            
+            # Step 3: Student enrolls in course
+            enrollment_data = {
+                "courseId": workflow_course_id
+            }
+            
+            enrollment_response = requests.post(
+                f"{BACKEND_URL}/enrollments",
+                json=enrollment_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["learner"]}'
+                }
+            )
+            
+            if enrollment_response.status_code != 200:
+                self.log_result(
+                    "E2E Workflow - Student Enrollment", 
+                    "FAIL", 
+                    f"Failed to enroll student with status {enrollment_response.status_code}",
+                    f"Response: {enrollment_response.text}"
+                )
+                return False
+            
+            # Step 4: Student takes quiz
+            attempt_data = {
+                "quizId": workflow_quiz_id,
+                "answers": ["3"]  # Correct answer
+            }
+            
+            attempt_response = requests.post(
+                f"{BACKEND_URL}/quiz-attempts",
+                json=attempt_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["learner"]}'
+                }
+            )
+            
+            if attempt_response.status_code != 200:
+                self.log_result(
+                    "E2E Workflow - Quiz Attempt", 
+                    "FAIL", 
+                    f"Failed to submit quiz attempt with status {attempt_response.status_code}",
+                    f"Response: {attempt_response.text}"
+                )
+                return False
+            
+            attempt_result = attempt_response.json()
+            if not attempt_result.get('isPassed', False):
+                self.log_result(
+                    "E2E Workflow - Quiz Pass Check", 
+                    "FAIL", 
+                    "Student did not pass quiz as expected",
+                    f"Score: {attempt_result.get('score', 0)}%"
+                )
+                return False
+            
+            # Step 5: Issue certificate
+            # Get student ID from learner token
+            me_response = requests.get(
+                f"{BACKEND_URL}/auth/me",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["learner"]}'}
+            )
+            
+            if me_response.status_code != 200:
+                self.log_result(
+                    "E2E Workflow - Get Student ID", 
+                    "FAIL", 
+                    f"Failed to get student info with status {me_response.status_code}",
+                    f"Response: {me_response.text}"
+                )
+                return False
+            
+            student_info = me_response.json()
+            student_id = student_info.get('id')
+            
+            certificate_data = {
+                "studentId": student_id,
+                "courseId": workflow_course_id,
+                "type": "completion",
+                "template": "default"
+            }
+            
+            certificate_response = requests.post(
+                f"{BACKEND_URL}/certificates",
+                json=certificate_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if certificate_response.status_code == 200:
+                self.log_result(
+                    "E2E Workflow - Complete", 
+                    "PASS", 
+                    "Successfully completed full workflow: Course → Quiz → Attempt → Certificate",
+                    f"Certificate ID: {certificate_response.json().get('id')}"
+                )
+            else:
+                self.log_result(
+                    "E2E Workflow - Certificate Creation", 
+                    "FAIL", 
+                    f"Failed to create certificate with status {certificate_response.status_code}",
+                    f"Response: {certificate_response.text}"
+                )
+                return False
+            
+            # Test 2: Verify role-based permissions still work correctly
+            # Try to create course as learner (should fail)
+            unauthorized_course = {
+                "title": "Unauthorized Course",
+                "description": "This should fail",
+                "category": "Testing"
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/courses",
+                json=unauthorized_course,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["learner"]}'
+                }
+            )
+            
+            if response.status_code == 403:  # Forbidden expected
+                self.log_result(
+                    "E2E Workflow - Role-based Permissions", 
+                    "PASS", 
+                    "Role-based permissions working correctly after fixes",
+                    "Learner correctly denied course creation"
+                )
+            else:
+                self.log_result(
+                    "E2E Workflow - Role-based Permissions", 
+                    "FAIL", 
+                    f"Expected 403 for learner course creation but got {response.status_code}",
+                    f"Response: {response.text}"
+                )
+                return False
+            
+            return True
+            
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "End-to-End Workflows", 
+                "FAIL", 
+                "Failed to test end-to-end workflows",
+                str(e)
+            )
+            return False
+    
+    # =============================================================================
+    # END FOCUSED TESTING OF QUICK FIXES
+    # =============================================================================
+
     def generate_summary(self):
         """Generate test summary"""
         print("\n" + "=" * 60)
