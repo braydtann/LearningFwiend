@@ -107,8 +107,10 @@ const Classrooms = () => {
   };
 
   const classrooms = getClassroomsForUser();
-  const instructors = mockUsers.filter(u => u.role === 'instructor');
-  const students = mockUsers.filter(u => u.role === 'learner');
+  // Use real users from backend, fallback to mock users
+  const allUsers = realUsers.length > 0 ? realUsers : mockUsers;
+  const instructors = allUsers.filter(u => u.role === 'instructor');
+  const students = allUsers.filter(u => u.role === 'learner');
 
   const handleCreateClassroom = () => {
     if (!newClassroom.name || !newClassroom.batchId || !newClassroom.trainerId || !newClassroom.departmentId) {
