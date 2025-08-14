@@ -2743,6 +2743,34 @@ class BackendTester:
         # Programs API Test 8: Data structure validation
         self.test_programs_data_structure_validation()
         
+        print("\n" + "=" * 60)
+        print("📚 COURSE MANAGEMENT API TESTS - CRITICAL FOR COURSEDETAIL FIX")
+        print("=" * 60)
+        
+        # Course API Test 1: Authentication requirements
+        self.test_course_authentication_requirements()
+        
+        # Course API Test 2: Create course
+        self.test_course_creation_api()
+        
+        # Course API Test 3: Get all courses
+        self.test_get_all_courses_api()
+        
+        # Course API Test 4: Get course by ID (CRITICAL)
+        self.test_get_course_by_id_api()
+        
+        # Course API Test 5: Get my courses (instructor)
+        self.test_get_my_courses_api()
+        
+        # Course API Test 6: Error handling
+        self.test_course_error_handling()
+        
+        # Course API Test 7: Data consistency
+        self.test_course_data_consistency()
+        
+        # Course API Test 8: Complete workflow
+        self.test_complete_course_workflow()
+        
         return self.generate_summary()
     
     def generate_summary(self):
