@@ -342,31 +342,37 @@ const Classrooms = () => {
                 <div className="space-y-2">
                   <Label>Select Programs</Label>
                   <div className="grid grid-cols-1 gap-2 max-h-32 overflow-y-auto border rounded-md p-2">
-                    {mockPrograms.map(program => (
-                      <label key={program.id} className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          checked={newClassroom.programIds.includes(program.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setNewClassroom(prev => ({
-                                ...prev,
-                                programIds: [...prev.programIds, program.id]
-                              }));
-                            } else {
-                              setNewClassroom(prev => ({
-                                ...prev,
-                                programIds: prev.programIds.filter(id => id !== program.id)
-                              }));
-                            }
-                          }}
-                        />
-                        <div className="flex-1">
-                          <span className="text-sm font-medium">{program.title}</span>
-                          <p className="text-xs text-gray-500 mt-1">{program.description}</p>
-                        </div>
-                      </label>
-                    ))}
+                    {loadingPrograms ? (
+                      <div className="text-sm text-gray-500 p-2">Loading programs...</div>
+                    ) : allPrograms.length === 0 ? (
+                      <div className="text-sm text-gray-500 p-2">No programs available</div>
+                    ) : (
+                      allPrograms.map(program => (
+                        <label key={program.id} className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            checked={newClassroom.programIds.includes(program.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setNewClassroom(prev => ({
+                                  ...prev,
+                                  programIds: [...prev.programIds, program.id]
+                                }));
+                              } else {
+                                setNewClassroom(prev => ({
+                                  ...prev,
+                                  programIds: prev.programIds.filter(id => id !== program.id)
+                                }));
+                              }
+                            }}
+                          />
+                          <div className="flex-1">
+                            <span className="text-sm font-medium">{program.title || program.name}</span>
+                            <p className="text-xs text-gray-500 mt-1">{program.description}</p>
+                          </div>
+                        </label>
+                      ))
+                    )}
                   </div>
                 </div>
                 
