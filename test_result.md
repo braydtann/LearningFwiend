@@ -821,11 +821,11 @@ frontend:
 
   - task: "Certificates Frontend Backend Integration"
     implemented: true
-    working: "NA"
+    working: false
     file: "/app/frontend/src/pages/Certificates.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
@@ -833,6 +833,9 @@ frontend:
       - working: "NA"
         agent: "main"
         comment: "IMPLEMENTATION COMPLETED: Successfully migrated Certificates.js from mock data to backend APIs. ✅ Removed getUserCertificates and checkAndGenerateCertificates imports from mockData, ✅ Added useEffect to load certificates on mount via getMyCertificates(), ✅ Added loading states throughout UI (stats cards, certificates grid), ✅ Added proper error handling with toast notifications, ✅ Updated date handling for backend format (issued_at vs issuedAt), ✅ Added null-safe handling for certificate fields (programName, courseName, title, certificateNumber), ✅ Added support for both course and program certificates with dynamic certificate type display, ✅ Updated certificate ID display to handle various ID field names, ✅ Maintained existing UI/UX with certificate visual design and action buttons. Component now fully integrated with backend with no mock data dependencies."
+      - working: false
+        agent: "testing"
+        comment: "PARTIAL SUCCESS WITH CRITICAL ISSUES: ✅ GET /api/certificates working correctly for admin - successfully retrieved 2 certificates, ✅ GET /api/certificates/my-certificates working for students, ❌ CRITICAL ISSUE: POST /api/certificates failing with 422 validation error - missing required 'studentId' field in request body. The API expects 'studentId' but frontend is sending 'userId'. This is a data model mismatch between frontend and backend. ❌ Authentication issues preventing full testing of create/update operations. Certificate viewing works but certificate creation is broken due to field name mismatch."
 
   - task: "Analytics Frontend Backend Integration"
     implemented: true
