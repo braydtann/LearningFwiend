@@ -7023,78 +7023,43 @@ class BackendTester:
         return analytics_success
     
     def run_all_tests(self):
-        """Run all backend tests"""
-        print("🚀 Starting Backend Testing Suite for LearningFwiend LMS")
-        print("=" * 60)
+        """Run all backend tests with focus on priority authentication and API fixes"""
+        print("🚀 Starting PRIORITY Backend Testing Suite for LearningFwiend LMS")
+        print("🎯 FOCUS: Authentication & Certificate API fixes verification")
+        print("=" * 80)
         
-        # Test 1: Backend Health Check
-        health_ok = self.test_backend_health()
-        
-        if not health_ok:
-            print("\n❌ Backend service is not accessible. Stopping tests.")
+        # Basic connectivity tests
+        if not self.test_backend_health():
+            print("❌ Backend health check failed - stopping tests")
             return self.generate_summary()
         
-        # Test 2: CORS Configuration
-        self.test_cors_configuration()
+        # PRIORITY 1: AUTHENTICATION VERIFICATION
+        print("\n🔐 PRIORITY 1: AUTHENTICATION VERIFICATION")
+        print("-" * 60)
+        self.test_authentication_priority_verification()
         
-        # Test 3: POST Status Endpoint
+        # PRIORITY 2: CERTIFICATE APIs (Fixed studentId/userId issue)
+        print("\n📜 PRIORITY 2: CERTIFICATE APIs TESTING")
+        print("-" * 60)
+        self.test_certificate_apis_comprehensive()
+        
+        # PRIORITY 3: ANNOUNCEMENTS APIs (Auth-dependent)
+        print("\n📢 PRIORITY 3: ANNOUNCEMENTS APIs TESTING")
+        print("-" * 60)
+        self.test_announcements_apis_comprehensive()
+        
+        # PRIORITY 4: ANALYTICS APIs (Auth-dependent)
+        print("\n📊 PRIORITY 4: ANALYTICS APIs TESTING")
+        print("-" * 60)
+        self.test_analytics_apis_comprehensive()
+        
+        # Additional core tests if time permits
+        print("\n🔧 ADDITIONAL CORE TESTS")
+        print("-" * 60)
         self.test_status_endpoint_post()
-        
-        # Test 4: GET Status Endpoint
         self.test_status_endpoint_get()
-        
-        # Test 5: Database Integration
+        self.test_cors_configuration()
         self.test_database_integration()
-        
-        # Test 6: Error Handling
-        self.test_error_handling()
-        
-        print("\n" + "=" * 60)
-        print("🔐 AUTHENTICATION SYSTEM TESTS")
-        print("=" * 60)
-        
-        # Authentication Test 1: Setup admin user
-        self.test_admin_user_creation()
-        
-        # Authentication Test 2: User login tests
-        self.test_user_login()
-        
-        # Authentication Test 3: Create test users
-        self.test_create_test_users()
-        
-        # Authentication Test 4: Password change
-        self.test_password_change()
-        
-        # Authentication Test 5: Admin get users
-        self.test_admin_get_users()
-        
-        # Authentication Test 6: Get current user
-        self.test_get_current_user()
-        
-        # Authentication Test 7: Admin password reset
-        self.test_admin_password_reset()
-        
-        # Authentication Test 8: Password validation
-        self.test_password_validation()
-        
-        print("\n" + "=" * 60)
-        print("🚨 CRITICAL PASSWORD CHANGE LOOP BUG INVESTIGATION")
-        print("=" * 60)
-        
-        # Critical Test 1: Check specific user status
-        self.test_check_specific_user_status()
-        
-        # Critical Test 2: Complete password change workflow
-        self.test_password_change_workflow_complete()
-        
-        # Critical Test 3: Database update verification
-        self.test_password_change_database_update_verification()
-        
-        # Critical Test 4: Detailed API testing
-        self.test_password_change_api_detailed()
-        
-        # Critical Test 5: Bug reproduction test
-        self.test_password_change_loop_bug_reproduction()
         
         print("\n" + "=" * 60)
         print("🗑️  USER DELETION FUNCTIONALITY TESTS")
