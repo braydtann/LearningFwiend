@@ -3071,6 +3071,568 @@ async def revoke_certificate(
     return {"message": f"Certificate {certificate['certificateNumber']} has been successfully revoked"}
 
 
+# =============================================================================
+# QUIZ/ASSESSMENT MODELS
+# =============================================================================
+
+class QuestionCreate(BaseModel):
+    type: str  # multiple_choice, true_false, short_answer, essay
+    question: str
+    options: List[str] = []  # For multiple choice questions
+    correctAnswer: str  # Index for MC, text for others
+    points: int = 1
+    explanation: Optional[str] = None
+
+class QuestionInDB(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    type: str
+    question: str
+    options: List[str] = []
+    correctAnswer: str
+    points: int
+    explanation: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class QuestionResponse(BaseModel):
+    id: str
+    type: str
+    question: str
+    options: List[str] = []
+    points: int
+    explanation: Optional[str] = None
+    created_at: datetime
+
+class QuizCreate(BaseModel):
+    title: str
+    description: Optional[str] = None
+    courseId: Optional[str] = None  # Optional - can be standalone
+    programId: Optional[str] = None  # Optional - can be standalone
+    questions: List[QuestionCreate]
+    timeLimit: Optional[int] = None  # Minutes
+    attempts: int = 1  # Number of allowed attempts
+    passingScore: float = 70.0  # Percentage
+    shuffleQuestions: bool = False
+    showResults: bool = True  # Show results immediately after completion
+    isPublished: bool = False
+    
+class QuizInDB(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    title: str
+    description: Optional[str] = None
+    courseId: Optional[str] = None
+    courseName: Optional[str] = None  # Denormalized
+    programId: Optional[str] = None
+    programName: Optional[str] = None  # Denormalized
+    questions: List[QuestionInDB]
+    timeLimit: Optional[int] = None
+    attempts: int
+    passingScore: float
+    shuffleQuestions: bool
+    showResults: bool
+    isPublished: bool
+    totalPoints: int = 0  # Calculated field
+    questionCount: int = 0  # Calculated field
+    createdBy: str
+    createdByName: str  # Denormalized
+    isActive: bool = True
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class QuizResponse(BaseModel):
+    id: str
+    title: str
+    description: Optional[str] = None
+    courseId: Optional[str] = None
+    courseName: Optional[str] = None
+    programId: Optional[str] = None
+    programName: Optional[str] = None
+    timeLimit: Optional[int] = None
+    attempts: int
+    passingScore: float
+    shuffleQuestions: bool
+    showResults: bool
+    isPublished: bool
+    totalPoints: int
+    questionCount: int
+    createdBy: str
+    createdByName: str
+    isActive: bool
+    created_at: datetime
+    updated_at: datetime
+
+class QuizWithQuestionsResponse(QuizResponse):
+    questions: List[QuestionResponse]
+
+class QuizUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    courseId: Optional[str] = None
+    programId: Optional[str] = None
+    timeLimit: Optional[int] = None
+    attempts: Optional[int] = None
+    passingScore: Optional[float] = None
+    shuffleQuestions: Optional[bool] = None
+    showResults: Optional[bool] = None
+    isPublished: Optional[bool] = None
+
+class QuizAttemptCreate(BaseModel):
+    quizId: str
+    answers: List[str]  # Student's answers in order
+
+class QuizAttemptInDB(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    quizId: str
+    quizTitle: str  # Denormalized
+    studentId: str
+    studentName: str  # Denormalized
+    answers: List[str]
+    score: float = 0.0  # Percentage
+    pointsEarned: int = 0
+    totalPoints: int = 0
+    isPassed: bool = False
+    timeSpent: Optional[int] = None  # Minutes
+    startedAt: datetime = Field(default_factory=datetime.utcnow)
+    completedAt: Optional[datetime] = None
+    attemptNumber: int = 1
+    isActive: bool = True
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class QuizAttemptResponse(BaseModel):
+    id: str
+    quizId: str
+    quizTitle: str
+    studentId: str
+    studentName: str
+    score: float
+    pointsEarned: int
+    totalPoints: int
+    isPassed: bool
+    timeSpent: Optional[int] = None
+    startedAt: datetime
+    completedAt: Optional[datetime] = None
+    attemptNumber: int
+    isActive: bool
+    created_at: datetime
+
+class QuizAttemptWithAnswersResponse(QuizAttemptResponse):
+    answers: List[str]
+
+
+# =============================================================================
+# QUIZ/ASSESSMENT ENDPOINTS
+# =============================================================================
+
+@api_router.post("/quizzes", response_model=QuizWithQuestionsResponse)
+async def create_quiz(
+    quiz_data: QuizCreate,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Create a new quiz (instructors and admins only)."""
+    if current_user.role not in ['instructor', 'admin']:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only instructors and admins can create quizzes"
+        )
+    
+    # Validate course if specified
+    course_name = None
+    if quiz_data.courseId:
+        course = await db.courses.find_one({"id": quiz_data.courseId})
+        if not course:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Specified course not found"
+            )
+        course_name = course['title']
+    
+    # Validate program if specified
+    program_name = None
+    if quiz_data.programId:
+        program = await db.programs.find_one({"id": quiz_data.programId})
+        if not program:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Specified program not found"
+            )
+        program_name = program['title']
+    
+    # Process questions
+    questions = []
+    total_points = 0
+    for q_data in quiz_data.questions:
+        question = QuestionInDB(**q_data.dict())
+        questions.append(question)
+        total_points += q_data.points
+    
+    # Create quiz dictionary
+    quiz_dict = {
+        "id": str(uuid.uuid4()),
+        "title": quiz_data.title,
+        "description": quiz_data.description,
+        "courseId": quiz_data.courseId,
+        "courseName": course_name,
+        "programId": quiz_data.programId,
+        "programName": program_name,
+        "questions": [q.dict() for q in questions],
+        "timeLimit": quiz_data.timeLimit,
+        "attempts": quiz_data.attempts,
+        "passingScore": quiz_data.passingScore,
+        "shuffleQuestions": quiz_data.shuffleQuestions,
+        "showResults": quiz_data.showResults,
+        "isPublished": quiz_data.isPublished,
+        "totalPoints": total_points,
+        "questionCount": len(questions),
+        "createdBy": current_user.id,
+        "createdByName": current_user.full_name,
+        "isActive": True,
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
+    }
+    
+    # Insert quiz into database
+    await db.quizzes.insert_one(quiz_dict)
+    
+    # Prepare response with questions
+    quiz_response = QuizWithQuestionsResponse(**quiz_dict)
+    quiz_response.questions = [QuestionResponse(**q) for q in questions]
+    
+    return quiz_response
+
+@api_router.get("/quizzes", response_model=List[QuizResponse])
+async def get_quizzes(
+    current_user: UserResponse = Depends(get_current_user),
+    course_id: Optional[str] = None,
+    program_id: Optional[str] = None,
+    published_only: bool = True
+):
+    """Get quizzes with optional filtering."""
+    
+    # Base query
+    query = {"isActive": True}
+    
+    # Add course filter if specified
+    if course_id:
+        query["courseId"] = course_id
+    
+    # Add program filter if specified
+    if program_id:
+        query["programId"] = program_id
+    
+    # Role-based filtering
+    if current_user.role == 'learner':
+        # Students only see published quizzes
+        query["isPublished"] = True
+    elif current_user.role == 'instructor':
+        # Instructors see their own quizzes + published ones
+        if published_only:
+            query["$or"] = [
+                {"isPublished": True},
+                {"createdBy": current_user.id}
+            ]
+    # Admins see all quizzes (no additional filtering)
+    elif published_only and current_user.role == 'admin':
+        query["isPublished"] = True
+    
+    quizzes = await db.quizzes.find(query).sort("created_at", -1).to_list(1000)
+    return [QuizResponse(**quiz) for quiz in quizzes]
+
+@api_router.get("/quizzes/{quiz_id}", response_model=QuizWithQuestionsResponse)
+async def get_quiz(
+    quiz_id: str,
+    current_user: UserResponse = Depends(get_current_user),
+    include_answers: bool = False
+):
+    """Get a specific quiz by ID."""
+    quiz = await db.quizzes.find_one({"id": quiz_id, "isActive": True})
+    if not quiz:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Quiz not found"
+        )
+    
+    # Check permissions for unpublished quizzes
+    if not quiz.get('isPublished', False):
+        if current_user.role == 'learner':
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Quiz is not published"
+            )
+        elif current_user.role == 'instructor' and quiz['createdBy'] != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You can only view quizzes you created"
+            )
+    
+    # Prepare questions (hide correct answers for students unless specifically requested)
+    questions = []
+    for q in quiz['questions']:
+        question = QuestionResponse(**q)
+        if current_user.role == 'learner' and not include_answers:
+            # Don't include correct answers or explanations for students
+            question_dict = question.dict()
+            question_dict.pop('explanation', None)
+            question = QuestionResponse(**question_dict)
+        questions.append(question)
+    
+    quiz_response = QuizWithQuestionsResponse(**quiz)
+    quiz_response.questions = questions
+    
+    return quiz_response
+
+@api_router.get("/quizzes/my-quizzes", response_model=List[QuizResponse])
+async def get_my_quizzes(current_user: UserResponse = Depends(get_current_user)):
+    """Get quizzes created by current user."""
+    if current_user.role not in ['instructor', 'admin']:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only instructors and admins can view their created quizzes"
+        )
+    
+    quizzes = await db.quizzes.find({
+        "createdBy": current_user.id,
+        "isActive": True
+    }).sort("created_at", -1).to_list(1000)
+    
+    return [QuizResponse(**quiz) for quiz in quizzes]
+
+@api_router.put("/quizzes/{quiz_id}", response_model=QuizResponse)
+async def update_quiz(
+    quiz_id: str,
+    quiz_data: QuizUpdate,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Update a quiz (only by creator or admin)."""
+    # Find the quiz
+    quiz = await db.quizzes.find_one({"id": quiz_id})
+    if not quiz:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Quiz not found"
+        )
+    
+    # Check permissions
+    if current_user.role != 'admin' and quiz['createdBy'] != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only edit quizzes you created"
+        )
+    
+    # Update quiz
+    update_data = {k: v for k, v in quiz_data.dict().items() if v is not None}
+    update_data["updated_at"] = datetime.utcnow()
+    
+    # Update denormalized fields if necessary
+    if quiz_data.courseId:
+        course = await db.courses.find_one({"id": quiz_data.courseId})
+        update_data["courseName"] = course['title'] if course else None
+    
+    if quiz_data.programId:
+        program = await db.programs.find_one({"id": quiz_data.programId})
+        update_data["programName"] = program['title'] if program else None
+    
+    result = await db.quizzes.update_one(
+        {"id": quiz_id},
+        {"$set": update_data}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Quiz not found or no changes made"
+        )
+    
+    # Get updated quiz
+    updated_quiz = await db.quizzes.find_one({"id": quiz_id})
+    return QuizResponse(**updated_quiz)
+
+@api_router.delete("/quizzes/{quiz_id}")
+async def delete_quiz(
+    quiz_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Delete a quiz (only by creator or admin)."""
+    # Find the quiz
+    quiz = await db.quizzes.find_one({"id": quiz_id})
+    if not quiz:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Quiz not found"
+        )
+    
+    # Check permissions
+    if current_user.role != 'admin' and quiz['createdBy'] != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only delete quizzes you created"
+        )
+    
+    # Check if quiz has attempts
+    attempt_count = await db.quiz_attempts.count_documents({"quizId": quiz_id, "isActive": True})
+    if attempt_count > 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot delete quiz with {attempt_count} student attempt(s). Consider unpublishing instead."
+        )
+    
+    # Soft delete the quiz
+    result = await db.quizzes.update_one(
+        {"id": quiz_id},
+        {"$set": {"isActive": False, "updated_at": datetime.utcnow()}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Quiz not found"
+        )
+    
+    return {"message": f"Quiz '{quiz['title']}' has been successfully deleted"}
+
+@api_router.post("/quiz-attempts", response_model=QuizAttemptResponse)
+async def submit_quiz_attempt(
+    attempt_data: QuizAttemptCreate,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Submit a quiz attempt (learners only)."""
+    if current_user.role != 'learner':
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only learners can submit quiz attempts"
+        )
+    
+    # Get quiz
+    quiz = await db.quizzes.find_one({"id": attempt_data.quizId, "isActive": True})
+    if not quiz:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Quiz not found"
+        )
+    
+    if not quiz.get('isPublished', False):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Quiz is not published"
+        )
+    
+    # Check attempt limit
+    existing_attempts = await db.quiz_attempts.count_documents({
+        "quizId": attempt_data.quizId,
+        "studentId": current_user.id,
+        "isActive": True
+    })
+    
+    if existing_attempts >= quiz.get('attempts', 1):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Maximum number of attempts ({quiz.get('attempts', 1)}) reached"
+        )
+    
+    # Validate answers count
+    if len(attempt_data.answers) != len(quiz['questions']):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Expected {len(quiz['questions'])} answers, got {len(attempt_data.answers)}"
+        )
+    
+    # Calculate score
+    points_earned = 0
+    total_points = quiz.get('totalPoints', 0)
+    
+    for i, (answer, question) in enumerate(zip(attempt_data.answers, quiz['questions'])):
+        if question['type'] == 'multiple_choice':
+            try:
+                answer_index = int(answer)
+                correct_index = int(question['correctAnswer'])
+                if answer_index == correct_index:
+                    points_earned += question.get('points', 1)
+            except (ValueError, IndexError):
+                pass  # Invalid answer format
+        elif question['type'] == 'true_false':
+            if answer.lower() == question['correctAnswer'].lower():
+                points_earned += question.get('points', 1)
+        elif question['type'] in ['short_answer', 'essay']:
+            # For now, manual grading required
+            # Could implement fuzzy matching for short answers
+            pass
+    
+    # Calculate percentage score
+    score_percentage = (points_earned / total_points * 100) if total_points > 0 else 0
+    is_passed = score_percentage >= quiz.get('passingScore', 70.0)
+    
+    # Create attempt record
+    attempt_dict = {
+        "id": str(uuid.uuid4()),
+        "quizId": attempt_data.quizId,
+        "quizTitle": quiz['title'],
+        "studentId": current_user.id,
+        "studentName": current_user.full_name,
+        "answers": attempt_data.answers,
+        "score": round(score_percentage, 2),
+        "pointsEarned": points_earned,
+        "totalPoints": total_points,
+        "isPassed": is_passed,
+        "completedAt": datetime.utcnow(),
+        "attemptNumber": existing_attempts + 1,
+        "isActive": True,
+        "created_at": datetime.utcnow()
+    }
+    
+    # Insert attempt into database
+    await db.quiz_attempts.insert_one(attempt_dict)
+    
+    return QuizAttemptResponse(**attempt_dict)
+
+@api_router.get("/quiz-attempts", response_model=List[QuizAttemptResponse])
+async def get_quiz_attempts(
+    current_user: UserResponse = Depends(get_current_user),
+    quiz_id: Optional[str] = None,
+    student_id: Optional[str] = None
+):
+    """Get quiz attempts with optional filtering."""
+    
+    # Base query
+    query = {"isActive": True}
+    
+    # Role-based filtering
+    if current_user.role == 'learner':
+        # Students only see their own attempts
+        query["studentId"] = current_user.id
+    elif current_user.role in ['instructor', 'admin']:
+        # Instructors and admins can filter by student
+        if student_id:
+            query["studentId"] = student_id
+    
+    # Add quiz filter if specified
+    if quiz_id:
+        query["quizId"] = quiz_id
+    
+    attempts = await db.quiz_attempts.find(query).sort("created_at", -1).to_list(1000)
+    return [QuizAttemptResponse(**attempt) for attempt in attempts]
+
+@api_router.get("/quiz-attempts/{attempt_id}", response_model=QuizAttemptWithAnswersResponse)
+async def get_quiz_attempt(
+    attempt_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Get a specific quiz attempt by ID."""
+    attempt = await db.quiz_attempts.find_one({"id": attempt_id, "isActive": True})
+    if not attempt:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Quiz attempt not found"
+        )
+    
+    # Check permissions
+    if (current_user.role == 'learner' and 
+        attempt['studentId'] != current_user.id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only view your own quiz attempts"
+        )
+    
+    return QuizAttemptWithAnswersResponse(**attempt)
+
+
 # Include the router in the main app
 app.include_router(api_router)
 
