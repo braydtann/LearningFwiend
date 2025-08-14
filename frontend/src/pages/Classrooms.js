@@ -48,6 +48,36 @@ const Classrooms = () => {
     endDate: ''
   });
 
+  // Load real users from backend on component mount
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  const loadUsers = async () => {
+    setLoadingUsers(true);
+    try {
+      if (getAllUsers) {
+        const result = await getAllUsers();
+        if (result.success) {
+          setRealUsers(result.users);
+        } else {
+          console.error('Failed to load users:', result.error);
+          // Fallback to mock users if backend fails
+          setRealUsers(mockUsers);
+        }
+      } else {
+        // Fallback to mock users if getAllUsers not available
+        setRealUsers(mockUsers);
+      }
+    } catch (error) {
+      console.error('Error loading users:', error);
+      // Fallback to mock users
+      setRealUsers(mockUsers);
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
   // Reset form function
   const resetForm = () => {
     setNewClassroom({
