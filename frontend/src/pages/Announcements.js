@@ -76,7 +76,7 @@ const Announcements = () => {
     }
   };
 
-  const handleCreateAnnouncement = () => {
+  const handleCreateAnnouncement = async () => {
     if (!newAnnouncement.title || !newAnnouncement.message) {
       toast({
         title: "Missing required fields",
@@ -86,26 +86,42 @@ const Announcements = () => {
       return;
     }
 
-    toast({
-      title: "Announcement created!",
-      description: "Your announcement has been posted successfully.",
-    });
+    try {
+      const announcementData = {
+        title: newAnnouncement.title,
+        message: newAnnouncement.message,
+        courseId: newAnnouncement.courseId || null
+      };
 
-    setNewAnnouncement({ title: '', message: '', courseId: '' });
-    setIsCreateModalOpen(false);
-  };
+      const result = await createAnnouncement(announcementData);
 
-  const getAnnouncementsForUser = () => {
-    if (isLearner) {
-      // For learners, show announcements from their enrolled courses
-      return mockAnnouncements;
-    } else {
-      // For instructors/admins, show all announcements or their own
-      return mockAnnouncements;
+      if (result.success) {
+        toast({
+          title: "Announcement created!",
+          description: "Your announcement has been posted successfully.",
+        });
+
+        // Refresh announcements list
+        await loadData();
+
+        setNewAnnouncement({ title: '', message: '', courseId: '' });
+        setIsCreateModalOpen(false);
+      } else {
+        toast({
+          title: "Failed to create announcement",
+          description: result.error || "Unable to create announcement",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Create announcement error:', error);
+      toast({
+        title: "Error creating announcement",
+        description: "Network error occurred while creating announcement",
+        variant: "destructive",
+      });
     }
   };
-
-  const announcements = getAnnouncementsForUser();
 
   return (
     <div className="space-y-8">
