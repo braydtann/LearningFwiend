@@ -1018,6 +1018,8 @@ class BackendTester:
                 str(e)
             )
         return False
+    
+    def test_password_change_api_detailed(self):
         """Detailed test of the password change API endpoint"""
         if "admin" not in self.auth_tokens:
             self.log_result(
