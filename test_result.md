@@ -784,7 +784,7 @@ frontend:
         comment: "TESTED: Dashboard functionality working for all roles. Admin Dashboard shows system analytics and user distribution. Instructor Dashboard displays analytics with course statistics and user distribution. Student Dashboard shows personalized learning progress with enrolled courses, quiz performance, and certificates."
 
   - task: "Departments Frontend Backend Integration"
-    implemented: false
+    implemented: true
     working: "NA"
     file: "/app/frontend/src/pages/Departments.js"
     stuck_count: 0
@@ -794,6 +794,9 @@ frontend:
       - working: "NA"
         agent: "main"
         comment: "TASK STARTED: Beginning frontend integration to replace mock data dependencies with backend API calls from AuthContext. Current component uses mockDepartments and needs full migration to getAllDepartments, addDepartment, updateDepartment, deleteDepartment APIs."
+      - working: "NA"
+        agent: "main"
+        comment: "IMPLEMENTATION COMPLETED: Successfully migrated Departments.js from mock data to backend APIs. ✅ Removed mockDepartments and getUsersByDepartment imports, ✅ Added useEffect to load departments on mount via getAllDepartments(), ✅ Updated all CRUD operations to use backend APIs (createDepartment, updateDepartment, deleteDepartment), ✅ Added loading states throughout UI (stats cards, table), ✅ Added proper error handling with toast notifications, ✅ Updated date handling for backend format (created_at vs createdAt), ✅ Added null-safe userCount handling, ✅ Maintained existing UI/UX with admin-only access control. Component now fully integrated with backend with no mock data dependencies."
 
   - task: "Announcements Frontend Backend Integration"
     implemented: false
