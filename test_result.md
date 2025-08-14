@@ -783,7 +783,90 @@ frontend:
         agent: "testing"
         comment: "TESTED: Dashboard functionality working for all roles. Admin Dashboard shows system analytics and user distribution. Instructor Dashboard displays analytics with course statistics and user distribution. Student Dashboard shows personalized learning progress with enrolled courses, quiz performance, and certificates."
 
-  - task: "Content Embedding (YouTube, Vimeo, Google Drive, Canva)"
+  - task: "Departments Frontend Backend Integration"
+    implemented: false
+    working: "NA"
+    file: "/app/frontend/src/pages/Departments.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "TASK STARTED: Beginning frontend integration to replace mock data dependencies with backend API calls from AuthContext. Current component uses mockDepartments and needs full migration to getAllDepartments, addDepartment, updateDepartment, deleteDepartment APIs."
+
+  - task: "Announcements Frontend Backend Integration"
+    implemented: false
+    working: "NA"
+    file: "/app/frontend/src/pages/Announcements.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "TASK STARTED: Beginning frontend integration to replace mock data dependencies with backend API calls from AuthContext. Current component uses mockAnnouncements and needs full migration to getAllAnnouncements, addAnnouncement, updateAnnouncement, deleteAnnouncement APIs."
+
+  - task: "Certificates Frontend Backend Integration"
+    implemented: false
+    working: "NA"
+    file: "/app/frontend/src/pages/Certificates.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "TASK STARTED: Beginning frontend integration to replace mock data dependencies with backend API calls from AuthContext. Current component uses getUserCertificates and needs full migration to getAllCertificates, getMyCertificates APIs."
+
+  - task: "Analytics Frontend Backend Integration"
+    implemented: false
+    working: "NA"
+    file: "/app/frontend/src/pages/Analytics.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "TASK STARTED: Beginning frontend integration to replace extensive mock data dependencies (mockCourses, mockUsers, mockEnrollments, etc.) with backend analytics APIs from AuthContext."
+
+  - task: "Quiz Frontend Backend Integration"
+    implemented: false
+    working: "NA"
+    file: "/app/frontend/src/pages/QuizTaking.js, /app/frontend/src/pages/QuizResults.js, /app/frontend/src/pages/FinalTest.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "TASK STARTED: Beginning frontend integration for quiz-related components to replace mock data dependencies with backend quiz APIs from AuthContext."
+
+  - task: "Notifications Backend Integration"
+    implemented: false
+    working: "NA"
+    file: "/app/frontend/src/components/NotificationBell.js, /app/frontend/src/pages/Notifications.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "TASK STARTED: Beginning frontend integration to replace notification mock data with announcements backend APIs, since notifications are likely announcement-based."
+
+  - task: "Course/Quiz Preview Bug Fix"
+    implemented: false
+    working: "NA"
+    file: "/app/frontend/src/components/CoursePreview.js, /app/frontend/src/components/QuizPreview.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "USER REPORTED BUG: When previewing a quiz or course, it actually creates a course instead of showing a pop-up to view those things. Preview functionality should show content without creating/modifying data."
+
     implemented: true
     working: true
     file: "/app/frontend/src/pages/CourseDetail.js, /app/frontend/src/data/mockData.js"
