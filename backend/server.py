@@ -2870,7 +2870,7 @@ async def create_certificate(
     
     # Check if certificate already exists for this student-course/program combination
     existing_query = {
-        "studentId": certificate_data.studentId,
+        "studentId": student_id,
         "isActive": True
     }
     if certificate_data.courseId:
