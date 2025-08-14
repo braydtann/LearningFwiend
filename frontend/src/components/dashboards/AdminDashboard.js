@@ -219,13 +219,11 @@ const AdminDashboard = () => {
               {recentUsers.map((user) => (
                 <div key={user.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div className="flex items-center space-x-3">
-                    <img 
-                      src={user.avatar} 
-                      alt={user.name}
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
+                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                      <Users className="w-5 h-5 text-blue-600" />
+                    </div>
                     <div>
-                      <p className="font-medium text-gray-900">{user.name}</p>
+                      <p className="font-medium text-gray-900">{user.full_name}</p>
                       <p className="text-sm text-gray-600">{user.email}</p>
                     </div>
                   </div>
