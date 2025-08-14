@@ -1207,6 +1207,222 @@ async def get_loginpal_webhooks():
 # END LOGINPAL INTEGRATION ENDPOINTS
 # =============================================================================
 
+# =============================================================================
+# CATEGORY MODELS
+# =============================================================================
+
+class CategoryCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    
+class CategoryInDB(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    description: Optional[str] = None
+    courseCount: int = 0
+    isActive: bool = True
+    createdBy: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class CategoryResponse(BaseModel):
+    id: str
+    name: str
+    description: Optional[str] = None
+    courseCount: int
+    isActive: bool
+    createdBy: str
+    created_at: datetime
+    updated_at: datetime
+
+class CategoryUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    isActive: Optional[bool] = None
+
+
+# =============================================================================
+# CATEGORY ENDPOINTS
+# =============================================================================
+
+@api_router.post("/categories", response_model=CategoryResponse)
+async def create_category(
+    category_data: CategoryCreate,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Create a new category (instructors and admins only)."""
+    if current_user.role not in ['instructor', 'admin']:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only instructors and admins can create categories"
+        )
+    
+    # Check if category with same name already exists
+    existing_category = await db.categories.find_one({"name": category_data.name, "isActive": True})
+    if existing_category:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Category with this name already exists"
+        )
+    
+    # Create category dictionary
+    category_dict = {
+        "id": str(uuid.uuid4()),
+        **category_data.dict(),
+        "courseCount": 0,
+        "isActive": True,
+        "createdBy": current_user.id,
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
+    }
+    
+    # Insert category into database
+    await db.categories.insert_one(category_dict)
+    
+    return CategoryResponse(**category_dict)
+
+@api_router.get("/categories", response_model=List[CategoryResponse])
+async def get_all_categories(current_user: UserResponse = Depends(get_current_user)):
+    """Get all active categories."""
+    categories = await db.categories.find({"isActive": True}).to_list(1000)
+    
+    # Update course counts for each category
+    for category in categories:
+        course_count = await db.courses.count_documents({"category": category["name"], "status": "published"})
+        category["courseCount"] = course_count
+    
+    return [CategoryResponse(**category) for category in categories]
+
+@api_router.get("/categories/{category_id}", response_model=CategoryResponse)
+async def get_category(
+    category_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Get a specific category by ID."""
+    category = await db.categories.find_one({"id": category_id})
+    if not category:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Category not found"
+        )
+    
+    # Update course count
+    course_count = await db.courses.count_documents({"category": category["name"], "status": "published"})
+    category["courseCount"] = course_count
+    
+    return CategoryResponse(**category)
+
+@api_router.put("/categories/{category_id}", response_model=CategoryResponse)
+async def update_category(
+    category_id: str,
+    category_data: CategoryUpdate,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Update a category (only by category creator or admin)."""
+    if current_user.role not in ['instructor', 'admin']:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only instructors and admins can update categories"
+        )
+    
+    # Find the category
+    category = await db.categories.find_one({"id": category_id})
+    if not category:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Category not found"
+        )
+    
+    # Check permissions (admin can edit any, creator can edit their own)
+    if current_user.role != 'admin' and category['createdBy'] != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only edit categories you created"
+        )
+    
+    # Check if new name already exists (if name is being changed)
+    if category_data.name and category_data.name != category['name']:
+        existing_category = await db.categories.find_one({"name": category_data.name, "isActive": True})
+        if existing_category:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Category with this name already exists"
+            )
+    
+    # Update category
+    update_data = {k: v for k, v in category_data.dict().items() if v is not None}
+    update_data["updated_at"] = datetime.utcnow()
+    
+    result = await db.categories.update_one(
+        {"id": category_id},
+        {"$set": update_data}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Category not found or no changes made"
+        )
+    
+    # Get updated category
+    updated_category = await db.categories.find_one({"id": category_id})
+    
+    # Update course count
+    course_count = await db.courses.count_documents({"category": updated_category["name"], "status": "published"})
+    updated_category["courseCount"] = course_count
+    
+    return CategoryResponse(**updated_category)
+
+@api_router.delete("/categories/{category_id}")
+async def delete_category(
+    category_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Delete a category (only by category creator or admin)."""
+    if current_user.role not in ['instructor', 'admin']:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only instructors and admins can delete categories"
+        )
+    
+    # Find the category
+    category = await db.categories.find_one({"id": category_id})
+    if not category:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Category not found"
+        )
+    
+    # Check permissions (admin can delete any, creator can delete their own)
+    if current_user.role != 'admin' and category['createdBy'] != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only delete categories you created"
+        )
+    
+    # Check if category is being used by any courses
+    course_count = await db.courses.count_documents({"category": category["name"], "status": "published"})
+    if course_count > 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot delete category. It is being used by {course_count} course(s)"
+        )
+    
+    # Soft delete the category (set isActive to False)
+    result = await db.categories.update_one(
+        {"id": category_id},
+        {"$set": {"isActive": False, "updated_at": datetime.utcnow()}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Category not found"
+        )
+    
+    return {"message": f"Category '{category['name']}' has been successfully deleted"}
+
+
 # Include the router in the main app
 app.include_router(api_router)
 
