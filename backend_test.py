@@ -12,7 +12,7 @@ from datetime import datetime
 import time
 
 # Configuration
-BACKEND_URL = "https://course-cloud-lms.preview.emergentagent.com/api"
+BACKEND_URL = "https://learning-cloud-sync.preview.emergentagent.com/api"
 TEST_TIMEOUT = 10
 
 class BackendTester:
