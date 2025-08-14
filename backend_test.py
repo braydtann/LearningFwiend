@@ -6423,7 +6423,1755 @@ class BackendTester:
         # Classroom API Test 13: Integration - mixed content
         self.test_classroom_integration_mixed_content()
         
+        print("\n" + "🔔" * 60)
+        print("🔔 PRIORITY 2 API TESTING: ANNOUNCEMENTS & CERTIFICATES")
+        print("🔔" * 60)
+        
+        # Announcements API tests
+        self.test_announcement_creation()
+        self.test_get_all_announcements()
+        self.test_get_announcement_by_id()
+        self.test_get_my_announcements()
+        self.test_update_announcement()
+        self.test_delete_announcement()
+        self.test_pin_announcement()
+        self.test_announcement_role_based_filtering()
+        self.test_announcement_business_logic()
+        
+        # Certificates API tests
+        self.test_certificate_creation()
+        self.test_get_all_certificates()
+        self.test_get_certificate_by_id()
+        self.test_get_my_certificates()
+        self.test_certificate_verification()
+        self.test_update_certificate()
+        self.test_revoke_certificate()
+        self.test_certificate_business_logic()
+        self.test_certificate_enrollment_validation()
+        
         return self.generate_summary()
+    
+    # =============================================================================
+    # PRIORITY 2 API TESTS: ANNOUNCEMENTS AND CERTIFICATES
+    # =============================================================================
+    
+    def test_announcement_creation(self):
+        """Test POST /api/announcements - Create announcements (instructor/admin roles)"""
+        if "instructor" not in self.auth_tokens and "admin" not in self.auth_tokens:
+            self.log_result(
+                "Announcement Creation", 
+                "SKIP", 
+                "No instructor or admin token available",
+                "Authentication required for announcement creation"
+            )
+            return False
+        
+        # Use instructor token if available, otherwise admin
+        token = self.auth_tokens.get("instructor") or self.auth_tokens.get("admin")
+        role = "instructor" if "instructor" in self.auth_tokens else "admin"
+        
+        try:
+            # Get available courses for course-specific announcements
+            courses_response = requests.get(
+                f"{BACKEND_URL}/courses",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {token}'}
+            )
+            
+            course_id = None
+            if courses_response.status_code == 200:
+                courses = courses_response.json()
+                if courses:
+                    course_id = courses[0]['id']
+            
+            # Test 1: General announcement
+            general_announcement_data = {
+                "title": "System Maintenance Notice",
+                "content": "The learning platform will undergo scheduled maintenance on Sunday from 2 AM to 4 AM EST. Please save your work before this time.",
+                "type": "maintenance",
+                "targetAudience": "all",
+                "priority": "high",
+                "attachments": ["https://example.com/maintenance-schedule.pdf"]
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/announcements",
+                json=general_announcement_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {token}'
+                }
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                required_fields = ['id', 'title', 'content', 'type', 'targetAudience', 'priority', 'authorId', 'authorName', 'isActive', 'isPinned', 'viewCount', 'created_at']
+                
+                if all(field in data for field in required_fields):
+                    self.log_result(
+                        "Announcement Creation - General", 
+                        "PASS", 
+                        f"Successfully created general announcement with {role} role",
+                        f"Announcement ID: {data['id']}, Title: {data['title']}, Priority: {data['priority']}"
+                    )
+                    
+                    # Store announcement ID for later tests
+                    self.test_announcement_id = data['id']
+                else:
+                    self.log_result(
+                        "Announcement Creation - General", 
+                        "FAIL", 
+                        "Response missing required fields",
+                        f"Missing: {[f for f in required_fields if f not in data]}"
+                    )
+            else:
+                self.log_result(
+                    "Announcement Creation - General", 
+                    "FAIL", 
+                    f"Failed to create general announcement with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+            
+            # Test 2: Course-specific announcement (if course available)
+            if course_id:
+                course_announcement_data = {
+                    "title": "Course Assignment Due Tomorrow",
+                    "content": "Reminder: Your final project submission is due tomorrow at 11:59 PM. Please submit through the course portal.",
+                    "type": "course",
+                    "courseId": course_id,
+                    "targetAudience": "learners",
+                    "priority": "urgent",
+                    "expiresAt": "2024-12-31T23:59:59Z"
+                }
+                
+                response = requests.post(
+                    f"{BACKEND_URL}/announcements",
+                    json=course_announcement_data,
+                    timeout=TEST_TIMEOUT,
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Authorization': f'Bearer {token}'
+                    }
+                )
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    if data['courseId'] == course_id and data['courseName']:
+                        self.log_result(
+                            "Announcement Creation - Course-Specific", 
+                            "PASS", 
+                            f"Successfully created course-specific announcement",
+                            f"Course ID: {data['courseId']}, Course Name: {data['courseName']}"
+                        )
+                        return True
+                    else:
+                        self.log_result(
+                            "Announcement Creation - Course-Specific", 
+                            "FAIL", 
+                            "Course information not properly denormalized",
+                            f"Expected courseId: {course_id}, Got: {data.get('courseId')}"
+                        )
+                else:
+                    self.log_result(
+                        "Announcement Creation - Course-Specific", 
+                        "FAIL", 
+                        f"Failed to create course-specific announcement with status {response.status_code}",
+                        f"Response: {response.text}"
+                    )
+            
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Announcement Creation", 
+                "FAIL", 
+                "Failed to test announcement creation",
+                str(e)
+            )
+        return False
+    
+    def test_get_all_announcements(self):
+        """Test GET /api/announcements - Retrieve with role-based filtering and query parameters"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Get All Announcements", 
+                "SKIP", 
+                "No admin token available",
+                "Authentication required for announcements retrieval"
+            )
+            return False
+        
+        try:
+            # Test 1: Get all announcements without filters
+            response = requests.get(
+                f"{BACKEND_URL}/announcements",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                if isinstance(data, list):
+                    self.log_result(
+                        "Get All Announcements - Basic", 
+                        "PASS", 
+                        f"Successfully retrieved {len(data)} announcements",
+                        f"Announcements sorted by pinned status and creation date"
+                    )
+                else:
+                    self.log_result(
+                        "Get All Announcements - Basic", 
+                        "FAIL", 
+                        "Response is not a list",
+                        f"Response type: {type(data)}"
+                    )
+                    return False
+            else:
+                self.log_result(
+                    "Get All Announcements - Basic", 
+                    "FAIL", 
+                    f"Failed to get announcements with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+                return False
+            
+            # Test 2: Get announcements with type filter
+            response = requests.get(
+                f"{BACKEND_URL}/announcements?type=maintenance",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            if response.status_code == 200:
+                filtered_data = response.json()
+                maintenance_announcements = [a for a in filtered_data if a['type'] == 'maintenance']
+                if len(maintenance_announcements) == len(filtered_data):
+                    self.log_result(
+                        "Get All Announcements - Type Filter", 
+                        "PASS", 
+                        f"Type filter working correctly - {len(filtered_data)} maintenance announcements",
+                        "Query parameter filtering functional"
+                    )
+                else:
+                    self.log_result(
+                        "Get All Announcements - Type Filter", 
+                        "FAIL", 
+                        "Type filter not working correctly",
+                        f"Expected all maintenance, got mixed types"
+                    )
+            
+            # Test 3: Get announcements with priority filter
+            response = requests.get(
+                f"{BACKEND_URL}/announcements?priority=high",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            if response.status_code == 200:
+                priority_data = response.json()
+                self.log_result(
+                    "Get All Announcements - Priority Filter", 
+                    "PASS", 
+                    f"Priority filter working - {len(priority_data)} high priority announcements",
+                    "Query parameter filtering functional"
+                )
+                return True
+            
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Get All Announcements", 
+                "FAIL", 
+                "Failed to test get all announcements",
+                str(e)
+            )
+        return False
+    
+    def test_get_announcement_by_id(self):
+        """Test GET /api/announcements/{announcement_id} - Get specific announcement and increment view count"""
+        if not hasattr(self, 'test_announcement_id'):
+            # Try to create an announcement first
+            if not self.test_announcement_creation():
+                self.log_result(
+                    "Get Announcement by ID", 
+                    "SKIP", 
+                    "No announcement ID available for testing",
+                    "Announcement creation required first"
+                )
+                return False
+        
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Get Announcement by ID", 
+                "SKIP", 
+                "No admin token available",
+                "Authentication required"
+            )
+            return False
+        
+        try:
+            announcement_id = getattr(self, 'test_announcement_id', None)
+            if not announcement_id:
+                return False
+            
+            # Test 1: Get announcement and check view count increment
+            response1 = requests.get(
+                f"{BACKEND_URL}/announcements/{announcement_id}",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            if response1.status_code == 200:
+                data1 = response1.json()
+                initial_view_count = data1.get('viewCount', 0)
+                
+                # Test 2: Get same announcement again to verify view count increment
+                response2 = requests.get(
+                    f"{BACKEND_URL}/announcements/{announcement_id}",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+                )
+                
+                if response2.status_code == 200:
+                    data2 = response2.json()
+                    new_view_count = data2.get('viewCount', 0)
+                    
+                    if new_view_count > initial_view_count:
+                        self.log_result(
+                            "Get Announcement by ID", 
+                            "PASS", 
+                            f"Successfully retrieved announcement and incremented view count",
+                            f"View count: {initial_view_count} → {new_view_count}"
+                        )
+                        return True
+                    else:
+                        self.log_result(
+                            "Get Announcement by ID", 
+                            "FAIL", 
+                            "View count not incremented properly",
+                            f"View count remained: {initial_view_count}"
+                        )
+                else:
+                    self.log_result(
+                        "Get Announcement by ID", 
+                        "FAIL", 
+                        f"Second request failed with status {response2.status_code}",
+                        f"Response: {response2.text}"
+                    )
+            elif response1.status_code == 404:
+                self.log_result(
+                    "Get Announcement by ID", 
+                    "FAIL", 
+                    "Announcement not found",
+                    f"Announcement ID {announcement_id} should exist"
+                )
+            else:
+                self.log_result(
+                    "Get Announcement by ID", 
+                    "FAIL", 
+                    f"Failed to get announcement with status {response1.status_code}",
+                    f"Response: {response1.text}"
+                )
+            
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Get Announcement by ID", 
+                "FAIL", 
+                "Failed to test get announcement by ID",
+                str(e)
+            )
+        return False
+    
+    def test_get_my_announcements(self):
+        """Test GET /api/announcements/my-announcements - Get announcements created by current user"""
+        if "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Get My Announcements", 
+                "SKIP", 
+                "No instructor token available",
+                "Instructor authentication required"
+            )
+            return False
+        
+        try:
+            response = requests.get(
+                f"{BACKEND_URL}/announcements/my-announcements",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["instructor"]}'}
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                if isinstance(data, list):
+                    self.log_result(
+                        "Get My Announcements", 
+                        "PASS", 
+                        f"Successfully retrieved {len(data)} announcements created by instructor",
+                        f"Role-based filtering working correctly"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Get My Announcements", 
+                        "FAIL", 
+                        "Response is not a list",
+                        f"Response type: {type(data)}"
+                    )
+            elif response.status_code == 403:
+                self.log_result(
+                    "Get My Announcements", 
+                    "FAIL", 
+                    "Access denied for instructor role",
+                    "Instructors should be able to view their announcements"
+                )
+            else:
+                self.log_result(
+                    "Get My Announcements", 
+                    "FAIL", 
+                    f"Failed to get my announcements with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+            
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Get My Announcements", 
+                "FAIL", 
+                "Failed to test get my announcements",
+                str(e)
+            )
+        return False
+    
+    def test_update_announcement(self):
+        """Test PUT /api/announcements/{announcement_id} - Update announcement (author/admin permissions)"""
+        if not hasattr(self, 'test_announcement_id'):
+            if not self.test_announcement_creation():
+                self.log_result(
+                    "Update Announcement", 
+                    "SKIP", 
+                    "No announcement ID available for testing",
+                    "Announcement creation required first"
+                )
+                return False
+        
+        if "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Update Announcement", 
+                "SKIP", 
+                "No instructor token available",
+                "Authentication required"
+            )
+            return False
+        
+        try:
+            announcement_id = getattr(self, 'test_announcement_id', None)
+            if not announcement_id:
+                return False
+            
+            update_data = {
+                "title": "Updated System Maintenance Notice",
+                "content": "UPDATED: The learning platform maintenance has been rescheduled to Sunday from 3 AM to 5 AM EST.",
+                "priority": "urgent"
+            }
+            
+            response = requests.put(
+                f"{BACKEND_URL}/announcements/{announcement_id}",
+                json=update_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                if (data['title'] == update_data['title'] and 
+                    data['content'] == update_data['content'] and 
+                    data['priority'] == update_data['priority']):
+                    self.log_result(
+                        "Update Announcement", 
+                        "PASS", 
+                        "Successfully updated announcement by author",
+                        f"Updated title: {data['title']}, Priority: {data['priority']}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Update Announcement", 
+                        "FAIL", 
+                        "Update response doesn't reflect changes",
+                        f"Expected updates not found in response"
+                    )
+            elif response.status_code == 403:
+                self.log_result(
+                    "Update Announcement", 
+                    "FAIL", 
+                    "Access denied for announcement author",
+                    "Authors should be able to update their own announcements"
+                )
+            else:
+                self.log_result(
+                    "Update Announcement", 
+                    "FAIL", 
+                    f"Failed to update announcement with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+            
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Update Announcement", 
+                "FAIL", 
+                "Failed to test update announcement",
+                str(e)
+            )
+        return False
+    
+    def test_delete_announcement(self):
+        """Test DELETE /api/announcements/{announcement_id} - Delete announcement (author/admin permissions)"""
+        # Create a new announcement specifically for deletion test
+        if "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Delete Announcement", 
+                "SKIP", 
+                "No instructor token available",
+                "Authentication required"
+            )
+            return False
+        
+        try:
+            # Create announcement for deletion
+            delete_test_data = {
+                "title": "Test Announcement for Deletion",
+                "content": "This announcement will be deleted as part of testing.",
+                "type": "general",
+                "targetAudience": "all",
+                "priority": "low"
+            }
+            
+            create_response = requests.post(
+                f"{BACKEND_URL}/announcements",
+                json=delete_test_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if create_response.status_code != 200:
+                self.log_result(
+                    "Delete Announcement", 
+                    "FAIL", 
+                    "Failed to create announcement for deletion test",
+                    f"Create status: {create_response.status_code}"
+                )
+                return False
+            
+            announcement_id = create_response.json()['id']
+            
+            # Delete the announcement
+            delete_response = requests.delete(
+                f"{BACKEND_URL}/announcements/{announcement_id}",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["instructor"]}'}
+            )
+            
+            if delete_response.status_code == 200:
+                delete_data = delete_response.json()
+                
+                # Verify announcement is soft deleted (not in active list)
+                get_response = requests.get(
+                    f"{BACKEND_URL}/announcements",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {self.auth_tokens["instructor"]}'}
+                )
+                
+                if get_response.status_code == 200:
+                    announcements = get_response.json()
+                    deleted_found = any(a['id'] == announcement_id for a in announcements)
+                    
+                    if not deleted_found:
+                        self.log_result(
+                            "Delete Announcement", 
+                            "PASS", 
+                            "Successfully deleted announcement (soft delete)",
+                            f"Announcement removed from active list: {delete_data.get('message')}"
+                        )
+                        return True
+                    else:
+                        self.log_result(
+                            "Delete Announcement", 
+                            "FAIL", 
+                            "Deleted announcement still appears in active list",
+                            "Soft delete may not be working properly"
+                        )
+                else:
+                    self.log_result(
+                        "Delete Announcement", 
+                        "FAIL", 
+                        "Failed to verify deletion by getting announcements",
+                        f"Get announcements failed: {get_response.status_code}"
+                    )
+            else:
+                self.log_result(
+                    "Delete Announcement", 
+                    "FAIL", 
+                    f"Failed to delete announcement with status {delete_response.status_code}",
+                    f"Response: {delete_response.text}"
+                )
+            
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Delete Announcement", 
+                "FAIL", 
+                "Failed to test delete announcement",
+                str(e)
+            )
+        return False
+    
+    def test_pin_announcement(self):
+        """Test PUT /api/announcements/{announcement_id}/pin - Pin/unpin announcements (admin only)"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Pin Announcement", 
+                "SKIP", 
+                "No admin token available",
+                "Admin authentication required for pinning"
+            )
+            return False
+        
+        if not hasattr(self, 'test_announcement_id'):
+            if not self.test_announcement_creation():
+                self.log_result(
+                    "Pin Announcement", 
+                    "SKIP", 
+                    "No announcement ID available for testing",
+                    "Announcement creation required first"
+                )
+                return False
+        
+        try:
+            announcement_id = getattr(self, 'test_announcement_id', None)
+            if not announcement_id:
+                return False
+            
+            # Test pinning announcement
+            pin_response = requests.put(
+                f"{BACKEND_URL}/announcements/{announcement_id}/pin",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            if pin_response.status_code == 200:
+                pin_data = pin_response.json()
+                
+                # Verify announcement is pinned by getting it
+                get_response = requests.get(
+                    f"{BACKEND_URL}/announcements/{announcement_id}",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+                )
+                
+                if get_response.status_code == 200:
+                    announcement_data = get_response.json()
+                    if announcement_data.get('isPinned'):
+                        self.log_result(
+                            "Pin Announcement", 
+                            "PASS", 
+                            "Successfully pinned announcement (admin only)",
+                            f"Pin status: {pin_data.get('message')}"
+                        )
+                        return True
+                    else:
+                        self.log_result(
+                            "Pin Announcement", 
+                            "FAIL", 
+                            "Announcement not marked as pinned after pin request",
+                            f"isPinned: {announcement_data.get('isPinned')}"
+                        )
+                else:
+                    self.log_result(
+                        "Pin Announcement", 
+                        "FAIL", 
+                        "Failed to verify pin status",
+                        f"Get announcement failed: {get_response.status_code}"
+                    )
+            elif pin_response.status_code == 403:
+                self.log_result(
+                    "Pin Announcement", 
+                    "FAIL", 
+                    "Admin access denied for pinning",
+                    "Admins should be able to pin announcements"
+                )
+            else:
+                self.log_result(
+                    "Pin Announcement", 
+                    "FAIL", 
+                    f"Failed to pin announcement with status {pin_response.status_code}",
+                    f"Response: {pin_response.text}"
+                )
+            
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Pin Announcement", 
+                "FAIL", 
+                "Failed to test pin announcement",
+                str(e)
+            )
+        return False
+    
+    def test_announcement_role_based_filtering(self):
+        """Test role-based filtering for announcements"""
+        if "learner" not in self.auth_tokens or "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Announcement Role-Based Filtering", 
+                "SKIP", 
+                "Need both learner and instructor tokens",
+                "Multiple role authentication required"
+            )
+            return False
+        
+        try:
+            # Test learner access - should see announcements targeted to learners and all
+            learner_response = requests.get(
+                f"{BACKEND_URL}/announcements",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["learner"]}'}
+            )
+            
+            # Test instructor access - should see more announcements including their own
+            instructor_response = requests.get(
+                f"{BACKEND_URL}/announcements",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["instructor"]}'}
+            )
+            
+            if learner_response.status_code == 200 and instructor_response.status_code == 200:
+                learner_announcements = learner_response.json()
+                instructor_announcements = instructor_response.json()
+                
+                # Verify role-based filtering
+                learner_valid = all(
+                    a['targetAudience'] in ['all', 'learners'] 
+                    for a in learner_announcements
+                )
+                
+                if learner_valid:
+                    self.log_result(
+                        "Announcement Role-Based Filtering", 
+                        "PASS", 
+                        f"Role-based filtering working correctly",
+                        f"Learner sees {len(learner_announcements)} announcements, Instructor sees {len(instructor_announcements)}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Announcement Role-Based Filtering", 
+                        "FAIL", 
+                        "Learner seeing announcements not targeted to them",
+                        "Role-based filtering not working properly"
+                    )
+            else:
+                self.log_result(
+                    "Announcement Role-Based Filtering", 
+                    "FAIL", 
+                    f"Failed to get announcements for role comparison",
+                    f"Learner: {learner_response.status_code}, Instructor: {instructor_response.status_code}"
+                )
+            
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Announcement Role-Based Filtering", 
+                "FAIL", 
+                "Failed to test role-based filtering",
+                str(e)
+            )
+        return False
+    
+    def test_announcement_business_logic(self):
+        """Test announcement business logic (expiration, validation, etc.)"""
+        if "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Announcement Business Logic", 
+                "SKIP", 
+                "No instructor token available",
+                "Authentication required"
+            )
+            return False
+        
+        try:
+            # Test 1: Create announcement with expiration date in the past (should not appear in active list)
+            expired_announcement_data = {
+                "title": "Expired Announcement Test",
+                "content": "This announcement should not appear in active list due to expiration.",
+                "type": "general",
+                "targetAudience": "all",
+                "priority": "normal",
+                "expiresAt": "2020-01-01T00:00:00Z"  # Past date
+            }
+            
+            create_response = requests.post(
+                f"{BACKEND_URL}/announcements",
+                json=expired_announcement_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if create_response.status_code == 200:
+                expired_id = create_response.json()['id']
+                
+                # Get all announcements - expired one should not appear
+                get_response = requests.get(
+                    f"{BACKEND_URL}/announcements",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {self.auth_tokens["instructor"]}'}
+                )
+                
+                if get_response.status_code == 200:
+                    announcements = get_response.json()
+                    expired_found = any(a['id'] == expired_id for a in announcements)
+                    
+                    if not expired_found:
+                        self.log_result(
+                            "Announcement Business Logic - Expiration", 
+                            "PASS", 
+                            "Expired announcements correctly filtered out",
+                            "Expiration date business logic working"
+                        )
+                    else:
+                        self.log_result(
+                            "Announcement Business Logic - Expiration", 
+                            "FAIL", 
+                            "Expired announcement still appears in active list",
+                            "Expiration filtering not working"
+                        )
+                
+                # Test 2: Validate course-specific announcement with invalid course ID
+                invalid_course_data = {
+                    "title": "Invalid Course Test",
+                    "content": "This should fail due to invalid course ID.",
+                    "type": "course",
+                    "courseId": "invalid-course-id-12345",
+                    "targetAudience": "learners",
+                    "priority": "normal"
+                }
+                
+                invalid_response = requests.post(
+                    f"{BACKEND_URL}/announcements",
+                    json=invalid_course_data,
+                    timeout=TEST_TIMEOUT,
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                    }
+                )
+                
+                if invalid_response.status_code == 400:
+                    self.log_result(
+                        "Announcement Business Logic - Course Validation", 
+                        "PASS", 
+                        "Invalid course ID correctly rejected",
+                        "Course validation working properly"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Announcement Business Logic - Course Validation", 
+                        "FAIL", 
+                        f"Should reject invalid course ID but got status {invalid_response.status_code}",
+                        f"Response: {invalid_response.text}"
+                    )
+            
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Announcement Business Logic", 
+                "FAIL", 
+                "Failed to test announcement business logic",
+                str(e)
+            )
+        return False
+    
+    def test_certificate_creation(self):
+        """Test POST /api/certificates - Create certificates (instructor/admin only)"""
+        if "instructor" not in self.auth_tokens and "admin" not in self.auth_tokens:
+            self.log_result(
+                "Certificate Creation", 
+                "SKIP", 
+                "No instructor or admin token available",
+                "Authentication required for certificate creation"
+            )
+            return False
+        
+        # Use instructor token if available, otherwise admin
+        token = self.auth_tokens.get("instructor") or self.auth_tokens.get("admin")
+        role = "instructor" if "instructor" in self.auth_tokens else "admin"
+        
+        try:
+            # Get available students, courses, and programs
+            users_response = requests.get(
+                f"{BACKEND_URL}/auth/admin/users",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens.get("admin", token)}'}
+            )
+            
+            courses_response = requests.get(
+                f"{BACKEND_URL}/courses",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {token}'}
+            )
+            
+            student_id = None
+            course_id = None
+            
+            if users_response.status_code == 200:
+                users = users_response.json()
+                for user in users:
+                    if user['role'] == 'learner':
+                        student_id = user['id']
+                        break
+            
+            if courses_response.status_code == 200:
+                courses = courses_response.json()
+                if courses:
+                    course_id = courses[0]['id']
+            
+            if not student_id:
+                self.log_result(
+                    "Certificate Creation", 
+                    "SKIP", 
+                    "No learner found for certificate creation",
+                    "Need at least one learner user"
+                )
+                return False
+            
+            if not course_id:
+                self.log_result(
+                    "Certificate Creation", 
+                    "SKIP", 
+                    "No course found for certificate creation",
+                    "Need at least one course"
+                )
+                return False
+            
+            # First, create an enrollment for the student in the course
+            enrollment_data = {
+                "courseId": course_id
+            }
+            
+            # Use learner token to create enrollment
+            if "learner" in self.auth_tokens:
+                enrollment_response = requests.post(
+                    f"{BACKEND_URL}/enrollments",
+                    json=enrollment_data,
+                    timeout=TEST_TIMEOUT,
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Authorization': f'Bearer {self.auth_tokens["learner"]}'
+                    }
+                )
+            
+            # Test certificate creation
+            certificate_data = {
+                "studentId": student_id,
+                "courseId": course_id,
+                "type": "completion",
+                "template": "default"
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/certificates",
+                json=certificate_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {token}'
+                }
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                required_fields = ['id', 'certificateNumber', 'studentId', 'studentName', 'studentEmail', 'courseId', 'courseName', 'type', 'status', 'issueDate', 'issuedBy', 'issuedByName', 'verificationCode']
+                
+                if all(field in data for field in required_fields):
+                    # Verify certificate number format and uniqueness
+                    cert_number = data['certificateNumber']
+                    verification_code = data['verificationCode']
+                    
+                    if (cert_number.startswith('CERT-') and 
+                        len(verification_code) == 12 and 
+                        data['status'] == 'generated' and
+                        data['studentId'] == student_id and
+                        data['courseId'] == course_id):
+                        
+                        self.log_result(
+                            "Certificate Creation", 
+                            "PASS", 
+                            f"Successfully created certificate with {role} role",
+                            f"Certificate Number: {cert_number}, Verification Code: {verification_code}, Student: {data['studentName']}"
+                        )
+                        
+                        # Store certificate ID for later tests
+                        self.test_certificate_id = data['id']
+                        self.test_verification_code = verification_code
+                        return True
+                    else:
+                        self.log_result(
+                            "Certificate Creation", 
+                            "FAIL", 
+                            "Certificate data format or values incorrect",
+                            f"Certificate number: {cert_number}, Status: {data['status']}"
+                        )
+                else:
+                    self.log_result(
+                        "Certificate Creation", 
+                        "FAIL", 
+                        "Response missing required fields",
+                        f"Missing: {[f for f in required_fields if f not in data]}"
+                    )
+            elif response.status_code == 400:
+                # Check if it's due to missing enrollment
+                if "enrolled" in response.text.lower():
+                    self.log_result(
+                        "Certificate Creation - Enrollment Validation", 
+                        "PASS", 
+                        "Correctly requires student enrollment before certificate creation",
+                        "Business logic validation working"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Certificate Creation", 
+                        "FAIL", 
+                        f"Certificate creation failed with validation error: {response.status_code}",
+                        f"Response: {response.text}"
+                    )
+            else:
+                self.log_result(
+                    "Certificate Creation", 
+                    "FAIL", 
+                    f"Failed to create certificate with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+            
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Certificate Creation", 
+                "FAIL", 
+                "Failed to test certificate creation",
+                str(e)
+            )
+        return False
+    
+    def test_get_all_certificates(self):
+        """Test GET /api/certificates - Retrieve with role-based access and filtering"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Get All Certificates", 
+                "SKIP", 
+                "No admin token available",
+                "Authentication required"
+            )
+            return False
+        
+        try:
+            # Test 1: Get all certificates as admin
+            response = requests.get(
+                f"{BACKEND_URL}/certificates",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                if isinstance(data, list):
+                    self.log_result(
+                        "Get All Certificates - Admin Access", 
+                        "PASS", 
+                        f"Successfully retrieved {len(data)} certificates as admin",
+                        "Admin can see all certificates"
+                    )
+                else:
+                    self.log_result(
+                        "Get All Certificates - Admin Access", 
+                        "FAIL", 
+                        "Response is not a list",
+                        f"Response type: {type(data)}"
+                    )
+                    return False
+            else:
+                self.log_result(
+                    "Get All Certificates - Admin Access", 
+                    "FAIL", 
+                    f"Failed to get certificates with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+                return False
+            
+            # Test 2: Get certificates with status filter
+            response = requests.get(
+                f"{BACKEND_URL}/certificates?status=generated",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            if response.status_code == 200:
+                filtered_data = response.json()
+                generated_certificates = [c for c in filtered_data if c['status'] == 'generated']
+                if len(generated_certificates) == len(filtered_data):
+                    self.log_result(
+                        "Get All Certificates - Status Filter", 
+                        "PASS", 
+                        f"Status filter working correctly - {len(filtered_data)} generated certificates",
+                        "Query parameter filtering functional"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Get All Certificates - Status Filter", 
+                        "FAIL", 
+                        "Status filter not working correctly",
+                        f"Expected all generated, got mixed statuses"
+                    )
+            
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Get All Certificates", 
+                "FAIL", 
+                "Failed to test get all certificates",
+                str(e)
+            )
+        return False
+    
+    def test_get_certificate_by_id(self):
+        """Test GET /api/certificates/{certificate_id} - Get specific certificate"""
+        if not hasattr(self, 'test_certificate_id'):
+            if not self.test_certificate_creation():
+                self.log_result(
+                    "Get Certificate by ID", 
+                    "SKIP", 
+                    "No certificate ID available for testing",
+                    "Certificate creation required first"
+                )
+                return False
+        
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Get Certificate by ID", 
+                "SKIP", 
+                "No admin token available",
+                "Authentication required"
+            )
+            return False
+        
+        try:
+            certificate_id = getattr(self, 'test_certificate_id', None)
+            if not certificate_id:
+                return False
+            
+            response = requests.get(
+                f"{BACKEND_URL}/certificates/{certificate_id}",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data['id'] == certificate_id:
+                    self.log_result(
+                        "Get Certificate by ID", 
+                        "PASS", 
+                        f"Successfully retrieved certificate by ID",
+                        f"Certificate: {data['certificateNumber']}, Student: {data['studentName']}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Get Certificate by ID", 
+                        "FAIL", 
+                        "Retrieved certificate has wrong ID",
+                        f"Expected: {certificate_id}, Got: {data['id']}"
+                    )
+            elif response.status_code == 404:
+                self.log_result(
+                    "Get Certificate by ID", 
+                    "FAIL", 
+                    "Certificate not found",
+                    f"Certificate ID {certificate_id} should exist"
+                )
+            else:
+                self.log_result(
+                    "Get Certificate by ID", 
+                    "FAIL", 
+                    f"Failed to get certificate with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+            
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Get Certificate by ID", 
+                "FAIL", 
+                "Failed to test get certificate by ID",
+                str(e)
+            )
+        return False
+    
+    def test_get_my_certificates(self):
+        """Test GET /api/certificates/my-certificates - Get certificates for current learner"""
+        if "learner" not in self.auth_tokens:
+            self.log_result(
+                "Get My Certificates", 
+                "SKIP", 
+                "No learner token available",
+                "Learner authentication required"
+            )
+            return False
+        
+        try:
+            response = requests.get(
+                f"{BACKEND_URL}/certificates/my-certificates",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["learner"]}'}
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                if isinstance(data, list):
+                    self.log_result(
+                        "Get My Certificates", 
+                        "PASS", 
+                        f"Successfully retrieved {len(data)} certificates for learner",
+                        "Role-based access control working correctly"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Get My Certificates", 
+                        "FAIL", 
+                        "Response is not a list",
+                        f"Response type: {type(data)}"
+                    )
+            elif response.status_code == 403:
+                self.log_result(
+                    "Get My Certificates", 
+                    "FAIL", 
+                    "Access denied for learner role",
+                    "Learners should be able to view their certificates"
+                )
+            else:
+                self.log_result(
+                    "Get My Certificates", 
+                    "FAIL", 
+                    f"Failed to get my certificates with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+            
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Get My Certificates", 
+                "FAIL", 
+                "Failed to test get my certificates",
+                str(e)
+            )
+        return False
+    
+    def test_certificate_verification(self):
+        """Test GET /api/certificates/verify/{verification_code} - Public certificate verification"""
+        if not hasattr(self, 'test_verification_code'):
+            if not self.test_certificate_creation():
+                self.log_result(
+                    "Certificate Verification", 
+                    "SKIP", 
+                    "No verification code available for testing",
+                    "Certificate creation required first"
+                )
+                return False
+        
+        try:
+            verification_code = getattr(self, 'test_verification_code', None)
+            if not verification_code:
+                return False
+            
+            # Test valid verification code (public endpoint - no auth required)
+            response = requests.get(
+                f"{BACKEND_URL}/certificates/verify/{verification_code}",
+                timeout=TEST_TIMEOUT
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                required_fields = ['isValid', 'certificate', 'message']
+                
+                if all(field in data for field in required_fields):
+                    if data['isValid'] and data['certificate']:
+                        self.log_result(
+                            "Certificate Verification - Valid Code", 
+                            "PASS", 
+                            f"Successfully verified certificate",
+                            f"Message: {data['message']}, Certificate: {data['certificate']['certificateNumber']}"
+                        )
+                    else:
+                        self.log_result(
+                            "Certificate Verification - Valid Code", 
+                            "FAIL", 
+                            "Valid certificate marked as invalid",
+                            f"isValid: {data['isValid']}, Message: {data['message']}"
+                        )
+                else:
+                    self.log_result(
+                        "Certificate Verification - Valid Code", 
+                        "FAIL", 
+                        "Response missing required fields",
+                        f"Missing: {[f for f in required_fields if f not in data]}"
+                    )
+            else:
+                self.log_result(
+                    "Certificate Verification - Valid Code", 
+                    "FAIL", 
+                    f"Failed to verify certificate with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+            
+            # Test invalid verification code
+            invalid_response = requests.get(
+                f"{BACKEND_URL}/certificates/verify/INVALID123456",
+                timeout=TEST_TIMEOUT
+            )
+            
+            if invalid_response.status_code == 200:
+                invalid_data = invalid_response.json()
+                if not invalid_data.get('isValid'):
+                    self.log_result(
+                        "Certificate Verification - Invalid Code", 
+                        "PASS", 
+                        "Correctly identified invalid verification code",
+                        f"Message: {invalid_data['message']}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Certificate Verification - Invalid Code", 
+                        "FAIL", 
+                        "Invalid code marked as valid",
+                        f"Should be invalid but got: {invalid_data}"
+                    )
+            
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Certificate Verification", 
+                "FAIL", 
+                "Failed to test certificate verification",
+                str(e)
+            )
+        return False
+    
+    def test_update_certificate(self):
+        """Test PUT /api/certificates/{certificate_id} - Update certificate status/details"""
+        if not hasattr(self, 'test_certificate_id'):
+            if not self.test_certificate_creation():
+                self.log_result(
+                    "Update Certificate", 
+                    "SKIP", 
+                    "No certificate ID available for testing",
+                    "Certificate creation required first"
+                )
+                return False
+        
+        if "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Update Certificate", 
+                "SKIP", 
+                "No instructor token available",
+                "Authentication required"
+            )
+            return False
+        
+        try:
+            certificate_id = getattr(self, 'test_certificate_id', None)
+            if not certificate_id:
+                return False
+            
+            update_data = {
+                "status": "downloaded",
+                "grade": "A+",
+                "score": 95.5,
+                "certificateUrl": "https://example.com/certificates/cert-12345.pdf"
+            }
+            
+            response = requests.put(
+                f"{BACKEND_URL}/certificates/{certificate_id}",
+                json=update_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                if (data['status'] == update_data['status'] and 
+                    data['grade'] == update_data['grade'] and 
+                    data['score'] == update_data['score'] and
+                    data['certificateUrl'] == update_data['certificateUrl']):
+                    self.log_result(
+                        "Update Certificate", 
+                        "PASS", 
+                        "Successfully updated certificate details",
+                        f"Status: {data['status']}, Grade: {data['grade']}, Score: {data['score']}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Update Certificate", 
+                        "FAIL", 
+                        "Update response doesn't reflect changes",
+                        f"Expected updates not found in response"
+                    )
+            else:
+                self.log_result(
+                    "Update Certificate", 
+                    "FAIL", 
+                    f"Failed to update certificate with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+            
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Update Certificate", 
+                "FAIL", 
+                "Failed to test update certificate",
+                str(e)
+            )
+        return False
+    
+    def test_revoke_certificate(self):
+        """Test DELETE /api/certificates/{certificate_id} - Revoke certificate (admin only)"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Revoke Certificate", 
+                "SKIP", 
+                "No admin token available",
+                "Admin authentication required for certificate revocation"
+            )
+            return False
+        
+        # Create a new certificate specifically for revocation test
+        if not self.test_certificate_creation():
+            self.log_result(
+                "Revoke Certificate", 
+                "SKIP", 
+                "Failed to create certificate for revocation test",
+                "Certificate creation required"
+            )
+            return False
+        
+        try:
+            certificate_id = getattr(self, 'test_certificate_id', None)
+            if not certificate_id:
+                return False
+            
+            # Revoke the certificate
+            response = requests.delete(
+                f"{BACKEND_URL}/certificates/{certificate_id}",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            if response.status_code == 200:
+                revoke_data = response.json()
+                
+                # Verify certificate is revoked by getting it
+                get_response = requests.get(
+                    f"{BACKEND_URL}/certificates/{certificate_id}",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+                )
+                
+                if get_response.status_code == 200:
+                    certificate_data = get_response.json()
+                    if certificate_data.get('status') == 'revoked':
+                        self.log_result(
+                            "Revoke Certificate", 
+                            "PASS", 
+                            "Successfully revoked certificate (admin only)",
+                            f"Revocation message: {revoke_data.get('message')}"
+                        )
+                        return True
+                    else:
+                        self.log_result(
+                            "Revoke Certificate", 
+                            "FAIL", 
+                            "Certificate not marked as revoked after revocation",
+                            f"Status: {certificate_data.get('status')}"
+                        )
+                else:
+                    self.log_result(
+                        "Revoke Certificate", 
+                        "FAIL", 
+                        "Failed to verify revocation status",
+                        f"Get certificate failed: {get_response.status_code}"
+                    )
+            else:
+                self.log_result(
+                    "Revoke Certificate", 
+                    "FAIL", 
+                    f"Failed to revoke certificate with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+            
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Revoke Certificate", 
+                "FAIL", 
+                "Failed to test revoke certificate",
+                str(e)
+            )
+        return False
+    
+    def test_certificate_business_logic(self):
+        """Test certificate business logic (uniqueness, number generation, etc.)"""
+        if "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Certificate Business Logic", 
+                "SKIP", 
+                "No instructor token available",
+                "Authentication required"
+            )
+            return False
+        
+        try:
+            # Get student and course for testing
+            users_response = requests.get(
+                f"{BACKEND_URL}/auth/admin/users",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens.get("admin", self.auth_tokens["instructor"])}'}
+            )
+            
+            courses_response = requests.get(
+                f"{BACKEND_URL}/courses",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["instructor"]}'}
+            )
+            
+            student_id = None
+            course_id = None
+            
+            if users_response.status_code == 200:
+                users = users_response.json()
+                for user in users:
+                    if user['role'] == 'learner':
+                        student_id = user['id']
+                        break
+            
+            if courses_response.status_code == 200:
+                courses = courses_response.json()
+                if courses:
+                    course_id = courses[0]['id']
+            
+            if not student_id or not course_id:
+                self.log_result(
+                    "Certificate Business Logic", 
+                    "SKIP", 
+                    "Missing student or course for business logic test",
+                    "Need student and course for testing"
+                )
+                return False
+            
+            # Test 1: Certificate number uniqueness and format
+            certificate_data = {
+                "studentId": student_id,
+                "courseId": course_id,
+                "type": "completion",
+                "template": "default"
+            }
+            
+            response1 = requests.post(
+                f"{BACKEND_URL}/certificates",
+                json=certificate_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if response1.status_code == 200:
+                cert1 = response1.json()
+                cert_number1 = cert1['certificateNumber']
+                verification_code1 = cert1['verificationCode']
+                
+                # Verify certificate number format (CERT-YYYY-XXXXXXXX)
+                if (cert_number1.startswith('CERT-2024-') and 
+                    len(cert_number1) == 18 and  # CERT-2024-XXXXXXXX
+                    len(verification_code1) == 12):
+                    
+                    self.log_result(
+                        "Certificate Business Logic - Number Generation", 
+                        "PASS", 
+                        "Certificate number and verification code generated correctly",
+                        f"Number: {cert_number1}, Verification: {verification_code1}"
+                    )
+                else:
+                    self.log_result(
+                        "Certificate Business Logic - Number Generation", 
+                        "FAIL", 
+                        "Certificate number or verification code format incorrect",
+                        f"Number: {cert_number1}, Verification: {verification_code1}"
+                    )
+                
+                # Test 2: Duplicate certificate prevention
+                response2 = requests.post(
+                    f"{BACKEND_URL}/certificates",
+                    json=certificate_data,  # Same data
+                    timeout=TEST_TIMEOUT,
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                    }
+                )
+                
+                if response2.status_code == 400:
+                    if "already exists" in response2.text.lower():
+                        self.log_result(
+                            "Certificate Business Logic - Duplicate Prevention", 
+                            "PASS", 
+                            "Correctly prevented duplicate certificate creation",
+                            "Business logic validation working"
+                        )
+                        return True
+                    else:
+                        self.log_result(
+                            "Certificate Business Logic - Duplicate Prevention", 
+                            "FAIL", 
+                            "Got 400 status but not for duplicate reason",
+                            f"Response: {response2.text}"
+                        )
+                else:
+                    self.log_result(
+                        "Certificate Business Logic - Duplicate Prevention", 
+                        "FAIL", 
+                        f"Should prevent duplicate certificate but got status {response2.status_code}",
+                        f"Response: {response2.text}"
+                    )
+            
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Certificate Business Logic", 
+                "FAIL", 
+                "Failed to test certificate business logic",
+                str(e)
+            )
+        return False
+    
+    def test_certificate_enrollment_validation(self):
+        """Test certificate creation requires valid enrollment"""
+        if "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Certificate Enrollment Validation", 
+                "SKIP", 
+                "No instructor token available",
+                "Authentication required"
+            )
+            return False
+        
+        try:
+            # Get student and course
+            users_response = requests.get(
+                f"{BACKEND_URL}/auth/admin/users",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens.get("admin", self.auth_tokens["instructor"])}'}
+            )
+            
+            courses_response = requests.get(
+                f"{BACKEND_URL}/courses",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["instructor"]}'}
+            )
+            
+            student_id = None
+            course_id = None
+            
+            if users_response.status_code == 200:
+                users = users_response.json()
+                for user in users:
+                    if user['role'] == 'learner':
+                        student_id = user['id']
+                        break
+            
+            if courses_response.status_code == 200:
+                courses = courses_response.json()
+                if len(courses) > 1:  # Get a different course to ensure no enrollment
+                    course_id = courses[1]['id']
+                elif courses:
+                    course_id = courses[0]['id']
+            
+            if not student_id or not course_id:
+                self.log_result(
+                    "Certificate Enrollment Validation", 
+                    "SKIP", 
+                    "Missing student or course for enrollment validation test",
+                    "Need student and course for testing"
+                )
+                return False
+            
+            # Try to create certificate without enrollment
+            certificate_data = {
+                "studentId": student_id,
+                "courseId": course_id,
+                "type": "completion",
+                "template": "default"
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/certificates",
+                json=certificate_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if response.status_code == 400:
+                if "enrolled" in response.text.lower():
+                    self.log_result(
+                        "Certificate Enrollment Validation", 
+                        "PASS", 
+                        "Correctly requires student enrollment before certificate creation",
+                        "Enrollment validation working properly"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Certificate Enrollment Validation", 
+                        "FAIL", 
+                        "Got 400 status but not for enrollment reason",
+                        f"Response: {response.text}"
+                    )
+            elif response.status_code == 200:
+                self.log_result(
+                    "Certificate Enrollment Validation", 
+                    "FAIL", 
+                    "Certificate created without enrollment validation",
+                    "Should require enrollment before certificate creation"
+                )
+            else:
+                self.log_result(
+                    "Certificate Enrollment Validation", 
+                    "FAIL", 
+                    f"Unexpected status code: {response.status_code}",
+                    f"Response: {response.text}"
+                )
+            
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Certificate Enrollment Validation", 
+                "FAIL", 
+                "Failed to test certificate enrollment validation",
+                str(e)
+            )
+        return False
     
     # =============================================================================
     # CLASSROOM MANAGEMENT API TESTS
