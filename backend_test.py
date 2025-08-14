@@ -6664,10 +6664,10 @@ class BackendTester:
         """PRIORITY 1: Verify JWT token creation and validation after JWT_SECRET_KEY fix"""
         print("🔐 Testing authentication with instructor/admin credentials...")
         
-        # Test credentials from review request
+        # Test credentials from review request (updated with correct credentials)
         test_credentials = [
-            {"username": "instructor", "password": "Instructor123!", "role": "instructor"},
-            {"username": "admin", "password": "Admin123!", "role": "admin"},
+            {"username": "test.instructor", "password": "Instructor123!", "role": "instructor"},
+            {"username": "admin", "password": "NewAdmin123!", "role": "admin"},
             {"username": "student", "password": "Student123!", "role": "learner"}
         ]
         
