@@ -405,9 +405,10 @@ const Courses = () => {
                           <Button 
                             variant="outline" 
                             className="flex-1"
-                            onClick={() => handleViewCourse(course.id)}
+                            onClick={() => handlePreviewCourse(course.id)}
                           >
-                            View Details
+                            <Eye className="w-4 h-4 mr-2" />
+                            Preview
                           </Button>
                           <Button 
                             className="flex-1 bg-blue-600 hover:bg-blue-700"
