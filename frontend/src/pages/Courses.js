@@ -21,7 +21,9 @@ const Courses = () => {
   const [loading, setLoading] = useState(true);
   const [enrollments, setEnrollments] = useState([]);
 
-  const enrolledCourses = isLearner ? getEnrolledCourses(user?.id) : [];
+  // TODO: Replace with backend enrollment data when enrollment APIs are fully implemented
+  // For now, using mock data as fallback for enrolled courses display
+  const enrolledCourses = [];  // Replace with backend call when ready
   const enrolledCourseIds = enrolledCourses.map(course => course.id);
 
   // Load courses on component mount
