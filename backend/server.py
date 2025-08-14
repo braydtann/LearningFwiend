@@ -3296,7 +3296,7 @@ async def create_quiz(
     
     # Prepare response with questions
     quiz_response = QuizWithQuestionsResponse(**quiz_dict)
-    quiz_response.questions = [QuestionResponse(**q) for q in questions]
+    quiz_response.questions = [QuestionResponse(**q.dict()) for q in questions]
     
     return quiz_response
 
