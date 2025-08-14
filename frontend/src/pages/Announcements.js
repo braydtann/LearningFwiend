@@ -171,8 +171,8 @@ const Announcements = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="">General Announcement</SelectItem>
-                      {mockCourses.map(course => (
-                        <SelectItem key={course.id} value={course.id}>
+                      {courses.map(course => (
+                        <SelectItem key={course.id || course.courseId} value={course.id || course.courseId}>
                           {course.title}
                         </SelectItem>
                       ))}
