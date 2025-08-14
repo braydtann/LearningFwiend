@@ -90,7 +90,7 @@ const Announcements = () => {
       const announcementData = {
         title: newAnnouncement.title,
         message: newAnnouncement.message,
-        courseId: newAnnouncement.courseId || null
+        courseId: newAnnouncement.courseId === 'general' ? null : newAnnouncement.courseId
       };
 
       const result = await createAnnouncement(announcementData);
