@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
@@ -27,11 +27,48 @@ import { useToast } from '../hooks/use-toast';
 const CourseDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user, isLearner } = useAuth();
+  const { user, isLearner, getCourseById } = useAuth();
   const { toast } = useToast();
   const [selectedLesson, setSelectedLesson] = useState(null);
+  const [course, setCourse] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const course = mockCourses.find(c => c.id === id);
+  // Load course data from backend
+  useEffect(() => {
+    loadCourse();
+  }, [id]);
+
+  const loadCourse = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const result = await getCourseById(id);
+      if (result.success) {
+        setCourse(result.course);
+      } else {
+        // Fallback to mock data for existing courses
+        const mockCourse = mockCourses.find(c => c.id === id);
+        if (mockCourse) {
+          setCourse(mockCourse);
+        } else {
+          setError(result.error || 'Course not found');
+        }
+      }
+    } catch (error) {
+      console.error('Error loading course:', error);
+      // Fallback to mock data
+      const mockCourse = mockCourses.find(c => c.id === id);
+      if (mockCourse) {
+        setCourse(mockCourse);
+      } else {
+        setError('Failed to load course');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
   const enrolledCourses = isLearner ? getEnrolledCourses(user?.id) : [];
   const isEnrolled = enrolledCourses.some(c => c.id === id);
   const progress = isLearner ? getCourseProgress(user?.id, id) : 0;
