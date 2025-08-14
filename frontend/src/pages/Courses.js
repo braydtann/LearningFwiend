@@ -425,6 +425,18 @@ const Courses = () => {
           )}
         </CardContent>
       </Card>
+      
+      {/* Course Preview Modal */}
+      {previewCourse && (
+        <CoursePreview
+          isOpen={isPreviewOpen}
+          onClose={() => {
+            setIsPreviewOpen(false);
+            setPreviewCourse(null);
+          }}
+          courseData={previewCourse}
+        />
+      )}
     </div>
   );
 };
