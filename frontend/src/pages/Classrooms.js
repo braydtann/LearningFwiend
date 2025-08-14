@@ -154,8 +154,11 @@ const Classrooms = () => {
   };
 
   const classrooms = getClassroomsForUser();
-  // Use real users from backend, fallback to mock users
+  // Use real data from backend with fallbacks to mock data
   const allUsers = realUsers.length > 0 ? realUsers : mockUsers;
+  const allCourses = realCourses.length > 0 ? realCourses : mockCourses;
+  const allPrograms = realPrograms.length > 0 ? realPrograms : mockPrograms;
+  
   const instructors = allUsers.filter(u => u.role === 'instructor');
   const students = allUsers.filter(u => u.role === 'learner');
 
