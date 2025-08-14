@@ -323,7 +323,15 @@ const Courses = () => {
                         <Button
                           size="sm"
                           className="bg-white text-black hover:bg-gray-100"
-                          onClick={() => handleViewCourse(course.id)}
+                          onClick={() => {
+                            const isEnrolled = enrolledCourseIds.includes(course.id);
+                            const isOwner = course.instructor === user?.username;
+                            if (isOwner || isEnrolled) {
+                              handleViewCourse(course.id, 'view');
+                            } else {
+                              handlePreviewCourse(course.id);
+                            }
+                          }}
                         >
                           <Play className="w-4 h-4 mr-2" />
                           {isOwner ? 'Manage' : isEnrolled ? 'Continue' : 'Preview'}
