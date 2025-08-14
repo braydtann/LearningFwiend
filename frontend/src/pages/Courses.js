@@ -21,6 +21,10 @@ const Courses = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [enrollments, setEnrollments] = useState([]);
+  
+  // Preview functionality
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [previewCourse, setPreviewCourse] = useState(null);
 
   // TODO: Replace with backend enrollment data when enrollment APIs are fully implemented
   // For now, using mock data as fallback for enrolled courses display
