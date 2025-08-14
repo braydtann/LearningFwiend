@@ -3310,6 +3310,22 @@ class BackendTester:
         self.test_password_validation()
         
         print("\n" + "=" * 60)
+        print("🚨 CRITICAL PASSWORD CHANGE LOOP BUG INVESTIGATION")
+        print("=" * 60)
+        
+        # Critical Test 1: Check specific user status
+        self.test_check_specific_user_status()
+        
+        # Critical Test 2: Complete password change workflow
+        self.test_password_change_workflow_complete()
+        
+        # Critical Test 3: Database update verification
+        self.test_password_change_database_update_verification()
+        
+        # Critical Test 4: Detailed API testing
+        self.test_password_change_api_detailed()
+        
+        print("\n" + "=" * 60)
         print("🗑️  USER DELETION FUNCTIONALITY TESTS")
         print("=" * 60)
         
