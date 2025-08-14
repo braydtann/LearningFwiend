@@ -2060,6 +2060,574 @@ class BackendTester:
         
         return passed_validations > len(validation_results) * 0.8  # 80% pass rate
     
+    # =============================================================================
+    # COURSE MANAGEMENT API TESTS - CRITICAL FOR COURSEDETAIL FIX
+    # =============================================================================
+    
+    def test_course_creation_api(self):
+        """Test POST /api/courses - Create new course with proper authentication"""
+        if "admin" not in self.auth_tokens and "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Course API - POST Create Course", 
+                "SKIP", 
+                "No admin or instructor token available",
+                "Authentication required for course creation"
+            )
+            return False
+        
+        # Use instructor token if available, otherwise admin
+        token = self.auth_tokens.get("instructor") or self.auth_tokens.get("admin")
+        role = "instructor" if "instructor" in self.auth_tokens else "admin"
+        
+        # Test course data with realistic content
+        test_course_data = {
+            "title": "Advanced Web Development",
+            "description": "Learn modern web development with React, Node.js, and MongoDB",
+            "category": "Technology",
+            "duration": "8 weeks",
+            "thumbnailUrl": "https://example.com/thumbnail.jpg",
+            "accessType": "open",
+            "modules": [
+                {
+                    "title": "Introduction to React",
+                    "lessons": [
+                        {
+                            "id": "lesson-1",
+                            "title": "React Basics",
+                            "type": "video",
+                            "content": "https://youtube.com/watch?v=example"
+                        }
+                    ]
+                }
+            ]
+        }
+        
+        try:
+            response = requests.post(
+                f"{BACKEND_URL}/courses",
+                json=test_course_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {token}'
+                }
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                required_fields = ['id', 'title', 'description', 'category', 'instructorId', 'instructor', 'status', 'enrolledStudents', 'rating', 'created_at', 'updated_at']
+                
+                if all(field in data for field in required_fields):
+                    # Verify course data structure and UUIDs
+                    if (data.get('title') == test_course_data['title'] and
+                        data.get('description') == test_course_data['description'] and
+                        data.get('category') == test_course_data['category'] and
+                        data.get('status') == 'published' and
+                        data.get('enrolledStudents') == 0 and
+                        isinstance(data.get('id'), str) and len(data.get('id')) > 10):  # UUID check
+                        
+                        self.log_result(
+                            "Course API - POST Create Course", 
+                            "PASS", 
+                            f"Successfully created course '{data.get('title')}' with UUID",
+                            f"Course ID: {data.get('id')}, Instructor: {data.get('instructor')}, Status: {data.get('status')}"
+                        )
+                        return data  # Return created course for further testing
+                    else:
+                        self.log_result(
+                            "Course API - POST Create Course", 
+                            "FAIL", 
+                            "Created course data doesn't match expected values",
+                            f"Expected title: {test_course_data['title']}, Got: {data.get('title')}"
+                        )
+                else:
+                    self.log_result(
+                        "Course API - POST Create Course", 
+                        "FAIL", 
+                        "Response missing required backend fields",
+                        f"Missing: {[f for f in required_fields if f not in data]}"
+                    )
+            elif response.status_code == 403:
+                self.log_result(
+                    "Course API - POST Create Course", 
+                    "FAIL", 
+                    f"Access denied for {role} role - course creation should be allowed",
+                    f"Response: {response.text}"
+                )
+            else:
+                self.log_result(
+                    "Course API - POST Create Course", 
+                    "FAIL", 
+                    f"Course creation failed with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Course API - POST Create Course", 
+                "FAIL", 
+                "Failed to create new course",
+                str(e)
+            )
+        return False
+    
+    def test_get_all_courses_api(self):
+        """Test GET /api/courses - Get all published courses"""
+        if "admin" not in self.auth_tokens and "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Course API - GET All Courses", 
+                "SKIP", 
+                "No authentication token available",
+                "Authentication required for course access"
+            )
+            return False
+        
+        # Use any available token
+        token = self.auth_tokens.get("admin") or self.auth_tokens.get("instructor") or self.auth_tokens.get("learner")
+        
+        try:
+            response = requests.get(
+                f"{BACKEND_URL}/courses",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {token}'
+                }
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                if isinstance(data, list):
+                    self.log_result(
+                        "Course API - GET All Courses", 
+                        "PASS", 
+                        f"Successfully retrieved {len(data)} published courses",
+                        f"Courses found: {[c.get('title', 'No title') for c in data[:3]]}"  # Show first 3
+                    )
+                    return data
+                else:
+                    self.log_result(
+                        "Course API - GET All Courses", 
+                        "FAIL", 
+                        "Response is not a list",
+                        f"Response type: {type(data)}"
+                    )
+            else:
+                self.log_result(
+                    "Course API - GET All Courses", 
+                    "FAIL", 
+                    f"Request failed with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Course API - GET All Courses", 
+                "FAIL", 
+                "Failed to retrieve courses",
+                str(e)
+            )
+        return False
+    
+    def test_get_course_by_id_api(self, course_id=None):
+        """Test GET /api/courses/{course_id} - CRITICAL for CourseDetail page fix"""
+        if "admin" not in self.auth_tokens and "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Course API - GET Course by ID (CRITICAL)", 
+                "SKIP", 
+                "No authentication token available",
+                "Authentication required for course access"
+            )
+            return False
+        
+        # If no course_id provided, try to get one from existing courses
+        if not course_id:
+            courses = self.test_get_all_courses_api()
+            if courses and len(courses) > 0:
+                course_id = courses[0].get('id')
+            else:
+                # Try to create a course first
+                created_course = self.test_course_creation_api()
+                if created_course:
+                    course_id = created_course.get('id')
+                else:
+                    self.log_result(
+                        "Course API - GET Course by ID (CRITICAL)", 
+                        "SKIP", 
+                        "No course ID available for testing",
+                        "Need existing course or successful course creation"
+                    )
+                    return False
+        
+        token = self.auth_tokens.get("admin") or self.auth_tokens.get("instructor") or self.auth_tokens.get("learner")
+        
+        try:
+            response = requests.get(
+                f"{BACKEND_URL}/courses/{course_id}",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {token}'
+                }
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                required_fields = ['id', 'title', 'description', 'category', 'instructorId', 'instructor', 'status', 'modules']
+                
+                if all(field in data for field in required_fields):
+                    # Verify this is the correct course and data structure is consistent
+                    if (data.get('id') == course_id and
+                        isinstance(data.get('modules'), list) and
+                        data.get('status') == 'published'):
+                        
+                        self.log_result(
+                            "Course API - GET Course by ID (CRITICAL)", 
+                            "PASS", 
+                            f"Successfully retrieved course '{data.get('title')}' by ID",
+                            f"Course ID: {course_id}, Modules: {len(data.get('modules', []))}, Status: {data.get('status')}"
+                        )
+                        return data
+                    else:
+                        self.log_result(
+                            "Course API - GET Course by ID (CRITICAL)", 
+                            "FAIL", 
+                            "Retrieved course data inconsistent or incorrect ID",
+                            f"Expected ID: {course_id}, Got: {data.get('id')}"
+                        )
+                else:
+                    self.log_result(
+                        "Course API - GET Course by ID (CRITICAL)", 
+                        "FAIL", 
+                        "Response missing required fields for CourseDetail page",
+                        f"Missing: {[f for f in required_fields if f not in data]}"
+                    )
+            elif response.status_code == 404:
+                self.log_result(
+                    "Course API - GET Course by ID (CRITICAL)", 
+                    "FAIL", 
+                    f"Course not found - this causes 'no course found' in CourseDetail",
+                    f"Course ID: {course_id} returned 404"
+                )
+            else:
+                self.log_result(
+                    "Course API - GET Course by ID (CRITICAL)", 
+                    "FAIL", 
+                    f"Request failed with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Course API - GET Course by ID (CRITICAL)", 
+                "FAIL", 
+                "Failed to retrieve course by ID - CourseDetail will fail",
+                str(e)
+            )
+        return False
+    
+    def test_get_my_courses_api(self):
+        """Test GET /api/courses/my-courses - Get courses for instructors"""
+        if "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Course API - GET My Courses (Instructor)", 
+                "SKIP", 
+                "No instructor token available",
+                "Instructor authentication required for my-courses endpoint"
+            )
+            return False
+        
+        try:
+            response = requests.get(
+                f"{BACKEND_URL}/courses/my-courses",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                if isinstance(data, list):
+                    self.log_result(
+                        "Course API - GET My Courses (Instructor)", 
+                        "PASS", 
+                        f"Successfully retrieved {len(data)} instructor courses",
+                        f"Instructor courses: {[c.get('title', 'No title') for c in data[:3]]}"
+                    )
+                    return data
+                else:
+                    self.log_result(
+                        "Course API - GET My Courses (Instructor)", 
+                        "FAIL", 
+                        "Response is not a list",
+                        f"Response type: {type(data)}"
+                    )
+            else:
+                self.log_result(
+                    "Course API - GET My Courses (Instructor)", 
+                    "FAIL", 
+                    f"Request failed with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Course API - GET My Courses (Instructor)", 
+                "FAIL", 
+                "Failed to retrieve instructor courses",
+                str(e)
+            )
+        return False
+    
+    def test_course_authentication_requirements(self):
+        """Test that course endpoints require proper authentication"""
+        test_endpoints = [
+            ("POST", "/courses", {"title": "Test", "description": "Test", "category": "Test"}),
+            ("GET", "/courses", None),
+            ("GET", "/courses/test-id", None),
+            ("GET", "/courses/my-courses", None)
+        ]
+        
+        for method, endpoint, data in test_endpoints:
+            try:
+                if method == "POST":
+                    response = requests.post(
+                        f"{BACKEND_URL}{endpoint}",
+                        json=data,
+                        timeout=TEST_TIMEOUT,
+                        headers={'Content-Type': 'application/json'}
+                        # No Authorization header
+                    )
+                else:
+                    response = requests.get(
+                        f"{BACKEND_URL}{endpoint}",
+                        timeout=TEST_TIMEOUT
+                        # No Authorization header
+                    )
+                
+                if response.status_code == 403:
+                    self.log_result(
+                        f"Course Auth - {method} {endpoint}", 
+                        "PASS", 
+                        "Correctly requires authentication",
+                        f"Returned 403 Forbidden without token"
+                    )
+                else:
+                    self.log_result(
+                        f"Course Auth - {method} {endpoint}", 
+                        "FAIL", 
+                        f"Expected 403 for unauthenticated request, got {response.status_code}",
+                        f"Response: {response.text}"
+                    )
+            except requests.exceptions.RequestException as e:
+                self.log_result(
+                    f"Course Auth - {method} {endpoint}", 
+                    "FAIL", 
+                    f"Failed to test authentication for {method} {endpoint}",
+                    str(e)
+                )
+    
+    def test_course_error_handling(self):
+        """Test error handling for course endpoints"""
+        if "admin" not in self.auth_tokens and "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Course API - Error Handling", 
+                "SKIP", 
+                "No authentication token available",
+                "Authentication required for error handling tests"
+            )
+            return False
+        
+        token = self.auth_tokens.get("instructor") or self.auth_tokens.get("admin")
+        
+        # Test 1: Get non-existent course
+        try:
+            response = requests.get(
+                f"{BACKEND_URL}/courses/non-existent-course-id",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {token}'}
+            )
+            
+            if response.status_code == 404:
+                self.log_result(
+                    "Course Error - Non-existent Course", 
+                    "PASS", 
+                    "Correctly returns 404 for non-existent course",
+                    "This is the expected behavior for CourseDetail error handling"
+                )
+            else:
+                self.log_result(
+                    "Course Error - Non-existent Course", 
+                    "FAIL", 
+                    f"Expected 404 for non-existent course, got {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Course Error - Non-existent Course", 
+                "FAIL", 
+                "Failed to test non-existent course error handling",
+                str(e)
+            )
+        
+        # Test 2: Create course with invalid data
+        try:
+            invalid_course_data = {
+                "title": "",  # Empty title should fail validation
+                "description": "",
+                "category": ""
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/courses",
+                json=invalid_course_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {token}'
+                }
+            )
+            
+            if response.status_code == 422:  # Validation error
+                self.log_result(
+                    "Course Error - Invalid Data", 
+                    "PASS", 
+                    "Correctly validates course creation data",
+                    "Returns 422 for invalid course data"
+                )
+            else:
+                self.log_result(
+                    "Course Error - Invalid Data", 
+                    "INFO", 
+                    f"Course creation with empty data returned {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Course Error - Invalid Data", 
+                "FAIL", 
+                "Failed to test invalid course data handling",
+                str(e)
+            )
+    
+    def test_course_data_consistency(self):
+        """Test data consistency between course creation and retrieval"""
+        if "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Course Data Consistency", 
+                "SKIP", 
+                "No instructor token available",
+                "Instructor authentication required for consistency test"
+            )
+            return False
+        
+        # Create a course
+        created_course = self.test_course_creation_api()
+        if not created_course:
+            self.log_result(
+                "Course Data Consistency", 
+                "FAIL", 
+                "Could not create course for consistency testing",
+                "Course creation failed"
+            )
+            return False
+        
+        # Retrieve the same course by ID
+        retrieved_course = self.test_get_course_by_id_api(created_course.get('id'))
+        if not retrieved_course:
+            self.log_result(
+                "Course Data Consistency", 
+                "FAIL", 
+                "Could not retrieve created course by ID",
+                f"Course ID: {created_course.get('id')}"
+            )
+            return False
+        
+        # Compare key fields
+        consistency_fields = ['id', 'title', 'description', 'category', 'instructorId', 'instructor', 'status']
+        inconsistent_fields = []
+        
+        for field in consistency_fields:
+            if created_course.get(field) != retrieved_course.get(field):
+                inconsistent_fields.append(f"{field}: created='{created_course.get(field)}' vs retrieved='{retrieved_course.get(field)}'")
+        
+        if not inconsistent_fields:
+            self.log_result(
+                "Course Data Consistency", 
+                "PASS", 
+                "Course data is consistent between creation and retrieval",
+                f"All {len(consistency_fields)} key fields match perfectly"
+            )
+            return True
+        else:
+            self.log_result(
+                "Course Data Consistency", 
+                "FAIL", 
+                "Course data inconsistency detected",
+                f"Inconsistent fields: {inconsistent_fields}"
+            )
+            return False
+    
+    def test_complete_course_workflow(self):
+        """Test complete course workflow: create → list → retrieve by ID"""
+        if "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Complete Course Workflow", 
+                "SKIP", 
+                "No instructor token available",
+                "Instructor authentication required for workflow test"
+            )
+            return False
+        
+        workflow_success = True
+        
+        # Step 1: Create course
+        print("   Step 1: Creating course...")
+        created_course = self.test_course_creation_api()
+        if not created_course:
+            workflow_success = False
+        
+        # Step 2: Verify it appears in course list
+        print("   Step 2: Checking course appears in list...")
+        all_courses = self.test_get_all_courses_api()
+        if all_courses:
+            course_found_in_list = any(c.get('id') == created_course.get('id') for c in all_courses)
+            if not course_found_in_list:
+                self.log_result(
+                    "Workflow - Course in List", 
+                    "FAIL", 
+                    "Created course not found in course list",
+                    f"Course ID: {created_course.get('id')} not in {len(all_courses)} courses"
+                )
+                workflow_success = False
+            else:
+                self.log_result(
+                    "Workflow - Course in List", 
+                    "PASS", 
+                    "Created course appears in course list",
+                    f"Course found in list of {len(all_courses)} courses"
+                )
+        else:
+            workflow_success = False
+        
+        # Step 3: Verify it can be retrieved by ID
+        print("   Step 3: Retrieving course by ID...")
+        retrieved_course = self.test_get_course_by_id_api(created_course.get('id'))
+        if not retrieved_course:
+            workflow_success = False
+        
+        if workflow_success:
+            self.log_result(
+                "Complete Course Workflow", 
+                "PASS", 
+                "Complete workflow successful: create → list → retrieve by ID",
+                f"Course '{created_course.get('title')}' passed all workflow steps"
+            )
+        else:
+            self.log_result(
+                "Complete Course Workflow", 
+                "FAIL", 
+                "Course workflow failed at one or more steps",
+                "This will cause issues in CourseDetail page"
+            )
+        
+        return workflow_success
+    
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Backend Testing Suite for LearningFwiend LMS")
