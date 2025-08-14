@@ -3079,7 +3079,7 @@ class QuestionCreate(BaseModel):
     type: str  # multiple_choice, true_false, short_answer, essay
     question: str
     options: List[str] = []  # For multiple choice questions
-    correctAnswer: str  # Index for MC, text for others
+    correctAnswer: str  # String representation: index for MC, text for others
     points: int = 1
     explanation: Optional[str] = None
 
@@ -3088,7 +3088,7 @@ class QuestionInDB(BaseModel):
     type: str
     question: str
     options: List[str] = []
-    correctAnswer: str
+    correctAnswer: str  # String representation: index for MC, text for others
     points: int
     explanation: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
