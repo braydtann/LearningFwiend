@@ -951,6 +951,184 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // =============================================================================
+  // CLASSROOM MANAGEMENT FUNCTIONS  
+  // =============================================================================
+
+  const createClassroom = async (classroomData) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/classrooms`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(classroomData),
+      });
+
+      if (response.ok) {
+        const newClassroom = await response.json();
+        return { success: true, classroom: newClassroom };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to create classroom' 
+        };
+      }
+    } catch (error) {
+      console.error('Create classroom error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const getAllClassrooms = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/classrooms`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const classrooms = await response.json();
+        return { success: true, classrooms };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to fetch classrooms' 
+        };
+      }
+    } catch (error) {
+      console.error('Fetch classrooms error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const getMyClassrooms = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/classrooms/my-classrooms`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const classrooms = await response.json();
+        return { success: true, classrooms };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to fetch your classrooms' 
+        };
+      }
+    } catch (error) {
+      console.error('Fetch my classrooms error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const getClassroomById = async (classroomId) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/classrooms/${classroomId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const classroom = await response.json();
+        return { success: true, classroom };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to fetch classroom' 
+        };
+      }
+    } catch (error) {
+      console.error('Fetch classroom error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const updateClassroom = async (classroomId, classroomData) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/classrooms/${classroomId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(classroomData),
+      });
+
+      if (response.ok) {
+        const updatedClassroom = await response.json();
+        return { success: true, classroom: updatedClassroom };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to update classroom' 
+        };
+      }
+    } catch (error) {
+      console.error('Update classroom error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const deleteClassroom = async (classroomId) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/classrooms/${classroomId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        return { success: true };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to delete classroom' 
+        };
+      }
+    } catch (error) {
+      console.error('Delete classroom error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
   const value = {
     user,
     loading,
