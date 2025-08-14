@@ -505,14 +505,15 @@ const Departments = () => {
                   <TableCell>
                     <div className="flex items-center text-sm text-gray-600">
                       <Users className="w-4 h-4 mr-1" />
-                      {department.userCount}
+                      {department.userCount || 0}
                     </div>
                   </TableCell>
                   <TableCell>
-                    {getStatusBadge(department.isActive)}
+                    {getStatusBadge(department.isActive !== false)}
                   </TableCell>
                   <TableCell>
-                    {new Date(department.createdAt).toLocaleDateString()}
+                    {department.created_at ? new Date(department.created_at).toLocaleDateString() : 
+                     department.createdAt ? new Date(department.createdAt).toLocaleDateString() : 'N/A'}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end space-x-2">
