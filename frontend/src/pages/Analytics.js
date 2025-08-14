@@ -1,13 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Progress } from '../components/ui/progress';
 import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { mockCourses, mockUsers, mockEnrollments, mockQuizAttempts, mockClassrooms, mockClassroomEnrollments, mockDepartments } from '../data/mockData';
+import { useAuth } from '../contexts/AuthContext';
 import { 
   BarChart, 
   TrendingUp, 
@@ -18,46 +15,80 @@ import {
   Target,
   Activity,
   Clock,
-  Filter,
   Download,
-  LineChart,
-  PieChart,
   User,
   GraduationCap,
   Building
 } from 'lucide-react';
+import { useToast } from '../hooks/use-toast';
 
 const Analytics = () => {
-  // State for filters and date selection
-  const [dateRange, setDateRange] = useState({
-    startDate: '2024-01-01',
-    endDate: '2024-12-31'
-  });
-  const [selectedInstructor, setSelectedInstructor] = useState('all');
-  const [selectedDepartment, setSelectedDepartment] = useState('all');
-  const [selectedCourse, setSelectedCourse] = useState('all');
-  const [selectedClassroom, setSelectedClassroom] = useState('all');
-  const [performanceTrendFilter, setPerformanceTrendFilter] = useState('all'); // New filter for trends
+  const { 
+    user, 
+    isAdmin, 
+    isInstructor,
+    getSystemStats, 
+    getAnalyticsDashboard,
+    getAllCourses,
+    getAllUsers,
+    getAllDepartments 
+  } = useAuth();
+  const { toast } = useToast();
+
+  const [loading, setLoading] = useState(true);
+  const [systemStats, setSystemStats] = useState(null);
+  const [dashboardData, setDashboardData] = useState(null);
+  const [courses, setCourses] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [activeView, setActiveView] = useState('overview');
 
-  // Get unique instructors, departments, and classrooms
-  const instructors = useMemo(() => {
-    const instructorList = [...new Set(mockCourses.map(course => course.instructor))];
-    return instructorList;
+  useEffect(() => {
+    loadAnalyticsData();
   }, []);
 
-  const departments = useMemo(() => {
-    const deptList = [...new Set(mockCourses.map(course => course.category))];
-    return deptList;
-  }, []);
+  const loadAnalyticsData = async () => {
+    setLoading(true);
+    try {
+      // Load system stats
+      const statsResult = await getSystemStats();
+      if (statsResult.success) {
+        setSystemStats(statsResult.stats);
+      } else {
+        console.warn('Failed to load system stats:', statsResult.error);
+      }
 
-  const classrooms = useMemo(() => {
-    return mockClassrooms.map(classroom => ({
-      id: classroom.id,
-      name: classroom.name,
-      batchId: classroom.batchId
-    }));
-  }, []);
+      // Load dashboard data
+      const dashboardResult = await getAnalyticsDashboard();
+      if (dashboardResult.success) {
+        setDashboardData(dashboardResult.dashboard);
+      } else {
+        console.warn('Failed to load dashboard data:', dashboardResult.error);
+      }
+
+      // Load supporting data for analytics
+      if (isAdmin || isInstructor) {
+        const [coursesResult, usersResult, depsResult] = await Promise.all([
+          getAllCourses(),
+          getAllUsers(),
+          getAllDepartments()
+        ]);
+
+        if (coursesResult.success) setCourses(coursesResult.courses || []);
+        if (usersResult.success) setUsers(usersResult.users || []);
+        if (depsResult.success) setDepartments(depsResult.departments || []);
+      }
+    } catch (error) {
+      console.error('Error loading analytics data:', error);
+      toast({
+        title: "Error loading analytics",
+        description: "Network error occurred while loading analytics data",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Filter data based on selections and date range
   const filteredData = useMemo(() => {
