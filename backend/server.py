@@ -1625,6 +1625,332 @@ async def delete_department(
     return {"message": f"Department '{department['name']}' has been successfully deleted"}
 
 
+# =============================================================================
+# CLASSROOM MODELS
+# =============================================================================
+
+class ClassroomCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    trainerId: str  # Instructor assigned to this classroom
+    courseIds: List[str] = []  # Courses assigned to this classroom
+    programIds: List[str] = []  # Programs assigned to this classroom
+    studentIds: List[str] = []  # Students enrolled in this classroom
+    batchId: Optional[str] = None
+    startDate: Optional[datetime] = None
+    endDate: Optional[datetime] = None
+    maxStudents: Optional[int] = None
+    department: Optional[str] = None
+    
+class ClassroomInDB(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    description: Optional[str] = None
+    trainerId: str
+    trainerName: str  # Denormalized for easy access
+    courseIds: List[str] = []
+    programIds: List[str] = []
+    studentIds: List[str] = []
+    batchId: Optional[str] = None
+    startDate: Optional[datetime] = None
+    endDate: Optional[datetime] = None
+    maxStudents: Optional[int] = None
+    department: Optional[str] = None
+    isActive: bool = True
+    createdBy: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class ClassroomResponse(BaseModel):
+    id: str
+    name: str
+    description: Optional[str] = None
+    trainerId: str
+    trainerName: str
+    courseIds: List[str] = []
+    programIds: List[str] = []
+    studentIds: List[str] = []
+    batchId: Optional[str] = None
+    startDate: Optional[datetime] = None
+    endDate: Optional[datetime] = None
+    maxStudents: Optional[int] = None
+    department: Optional[str] = None
+    studentCount: int
+    courseCount: int
+    programCount: int
+    isActive: bool
+    createdBy: str
+    created_at: datetime
+    updated_at: datetime
+
+class ClassroomUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    trainerId: Optional[str] = None
+    courseIds: Optional[List[str]] = None
+    programIds: Optional[List[str]] = None
+    studentIds: Optional[List[str]] = None
+    batchId: Optional[str] = None
+    startDate: Optional[datetime] = None
+    endDate: Optional[datetime] = None
+    maxStudents: Optional[int] = None
+    department: Optional[str] = None
+    isActive: Optional[bool] = None
+
+
+# =============================================================================
+# CLASSROOM ENDPOINTS
+# =============================================================================
+
+@api_router.post("/classrooms", response_model=ClassroomResponse)
+async def create_classroom(
+    classroom_data: ClassroomCreate,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Create a new classroom (instructors and admins only)."""
+    if current_user.role not in ['instructor', 'admin']:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only instructors and admins can create classrooms"
+        )
+    
+    # Verify trainer exists and is an instructor
+    trainer = await db.users.find_one({"id": classroom_data.trainerId})
+    if not trainer:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Specified trainer not found"
+        )
+    
+    if trainer['role'] != 'instructor':
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Specified trainer must be an instructor"
+        )
+    
+    # Verify courses exist
+    for course_id in classroom_data.courseIds:
+        course = await db.courses.find_one({"id": course_id})
+        if not course:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Course with ID {course_id} not found"
+            )
+    
+    # Verify programs exist
+    for program_id in classroom_data.programIds:
+        program = await db.programs.find_one({"id": program_id})
+        if not program:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Program with ID {program_id} not found"
+            )
+    
+    # Verify students exist and are learners
+    for student_id in classroom_data.studentIds:
+        student = await db.users.find_one({"id": student_id})
+        if not student:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Student with ID {student_id} not found"
+            )
+        if student['role'] != 'learner':
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"User {student_id} must be a learner to be enrolled as student"
+            )
+    
+    # Create classroom dictionary
+    classroom_dict = {
+        "id": str(uuid.uuid4()),
+        **classroom_data.dict(),
+        "trainerName": trainer['full_name'],
+        "isActive": True,
+        "createdBy": current_user.id,
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
+    }
+    
+    # Insert classroom into database
+    await db.classrooms.insert_one(classroom_dict)
+    
+    # Add calculated fields for response
+    classroom_dict["studentCount"] = len(classroom_data.studentIds)
+    classroom_dict["courseCount"] = len(classroom_data.courseIds)
+    classroom_dict["programCount"] = len(classroom_data.programIds)
+    
+    return ClassroomResponse(**classroom_dict)
+
+@api_router.get("/classrooms", response_model=List[ClassroomResponse])
+async def get_all_classrooms(current_user: UserResponse = Depends(get_current_user)):
+    """Get all active classrooms."""
+    classrooms = await db.classrooms.find({"isActive": True}).to_list(1000)
+    
+    # Add calculated fields for each classroom
+    for classroom in classrooms:
+        classroom["studentCount"] = len(classroom.get("studentIds", []))
+        classroom["courseCount"] = len(classroom.get("courseIds", []))
+        classroom["programCount"] = len(classroom.get("programIds", []))
+    
+    return [ClassroomResponse(**classroom) for classroom in classrooms]
+
+@api_router.get("/classrooms/my-classrooms", response_model=List[ClassroomResponse])
+async def get_my_classrooms(current_user: UserResponse = Depends(get_current_user)):
+    """Get classrooms created by current user or where user is trainer/student."""
+    query = {}
+    
+    if current_user.role == 'instructor':
+        # Instructors see classrooms they created or where they are the trainer
+        query = {
+            "$or": [
+                {"createdBy": current_user.id},
+                {"trainerId": current_user.id}
+            ],
+            "isActive": True
+        }
+    elif current_user.role == 'learner':
+        # Students see classrooms where they are enrolled
+        query = {
+            "studentIds": current_user.id,
+            "isActive": True
+        }
+    elif current_user.role == 'admin':
+        # Admins see all classrooms
+        query = {"isActive": True}
+    
+    classrooms = await db.classrooms.find(query).to_list(1000)
+    
+    # Add calculated fields for each classroom
+    for classroom in classrooms:
+        classroom["studentCount"] = len(classroom.get("studentIds", []))
+        classroom["courseCount"] = len(classroom.get("courseIds", []))
+        classroom["programCount"] = len(classroom.get("programIds", []))
+    
+    return [ClassroomResponse(**classroom) for classroom in classrooms]
+
+@api_router.get("/classrooms/{classroom_id}", response_model=ClassroomResponse)
+async def get_classroom(
+    classroom_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Get a specific classroom by ID."""
+    classroom = await db.classrooms.find_one({"id": classroom_id})
+    if not classroom:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Classroom not found"
+        )
+    
+    # Add calculated fields
+    classroom["studentCount"] = len(classroom.get("studentIds", []))
+    classroom["courseCount"] = len(classroom.get("courseIds", []))
+    classroom["programCount"] = len(classroom.get("programIds", []))
+    
+    return ClassroomResponse(**classroom)
+
+@api_router.put("/classrooms/{classroom_id}", response_model=ClassroomResponse)
+async def update_classroom(
+    classroom_id: str,
+    classroom_data: ClassroomUpdate,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Update a classroom (only by classroom creator, trainer, or admin)."""
+    # Find the classroom
+    classroom = await db.classrooms.find_one({"id": classroom_id})
+    if not classroom:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Classroom not found"
+        )
+    
+    # Check permissions
+    can_edit = (
+        current_user.role == 'admin' or 
+        classroom['createdBy'] == current_user.id or 
+        classroom['trainerId'] == current_user.id
+    )
+    
+    if not can_edit:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only edit classrooms you created or where you are the trainer"
+        )
+    
+    # Validate trainer if being updated
+    if classroom_data.trainerId:
+        trainer = await db.users.find_one({"id": classroom_data.trainerId})
+        if not trainer or trainer['role'] != 'instructor':
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Specified trainer must be a valid instructor"
+            )
+    
+    # Update classroom
+    update_data = {k: v for k, v in classroom_data.dict().items() if v is not None}
+    update_data["updated_at"] = datetime.utcnow()
+    
+    # Update trainer name if trainer is being changed
+    if classroom_data.trainerId:
+        trainer = await db.users.find_one({"id": classroom_data.trainerId})
+        update_data["trainerName"] = trainer['full_name']
+    
+    result = await db.classrooms.update_one(
+        {"id": classroom_id},
+        {"$set": update_data}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Classroom not found or no changes made"
+        )
+    
+    # Get updated classroom
+    updated_classroom = await db.classrooms.find_one({"id": classroom_id})
+    
+    # Add calculated fields
+    updated_classroom["studentCount"] = len(updated_classroom.get("studentIds", []))
+    updated_classroom["courseCount"] = len(updated_classroom.get("courseIds", []))
+    updated_classroom["programCount"] = len(updated_classroom.get("programIds", []))
+    
+    return ClassroomResponse(**updated_classroom)
+
+@api_router.delete("/classrooms/{classroom_id}")
+async def delete_classroom(
+    classroom_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Delete a classroom (only by classroom creator or admin)."""
+    # Find the classroom
+    classroom = await db.classrooms.find_one({"id": classroom_id})
+    if not classroom:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Classroom not found"
+        )
+    
+    # Check permissions (only creator or admin can delete)
+    if current_user.role != 'admin' and classroom['createdBy'] != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only delete classrooms you created"
+        )
+    
+    # Soft delete the classroom (set isActive to False)
+    result = await db.classrooms.update_one(
+        {"id": classroom_id},
+        {"$set": {"isActive": False, "updated_at": datetime.utcnow()}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Classroom not found"
+        )
+    
+    return {"message": f"Classroom '{classroom['name']}' has been successfully deleted"}
+
+
 # Include the router in the main app
 app.include_router(api_router)
 
