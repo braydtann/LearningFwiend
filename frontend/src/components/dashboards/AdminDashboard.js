@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { mockCourses, mockUsers, mockEnrollments } from '../../data/mockData';
 import { Users, BookOpen, TrendingUp, UserCheck, BarChart, Settings } from 'lucide-react';
 
 const AdminDashboard = () => {
