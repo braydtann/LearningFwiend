@@ -6656,6 +6656,372 @@ class BackendTester:
         
         return len([t for t in error_tests if t[1] == "PASS"]) > 0
     
+    # =============================================================================
+    # PRIORITY TESTING METHODS FOR AUTHENTICATION & API FIXES
+    # =============================================================================
+    
+    def test_authentication_priority_verification(self):
+        """PRIORITY 1: Verify JWT token creation and validation after JWT_SECRET_KEY fix"""
+        print("🔐 Testing authentication with instructor/admin credentials...")
+        
+        # Test credentials from review request
+        test_credentials = [
+            {"username": "instructor", "password": "Instructor123!", "role": "instructor"},
+            {"username": "admin", "password": "Admin123!", "role": "admin"},
+            {"username": "student", "password": "Student123!", "role": "learner"}
+        ]
+        
+        auth_success = False
+        
+        for creds in test_credentials:
+            try:
+                login_data = {
+                    "username_or_email": creds["username"],
+                    "password": creds["password"]
+                }
+                
+                response = requests.post(
+                    f"{BACKEND_URL}/auth/login",
+                    json=login_data,
+                    timeout=TEST_TIMEOUT,
+                    headers={'Content-Type': 'application/json'}
+                )
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    token = data.get('access_token')
+                    
+                    if token:
+                        self.auth_tokens[creds["role"]] = token
+                        
+                        # Test token can access protected endpoints
+                        me_response = requests.get(
+                            f"{BACKEND_URL}/auth/me",
+                            timeout=TEST_TIMEOUT,
+                            headers={'Authorization': f'Bearer {token}'}
+                        )
+                        
+                        if me_response.status_code == 200:
+                            user_data = me_response.json()
+                            self.log_result(
+                                f"Authentication Priority - {creds['role'].title()}", 
+                                "PASS", 
+                                f"JWT authentication working for {creds['username']}",
+                                f"Token valid, user: {user_data.get('username')}, role: {user_data.get('role')}"
+                            )
+                            auth_success = True
+                        else:
+                            self.log_result(
+                                f"Authentication Priority - {creds['role'].title()}", 
+                                "FAIL", 
+                                f"Token validation failed for {creds['username']} - 'User not found' 401 error",
+                                f"/auth/me status: {me_response.status_code}, response: {me_response.text}"
+                            )
+                    else:
+                        self.log_result(
+                            f"Authentication Priority - {creds['role'].title()}", 
+                            "FAIL", 
+                            f"No access token received for {creds['username']}",
+                            f"Login response: {data}"
+                        )
+                else:
+                    self.log_result(
+                        f"Authentication Priority - {creds['role'].title()}", 
+                        "FAIL", 
+                        f"Login failed for {creds['username']}",
+                        f"Status: {response.status_code}, response: {response.text}"
+                    )
+            except requests.exceptions.RequestException as e:
+                self.log_result(
+                    f"Authentication Priority - {creds['role'].title()}", 
+                    "FAIL", 
+                    f"Request failed for {creds['username']}",
+                    str(e)
+                )
+        
+        return auth_success
+    
+    def test_certificate_apis_comprehensive(self):
+        """PRIORITY 2: Test certificate APIs with both studentId and userId formats"""
+        if not self.auth_tokens:
+            self.log_result(
+                "Certificate APIs - Comprehensive Test", 
+                "SKIP", 
+                "No authentication tokens available",
+                "Authentication required first"
+            )
+            return False
+        
+        # Test POST /api/certificates with instructor/admin token
+        instructor_token = self.auth_tokens.get("instructor") or self.auth_tokens.get("admin")
+        if not instructor_token:
+            self.log_result(
+                "Certificate APIs - POST Test", 
+                "SKIP", 
+                "No instructor or admin token available",
+                "Instructor/admin authentication required"
+            )
+            return False
+        
+        # Test certificate creation with both studentId and userId formats
+        test_certificates = [
+            {
+                "studentId": "test-student-id-1",
+                "courseName": "Test Course 1",
+                "studentName": "Test Student 1",
+                "completionDate": "2024-01-15T10:00:00Z",
+                "certificateType": "course_completion"
+            },
+            {
+                "userId": "test-user-id-2",  # Testing userId format
+                "courseName": "Test Course 2", 
+                "studentName": "Test Student 2",
+                "completionDate": "2024-01-16T10:00:00Z",
+                "certificateType": "course_completion"
+            }
+        ]
+        
+        certificate_success = False
+        
+        for i, cert_data in enumerate(test_certificates):
+            try:
+                response = requests.post(
+                    f"{BACKEND_URL}/certificates",
+                    json=cert_data,
+                    timeout=TEST_TIMEOUT,
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Authorization': f'Bearer {instructor_token}'
+                    }
+                )
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    id_field = "studentId" if "studentId" in cert_data else "userId"
+                    self.log_result(
+                        f"Certificate APIs - POST with {id_field}", 
+                        "PASS", 
+                        f"Successfully created certificate with {id_field}",
+                        f"Certificate ID: {data.get('id')}, Student: {data.get('studentName')}"
+                    )
+                    certificate_success = True
+                else:
+                    self.log_result(
+                        f"Certificate APIs - POST with {id_field}", 
+                        "FAIL", 
+                        f"Certificate creation failed with {id_field}",
+                        f"Status: {response.status_code}, response: {response.text}"
+                    )
+            except requests.exceptions.RequestException as e:
+                id_field = "studentId" if "studentId" in cert_data else "userId"
+                self.log_result(
+                    f"Certificate APIs - POST with {id_field}", 
+                    "FAIL", 
+                    f"Request failed for certificate with {id_field}",
+                    str(e)
+                )
+        
+        # Test GET /api/certificates/my-certificates with student token
+        student_token = self.auth_tokens.get("learner")
+        if student_token:
+            try:
+                response = requests.get(
+                    f"{BACKEND_URL}/certificates/my-certificates",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {student_token}'}
+                )
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    self.log_result(
+                        "Certificate APIs - GET my-certificates", 
+                        "PASS", 
+                        f"Successfully retrieved student certificates",
+                        f"Found {len(data)} certificates"
+                    )
+                    certificate_success = True
+                else:
+                    self.log_result(
+                        "Certificate APIs - GET my-certificates", 
+                        "FAIL", 
+                        "Failed to retrieve student certificates - auth issue",
+                        f"Status: {response.status_code}, response: {response.text}"
+                    )
+            except requests.exceptions.RequestException as e:
+                self.log_result(
+                    "Certificate APIs - GET my-certificates", 
+                    "FAIL", 
+                    "Request failed for my-certificates",
+                    str(e)
+                )
+        
+        return certificate_success
+    
+    def test_announcements_apis_comprehensive(self):
+        """PRIORITY 3: Test announcements APIs with instructor/admin authentication"""
+        instructor_token = self.auth_tokens.get("instructor") or self.auth_tokens.get("admin")
+        if not instructor_token:
+            self.log_result(
+                "Announcements APIs - Comprehensive Test", 
+                "SKIP", 
+                "No instructor or admin token available",
+                "Instructor/admin authentication required"
+            )
+            return False
+        
+        announcements_success = False
+        
+        # Test POST /api/announcements
+        test_announcement = {
+            "title": "Test Announcement",
+            "message": "This is a test announcement for API verification",
+            "type": "general",
+            "priority": "medium",
+            "targetAudience": "all"
+        }
+        
+        try:
+            response = requests.post(
+                f"{BACKEND_URL}/announcements",
+                json=test_announcement,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {instructor_token}'
+                }
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                self.log_result(
+                    "Announcements APIs - POST Create", 
+                    "PASS", 
+                    "Successfully created announcement",
+                    f"Announcement ID: {data.get('id')}, Title: {data.get('title')}"
+                )
+                announcements_success = True
+            else:
+                self.log_result(
+                    "Announcements APIs - POST Create", 
+                    "FAIL", 
+                    "Failed to create announcement - auth issue",
+                    f"Status: {response.status_code}, response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Announcements APIs - POST Create", 
+                "FAIL", 
+                "Request failed for announcement creation",
+                str(e)
+            )
+        
+        # Test GET /api/announcements
+        try:
+            response = requests.get(
+                f"{BACKEND_URL}/announcements",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {instructor_token}'}
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                self.log_result(
+                    "Announcements APIs - GET All", 
+                    "PASS", 
+                    "Successfully retrieved announcements",
+                    f"Found {len(data)} announcements"
+                )
+                announcements_success = True
+            else:
+                self.log_result(
+                    "Announcements APIs - GET All", 
+                    "FAIL", 
+                    "Failed to retrieve announcements - auth issue",
+                    f"Status: {response.status_code}, response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Announcements APIs - GET All", 
+                "FAIL", 
+                "Request failed for announcements retrieval",
+                str(e)
+            )
+        
+        return announcements_success
+    
+    def test_analytics_apis_comprehensive(self):
+        """PRIORITY 4: Test analytics APIs with proper authentication"""
+        analytics_success = False
+        
+        # Test GET /api/analytics/system-stats (admin only)
+        admin_token = self.auth_tokens.get("admin")
+        if admin_token:
+            try:
+                response = requests.get(
+                    f"{BACKEND_URL}/analytics/system-stats",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {admin_token}'}
+                )
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    self.log_result(
+                        "Analytics APIs - GET system-stats (admin)", 
+                        "PASS", 
+                        "Successfully retrieved system statistics",
+                        f"Stats keys: {list(data.keys())}"
+                    )
+                    analytics_success = True
+                else:
+                    self.log_result(
+                        "Analytics APIs - GET system-stats (admin)", 
+                        "FAIL", 
+                        "Failed to retrieve system stats - auth issue",
+                        f"Status: {response.status_code}, response: {response.text}"
+                    )
+            except requests.exceptions.RequestException as e:
+                self.log_result(
+                    "Analytics APIs - GET system-stats (admin)", 
+                    "FAIL", 
+                    "Request failed for system stats",
+                    str(e)
+                )
+        
+        # Test GET /api/analytics/dashboard (all authenticated users)
+        for role, token in self.auth_tokens.items():
+            try:
+                response = requests.get(
+                    f"{BACKEND_URL}/analytics/dashboard",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {token}'}
+                )
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    self.log_result(
+                        f"Analytics APIs - GET dashboard ({role})", 
+                        "PASS", 
+                        f"Successfully retrieved dashboard analytics for {role}",
+                        f"Dashboard data keys: {list(data.keys()) if isinstance(data, dict) else 'List response'}"
+                    )
+                    analytics_success = True
+                else:
+                    self.log_result(
+                        f"Analytics APIs - GET dashboard ({role})", 
+                        "FAIL", 
+                        f"Failed to retrieve dashboard analytics for {role} - auth issue",
+                        f"Status: {response.status_code}, response: {response.text}"
+                    )
+            except requests.exceptions.RequestException as e:
+                self.log_result(
+                    f"Analytics APIs - GET dashboard ({role})", 
+                    "FAIL", 
+                    f"Request failed for dashboard analytics ({role})",
+                    str(e)
+                )
+        
+        return analytics_success
+    
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Backend Testing Suite for LearningFwiend LMS")
