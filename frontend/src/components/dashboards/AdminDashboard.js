@@ -254,11 +254,9 @@ const AdminDashboard = () => {
               {recentCourses.map((course) => (
                 <div key={course.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div className="flex items-center space-x-3">
-                    <img 
-                      src={course.thumbnail} 
-                      alt={course.title}
-                      className="w-10 h-10 rounded-lg object-cover"
-                    />
+                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                      <BookOpen className="w-5 h-5 text-green-600" />
+                    </div>
                     <div>
                       <p className="font-medium text-gray-900">{course.title}</p>
                       <p className="text-sm text-gray-600">by {course.instructor}</p>
