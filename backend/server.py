@@ -1423,6 +1423,208 @@ async def delete_category(
     return {"message": f"Category '{category['name']}' has been successfully deleted"}
 
 
+# =============================================================================
+# DEPARTMENT MODELS
+# =============================================================================
+
+class DepartmentCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    
+class DepartmentInDB(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    description: Optional[str] = None
+    userCount: int = 0
+    isActive: bool = True
+    createdBy: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class DepartmentResponse(BaseModel):
+    id: str
+    name: str
+    description: Optional[str] = None
+    userCount: int
+    isActive: bool
+    createdBy: str
+    created_at: datetime
+    updated_at: datetime
+
+class DepartmentUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    isActive: Optional[bool] = None
+
+
+# =============================================================================
+# DEPARTMENT ENDPOINTS
+# =============================================================================
+
+@api_router.post("/departments", response_model=DepartmentResponse)
+async def create_department(
+    department_data: DepartmentCreate,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Create a new department (admins only)."""
+    if current_user.role != 'admin':
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admins can create departments"
+        )
+    
+    # Check if department with same name already exists
+    existing_department = await db.departments.find_one({"name": department_data.name, "isActive": True})
+    if existing_department:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Department with this name already exists"
+        )
+    
+    # Create department dictionary
+    department_dict = {
+        "id": str(uuid.uuid4()),
+        **department_data.dict(),
+        "userCount": 0,
+        "isActive": True,
+        "createdBy": current_user.id,
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
+    }
+    
+    # Insert department into database
+    await db.departments.insert_one(department_dict)
+    
+    return DepartmentResponse(**department_dict)
+
+@api_router.get("/departments", response_model=List[DepartmentResponse])
+async def get_all_departments(current_user: UserResponse = Depends(get_current_user)):
+    """Get all active departments."""
+    departments = await db.departments.find({"isActive": True}).to_list(1000)
+    
+    # Update user counts for each department
+    for department in departments:
+        user_count = await db.users.count_documents({"department": department["name"], "is_active": True})
+        department["userCount"] = user_count
+    
+    return [DepartmentResponse(**department) for department in departments]
+
+@api_router.get("/departments/{department_id}", response_model=DepartmentResponse)
+async def get_department(
+    department_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Get a specific department by ID."""
+    department = await db.departments.find_one({"id": department_id})
+    if not department:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Department not found"
+        )
+    
+    # Update user count
+    user_count = await db.users.count_documents({"department": department["name"], "is_active": True})
+    department["userCount"] = user_count
+    
+    return DepartmentResponse(**department)
+
+@api_router.put("/departments/{department_id}", response_model=DepartmentResponse)
+async def update_department(
+    department_id: str,
+    department_data: DepartmentUpdate,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Update a department (admins only)."""
+    if current_user.role != 'admin':
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admins can update departments"
+        )
+    
+    # Find the department
+    department = await db.departments.find_one({"id": department_id})
+    if not department:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Department not found"
+        )
+    
+    # Check if new name already exists (if name is being changed)
+    if department_data.name and department_data.name != department['name']:
+        existing_department = await db.departments.find_one({"name": department_data.name, "isActive": True})
+        if existing_department:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Department with this name already exists"
+            )
+    
+    # Update department
+    update_data = {k: v for k, v in department_data.dict().items() if v is not None}
+    update_data["updated_at"] = datetime.utcnow()
+    
+    result = await db.departments.update_one(
+        {"id": department_id},
+        {"$set": update_data}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Department not found or no changes made"
+        )
+    
+    # Get updated department
+    updated_department = await db.departments.find_one({"id": department_id})
+    
+    # Update user count
+    user_count = await db.users.count_documents({"department": updated_department["name"], "is_active": True})
+    updated_department["userCount"] = user_count
+    
+    return DepartmentResponse(**updated_department)
+
+@api_router.delete("/departments/{department_id}")
+async def delete_department(
+    department_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Delete a department (admins only)."""
+    if current_user.role != 'admin':
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admins can delete departments"
+        )
+    
+    # Find the department
+    department = await db.departments.find_one({"id": department_id})
+    if not department:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Department not found"
+        )
+    
+    # Check if department is being used by any users
+    user_count = await db.users.count_documents({"department": department["name"], "is_active": True})
+    if user_count > 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot delete department. It is being used by {user_count} user(s)"
+        )
+    
+    # Soft delete the department (set isActive to False)
+    result = await db.departments.update_one(
+        {"id": department_id},
+        {"$set": {"isActive": False, "updated_at": datetime.utcnow()}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Department not found"
+        )
+    
+    return {"message": f"Department '{department['name']}' has been successfully deleted"}
+
+
 # Include the router in the main app
 app.include_router(api_router)
 
