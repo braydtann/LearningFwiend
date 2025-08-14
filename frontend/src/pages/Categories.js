@@ -73,7 +73,7 @@ const Categories = () => {
     );
   }
 
-  const handleCreateCategory = () => {
+  const handleCreateCategory = async () => {
     if (!newCategory.name || !newCategory.description) {
       toast({
         title: "Missing required fields",
@@ -83,22 +83,39 @@ const Categories = () => {
       return;
     }
 
-    const category = addCategory({
-      ...newCategory,
-      createdBy: user.id
-    });
+    try {
+      const result = await createCategory({
+        name: newCategory.name,
+        description: newCategory.description
+      });
 
-    setCategories(getAllCategories());
-    toast({
-      title: "Category created successfully!",
-      description: `${newCategory.name} has been added to the categories list.`,
-    });
+      if (result.success) {
+        await loadCategories(); // Reload categories from backend
+        toast({
+          title: "Category created successfully!",
+          description: `${newCategory.name} has been added to the categories list.`,
+        });
 
-    setNewCategory({ name: '', description: '' });
-    setIsCreateModalOpen(false);
+        setNewCategory({ name: '', description: '' });
+        setIsCreateModalOpen(false);
+      } else {
+        toast({
+          title: "Failed to create category",
+          description: result.error,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error creating category:', error);
+      toast({
+        title: "Error creating category",
+        description: "Failed to create category",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleEditCategory = () => {
+  const handleEditCategory = async () => {
     if (!newCategory.name || !newCategory.description) {
       toast({
         title: "Missing required fields",
@@ -108,28 +125,65 @@ const Categories = () => {
       return;
     }
 
-    updateCategory(editingCategory.id, newCategory);
-    setCategories(getAllCategories());
-    
-    toast({
-      title: "Category updated successfully!",
-      description: `${newCategory.name} has been updated.`,
-    });
+    try {
+      const result = await updateCategory(editingCategory.id, {
+        name: newCategory.name,
+        description: newCategory.description
+      });
 
-    setNewCategory({ name: '', description: '' });
-    setEditingCategory(null);
-    setIsEditModalOpen(false);
+      if (result.success) {
+        await loadCategories(); // Reload categories from backend
+        toast({
+          title: "Category updated successfully!",
+          description: `${newCategory.name} has been updated.`,
+        });
+
+        setNewCategory({ name: '', description: '' });
+        setEditingCategory(null);
+        setIsEditModalOpen(false);
+      } else {
+        toast({
+          title: "Failed to update category",
+          description: result.error,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error updating category:', error);
+      toast({
+        title: "Error updating category",
+        description: "Failed to update category",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleDeleteCategory = (categoryId) => {
+  const handleDeleteCategory = async (categoryId, categoryName) => {
     if (window.confirm('Are you sure you want to delete this category? This action cannot be undone.')) {
-      deleteCategory(categoryId);
-      setCategories(getAllCategories());
-      
-      toast({
-        title: "Category deleted",
-        description: "The category has been removed from the system.",
-      });
+      try {
+        const result = await deleteCategory(categoryId);
+
+        if (result.success) {
+          await loadCategories(); // Reload categories from backend
+          toast({
+            title: "Category deleted",
+            description: "The category has been removed from the system.",
+          });
+        } else {
+          toast({
+            title: "Failed to delete category",
+            description: result.error,
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        console.error('Error deleting category:', error);
+        toast({
+          title: "Error deleting category",
+          description: "Failed to delete category",
+          variant: "destructive",
+        });
+      }
     }
   };
 
