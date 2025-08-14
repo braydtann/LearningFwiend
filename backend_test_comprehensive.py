@@ -85,8 +85,47 @@ class ComprehensiveBackendTester:
                     data = response.json()
                     token = data.get('access_token')
                     user_info = data.get('user', {})
+                    requires_password_change = data.get('requires_password_change')
                     
                     if token:
+                        # Handle password change requirement for test users
+                        if requires_password_change:
+                            # Change password for test users
+                            new_password = user["password"].replace("Test", "New")
+                            password_change_data = {
+                                "current_password": user["password"],
+                                "new_password": new_password
+                            }
+                            
+                            change_response = requests.post(
+                                f"{BACKEND_URL}/auth/change-password",
+                                json=password_change_data,
+                                timeout=TEST_TIMEOUT,
+                                headers={
+                                    'Content-Type': 'application/json',
+                                    'Authorization': f'Bearer {token}'
+                                }
+                            )
+                            
+                            if change_response.status_code == 200:
+                                # Login again with new password
+                                new_login_data = {
+                                    "username_or_email": user["username"],
+                                    "password": new_password
+                                }
+                                
+                                new_response = requests.post(
+                                    f"{BACKEND_URL}/auth/login",
+                                    json=new_login_data,
+                                    timeout=TEST_TIMEOUT,
+                                    headers={'Content-Type': 'application/json'}
+                                )
+                                
+                                if new_response.status_code == 200:
+                                    new_data = new_response.json()
+                                    token = new_data.get('access_token')
+                                    user_info = new_data.get('user', {})
+                        
                         self.auth_tokens[user["role"]] = token
                         self.log_result(
                             f"Authentication Setup - {user['role'].title()}", 
