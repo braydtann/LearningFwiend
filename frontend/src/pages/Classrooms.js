@@ -29,12 +29,16 @@ import {
 import { useToast } from '../hooks/use-toast';
 
 const Classrooms = () => {
-  const { user, isAdmin, isInstructor, isLearner, getAllUsers } = useAuth();
+  const { user, isAdmin, isInstructor, isLearner, getAllUsers, getAllCourses, getAllPrograms } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [realUsers, setRealUsers] = useState([]);
+  const [realCourses, setRealCourses] = useState([]);
+  const [realPrograms, setRealPrograms] = useState([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
+  const [loadingCourses, setLoadingCourses] = useState(false);
+  const [loadingPrograms, setLoadingPrograms] = useState(false);
   const [newClassroom, setNewClassroom] = useState({
     name: '',
     batchId: '',
