@@ -156,7 +156,7 @@ class CourseCreate(BaseModel):
     category: str = Field(..., min_length=1, max_length=100, description="Course category")
     duration: Optional[str] = Field(None, max_length=50)
     thumbnailUrl: Optional[str] = None
-    accessType: Optional[str] = Field("open", regex="^(open|restricted|invitation)$")
+    accessType: Optional[str] = Field("open", pattern="^(open|restricted|invitation)$")
     modules: List[CourseModule] = []
     canvaEmbedCode: Optional[str] = None
     
