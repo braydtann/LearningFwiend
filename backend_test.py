@@ -7014,6 +7014,22 @@ class BackendTester:
         # Integration testing
         self.test_end_to_end_workflows()
         
+        print("\n" + "=" * 60)
+        print("🔗 FRONTEND INTEGRATION API TESTS - PRIORITY TESTING")
+        print("=" * 60)
+        
+        # Frontend Integration Test 1: Departments APIs
+        self.test_departments_apis_comprehensive()
+        
+        # Frontend Integration Test 2: Announcements APIs
+        self.test_announcements_apis_comprehensive()
+        
+        # Frontend Integration Test 3: Certificates APIs
+        self.test_certificates_apis_comprehensive()
+        
+        # Frontend Integration Test 4: Analytics APIs
+        self.test_analytics_apis_comprehensive()
+        
         return self.generate_summary()
     
     # =============================================================================
