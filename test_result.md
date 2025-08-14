@@ -104,6 +104,21 @@
 
 user_problem_statement: "AUTHENTICATION SYSTEM IMPLEMENTATION: Build admin-controlled password management system where: 1) Admin creates user and sets temporary password (not auto-generated), 2) User must change password on first login, 3) Password complexity: minimum 6 characters + number + special character, 4) Admin can reset user passwords (sets new temporary password), 5) JWT-based authentication with secure session management. Previous features completed: Bell notifications, program-based certificates, instructor permissions, category management, preview functionality, nested programs, screen recording question type."
 
+  - task: "Course Detail Page Backend Integration"
+    implemented: true
+    working: false
+    file: "/app/frontend/src/pages/CourseDetail.js"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "CRITICAL USER ISSUE: Users can create courses and see them in the course list, but when they click on a course, it shows 'no course found'. This is because CourseDetail.js is still looking for courses in mockCourses while Courses.js fetches from backend APIs."
+      - working: "NA"
+        agent: "main"
+        comment: "IMPLEMENTATION COMPLETED: Fixed the critical course detail issue by adding getCourseById function to AuthContext.js and updating CourseDetail.js to fetch course data from the backend API instead of looking in mockCourses. Added proper loading states, error handling, and fallback to mock data for existing courses. This resolves the 'no course found' issue when clicking on courses created through the backend."
+
 frontend:
   - task: "Login Form Authentication Update"
     implemented: true
