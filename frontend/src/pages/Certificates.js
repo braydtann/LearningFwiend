@@ -1,24 +1,49 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { useAuth } from '../contexts/AuthContext';
-import { getUserCertificates, checkAndGenerateCertificates } from '../data/mockData';
 import { Award, Download, Share2, Calendar } from 'lucide-react';
+import { useToast } from '../hooks/use-toast';
 
 const Certificates = () => {
-  const { user } = useAuth();
-  const [certificates, setCertificates] = React.useState([]);
+  const { user, getMyCertificates } = useAuth();
+  const { toast } = useToast();
+  const [certificates, setCertificates] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user?.id) {
-      // Check and generate any new certificates for completed programs
-      checkAndGenerateCertificates(user.id);
-      // Get all certificates for the user
-      const userCertificates = getUserCertificates(user.id);
-      setCertificates(userCertificates);
+      loadCertificates();
     }
   }, [user?.id]);
+
+  const loadCertificates = async () => {
+    setLoading(true);
+    try {
+      const result = await getMyCertificates();
+      if (result.success) {
+        setCertificates(result.certificates || []);
+      } else {
+        toast({
+          title: "Failed to load certificates",
+          description: result.error || "Unable to fetch certificates",
+          variant: "destructive",
+        });
+        setCertificates([]);
+      }
+    } catch (error) {
+      console.error('Error loading certificates:', error);
+      toast({
+        title: "Error loading certificates",
+        description: "Network error occurred while loading certificates",
+        variant: "destructive",
+      });
+      setCertificates([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleDownload = (certificateId) => {
     // Mock download functionality
