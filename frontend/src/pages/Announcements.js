@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { useAuth } from '../contexts/AuthContext';
-import { mockAnnouncements, mockCourses } from '../data/mockData';
 import { MessageSquare, Calendar, BookOpen, Plus } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { Input } from '../components/ui/input';
@@ -13,14 +12,69 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { useToast } from '../hooks/use-toast';
 
 const Announcements = () => {
-  const { user, isLearner } = useAuth();
+  const { 
+    user, 
+    isLearner, 
+    getAllAnnouncements, 
+    createAnnouncement, 
+    getAllCourses 
+  } = useAuth();
   const { toast } = useToast();
+  
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [announcements, setAnnouncements] = useState([]);
+  const [courses, setCourses] = useState([]);
   const [newAnnouncement, setNewAnnouncement] = useState({
     title: '',
     message: '',
     courseId: ''
   });
+
+  // Load announcements and courses on component mount
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      // Load announcements
+      const announcementResult = await getAllAnnouncements();
+      if (announcementResult.success) {
+        setAnnouncements(announcementResult.announcements || []);
+      } else {
+        toast({
+          title: "Failed to load announcements",
+          description: announcementResult.error || "Unable to fetch announcements",
+          variant: "destructive",
+        });
+        setAnnouncements([]);
+      }
+
+      // Load courses for the dropdown (if not a learner)
+      if (!isLearner) {
+        const courseResult = await getAllCourses();
+        if (courseResult.success) {
+          setCourses(courseResult.courses || []);
+        } else {
+          console.warn('Failed to load courses:', courseResult.error);
+          setCourses([]);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading data:', error);
+      toast({
+        title: "Error loading data",
+        description: "Network error occurred while loading data",
+        variant: "destructive",
+      });
+      setAnnouncements([]);
+      setCourses([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleCreateAnnouncement = () => {
     if (!newAnnouncement.title || !newAnnouncement.message) {
