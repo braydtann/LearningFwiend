@@ -1412,6 +1412,15 @@ export const AuthProvider = ({ children }) => {
     getClassroomById,
     updateClassroom,
     deleteClassroom,
+    // Enrollment management
+    createEnrollment,
+    createBulkEnrollments,
+    getAllEnrollments,
+    getMyEnrollments,
+    getCourseEnrollments,
+    getStudentEnrollments,
+    updateEnrollment,
+    deleteEnrollment,
     // User role helpers
     isAdmin: user?.role === 'admin',
     isInstructor: user?.role === 'instructor',
