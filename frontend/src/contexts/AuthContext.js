@@ -668,6 +668,7 @@ export const AuthProvider = ({ children }) => {
     createCourse,
     getAllCourses,
     getMyCourses,
+    getCourseById,
     enrollInCourse,
     unenrollFromCourse,
     // Program management
