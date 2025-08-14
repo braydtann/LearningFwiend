@@ -373,7 +373,10 @@ const Departments = () => {
             <div className="space-y-2">
               <Label>Additional Information</Label>
               <div className="text-sm text-gray-600 space-y-1">
-                <p>Created: {selectedDepartment ? new Date(selectedDepartment.createdAt).toLocaleDateString() : ''}</p>
+                <p>Created: {selectedDepartment ? 
+                  (selectedDepartment.created_at ? new Date(selectedDepartment.created_at).toLocaleDateString() : 
+                   selectedDepartment.createdAt ? new Date(selectedDepartment.createdAt).toLocaleDateString() : 'N/A') : 
+                  ''}</p>
                 <p>Users: <span className="font-medium">{selectedDepartment?.userCount || 0}</span></p>
               </div>
             </div>
