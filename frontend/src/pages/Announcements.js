@@ -123,6 +123,22 @@ const Announcements = () => {
     }
   };
 
+  const getThisWeekCount = () => {
+    if (loading || !announcements.length) return 0;
+    
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    
+    return announcements.filter(announcement => {
+      const createdDate = new Date(announcement.created_at || announcement.createdAt);
+      return createdDate >= oneWeekAgo;
+    }).length;
+  };
+
+  const getCourseById = (courseId) => {
+    return courses.find(course => course.id === courseId || course.courseId === courseId);
+  };
+
   return (
     <div className="space-y-8">
       {/* Header */}
