@@ -3469,6 +3469,1494 @@ class BackendTester:
         
         return workflow_success
     
+    # =============================================================================
+    # CATEGORY MANAGEMENT API TESTS - NEW IMPLEMENTATION
+    # =============================================================================
+    
+    def test_category_authentication_requirements(self):
+        """Test that only instructors and admins can access category management"""
+        try:
+            # Test 1: Unauthenticated access should fail
+            category_data = {
+                "name": "Test Category",
+                "description": "Test category description"
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/categories",
+                json=category_data,
+                timeout=TEST_TIMEOUT,
+                headers={'Content-Type': 'application/json'}
+            )
+            
+            if response.status_code == 401:
+                self.log_result(
+                    "Category Auth - Unauthenticated Access", 
+                    "PASS", 
+                    "Correctly denied unauthenticated access to category creation",
+                    "401 Unauthorized as expected"
+                )
+            else:
+                self.log_result(
+                    "Category Auth - Unauthenticated Access", 
+                    "FAIL", 
+                    f"Unexpected status for unauthenticated access: {response.status_code}",
+                    f"Expected 401, got {response.status_code}"
+                )
+            
+            # Test 2: Learner access should be denied
+            if "learner" in self.auth_tokens:
+                response = requests.post(
+                    f"{BACKEND_URL}/categories",
+                    json=category_data,
+                    timeout=TEST_TIMEOUT,
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Authorization': f'Bearer {self.auth_tokens["learner"]}'
+                    }
+                )
+                
+                if response.status_code == 403:
+                    self.log_result(
+                        "Category Auth - Learner Access Denied", 
+                        "PASS", 
+                        "Correctly denied learner access to category creation",
+                        "403 Forbidden as expected"
+                    )
+                else:
+                    self.log_result(
+                        "Category Auth - Learner Access Denied", 
+                        "FAIL", 
+                        f"Learner access not properly denied: {response.status_code}",
+                        f"Expected 403, got {response.status_code}"
+                    )
+            
+            # Test 3: Admin access should be allowed
+            if "admin" in self.auth_tokens:
+                response = requests.post(
+                    f"{BACKEND_URL}/categories",
+                    json=category_data,
+                    timeout=TEST_TIMEOUT,
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                    }
+                )
+                
+                if response.status_code in [200, 400]:  # 400 if category already exists
+                    self.log_result(
+                        "Category Auth - Admin Access Allowed", 
+                        "PASS", 
+                        "Admin access to category creation properly allowed",
+                        f"Status: {response.status_code}"
+                    )
+                else:
+                    self.log_result(
+                        "Category Auth - Admin Access Allowed", 
+                        "FAIL", 
+                        f"Admin access failed unexpectedly: {response.status_code}",
+                        f"Response: {response.text}"
+                    )
+            
+            # Test 4: Instructor access should be allowed
+            if "instructor" in self.auth_tokens:
+                instructor_category_data = {
+                    "name": "Instructor Test Category",
+                    "description": "Category created by instructor"
+                }
+                
+                response = requests.post(
+                    f"{BACKEND_URL}/categories",
+                    json=instructor_category_data,
+                    timeout=TEST_TIMEOUT,
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                    }
+                )
+                
+                if response.status_code in [200, 400]:  # 400 if category already exists
+                    self.log_result(
+                        "Category Auth - Instructor Access Allowed", 
+                        "PASS", 
+                        "Instructor access to category creation properly allowed",
+                        f"Status: {response.status_code}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Category Auth - Instructor Access Allowed", 
+                        "FAIL", 
+                        f"Instructor access failed unexpectedly: {response.status_code}",
+                        f"Response: {response.text}"
+                    )
+            
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Category Authentication Requirements", 
+                "FAIL", 
+                "Failed to test category authentication requirements",
+                str(e)
+            )
+        return False
+    
+    def test_category_creation_api(self):
+        """Test category creation with both admin and instructor roles"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Category Creation API", 
+                "SKIP", 
+                "No admin token available, skipping category creation test",
+                "Admin login required first"
+            )
+            return False
+        
+        try:
+            # Test 1: Create category with admin role
+            admin_category_data = {
+                "name": "Admin Test Category",
+                "description": "Category created by admin for testing"
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/categories",
+                json=admin_category_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                required_fields = ['id', 'name', 'description', 'courseCount', 'isActive', 'createdBy', 'created_at']
+                
+                if all(field in data for field in required_fields):
+                    self.log_result(
+                        "Category Creation - Admin Role", 
+                        "PASS", 
+                        f"Successfully created category '{data['name']}' with admin role",
+                        f"Category ID: {data['id']}, courseCount: {data['courseCount']}, isActive: {data['isActive']}"
+                    )
+                    
+                    # Store category ID for later tests
+                    self.test_category_id = data['id']
+                else:
+                    self.log_result(
+                        "Category Creation - Admin Role", 
+                        "FAIL", 
+                        "Category creation response missing required fields",
+                        f"Missing: {[f for f in required_fields if f not in data]}"
+                    )
+            elif response.status_code == 400:
+                # Category might already exist
+                self.log_result(
+                    "Category Creation - Admin Role", 
+                    "INFO", 
+                    "Category already exists (expected if running multiple times)",
+                    f"Response: {response.text}"
+                )
+            else:
+                self.log_result(
+                    "Category Creation - Admin Role", 
+                    "FAIL", 
+                    f"Category creation failed with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+            
+            # Test 2: Create category with instructor role
+            if "instructor" in self.auth_tokens:
+                instructor_category_data = {
+                    "name": "Instructor Test Category",
+                    "description": "Category created by instructor for testing"
+                }
+                
+                response = requests.post(
+                    f"{BACKEND_URL}/categories",
+                    json=instructor_category_data,
+                    timeout=TEST_TIMEOUT,
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                    }
+                )
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    self.log_result(
+                        "Category Creation - Instructor Role", 
+                        "PASS", 
+                        f"Successfully created category '{data['name']}' with instructor role",
+                        f"Category ID: {data['id']}, createdBy: {data['createdBy']}"
+                    )
+                    return True
+                elif response.status_code == 400:
+                    self.log_result(
+                        "Category Creation - Instructor Role", 
+                        "INFO", 
+                        "Category already exists (expected if running multiple times)",
+                        f"Response: {response.text}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Category Creation - Instructor Role", 
+                        "FAIL", 
+                        f"Instructor category creation failed with status {response.status_code}",
+                        f"Response: {response.text}"
+                    )
+            
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Category Creation API", 
+                "FAIL", 
+                "Failed to test category creation API",
+                str(e)
+            )
+        return False
+    
+    def test_get_all_categories_api(self):
+        """Test retrieving all active categories with course counts"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Get All Categories API", 
+                "SKIP", 
+                "No admin token available, skipping get categories test",
+                "Admin login required first"
+            )
+            return False
+        
+        try:
+            response = requests.get(
+                f"{BACKEND_URL}/categories",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if isinstance(data, list):
+                    self.log_result(
+                        "Get All Categories API", 
+                        "PASS", 
+                        f"Successfully retrieved {len(data)} categories",
+                        f"Categories found: {[cat.get('name') for cat in data]}"
+                    )
+                    
+                    # Verify category structure
+                    if len(data) > 0:
+                        sample_category = data[0]
+                        required_fields = ['id', 'name', 'courseCount', 'isActive', 'createdBy', 'created_at']
+                        
+                        if all(field in sample_category for field in required_fields):
+                            self.log_result(
+                                "Category Structure Validation", 
+                                "PASS", 
+                                "Category data structure is correct",
+                                f"Sample category: {sample_category['name']}, courseCount: {sample_category['courseCount']}"
+                            )
+                        else:
+                            self.log_result(
+                                "Category Structure Validation", 
+                                "FAIL", 
+                                "Category data structure missing required fields",
+                                f"Missing: {[f for f in required_fields if f not in sample_category]}"
+                            )
+                    
+                    return True
+                else:
+                    self.log_result(
+                        "Get All Categories API", 
+                        "FAIL", 
+                        "Response is not a list",
+                        f"Response type: {type(data)}"
+                    )
+            else:
+                self.log_result(
+                    "Get All Categories API", 
+                    "FAIL", 
+                    f"Failed to get categories with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Get All Categories API", 
+                "FAIL", 
+                "Failed to test get all categories API",
+                str(e)
+            )
+        return False
+    
+    def test_get_category_by_id_api(self):
+        """Test getting a specific category by ID"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Get Category By ID API", 
+                "SKIP", 
+                "No admin token available, skipping get category by ID test",
+                "Admin login required first"
+            )
+            return False
+        
+        try:
+            # First, get all categories to find a valid ID
+            response = requests.get(
+                f"{BACKEND_URL}/categories",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                categories = response.json()
+                
+                if len(categories) > 0:
+                    test_category = categories[0]
+                    category_id = test_category['id']
+                    
+                    # Test getting specific category
+                    response = requests.get(
+                        f"{BACKEND_URL}/categories/{category_id}",
+                        timeout=TEST_TIMEOUT,
+                        headers={
+                            'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                        }
+                    )
+                    
+                    if response.status_code == 200:
+                        data = response.json()
+                        
+                        if data['id'] == category_id:
+                            self.log_result(
+                                "Get Category By ID API", 
+                                "PASS", 
+                                f"Successfully retrieved category '{data['name']}' by ID",
+                                f"Category ID: {category_id}, courseCount: {data['courseCount']}"
+                            )
+                            return True
+                        else:
+                            self.log_result(
+                                "Get Category By ID API", 
+                                "FAIL", 
+                                "Retrieved category ID doesn't match requested ID",
+                                f"Requested: {category_id}, Got: {data['id']}"
+                            )
+                    else:
+                        self.log_result(
+                            "Get Category By ID API", 
+                            "FAIL", 
+                            f"Failed to get category by ID with status {response.status_code}",
+                            f"Response: {response.text}"
+                        )
+                else:
+                    self.log_result(
+                        "Get Category By ID API", 
+                        "SKIP", 
+                        "No categories available to test get by ID",
+                        "Need to create categories first"
+                    )
+            
+            # Test with invalid category ID
+            invalid_id = "invalid-category-id"
+            response = requests.get(
+                f"{BACKEND_URL}/categories/{invalid_id}",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if response.status_code == 404:
+                self.log_result(
+                    "Get Category By ID - Invalid ID", 
+                    "PASS", 
+                    "Correctly returned 404 for invalid category ID",
+                    f"Invalid ID: {invalid_id}"
+                )
+            else:
+                self.log_result(
+                    "Get Category By ID - Invalid ID", 
+                    "FAIL", 
+                    f"Unexpected status for invalid ID: {response.status_code}",
+                    f"Expected 404, got {response.status_code}"
+                )
+            
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Get Category By ID API", 
+                "FAIL", 
+                "Failed to test get category by ID API",
+                str(e)
+            )
+        return False
+    
+    def test_category_update_permissions(self):
+        """Test category update permissions (only creator or admin can edit)"""
+        if "admin" not in self.auth_tokens or "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Category Update Permissions", 
+                "SKIP", 
+                "Need both admin and instructor tokens for permission testing",
+                "Both admin and instructor login required"
+            )
+            return False
+        
+        try:
+            # First, create a category with instructor role
+            instructor_category_data = {
+                "name": "Instructor Permission Test Category",
+                "description": "Category for testing update permissions"
+            }
+            
+            create_response = requests.post(
+                f"{BACKEND_URL}/categories",
+                json=instructor_category_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if create_response.status_code not in [200, 400]:
+                self.log_result(
+                    "Category Update Permissions - Setup", 
+                    "FAIL", 
+                    f"Failed to create test category: {create_response.status_code}",
+                    f"Response: {create_response.text}"
+                )
+                return False
+            
+            # Get the category ID (either from creation or find existing)
+            categories_response = requests.get(
+                f"{BACKEND_URL}/categories",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if categories_response.status_code != 200:
+                self.log_result(
+                    "Category Update Permissions - Get Categories", 
+                    "FAIL", 
+                    f"Failed to get categories: {categories_response.status_code}",
+                    f"Response: {categories_response.text}"
+                )
+                return False
+            
+            categories = categories_response.json()
+            test_category = None
+            
+            for category in categories:
+                if category['name'] == "Instructor Permission Test Category":
+                    test_category = category
+                    break
+            
+            if not test_category:
+                self.log_result(
+                    "Category Update Permissions - Find Test Category", 
+                    "FAIL", 
+                    "Could not find test category for permission testing",
+                    "Category creation may have failed"
+                )
+                return False
+            
+            category_id = test_category['id']
+            
+            # Test 1: Admin should be able to update any category
+            admin_update_data = {
+                "description": "Updated by admin for permission testing"
+            }
+            
+            response = requests.put(
+                f"{BACKEND_URL}/categories/{category_id}",
+                json=admin_update_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                self.log_result(
+                    "Category Update - Admin Permission", 
+                    "PASS", 
+                    "Admin successfully updated category (as expected)",
+                    f"Updated category: {category_id}"
+                )
+            else:
+                self.log_result(
+                    "Category Update - Admin Permission", 
+                    "FAIL", 
+                    f"Admin failed to update category: {response.status_code}",
+                    f"Response: {response.text}"
+                )
+            
+            # Test 2: Creator (instructor) should be able to update their own category
+            creator_update_data = {
+                "description": "Updated by creator instructor"
+            }
+            
+            response = requests.put(
+                f"{BACKEND_URL}/categories/{category_id}",
+                json=creator_update_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                self.log_result(
+                    "Category Update - Creator Permission", 
+                    "PASS", 
+                    "Category creator successfully updated their own category",
+                    f"Updated category: {category_id}"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Category Update - Creator Permission", 
+                    "FAIL", 
+                    f"Category creator failed to update their own category: {response.status_code}",
+                    f"Response: {response.text}"
+                )
+            
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Category Update Permissions", 
+                "FAIL", 
+                "Failed to test category update permissions",
+                str(e)
+            )
+        return False
+    
+    def test_category_delete_business_logic(self):
+        """Test category deletion business logic (cannot delete categories with courses)"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Category Delete Business Logic", 
+                "SKIP", 
+                "No admin token available, skipping delete business logic test",
+                "Admin login required first"
+            )
+            return False
+        
+        try:
+            # First, create a test category
+            test_category_data = {
+                "name": "Delete Test Category",
+                "description": "Category for testing deletion business logic"
+            }
+            
+            create_response = requests.post(
+                f"{BACKEND_URL}/categories",
+                json=test_category_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if create_response.status_code not in [200, 400]:
+                self.log_result(
+                    "Category Delete - Setup", 
+                    "FAIL", 
+                    f"Failed to create test category: {create_response.status_code}",
+                    f"Response: {create_response.text}"
+                )
+                return False
+            
+            # Get the category ID
+            categories_response = requests.get(
+                f"{BACKEND_URL}/categories",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if categories_response.status_code != 200:
+                return False
+            
+            categories = categories_response.json()
+            test_category = None
+            
+            for category in categories:
+                if category['name'] == "Delete Test Category":
+                    test_category = category
+                    break
+            
+            if not test_category:
+                self.log_result(
+                    "Category Delete - Find Test Category", 
+                    "FAIL", 
+                    "Could not find test category for deletion testing",
+                    "Category creation may have failed"
+                )
+                return False
+            
+            category_id = test_category['id']
+            
+            # Test 1: Try to delete category without courses (should succeed with soft delete)
+            if test_category['courseCount'] == 0:
+                response = requests.delete(
+                    f"{BACKEND_URL}/categories/{category_id}",
+                    timeout=TEST_TIMEOUT,
+                    headers={
+                        'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                    }
+                )
+                
+                if response.status_code == 200:
+                    self.log_result(
+                        "Category Delete - No Courses", 
+                        "PASS", 
+                        "Successfully deleted category with no courses (soft delete)",
+                        f"Deleted category: {test_category['name']}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Category Delete - No Courses", 
+                        "FAIL", 
+                        f"Failed to delete category with no courses: {response.status_code}",
+                        f"Response: {response.text}"
+                    )
+            else:
+                # Test 2: Try to delete category with courses (should fail)
+                response = requests.delete(
+                    f"{BACKEND_URL}/categories/{category_id}",
+                    timeout=TEST_TIMEOUT,
+                    headers={
+                        'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                    }
+                )
+                
+                if response.status_code == 400:
+                    self.log_result(
+                        "Category Delete - With Courses", 
+                        "PASS", 
+                        f"Correctly prevented deletion of category with {test_category['courseCount']} courses",
+                        f"Business logic working: categories with courses cannot be deleted"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Category Delete - With Courses", 
+                        "FAIL", 
+                        f"Should have prevented deletion of category with courses: {response.status_code}",
+                        f"Expected 400, got {response.status_code}"
+                    )
+            
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Category Delete Business Logic", 
+                "FAIL", 
+                "Failed to test category delete business logic",
+                str(e)
+            )
+        return False
+    
+    def test_category_name_uniqueness(self):
+        """Test category name uniqueness validation"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Category Name Uniqueness", 
+                "SKIP", 
+                "No admin token available, skipping name uniqueness test",
+                "Admin login required first"
+            )
+            return False
+        
+        try:
+            # First, create a category with a unique name
+            unique_category_data = {
+                "name": "Unique Test Category",
+                "description": "Category for testing name uniqueness"
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/categories",
+                json=unique_category_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                self.log_result(
+                    "Category Name Uniqueness - First Creation", 
+                    "PASS", 
+                    "Successfully created category with unique name",
+                    f"Category: {unique_category_data['name']}"
+                )
+            elif response.status_code == 400:
+                # Category might already exist from previous test runs
+                self.log_result(
+                    "Category Name Uniqueness - First Creation", 
+                    "INFO", 
+                    "Category already exists (expected if running multiple times)",
+                    f"Category: {unique_category_data['name']}"
+                )
+            else:
+                self.log_result(
+                    "Category Name Uniqueness - First Creation", 
+                    "FAIL", 
+                    f"Unexpected status for category creation: {response.status_code}",
+                    f"Response: {response.text}"
+                )
+                return False
+            
+            # Now try to create another category with the same name (should fail)
+            duplicate_category_data = {
+                "name": "Unique Test Category",  # Same name
+                "description": "Duplicate category for testing uniqueness"
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/categories",
+                json=duplicate_category_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if response.status_code == 400:
+                response_data = response.json() if response.headers.get('content-type', '').startswith('application/json') else {}
+                if 'already exists' in response.text.lower():
+                    self.log_result(
+                        "Category Name Uniqueness - Duplicate Prevention", 
+                        "PASS", 
+                        "Correctly prevented creation of category with duplicate name",
+                        f"Validation working: {response.text}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Category Name Uniqueness - Duplicate Prevention", 
+                        "FAIL", 
+                        "Got 400 status but not for duplicate name reason",
+                        f"Response: {response.text}"
+                    )
+            else:
+                self.log_result(
+                    "Category Name Uniqueness - Duplicate Prevention", 
+                    "FAIL", 
+                    f"Should have prevented duplicate category name: {response.status_code}",
+                    f"Expected 400, got {response.status_code}"
+                )
+            
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Category Name Uniqueness", 
+                "FAIL", 
+                "Failed to test category name uniqueness",
+                str(e)
+            )
+        return False
+    
+    def test_category_course_count_calculation(self):
+        """Test that category course count is calculated correctly"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Category Course Count Calculation", 
+                "SKIP", 
+                "No admin token available, skipping course count test",
+                "Admin login required first"
+            )
+            return False
+        
+        try:
+            # Get all categories and check their course counts
+            response = requests.get(
+                f"{BACKEND_URL}/categories",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if response.status_code != 200:
+                self.log_result(
+                    "Category Course Count - Get Categories", 
+                    "FAIL", 
+                    f"Failed to get categories: {response.status_code}",
+                    f"Response: {response.text}"
+                )
+                return False
+            
+            categories = response.json()
+            
+            if len(categories) == 0:
+                self.log_result(
+                    "Category Course Count Calculation", 
+                    "SKIP", 
+                    "No categories available to test course count calculation",
+                    "Need categories to test course count"
+                )
+                return False
+            
+            # Get all courses to verify course count calculation
+            courses_response = requests.get(
+                f"{BACKEND_URL}/courses",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if courses_response.status_code == 200:
+                courses = courses_response.json()
+                
+                # Calculate expected course counts per category
+                expected_counts = {}
+                for course in courses:
+                    category_name = course.get('category', '')
+                    if category_name:
+                        expected_counts[category_name] = expected_counts.get(category_name, 0) + 1
+                
+                # Verify course counts match
+                count_matches = 0
+                for category in categories:
+                    category_name = category['name']
+                    expected_count = expected_counts.get(category_name, 0)
+                    actual_count = category['courseCount']
+                    
+                    if expected_count == actual_count:
+                        count_matches += 1
+                        self.log_result(
+                            f"Course Count - {category_name}", 
+                            "PASS", 
+                            f"Course count correctly calculated: {actual_count}",
+                            f"Expected: {expected_count}, Actual: {actual_count}"
+                        )
+                    else:
+                        self.log_result(
+                            f"Course Count - {category_name}", 
+                            "FAIL", 
+                            f"Course count mismatch: expected {expected_count}, got {actual_count}",
+                            f"Category: {category_name}"
+                        )
+                
+                if count_matches == len(categories):
+                    self.log_result(
+                        "Category Course Count Calculation", 
+                        "PASS", 
+                        f"All {len(categories)} categories have correct course counts",
+                        f"Course count calculation working correctly"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Category Course Count Calculation", 
+                        "FAIL", 
+                        f"Only {count_matches}/{len(categories)} categories have correct course counts",
+                        "Course count calculation has issues"
+                    )
+            else:
+                self.log_result(
+                    "Category Course Count - Get Courses", 
+                    "FAIL", 
+                    f"Failed to get courses for count verification: {courses_response.status_code}",
+                    f"Response: {courses_response.text}"
+                )
+            
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Category Course Count Calculation", 
+                "FAIL", 
+                "Failed to test category course count calculation",
+                str(e)
+            )
+        return False
+    
+    def test_category_soft_delete_functionality(self):
+        """Test soft delete functionality (isActive flag)"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Category Soft Delete Functionality", 
+                "SKIP", 
+                "No admin token available, skipping soft delete test",
+                "Admin login required first"
+            )
+            return False
+        
+        try:
+            # Create a category specifically for soft delete testing
+            soft_delete_category_data = {
+                "name": "Soft Delete Test Category",
+                "description": "Category for testing soft delete functionality"
+            }
+            
+            create_response = requests.post(
+                f"{BACKEND_URL}/categories",
+                json=soft_delete_category_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if create_response.status_code not in [200, 400]:
+                self.log_result(
+                    "Soft Delete - Category Creation", 
+                    "FAIL", 
+                    f"Failed to create test category: {create_response.status_code}",
+                    f"Response: {create_response.text}"
+                )
+                return False
+            
+            # Get the category to verify it exists and is active
+            categories_response = requests.get(
+                f"{BACKEND_URL}/categories",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if categories_response.status_code != 200:
+                return False
+            
+            categories = categories_response.json()
+            test_category = None
+            
+            for category in categories:
+                if category['name'] == "Soft Delete Test Category":
+                    test_category = category
+                    break
+            
+            if not test_category:
+                self.log_result(
+                    "Soft Delete - Find Test Category", 
+                    "FAIL", 
+                    "Could not find test category for soft delete testing",
+                    "Category creation may have failed"
+                )
+                return False
+            
+            # Verify category is initially active
+            if test_category['isActive']:
+                self.log_result(
+                    "Soft Delete - Initial State", 
+                    "PASS", 
+                    "Test category is initially active (isActive: true)",
+                    f"Category: {test_category['name']}"
+                )
+            else:
+                self.log_result(
+                    "Soft Delete - Initial State", 
+                    "FAIL", 
+                    "Test category is not active initially",
+                    f"Expected isActive: true, got: {test_category['isActive']}"
+                )
+            
+            category_id = test_category['id']
+            
+            # Perform soft delete (assuming category has no courses)
+            if test_category['courseCount'] == 0:
+                delete_response = requests.delete(
+                    f"{BACKEND_URL}/categories/{category_id}",
+                    timeout=TEST_TIMEOUT,
+                    headers={
+                        'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                    }
+                )
+                
+                if delete_response.status_code == 200:
+                    self.log_result(
+                        "Soft Delete - Delete Operation", 
+                        "PASS", 
+                        "Category deletion operation successful",
+                        f"Deleted category: {test_category['name']}"
+                    )
+                    
+                    # Verify category is no longer in active categories list
+                    categories_after_response = requests.get(
+                        f"{BACKEND_URL}/categories",
+                        timeout=TEST_TIMEOUT,
+                        headers={
+                            'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                        }
+                    )
+                    
+                    if categories_after_response.status_code == 200:
+                        categories_after = categories_after_response.json()
+                        
+                        # Check if deleted category is still in the list
+                        deleted_category_found = False
+                        for category in categories_after:
+                            if category['id'] == category_id:
+                                deleted_category_found = True
+                                break
+                        
+                        if not deleted_category_found:
+                            self.log_result(
+                                "Soft Delete - Verification", 
+                                "PASS", 
+                                "Soft deleted category no longer appears in active categories list",
+                                "Soft delete functionality working correctly"
+                            )
+                            return True
+                        else:
+                            self.log_result(
+                                "Soft Delete - Verification", 
+                                "FAIL", 
+                                "Soft deleted category still appears in active categories list",
+                                "Soft delete may not be working correctly"
+                            )
+                    else:
+                        self.log_result(
+                            "Soft Delete - Verification", 
+                            "FAIL", 
+                            f"Failed to get categories after deletion: {categories_after_response.status_code}",
+                            f"Response: {categories_after_response.text}"
+                        )
+                else:
+                    self.log_result(
+                        "Soft Delete - Delete Operation", 
+                        "FAIL", 
+                        f"Category deletion failed: {delete_response.status_code}",
+                        f"Response: {delete_response.text}"
+                    )
+            else:
+                self.log_result(
+                    "Soft Delete Functionality", 
+                    "SKIP", 
+                    f"Test category has {test_category['courseCount']} courses, cannot test soft delete",
+                    "Need category with no courses for soft delete testing"
+                )
+                return True  # This is expected behavior
+            
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Category Soft Delete Functionality", 
+                "FAIL", 
+                "Failed to test category soft delete functionality",
+                str(e)
+            )
+        return False
+    
+    def test_category_course_integration(self):
+        """Test that categories integrate properly with existing course data"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Category Course Integration", 
+                "SKIP", 
+                "No admin token available, skipping integration test",
+                "Admin login required first"
+            )
+            return False
+        
+        try:
+            # Get all categories
+            categories_response = requests.get(
+                f"{BACKEND_URL}/categories",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if categories_response.status_code != 200:
+                self.log_result(
+                    "Category Course Integration - Get Categories", 
+                    "FAIL", 
+                    f"Failed to get categories: {categories_response.status_code}",
+                    f"Response: {categories_response.text}"
+                )
+                return False
+            
+            categories = categories_response.json()
+            
+            # Get all courses
+            courses_response = requests.get(
+                f"{BACKEND_URL}/courses",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if courses_response.status_code != 200:
+                self.log_result(
+                    "Category Course Integration - Get Courses", 
+                    "FAIL", 
+                    f"Failed to get courses: {courses_response.status_code}",
+                    f"Response: {courses_response.text}"
+                )
+                return False
+            
+            courses = courses_response.json()
+            
+            # Verify integration
+            category_names = {cat['name'] for cat in categories}
+            course_categories = {course.get('category', '') for course in courses if course.get('category')}
+            
+            # Check if all course categories exist in categories
+            missing_categories = course_categories - category_names
+            orphaned_courses = []
+            
+            for course in courses:
+                course_category = course.get('category', '')
+                if course_category and course_category not in category_names:
+                    orphaned_courses.append({
+                        'course': course.get('title', 'Unknown'),
+                        'category': course_category
+                    })
+            
+            if len(missing_categories) == 0:
+                self.log_result(
+                    "Category Course Integration - Category References", 
+                    "PASS", 
+                    "All course categories reference existing categories",
+                    f"Verified {len(course_categories)} unique course categories"
+                )
+            else:
+                self.log_result(
+                    "Category Course Integration - Category References", 
+                    "FAIL", 
+                    f"Found {len(missing_categories)} course categories that don't exist in categories",
+                    f"Missing categories: {list(missing_categories)}"
+                )
+            
+            # Test creating a course with an existing category
+            if len(categories) > 0:
+                test_category = categories[0]['name']
+                
+                test_course_data = {
+                    "title": "Category Integration Test Course",
+                    "description": "Course for testing category integration",
+                    "category": test_category,
+                    "duration": "2 hours"
+                }
+                
+                course_create_response = requests.post(
+                    f"{BACKEND_URL}/courses",
+                    json=test_course_data,
+                    timeout=TEST_TIMEOUT,
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                    }
+                )
+                
+                if course_create_response.status_code == 200:
+                    created_course = course_create_response.json()
+                    
+                    if created_course['category'] == test_category:
+                        self.log_result(
+                            "Category Course Integration - Course Creation", 
+                            "PASS", 
+                            f"Successfully created course with category '{test_category}'",
+                            f"Course: {created_course['title']}"
+                        )
+                        
+                        # Verify category course count increased
+                        updated_categories_response = requests.get(
+                            f"{BACKEND_URL}/categories",
+                            timeout=TEST_TIMEOUT,
+                            headers={
+                                'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                            }
+                        )
+                        
+                        if updated_categories_response.status_code == 200:
+                            updated_categories = updated_categories_response.json()
+                            
+                            for category in updated_categories:
+                                if category['name'] == test_category:
+                                    original_count = next((cat['courseCount'] for cat in categories if cat['name'] == test_category), 0)
+                                    new_count = category['courseCount']
+                                    
+                                    if new_count >= original_count:
+                                        self.log_result(
+                                            "Category Course Integration - Count Update", 
+                                            "PASS", 
+                                            f"Category course count properly updated: {new_count}",
+                                            f"Category: {test_category}"
+                                        )
+                                        return True
+                                    else:
+                                        self.log_result(
+                                            "Category Course Integration - Count Update", 
+                                            "FAIL", 
+                                            f"Category course count not updated correctly: {new_count} (was {original_count})",
+                                            f"Category: {test_category}"
+                                        )
+                                    break
+                    else:
+                        self.log_result(
+                            "Category Course Integration - Course Creation", 
+                            "FAIL", 
+                            f"Course category mismatch: expected '{test_category}', got '{created_course['category']}'",
+                            "Category assignment not working correctly"
+                        )
+                else:
+                    self.log_result(
+                        "Category Course Integration - Course Creation", 
+                        "FAIL", 
+                        f"Failed to create test course: {course_create_response.status_code}",
+                        f"Response: {course_create_response.text}"
+                    )
+            
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Category Course Integration", 
+                "FAIL", 
+                "Failed to test category course integration",
+                str(e)
+            )
+        return False
+    
+    def test_complete_category_workflow(self):
+        """Test complete category CRUD workflow"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Complete Category Workflow", 
+                "SKIP", 
+                "No admin token available, skipping complete workflow test",
+                "Admin login required first"
+            )
+            return False
+        
+        try:
+            workflow_category_name = "Complete Workflow Test Category"
+            
+            # Step 1: Create category
+            create_data = {
+                "name": workflow_category_name,
+                "description": "Category for testing complete CRUD workflow"
+            }
+            
+            create_response = requests.post(
+                f"{BACKEND_URL}/categories",
+                json=create_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if create_response.status_code not in [200, 400]:
+                self.log_result(
+                    "Complete Workflow - Create", 
+                    "FAIL", 
+                    f"Failed to create workflow test category: {create_response.status_code}",
+                    f"Response: {create_response.text}"
+                )
+                return False
+            
+            # Step 2: Read (get all categories and find our category)
+            read_response = requests.get(
+                f"{BACKEND_URL}/categories",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if read_response.status_code != 200:
+                self.log_result(
+                    "Complete Workflow - Read", 
+                    "FAIL", 
+                    f"Failed to read categories: {read_response.status_code}",
+                    f"Response: {read_response.text}"
+                )
+                return False
+            
+            categories = read_response.json()
+            workflow_category = None
+            
+            for category in categories:
+                if category['name'] == workflow_category_name:
+                    workflow_category = category
+                    break
+            
+            if not workflow_category:
+                self.log_result(
+                    "Complete Workflow - Read", 
+                    "FAIL", 
+                    "Could not find created category in categories list",
+                    f"Looking for: {workflow_category_name}"
+                )
+                return False
+            
+            category_id = workflow_category['id']
+            
+            self.log_result(
+                "Complete Workflow - Read", 
+                "PASS", 
+                f"Successfully found created category in list",
+                f"Category ID: {category_id}"
+            )
+            
+            # Step 3: Read specific (get category by ID)
+            read_specific_response = requests.get(
+                f"{BACKEND_URL}/categories/{category_id}",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if read_specific_response.status_code == 200:
+                specific_category = read_specific_response.json()
+                
+                if specific_category['id'] == category_id:
+                    self.log_result(
+                        "Complete Workflow - Read Specific", 
+                        "PASS", 
+                        f"Successfully retrieved category by ID",
+                        f"Category: {specific_category['name']}"
+                    )
+                else:
+                    self.log_result(
+                        "Complete Workflow - Read Specific", 
+                        "FAIL", 
+                        "Retrieved category ID doesn't match requested ID",
+                        f"Requested: {category_id}, Got: {specific_category['id']}"
+                    )
+            else:
+                self.log_result(
+                    "Complete Workflow - Read Specific", 
+                    "FAIL", 
+                    f"Failed to get category by ID: {read_specific_response.status_code}",
+                    f"Response: {read_specific_response.text}"
+                )
+            
+            # Step 4: Update category
+            update_data = {
+                "description": "Updated description for complete workflow test"
+            }
+            
+            update_response = requests.put(
+                f"{BACKEND_URL}/categories/{category_id}",
+                json=update_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if update_response.status_code == 200:
+                updated_category = update_response.json()
+                
+                if updated_category['description'] == update_data['description']:
+                    self.log_result(
+                        "Complete Workflow - Update", 
+                        "PASS", 
+                        f"Successfully updated category description",
+                        f"New description: {updated_category['description']}"
+                    )
+                else:
+                    self.log_result(
+                        "Complete Workflow - Update", 
+                        "FAIL", 
+                        "Category description not updated correctly",
+                        f"Expected: {update_data['description']}, Got: {updated_category['description']}"
+                    )
+            else:
+                self.log_result(
+                    "Complete Workflow - Update", 
+                    "FAIL", 
+                    f"Failed to update category: {update_response.status_code}",
+                    f"Response: {update_response.text}"
+                )
+            
+            # Step 5: Delete category (if it has no courses)
+            if workflow_category['courseCount'] == 0:
+                delete_response = requests.delete(
+                    f"{BACKEND_URL}/categories/{category_id}",
+                    timeout=TEST_TIMEOUT,
+                    headers={
+                        'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                    }
+                )
+                
+                if delete_response.status_code == 200:
+                    self.log_result(
+                        "Complete Workflow - Delete", 
+                        "PASS", 
+                        f"Successfully deleted category",
+                        f"Deleted: {workflow_category_name}"
+                    )
+                    
+                    # Verify deletion
+                    verify_response = requests.get(
+                        f"{BACKEND_URL}/categories",
+                        timeout=TEST_TIMEOUT,
+                        headers={
+                            'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                        }
+                    )
+                    
+                    if verify_response.status_code == 200:
+                        remaining_categories = verify_response.json()
+                        deleted_category_found = False
+                        
+                        for category in remaining_categories:
+                            if category['id'] == category_id:
+                                deleted_category_found = True
+                                break
+                        
+                        if not deleted_category_found:
+                            self.log_result(
+                                "Complete Workflow - Delete Verification", 
+                                "PASS", 
+                                "Deleted category no longer appears in categories list",
+                                "Complete CRUD workflow successful"
+                            )
+                            return True
+                        else:
+                            self.log_result(
+                                "Complete Workflow - Delete Verification", 
+                                "FAIL", 
+                                "Deleted category still appears in categories list",
+                                "Soft delete may not be working correctly"
+                            )
+                else:
+                    self.log_result(
+                        "Complete Workflow - Delete", 
+                        "FAIL", 
+                        f"Failed to delete category: {delete_response.status_code}",
+                        f"Response: {delete_response.text}"
+                    )
+            else:
+                self.log_result(
+                    "Complete Workflow - Delete", 
+                    "SKIP", 
+                    f"Category has {workflow_category['courseCount']} courses, skipping delete test",
+                    "This is expected behavior - categories with courses cannot be deleted"
+                )
+                return True  # Workflow is still successful
+            
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Complete Category Workflow", 
+                "FAIL", 
+                "Failed to test complete category workflow",
+                str(e)
+            )
+        return False
+    
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Backend Testing Suite for LearningFwiend LMS")
