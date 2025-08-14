@@ -58,10 +58,10 @@ class ComprehensiveBackendTester:
         print("🔐 SETTING UP AUTHENTICATION FOR ALL USER TYPES")
         print("="*80)
         
-        # Test user credentials
+        # Test user credentials (using working credentials from setup)
         test_users = [
             {"username": "admin", "password": "NewAdmin123!", "role": "admin"},
-            {"username": "instructor", "password": "Instructor123!", "role": "instructor"},
+            {"username": "test.instructor", "password": "TestInstructor123!", "role": "instructor"},
             {"username": "student", "password": "Student123!", "role": "learner"}
         ]
         
