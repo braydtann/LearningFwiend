@@ -269,11 +269,11 @@ const Classrooms = () => {
                     </SelectTrigger>
                     <SelectContent>
                       {loadingUsers ? (
-                        <SelectItem value="" disabled>
+                        <SelectItem value="loading" disabled>
                           Loading trainers...
                         </SelectItem>
                       ) : instructors.length === 0 ? (
-                        <SelectItem value="" disabled>
+                        <SelectItem value="none" disabled>
                           No instructors available
                         </SelectItem>
                       ) : (
