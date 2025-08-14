@@ -3540,6 +3540,9 @@ class BackendTester:
         # Critical Test 4: Detailed API testing
         self.test_password_change_api_detailed()
         
+        # Critical Test 5: Bug reproduction test
+        self.test_password_change_loop_bug_reproduction()
+        
         print("\n" + "=" * 60)
         print("🗑️  USER DELETION FUNCTIONALITY TESTS")
         print("=" * 60)
