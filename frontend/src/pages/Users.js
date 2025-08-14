@@ -90,12 +90,25 @@ const Users = () => {
     const result = await getAllUsers();
     if (result.success) {
       setUsers(result.users);
+      
+      // Extract unique departments from users, combine with mock departments
+      const userDepartments = result.users
+        .map(user => user.department)
+        .filter(dept => dept && dept.trim() !== '')
+        .filter((dept, index, arr) => arr.indexOf(dept) === index);
+      
+      const mockDeptNames = mockDepartments.map(dept => dept.name);
+      const allDepartments = [...new Set([...userDepartments, ...mockDeptNames])];
+      
+      setAvailableDepartments(allDepartments.map(name => ({ id: name, name })));
     } else {
       toast({
         title: "Error loading users",
         description: result.error,
         variant: "destructive",
       });
+      // Fallback to mock departments
+      setAvailableDepartments(mockDepartments);
     }
     setLoading(false);
   };
