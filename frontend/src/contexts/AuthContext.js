@@ -445,6 +445,34 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const getCourseById = async (courseId) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/courses/${courseId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const course = await response.json();
+        return { success: true, course };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to fetch course' 
+        };
+      }
+    } catch (error) {
+      console.error('Fetch course error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
   // =============================================================================
   // PROGRAM MANAGEMENT FUNCTIONS  
   // =============================================================================
