@@ -3078,12 +3078,12 @@ async def revoke_certificate(
 # =============================================================================
 
 class QuestionCreate(BaseModel):
-    type: str  # multiple_choice, true_false, short_answer, essay
-    question: str
-    options: List[str] = []  # For multiple choice questions
-    correctAnswer: str  # String representation: index for MC, text for others
-    points: int = 1
-    explanation: Optional[str] = None
+    type: str = Field(..., regex="^(multiple_choice|true_false|short_answer|essay)$", description="Question type")
+    question: str = Field(..., min_length=1, max_length=1000, description="Question text")
+    options: List[str] = Field(default=[], description="Options for multiple choice questions")
+    correctAnswer: str = Field(..., min_length=1, description="Correct answer (index for MC, text for others)")
+    points: int = Field(1, ge=1, le=100, description="Points for correct answer")
+    explanation: Optional[str] = Field(None, max_length=500)
 
 class QuestionInDB(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
