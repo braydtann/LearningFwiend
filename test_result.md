@@ -814,7 +814,7 @@ frontend:
         comment: "IMPLEMENTATION COMPLETED: Successfully migrated Announcements.js from mock data to backend APIs. ✅ Removed mockAnnouncements and mockCourses imports, ✅ Added useEffect to load announcements and courses on mount via getAllAnnouncements() and getAllCourses(), ✅ Updated createAnnouncement to use backend API with proper error handling, ✅ Added loading states throughout UI (stats cards, announcement list), ✅ Updated course dropdown to use backend courses data, ✅ Added helper functions (getThisWeekCount, getCourseById), ✅ Updated date handling for backend format (created_at vs createdAt), ✅ Added null-safe author and image handling with fallbacks, ✅ Maintained existing UI/UX with role-based functionality (learners vs instructors). Component now fully integrated with backend with no mock data dependencies."
 
   - task: "Certificates Frontend Backend Integration"
-    implemented: false
+    implemented: true
     working: "NA"
     file: "/app/frontend/src/pages/Certificates.js"
     stuck_count: 0
@@ -824,6 +824,9 @@ frontend:
       - working: "NA"
         agent: "main"
         comment: "TASK STARTED: Beginning frontend integration to replace mock data dependencies with backend API calls from AuthContext. Current component uses getUserCertificates and needs full migration to getAllCertificates, getMyCertificates APIs."
+      - working: "NA"
+        agent: "main"
+        comment: "IMPLEMENTATION COMPLETED: Successfully migrated Certificates.js from mock data to backend APIs. ✅ Removed getUserCertificates and checkAndGenerateCertificates imports from mockData, ✅ Added useEffect to load certificates on mount via getMyCertificates(), ✅ Added loading states throughout UI (stats cards, certificates grid), ✅ Added proper error handling with toast notifications, ✅ Updated date handling for backend format (issued_at vs issuedAt), ✅ Added null-safe handling for certificate fields (programName, courseName, title, certificateNumber), ✅ Added support for both course and program certificates with dynamic certificate type display, ✅ Updated certificate ID display to handle various ID field names, ✅ Maintained existing UI/UX with certificate visual design and action buttons. Component now fully integrated with backend with no mock data dependencies."
 
   - task: "Analytics Frontend Backend Integration"
     implemented: false
