@@ -19,9 +19,10 @@ import {
 import { useToast } from '../hooks/use-toast';
 
 const Categories = () => {
-  const { user, isAdmin, isInstructor } = useAuth();
+  const { user, isAdmin, isInstructor, getAllCategories, createCategory, updateCategory, deleteCategory } = useAuth();
   const { toast } = useToast();
-  const [categories, setCategories] = useState(getAllCategories());
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
@@ -29,6 +30,36 @@ const Categories = () => {
     name: '',
     description: ''
   });
+
+  // Load categories when component mounts
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
+  const loadCategories = async () => {
+    setLoading(true);
+    try {
+      const result = await getAllCategories();
+      if (result.success) {
+        setCategories(result.categories);
+      } else {
+        toast({
+          title: "Error loading categories",
+          description: result.error,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error loading categories:', error);
+      toast({
+        title: "Error loading categories",
+        description: "Failed to load categories from server",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Only allow admin and instructors to access
   if (!isAdmin && !isInstructor) {
