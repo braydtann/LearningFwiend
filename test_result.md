@@ -799,7 +799,7 @@ frontend:
         comment: "IMPLEMENTATION COMPLETED: Successfully migrated Departments.js from mock data to backend APIs. ✅ Removed mockDepartments and getUsersByDepartment imports, ✅ Added useEffect to load departments on mount via getAllDepartments(), ✅ Updated all CRUD operations to use backend APIs (createDepartment, updateDepartment, deleteDepartment), ✅ Added loading states throughout UI (stats cards, table), ✅ Added proper error handling with toast notifications, ✅ Updated date handling for backend format (created_at vs createdAt), ✅ Added null-safe userCount handling, ✅ Maintained existing UI/UX with admin-only access control. Component now fully integrated with backend with no mock data dependencies."
 
   - task: "Announcements Frontend Backend Integration"
-    implemented: false
+    implemented: true
     working: "NA"
     file: "/app/frontend/src/pages/Announcements.js"
     stuck_count: 0
@@ -809,6 +809,9 @@ frontend:
       - working: "NA"
         agent: "main"
         comment: "TASK STARTED: Beginning frontend integration to replace mock data dependencies with backend API calls from AuthContext. Current component uses mockAnnouncements and needs full migration to getAllAnnouncements, addAnnouncement, updateAnnouncement, deleteAnnouncement APIs."
+      - working: "NA"
+        agent: "main"
+        comment: "IMPLEMENTATION COMPLETED: Successfully migrated Announcements.js from mock data to backend APIs. ✅ Removed mockAnnouncements and mockCourses imports, ✅ Added useEffect to load announcements and courses on mount via getAllAnnouncements() and getAllCourses(), ✅ Updated createAnnouncement to use backend API with proper error handling, ✅ Added loading states throughout UI (stats cards, announcement list), ✅ Updated course dropdown to use backend courses data, ✅ Added helper functions (getThisWeekCount, getCourseById), ✅ Updated date handling for backend format (created_at vs createdAt), ✅ Added null-safe author and image handling with fallbacks, ✅ Maintained existing UI/UX with role-based functionality (learners vs instructors). Component now fully integrated with backend with no mock data dependencies."
 
   - task: "Certificates Frontend Backend Integration"
     implemented: false
