@@ -839,11 +839,11 @@ frontend:
 
   - task: "Analytics Frontend Backend Integration"
     implemented: true
-    working: "NA"
+    working: false
     file: "/app/frontend/src/pages/Analytics.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
@@ -851,6 +851,9 @@ frontend:
       - working: "NA"
         agent: "main"
         comment: "IMPLEMENTATION COMPLETED: Successfully completely rewrote Analytics.js from complex mock data processing to streamlined backend API integration. ✅ Removed all mock data imports (mockCourses, mockUsers, mockEnrollments, mockQuizAttempts, mockClassrooms, etc.), ✅ Added useEffect to load analytics data via getSystemStats(), getAnalyticsDashboard(), getAllCourses(), getAllUsers(), getAllDepartments(), ✅ Simplified component from complex filtering system to clean tabbed interface (Overview, Performance, Engagement), ✅ Added comprehensive loading states throughout all tabs and cards, ✅ Added proper error handling with toast notifications, ✅ Created calculated metrics from backend data (user distribution by role, course distribution by category), ✅ Maintained admin/instructor access control with proper access denied page, ✅ Added export functionality and modern UI with progress bars and badges. Component transformed from 500+ lines of complex mock data processing to clean 400-line backend-integrated analytics dashboard with no mock data dependencies."
+      - working: false
+        agent: "testing"
+        comment: "CRITICAL BACKEND API ISSUES DETECTED: ❌ GET /api/analytics/system-stats returning incomplete data - missing required fields 'totalUsers', 'totalCourses', 'totalPrograms', 'totalEnrollments' that frontend expects, ❌ GET /api/analytics/dashboard timing out with connection errors, indicating server performance issues, ❌ Authentication issues preventing full testing of analytics endpoints. The analytics APIs exist but are not returning the data structure that the frontend expects, causing integration failures. Backend analytics implementation needs to be reviewed and fixed to match frontend expectations."
 
   - task: "Quiz Frontend Backend Integration"
     implemented: false
