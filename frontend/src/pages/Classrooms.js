@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
@@ -29,10 +29,12 @@ import {
 import { useToast } from '../hooks/use-toast';
 
 const Classrooms = () => {
-  const { user, isAdmin, isInstructor, isLearner } = useAuth();
+  const { user, isAdmin, isInstructor, isLearner, getAllUsers } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [realUsers, setRealUsers] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
   const [newClassroom, setNewClassroom] = useState({
     name: '',
     batchId: '',
