@@ -2261,6 +2261,21 @@ export const AuthProvider = ({ children }) => {
     verifyCertificate,
     updateCertificate,
     revokeCertificate,
+    // Quiz/Assessment management
+    createQuiz,
+    getAllQuizzes,
+    getMyQuizzes,
+    getQuizById,
+    updateQuiz,
+    deleteQuiz,
+    submitQuizAttempt,
+    getQuizAttempts,
+    getQuizAttemptById,
+    // Analytics management
+    getSystemStats,
+    getCourseAnalytics,
+    getUserAnalytics,
+    getAnalyticsDashboard,
     // User role helpers
     isAdmin: user?.role === 'admin',
     isInstructor: user?.role === 'instructor',
