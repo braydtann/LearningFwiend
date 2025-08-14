@@ -1847,6 +1847,22 @@ export const AuthProvider = ({ children }) => {
     getStudentEnrollments,
     updateEnrollment,
     deleteEnrollment,
+    // Announcement management
+    createAnnouncement,
+    getAllAnnouncements,
+    getMyAnnouncements,
+    getAnnouncementById,
+    updateAnnouncement,
+    deleteAnnouncement,
+    togglePinAnnouncement,
+    // Certificate management
+    createCertificate,
+    getAllCertificates,
+    getMyCertificates,
+    getCertificateById,
+    verifyCertificate,
+    updateCertificate,
+    revokeCertificate,
     // User role helpers
     isAdmin: user?.role === 'admin',
     isInstructor: user?.role === 'instructor',
