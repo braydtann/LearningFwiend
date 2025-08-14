@@ -6340,6 +6340,46 @@ class BackendTester:
         # Category API Test 11: Complete CRUD workflow
         self.test_complete_category_workflow()
         
+        print("\n" + "=" * 60)
+        print("🏢 DEPARTMENT MANAGEMENT API TESTS - NEW IMPLEMENTATION")
+        print("=" * 60)
+        
+        # Department API Test 1: Authentication and authorization
+        self.test_department_authentication_requirements()
+        
+        # Department API Test 2: Create new departments
+        self.test_department_create_new()
+        
+        # Department API Test 3: Get all departments with user counts
+        self.test_department_get_all_active()
+        
+        # Department API Test 4: Get specific department by ID
+        self.test_department_get_specific()
+        
+        # Department API Test 5: Update department (admin only)
+        self.test_department_update_existing()
+        
+        # Department API Test 6: Delete department with users assigned
+        self.test_department_delete_with_users_assigned()
+        
+        # Department API Test 7: Delete empty department
+        self.test_department_delete_empty()
+        
+        # Department API Test 8: Name uniqueness validation
+        self.test_department_name_uniqueness_validation()
+        
+        # Department API Test 9: User count calculation accuracy
+        self.test_department_user_count_accuracy()
+        
+        # Department API Test 10: Integration with users
+        self.test_department_integration_with_users()
+        
+        # Department API Test 11: Soft delete functionality
+        self.test_department_soft_delete_functionality()
+        
+        # Department API Test 12: Error handling
+        self.test_department_error_handling()
+        
         return self.generate_summary()
     
     def generate_summary(self):
