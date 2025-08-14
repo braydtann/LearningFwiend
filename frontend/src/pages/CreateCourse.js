@@ -45,6 +45,7 @@ const CreateCourse = () => {
   });
 
   const [categories, setCategories] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   
   // Load course data if editing
@@ -56,9 +57,30 @@ const CreateCourse = () => {
   
   // Load categories when component mounts
   useEffect(() => {
-    const loadedCategories = getCategories();
-    setCategories(loadedCategories.map(cat => cat.name));
+    loadCategories();
   }, []);
+
+  const loadCategories = async () => {
+    setLoadingCategories(true);
+    try {
+      const result = await getAllCategories();
+      if (result.success) {
+        setCategories(result.categories.map(cat => cat.name));
+      } else {
+        // Fallback to mock categories if backend fails
+        const mockCats = getCategories();
+        setCategories(mockCats.map(cat => cat.name));
+        console.warn('Failed to load categories from backend, using mock data:', result.error);
+      }
+    } catch (error) {
+      // Fallback to mock categories
+      console.error('Error loading categories:', error);
+      const mockCats = getCategories();
+      setCategories(mockCats.map(cat => cat.name));
+    } finally {
+      setLoadingCategories(false);
+    }
+  };
 
   const loadCourseData = async () => {
     setLoadingCourse(true);
