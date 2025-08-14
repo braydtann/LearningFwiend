@@ -1129,6 +1129,243 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // =============================================================================
+  // ENROLLMENT MANAGEMENT FUNCTIONS  
+  // =============================================================================
+
+  const createEnrollment = async (enrollmentData) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/enrollments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(enrollmentData),
+      });
+
+      if (response.ok) {
+        const newEnrollment = await response.json();
+        return { success: true, enrollment: newEnrollment };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to create enrollment' 
+        };
+      }
+    } catch (error) {
+      console.error('Create enrollment error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const createBulkEnrollments = async (bulkEnrollmentData) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/enrollments/bulk`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(bulkEnrollmentData),
+      });
+
+      if (response.ok) {
+        const enrollments = await response.json();
+        return { success: true, enrollments };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to create bulk enrollments' 
+        };
+      }
+    } catch (error) {
+      console.error('Create bulk enrollments error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const getAllEnrollments = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/enrollments`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const enrollments = await response.json();
+        return { success: true, enrollments };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to fetch enrollments' 
+        };
+      }
+    } catch (error) {
+      console.error('Fetch enrollments error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const getMyEnrollments = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/enrollments/my-enrollments`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const enrollments = await response.json();
+        return { success: true, enrollments };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to fetch your enrollments' 
+        };
+      }
+    } catch (error) {
+      console.error('Fetch my enrollments error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const getCourseEnrollments = async (courseId) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/enrollments/course/${courseId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const enrollments = await response.json();
+        return { success: true, enrollments };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to fetch course enrollments' 
+        };
+      }
+    } catch (error) {
+      console.error('Fetch course enrollments error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const getStudentEnrollments = async (studentId) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/enrollments/student/${studentId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const enrollments = await response.json();
+        return { success: true, enrollments };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to fetch student enrollments' 
+        };
+      }
+    } catch (error) {
+      console.error('Fetch student enrollments error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const updateEnrollment = async (enrollmentId, enrollmentData) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/enrollments/${enrollmentId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(enrollmentData),
+      });
+
+      if (response.ok) {
+        const updatedEnrollment = await response.json();
+        return { success: true, enrollment: updatedEnrollment };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to update enrollment' 
+        };
+      }
+    } catch (error) {
+      console.error('Update enrollment error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const deleteEnrollment = async (enrollmentId) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/enrollments/${enrollmentId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        return { success: true };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to delete enrollment' 
+        };
+      }
+    } catch (error) {
+      console.error('Delete enrollment error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
   const value = {
     user,
     loading,
