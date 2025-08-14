@@ -2686,6 +2686,391 @@ async def toggle_pin_announcement(
     return {"message": f"Announcement has been successfully {pin_action}"}
 
 
+# =============================================================================
+# CERTIFICATE MODELS
+# =============================================================================
+
+class CertificateCreate(BaseModel):
+    studentId: str
+    courseId: Optional[str] = None
+    programId: Optional[str] = None
+    type: str = "completion"  # completion, achievement, participation
+    template: str = "default"  # default, premium, custom
+    
+class CertificateInDB(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    certificateNumber: str  # Unique certificate number
+    studentId: str
+    studentName: str  # Denormalized
+    studentEmail: str  # Denormalized
+    courseId: Optional[str] = None
+    courseName: Optional[str] = None  # Denormalized
+    programId: Optional[str] = None
+    programName: Optional[str] = None  # Denormalized
+    type: str
+    template: str
+    status: str = "generated"  # generated, downloaded, printed, revoked
+    issueDate: datetime = Field(default_factory=datetime.utcnow)
+    expiryDate: Optional[datetime] = None
+    grade: Optional[str] = None
+    score: Optional[float] = None
+    completionDate: Optional[datetime] = None
+    certificateUrl: Optional[str] = None  # URL to certificate file
+    issuedBy: str  # Admin/Instructor who issued
+    issuedByName: str  # Denormalized
+    verificationCode: str  # For certificate verification
+    isActive: bool = True
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class CertificateResponse(BaseModel):
+    id: str
+    certificateNumber: str
+    studentId: str
+    studentName: str
+    studentEmail: str
+    courseId: Optional[str] = None
+    courseName: Optional[str] = None
+    programId: Optional[str] = None
+    programName: Optional[str] = None
+    type: str
+    template: str
+    status: str
+    issueDate: datetime
+    expiryDate: Optional[datetime] = None
+    grade: Optional[str] = None
+    score: Optional[float] = None
+    completionDate: Optional[datetime] = None
+    certificateUrl: Optional[str] = None
+    issuedBy: str
+    issuedByName: str
+    verificationCode: str
+    isActive: bool
+    created_at: datetime
+    updated_at: datetime
+
+class CertificateUpdate(BaseModel):
+    status: Optional[str] = None
+    grade: Optional[str] = None
+    score: Optional[float] = None
+    completionDate: Optional[datetime] = None
+    certificateUrl: Optional[str] = None
+    expiryDate: Optional[datetime] = None
+
+class CertificateVerificationResponse(BaseModel):
+    isValid: bool
+    certificate: Optional[CertificateResponse] = None
+    message: str
+
+
+# =============================================================================
+# CERTIFICATE ENDPOINTS
+# =============================================================================
+
+@api_router.post("/certificates", response_model=CertificateResponse)
+async def create_certificate(
+    certificate_data: CertificateCreate,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Create a new certificate (instructors and admins only)."""
+    if current_user.role not in ['instructor', 'admin']:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only instructors and admins can create certificates"
+        )
+    
+    # Verify student exists and is a learner
+    student = await db.users.find_one({"id": certificate_data.studentId})
+    if not student:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Specified student not found"
+        )
+    
+    if student['role'] != 'learner':
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Certificates can only be issued to learners"
+        )
+    
+    # Validate course if course certificate
+    course_name = None
+    if certificate_data.courseId:
+        course = await db.courses.find_one({"id": certificate_data.courseId})
+        if not course:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Specified course not found"
+            )
+        course_name = course['title']
+        
+        # Check if student is enrolled in the course
+        enrollment = await db.enrollments.find_one({
+            "courseId": certificate_data.courseId,
+            "studentId": certificate_data.studentId,
+            "isActive": True
+        })
+        if not enrollment:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Student must be enrolled in the course to receive a certificate"
+            )
+    
+    # Validate program if program certificate
+    program_name = None
+    if certificate_data.programId:
+        program = await db.programs.find_one({"id": certificate_data.programId})
+        if not program:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Specified program not found"
+            )
+        program_name = program['title']
+    
+    # Must specify either course or program
+    if not certificate_data.courseId and not certificate_data.programId:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Certificate must be for either a course or program"
+        )
+    
+    # Check if certificate already exists for this student-course/program combination
+    existing_query = {
+        "studentId": certificate_data.studentId,
+        "isActive": True
+    }
+    if certificate_data.courseId:
+        existing_query["courseId"] = certificate_data.courseId
+    if certificate_data.programId:
+        existing_query["programId"] = certificate_data.programId
+    
+    existing_certificate = await db.certificates.find_one(existing_query)
+    if existing_certificate:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Certificate already exists for this student and course/program"
+        )
+    
+    # Generate unique certificate number
+    certificate_number = f"CERT-{datetime.utcnow().year}-{str(uuid.uuid4())[:8].upper()}"
+    verification_code = str(uuid.uuid4()).replace('-', '').upper()[:12]
+    
+    # Create certificate dictionary
+    certificate_dict = {
+        "id": str(uuid.uuid4()),
+        "certificateNumber": certificate_number,
+        **certificate_data.dict(),
+        "studentName": student['full_name'],
+        "studentEmail": student['email'],
+        "courseName": course_name,
+        "programName": program_name,
+        "status": "generated",
+        "issueDate": datetime.utcnow(),
+        "completionDate": datetime.utcnow(),  # Default to now, can be updated
+        "issuedBy": current_user.id,
+        "issuedByName": current_user.full_name,
+        "verificationCode": verification_code,
+        "isActive": True,
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
+    }
+    
+    # Insert certificate into database
+    await db.certificates.insert_one(certificate_dict)
+    
+    return CertificateResponse(**certificate_dict)
+
+@api_router.get("/certificates", response_model=List[CertificateResponse])
+async def get_certificates(
+    current_user: UserResponse = Depends(get_current_user),
+    student_id: Optional[str] = None,
+    course_id: Optional[str] = None,
+    program_id: Optional[str] = None,
+    type: Optional[str] = None,
+    status: Optional[str] = None
+):
+    """Get certificates with optional filtering."""
+    
+    # Base query for active certificates
+    query = {"isActive": True}
+    
+    # Role-based access control
+    if current_user.role == 'learner':
+        # Students can only see their own certificates
+        query["studentId"] = current_user.id
+    elif current_user.role == 'instructor':
+        # Instructors can see certificates they issued or all if admin privileges needed
+        if student_id and current_user.role != 'admin':
+            # Check if instructor has access to this student (through courses they teach)
+            pass  # For now, allow instructors to see all
+    # Admins can see all certificates (no additional restrictions)
+    
+    # Add filters
+    if student_id and current_user.role != 'learner':
+        query["studentId"] = student_id
+    if course_id:
+        query["courseId"] = course_id
+    if program_id:
+        query["programId"] = program_id
+    if type:
+        query["type"] = type
+    if status:
+        query["status"] = status
+    
+    certificates = await db.certificates.find(query).sort("created_at", -1).to_list(1000)
+    return [CertificateResponse(**certificate) for certificate in certificates]
+
+@api_router.get("/certificates/my-certificates", response_model=List[CertificateResponse])
+async def get_my_certificates(current_user: UserResponse = Depends(get_current_user)):
+    """Get certificates for current user."""
+    if current_user.role != 'learner':
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only learners can view their certificates"
+        )
+    
+    certificates = await db.certificates.find({
+        "studentId": current_user.id,
+        "isActive": True
+    }).sort("created_at", -1).to_list(1000)
+    
+    return [CertificateResponse(**certificate) for certificate in certificates]
+
+@api_router.get("/certificates/{certificate_id}", response_model=CertificateResponse)
+async def get_certificate(
+    certificate_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Get a specific certificate by ID."""
+    certificate = await db.certificates.find_one({"id": certificate_id, "isActive": True})
+    if not certificate:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Certificate not found"
+        )
+    
+    # Check permissions
+    if (current_user.role == 'learner' and 
+        certificate['studentId'] != current_user.id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only view your own certificates"
+        )
+    
+    return CertificateResponse(**certificate)
+
+@api_router.get("/certificates/verify/{verification_code}", response_model=CertificateVerificationResponse)
+async def verify_certificate(verification_code: str):
+    """Verify a certificate using its verification code (public endpoint)."""
+    certificate = await db.certificates.find_one({
+        "verificationCode": verification_code.upper(),
+        "isActive": True
+    })
+    
+    if not certificate:
+        return CertificateVerificationResponse(
+            isValid=False,
+            certificate=None,
+            message="Certificate not found or verification code is invalid"
+        )
+    
+    # Check if certificate is expired
+    if certificate.get('expiryDate') and certificate['expiryDate'] < datetime.utcnow():
+        return CertificateVerificationResponse(
+            isValid=False,
+            certificate=CertificateResponse(**certificate),
+            message="Certificate has expired"
+        )
+    
+    # Check if certificate is revoked
+    if certificate.get('status') == 'revoked':
+        return CertificateVerificationResponse(
+            isValid=False,
+            certificate=CertificateResponse(**certificate),
+            message="Certificate has been revoked"
+        )
+    
+    return CertificateVerificationResponse(
+        isValid=True,
+        certificate=CertificateResponse(**certificate),
+        message="Certificate is valid and authentic"
+    )
+
+@api_router.put("/certificates/{certificate_id}", response_model=CertificateResponse)
+async def update_certificate(
+    certificate_id: str,
+    certificate_data: CertificateUpdate,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Update a certificate (instructors and admins only)."""
+    if current_user.role not in ['instructor', 'admin']:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only instructors and admins can update certificates"
+        )
+    
+    # Find the certificate
+    certificate = await db.certificates.find_one({"id": certificate_id})
+    if not certificate:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Certificate not found"
+        )
+    
+    # Update certificate
+    update_data = {k: v for k, v in certificate_data.dict().items() if v is not None}
+    update_data["updated_at"] = datetime.utcnow()
+    
+    result = await db.certificates.update_one(
+        {"id": certificate_id},
+        {"$set": update_data}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Certificate not found or no changes made"
+        )
+    
+    # Get updated certificate
+    updated_certificate = await db.certificates.find_one({"id": certificate_id})
+    return CertificateResponse(**updated_certificate)
+
+@api_router.delete("/certificates/{certificate_id}")
+async def revoke_certificate(
+    certificate_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Revoke a certificate (admins only)."""
+    if current_user.role != 'admin':
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admins can revoke certificates"
+        )
+    
+    # Find the certificate
+    certificate = await db.certificates.find_one({"id": certificate_id})
+    if not certificate:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Certificate not found"
+        )
+    
+    # Revoke the certificate (set status to revoked but keep active for audit trail)
+    result = await db.certificates.update_one(
+        {"id": certificate_id},
+        {"$set": {"status": "revoked", "updated_at": datetime.utcnow()}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Certificate not found"
+        )
+    
+    return {"message": f"Certificate {certificate['certificateNumber']} has been successfully revoked"}
+
+
 # Include the router in the main app
 app.include_router(api_router)
 
