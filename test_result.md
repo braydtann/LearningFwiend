@@ -829,7 +829,7 @@ frontend:
         comment: "IMPLEMENTATION COMPLETED: Successfully migrated Certificates.js from mock data to backend APIs. ✅ Removed getUserCertificates and checkAndGenerateCertificates imports from mockData, ✅ Added useEffect to load certificates on mount via getMyCertificates(), ✅ Added loading states throughout UI (stats cards, certificates grid), ✅ Added proper error handling with toast notifications, ✅ Updated date handling for backend format (issued_at vs issuedAt), ✅ Added null-safe handling for certificate fields (programName, courseName, title, certificateNumber), ✅ Added support for both course and program certificates with dynamic certificate type display, ✅ Updated certificate ID display to handle various ID field names, ✅ Maintained existing UI/UX with certificate visual design and action buttons. Component now fully integrated with backend with no mock data dependencies."
 
   - task: "Analytics Frontend Backend Integration"
-    implemented: false
+    implemented: true
     working: "NA"
     file: "/app/frontend/src/pages/Analytics.js"
     stuck_count: 0
@@ -839,6 +839,9 @@ frontend:
       - working: "NA"
         agent: "main"
         comment: "TASK STARTED: Beginning frontend integration to replace extensive mock data dependencies (mockCourses, mockUsers, mockEnrollments, etc.) with backend analytics APIs from AuthContext."
+      - working: "NA"
+        agent: "main"
+        comment: "IMPLEMENTATION COMPLETED: Successfully completely rewrote Analytics.js from complex mock data processing to streamlined backend API integration. ✅ Removed all mock data imports (mockCourses, mockUsers, mockEnrollments, mockQuizAttempts, mockClassrooms, etc.), ✅ Added useEffect to load analytics data via getSystemStats(), getAnalyticsDashboard(), getAllCourses(), getAllUsers(), getAllDepartments(), ✅ Simplified component from complex filtering system to clean tabbed interface (Overview, Performance, Engagement), ✅ Added comprehensive loading states throughout all tabs and cards, ✅ Added proper error handling with toast notifications, ✅ Created calculated metrics from backend data (user distribution by role, course distribution by category), ✅ Maintained admin/instructor access control with proper access denied page, ✅ Added export functionality and modern UI with progress bars and badges. Component transformed from 500+ lines of complex mock data processing to clean 400-line backend-integrated analytics dashboard with no mock data dependencies."
 
   - task: "Quiz Frontend Backend Integration"
     implemented: false
