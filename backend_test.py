@@ -6425,6 +6425,960 @@ class BackendTester:
         
         return self.generate_summary()
     
+    # =============================================================================
+    # CLASSROOM MANAGEMENT API TESTS
+    # =============================================================================
+    
+    def test_classroom_creation_instructor(self):
+        """Test classroom creation by instructor"""
+        if "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Classroom Creation (Instructor)", 
+                "SKIP", 
+                "No instructor token available, skipping classroom creation test",
+                "Instructor login required first"
+            )
+            return False
+        
+        try:
+            # First, get available courses and users for the classroom
+            courses_response = requests.get(
+                f"{BACKEND_URL}/courses",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["instructor"]}'}
+            )
+            
+            programs_response = requests.get(
+                f"{BACKEND_URL}/programs",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["instructor"]}'}
+            )
+            
+            users_response = requests.get(
+                f"{BACKEND_URL}/auth/admin/users",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens.get("admin", "")}'}
+            )
+            
+            # Get instructor and student IDs
+            instructor_id = None
+            student_ids = []
+            course_ids = []
+            program_ids = []
+            
+            if courses_response.status_code == 200:
+                courses = courses_response.json()
+                course_ids = [course['id'] for course in courses[:2]]  # Take first 2 courses
+            
+            if programs_response.status_code == 200:
+                programs = programs_response.json()
+                program_ids = [program['id'] for program in programs[:1]]  # Take first program
+            
+            if users_response.status_code == 200:
+                users = users_response.json()
+                for user in users:
+                    if user['role'] == 'instructor' and instructor_id is None:
+                        instructor_id = user['id']
+                    elif user['role'] == 'learner' and len(student_ids) < 3:
+                        student_ids.append(user['id'])
+            
+            if not instructor_id:
+                self.log_result(
+                    "Classroom Creation (Instructor)", 
+                    "FAIL", 
+                    "No instructor found in system for trainer assignment",
+                    "Need at least one instructor user"
+                )
+                return False
+            
+            # Create classroom data
+            classroom_data = {
+                "name": "Advanced Web Development Classroom",
+                "description": "Comprehensive web development training program",
+                "trainerId": instructor_id,
+                "courseIds": course_ids,
+                "programIds": program_ids,
+                "studentIds": student_ids,
+                "batchId": "BATCH-2024-WEB-001",
+                "department": "Technology",
+                "maxStudents": 25
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/classrooms",
+                json=classroom_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                required_fields = ['id', 'name', 'trainerId', 'trainerName', 'studentCount', 'courseCount', 'programCount']
+                
+                if all(field in data for field in required_fields):
+                    self.log_result(
+                        "Classroom Creation (Instructor)", 
+                        "PASS", 
+                        f"Successfully created classroom '{data['name']}'",
+                        f"Classroom ID: {data['id']}, Students: {data['studentCount']}, Courses: {data['courseCount']}, Programs: {data['programCount']}"
+                    )
+                    return data['id']  # Return classroom ID for further tests
+                else:
+                    self.log_result(
+                        "Classroom Creation (Instructor)", 
+                        "FAIL", 
+                        "Response missing required fields",
+                        f"Missing: {[f for f in required_fields if f not in data]}"
+                    )
+            else:
+                self.log_result(
+                    "Classroom Creation (Instructor)", 
+                    "FAIL", 
+                    f"Failed to create classroom with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Classroom Creation (Instructor)", 
+                "FAIL", 
+                "Failed to test classroom creation",
+                str(e)
+            )
+        return False
+    
+    def test_classroom_creation_admin(self):
+        """Test classroom creation by admin"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Classroom Creation (Admin)", 
+                "SKIP", 
+                "No admin token available, skipping admin classroom creation test",
+                "Admin login required first"
+            )
+            return False
+        
+        try:
+            # Get users for classroom assignment
+            users_response = requests.get(
+                f"{BACKEND_URL}/auth/admin/users",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            instructor_id = None
+            student_ids = []
+            
+            if users_response.status_code == 200:
+                users = users_response.json()
+                for user in users:
+                    if user['role'] == 'instructor' and instructor_id is None:
+                        instructor_id = user['id']
+                    elif user['role'] == 'learner' and len(student_ids) < 2:
+                        student_ids.append(user['id'])
+            
+            if not instructor_id:
+                self.log_result(
+                    "Classroom Creation (Admin)", 
+                    "FAIL", 
+                    "No instructor found for trainer assignment",
+                    "Need at least one instructor user"
+                )
+                return False
+            
+            classroom_data = {
+                "name": "Admin Created Data Science Classroom",
+                "description": "Data science and analytics training",
+                "trainerId": instructor_id,
+                "courseIds": [],
+                "programIds": [],
+                "studentIds": student_ids,
+                "batchId": "BATCH-2024-DS-002",
+                "department": "Analytics",
+                "maxStudents": 20
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/classrooms",
+                json=classroom_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                self.log_result(
+                    "Classroom Creation (Admin)", 
+                    "PASS", 
+                    f"Admin successfully created classroom '{data['name']}'",
+                    f"Classroom ID: {data['id']}, Batch: {data.get('batchId')}"
+                )
+                return data['id']
+            else:
+                self.log_result(
+                    "Classroom Creation (Admin)", 
+                    "FAIL", 
+                    f"Admin failed to create classroom with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Classroom Creation (Admin)", 
+                "FAIL", 
+                "Failed to test admin classroom creation",
+                str(e)
+            )
+        return False
+    
+    def test_classroom_creation_learner_denied(self):
+        """Test that learners are denied classroom creation access"""
+        if "learner" not in self.auth_tokens:
+            self.log_result(
+                "Classroom Creation Denied (Learner)", 
+                "SKIP", 
+                "No learner token available, skipping access denial test",
+                "Learner login required first"
+            )
+            return False
+        
+        try:
+            classroom_data = {
+                "name": "Unauthorized Classroom",
+                "description": "This should fail",
+                "trainerId": "dummy-id",
+                "courseIds": [],
+                "programIds": [],
+                "studentIds": []
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/classrooms",
+                json=classroom_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["learner"]}'
+                }
+            )
+            
+            if response.status_code == 403:
+                self.log_result(
+                    "Classroom Creation Denied (Learner)", 
+                    "PASS", 
+                    "Learner correctly denied classroom creation access",
+                    f"Received expected 403 Forbidden status"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Classroom Creation Denied (Learner)", 
+                    "FAIL", 
+                    f"Learner should be denied but got status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Classroom Creation Denied (Learner)", 
+                "FAIL", 
+                "Failed to test learner access denial",
+                str(e)
+            )
+        return False
+    
+    def test_get_all_classrooms(self):
+        """Test retrieving all active classrooms with counts"""
+        if "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Get All Classrooms", 
+                "SKIP", 
+                "No instructor token available, skipping get classrooms test",
+                "Instructor login required first"
+            )
+            return False
+        
+        try:
+            response = requests.get(
+                f"{BACKEND_URL}/classrooms",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["instructor"]}'}
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                if isinstance(data, list):
+                    self.log_result(
+                        "Get All Classrooms", 
+                        "PASS", 
+                        f"Successfully retrieved {len(data)} classrooms",
+                        f"Classrooms found with calculated counts (studentCount, courseCount, programCount)"
+                    )
+                    
+                    # Verify calculated fields are present
+                    if data:
+                        sample_classroom = data[0]
+                        required_fields = ['studentCount', 'courseCount', 'programCount']
+                        if all(field in sample_classroom for field in required_fields):
+                            self.log_result(
+                                "Classroom Calculated Fields", 
+                                "PASS", 
+                                "Calculated fields present in classroom response",
+                                f"Sample counts - Students: {sample_classroom['studentCount']}, Courses: {sample_classroom['courseCount']}, Programs: {sample_classroom['programCount']}"
+                            )
+                        else:
+                            self.log_result(
+                                "Classroom Calculated Fields", 
+                                "FAIL", 
+                                "Missing calculated fields in classroom response",
+                                f"Missing: {[f for f in required_fields if f not in sample_classroom]}"
+                            )
+                    
+                    return True
+                else:
+                    self.log_result(
+                        "Get All Classrooms", 
+                        "FAIL", 
+                        "Response is not a list",
+                        f"Response type: {type(data)}"
+                    )
+            else:
+                self.log_result(
+                    "Get All Classrooms", 
+                    "FAIL", 
+                    f"Failed to get classrooms with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Get All Classrooms", 
+                "FAIL", 
+                "Failed to test get all classrooms",
+                str(e)
+            )
+        return False
+    
+    def test_get_my_classrooms_instructor(self):
+        """Test role-specific classrooms for instructor"""
+        if "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Get My Classrooms (Instructor)", 
+                "SKIP", 
+                "No instructor token available, skipping my classrooms test",
+                "Instructor login required first"
+            )
+            return False
+        
+        try:
+            response = requests.get(
+                f"{BACKEND_URL}/classrooms/my-classrooms",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["instructor"]}'}
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                self.log_result(
+                    "Get My Classrooms (Instructor)", 
+                    "PASS", 
+                    f"Instructor retrieved {len(data)} classrooms (created or assigned as trainer)",
+                    f"Role-specific filtering working correctly"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Get My Classrooms (Instructor)", 
+                    "FAIL", 
+                    f"Failed to get instructor classrooms with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Get My Classrooms (Instructor)", 
+                "FAIL", 
+                "Failed to test instructor my classrooms",
+                str(e)
+            )
+        return False
+    
+    def test_get_my_classrooms_learner(self):
+        """Test role-specific classrooms for learner"""
+        if "learner" not in self.auth_tokens:
+            self.log_result(
+                "Get My Classrooms (Learner)", 
+                "SKIP", 
+                "No learner token available, skipping learner classrooms test",
+                "Learner login required first"
+            )
+            return False
+        
+        try:
+            response = requests.get(
+                f"{BACKEND_URL}/classrooms/my-classrooms",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["learner"]}'}
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                self.log_result(
+                    "Get My Classrooms (Learner)", 
+                    "PASS", 
+                    f"Learner retrieved {len(data)} classrooms (enrolled as student)",
+                    f"Role-specific filtering working for students"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Get My Classrooms (Learner)", 
+                    "FAIL", 
+                    f"Failed to get learner classrooms with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Get My Classrooms (Learner)", 
+                "FAIL", 
+                "Failed to test learner my classrooms",
+                str(e)
+            )
+        return False
+    
+    def test_get_classroom_by_id(self):
+        """Test getting specific classroom by ID"""
+        # First create a classroom to test with
+        classroom_id = self.test_classroom_creation_instructor()
+        if not classroom_id:
+            self.log_result(
+                "Get Classroom by ID", 
+                "SKIP", 
+                "No classroom available for ID test",
+                "Classroom creation required first"
+            )
+            return False
+        
+        try:
+            response = requests.get(
+                f"{BACKEND_URL}/classrooms/{classroom_id}",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["instructor"]}'}
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data['id'] == classroom_id:
+                    self.log_result(
+                        "Get Classroom by ID", 
+                        "PASS", 
+                        f"Successfully retrieved classroom by ID",
+                        f"Classroom: {data['name']}, ID: {data['id']}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Get Classroom by ID", 
+                        "FAIL", 
+                        "Retrieved classroom has wrong ID",
+                        f"Expected: {classroom_id}, Got: {data['id']}"
+                    )
+            elif response.status_code == 404:
+                self.log_result(
+                    "Get Classroom by ID", 
+                    "FAIL", 
+                    "Classroom not found by ID",
+                    f"Classroom ID {classroom_id} should exist"
+                )
+            else:
+                self.log_result(
+                    "Get Classroom by ID", 
+                    "FAIL", 
+                    f"Failed to get classroom by ID with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Get Classroom by ID", 
+                "FAIL", 
+                "Failed to test get classroom by ID",
+                str(e)
+            )
+        return False
+    
+    def test_classroom_validation_invalid_trainer(self):
+        """Test classroom creation with invalid trainer ID"""
+        if "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Classroom Validation (Invalid Trainer)", 
+                "SKIP", 
+                "No instructor token available, skipping validation test",
+                "Instructor login required first"
+            )
+            return False
+        
+        try:
+            classroom_data = {
+                "name": "Invalid Trainer Classroom",
+                "description": "Should fail due to invalid trainer",
+                "trainerId": "invalid-trainer-id",
+                "courseIds": [],
+                "programIds": [],
+                "studentIds": []
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/classrooms",
+                json=classroom_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if response.status_code == 400:
+                self.log_result(
+                    "Classroom Validation (Invalid Trainer)", 
+                    "PASS", 
+                    "Correctly rejected classroom with invalid trainer ID",
+                    f"Received expected 400 Bad Request"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Classroom Validation (Invalid Trainer)", 
+                    "FAIL", 
+                    f"Should reject invalid trainer but got status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Classroom Validation (Invalid Trainer)", 
+                "FAIL", 
+                "Failed to test invalid trainer validation",
+                str(e)
+            )
+        return False
+    
+    def test_classroom_validation_invalid_course(self):
+        """Test classroom creation with invalid course ID"""
+        if "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Classroom Validation (Invalid Course)", 
+                "SKIP", 
+                "No instructor token available, skipping course validation test",
+                "Instructor login required first"
+            )
+            return False
+        
+        try:
+            # Get a valid instructor ID first
+            users_response = requests.get(
+                f"{BACKEND_URL}/auth/admin/users",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens.get("admin", "")}'}
+            )
+            
+            instructor_id = None
+            if users_response.status_code == 200:
+                users = users_response.json()
+                for user in users:
+                    if user['role'] == 'instructor':
+                        instructor_id = user['id']
+                        break
+            
+            if not instructor_id:
+                self.log_result(
+                    "Classroom Validation (Invalid Course)", 
+                    "SKIP", 
+                    "No instructor found for validation test",
+                    "Need instructor for valid trainer ID"
+                )
+                return False
+            
+            classroom_data = {
+                "name": "Invalid Course Classroom",
+                "description": "Should fail due to invalid course",
+                "trainerId": instructor_id,
+                "courseIds": ["invalid-course-id"],
+                "programIds": [],
+                "studentIds": []
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/classrooms",
+                json=classroom_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if response.status_code == 400:
+                self.log_result(
+                    "Classroom Validation (Invalid Course)", 
+                    "PASS", 
+                    "Correctly rejected classroom with invalid course ID",
+                    f"Received expected 400 Bad Request"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Classroom Validation (Invalid Course)", 
+                    "FAIL", 
+                    f"Should reject invalid course but got status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Classroom Validation (Invalid Course)", 
+                "FAIL", 
+                "Failed to test invalid course validation",
+                str(e)
+            )
+        return False
+    
+    def test_classroom_update_permissions(self):
+        """Test classroom update permissions (creator/admin only)"""
+        # First create a classroom
+        classroom_id = self.test_classroom_creation_instructor()
+        if not classroom_id:
+            self.log_result(
+                "Classroom Update Permissions", 
+                "SKIP", 
+                "No classroom available for update test",
+                "Classroom creation required first"
+            )
+            return False
+        
+        try:
+            update_data = {
+                "name": "Updated Classroom Name",
+                "description": "Updated description",
+                "maxStudents": 30
+            }
+            
+            # Test update by creator (instructor)
+            response = requests.put(
+                f"{BACKEND_URL}/classrooms/{classroom_id}",
+                json=update_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data['name'] == update_data['name']:
+                    self.log_result(
+                        "Classroom Update (Creator)", 
+                        "PASS", 
+                        "Creator successfully updated classroom",
+                        f"Updated name: {data['name']}"
+                    )
+                else:
+                    self.log_result(
+                        "Classroom Update (Creator)", 
+                        "FAIL", 
+                        "Update response doesn't reflect changes",
+                        f"Expected name: {update_data['name']}, Got: {data['name']}"
+                    )
+            else:
+                self.log_result(
+                    "Classroom Update (Creator)", 
+                    "FAIL", 
+                    f"Creator failed to update classroom with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+            
+            # Test update by admin if available
+            if "admin" in self.auth_tokens:
+                admin_update_data = {
+                    "description": "Admin updated description"
+                }
+                
+                admin_response = requests.put(
+                    f"{BACKEND_URL}/classrooms/{classroom_id}",
+                    json=admin_update_data,
+                    timeout=TEST_TIMEOUT,
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                    }
+                )
+                
+                if admin_response.status_code == 200:
+                    self.log_result(
+                        "Classroom Update (Admin)", 
+                        "PASS", 
+                        "Admin successfully updated classroom",
+                        f"Admin can update any classroom"
+                    )
+                else:
+                    self.log_result(
+                        "Classroom Update (Admin)", 
+                        "FAIL", 
+                        f"Admin failed to update classroom with status {admin_response.status_code}",
+                        f"Response: {admin_response.text}"
+                    )
+            
+            return True
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Classroom Update Permissions", 
+                "FAIL", 
+                "Failed to test classroom update permissions",
+                str(e)
+            )
+        return False
+    
+    def test_classroom_delete_permissions(self):
+        """Test classroom delete permissions (creator/admin only)"""
+        # Create a classroom for deletion test
+        classroom_id = self.test_classroom_creation_admin() if "admin" in self.auth_tokens else None
+        if not classroom_id:
+            self.log_result(
+                "Classroom Delete Permissions", 
+                "SKIP", 
+                "No classroom available for delete test",
+                "Classroom creation required first"
+            )
+            return False
+        
+        try:
+            # Test deletion by admin (creator)
+            response = requests.delete(
+                f"{BACKEND_URL}/classrooms/{classroom_id}",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                self.log_result(
+                    "Classroom Delete (Creator/Admin)", 
+                    "PASS", 
+                    "Creator/Admin successfully deleted classroom",
+                    f"Response: {data.get('message', 'Deleted successfully')}"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Classroom Delete (Creator/Admin)", 
+                    "FAIL", 
+                    f"Failed to delete classroom with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Classroom Delete Permissions", 
+                "FAIL", 
+                "Failed to test classroom delete permissions",
+                str(e)
+            )
+        return False
+    
+    def test_classroom_soft_delete_functionality(self):
+        """Test soft delete functionality (isActive flag)"""
+        # Create a classroom for soft delete test
+        classroom_id = self.test_classroom_creation_instructor()
+        if not classroom_id:
+            self.log_result(
+                "Classroom Soft Delete", 
+                "SKIP", 
+                "No classroom available for soft delete test",
+                "Classroom creation required first"
+            )
+            return False
+        
+        try:
+            # Delete the classroom
+            delete_response = requests.delete(
+                f"{BACKEND_URL}/classrooms/{classroom_id}",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["instructor"]}'}
+            )
+            
+            if delete_response.status_code == 200:
+                # Try to get all classrooms - deleted one should not appear
+                get_response = requests.get(
+                    f"{BACKEND_URL}/classrooms",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {self.auth_tokens["instructor"]}'}
+                )
+                
+                if get_response.status_code == 200:
+                    classrooms = get_response.json()
+                    deleted_classroom_found = any(c['id'] == classroom_id for c in classrooms)
+                    
+                    if not deleted_classroom_found:
+                        self.log_result(
+                            "Classroom Soft Delete", 
+                            "PASS", 
+                            "Soft delete working - deleted classroom not in active list",
+                            f"Classroom {classroom_id} properly hidden from active classrooms"
+                        )
+                        return True
+                    else:
+                        self.log_result(
+                            "Classroom Soft Delete", 
+                            "FAIL", 
+                            "Deleted classroom still appears in active list",
+                            f"Soft delete may not be working properly"
+                        )
+                else:
+                    self.log_result(
+                        "Classroom Soft Delete", 
+                        "FAIL", 
+                        "Failed to verify soft delete by getting classrooms",
+                        f"Get classrooms failed with status {get_response.status_code}"
+                    )
+            else:
+                self.log_result(
+                    "Classroom Soft Delete", 
+                    "FAIL", 
+                    f"Failed to delete classroom for soft delete test with status {delete_response.status_code}",
+                    f"Response: {delete_response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Classroom Soft Delete", 
+                "FAIL", 
+                "Failed to test classroom soft delete",
+                str(e)
+            )
+        return False
+    
+    def test_classroom_integration_mixed_content(self):
+        """Test classroom creation with mixed courses and programs"""
+        if "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Classroom Integration (Mixed Content)", 
+                "SKIP", 
+                "No instructor token available, skipping integration test",
+                "Instructor login required first"
+            )
+            return False
+        
+        try:
+            # Get available courses and programs
+            courses_response = requests.get(
+                f"{BACKEND_URL}/courses",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["instructor"]}'}
+            )
+            
+            programs_response = requests.get(
+                f"{BACKEND_URL}/programs",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["instructor"]}'}
+            )
+            
+            users_response = requests.get(
+                f"{BACKEND_URL}/auth/admin/users",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens.get("admin", "")}'}
+            )
+            
+            course_ids = []
+            program_ids = []
+            instructor_id = None
+            student_ids = []
+            
+            if courses_response.status_code == 200:
+                courses = courses_response.json()
+                course_ids = [course['id'] for course in courses[:2]]
+            
+            if programs_response.status_code == 200:
+                programs = programs_response.json()
+                program_ids = [program['id'] for program in programs[:1]]
+            
+            if users_response.status_code == 200:
+                users = users_response.json()
+                for user in users:
+                    if user['role'] == 'instructor' and instructor_id is None:
+                        instructor_id = user['id']
+                    elif user['role'] == 'learner' and len(student_ids) < 2:
+                        student_ids.append(user['id'])
+            
+            if not instructor_id:
+                self.log_result(
+                    "Classroom Integration (Mixed Content)", 
+                    "SKIP", 
+                    "No instructor found for integration test",
+                    "Need instructor for trainer assignment"
+                )
+                return False
+            
+            classroom_data = {
+                "name": "Mixed Content Integration Classroom",
+                "description": "Testing classroom with both courses and programs",
+                "trainerId": instructor_id,
+                "courseIds": course_ids,
+                "programIds": program_ids,
+                "studentIds": student_ids,
+                "batchId": "BATCH-2024-MIXED-001",
+                "department": "Integration Testing"
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/classrooms",
+                json=classroom_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                expected_course_count = len(course_ids)
+                expected_program_count = len(program_ids)
+                expected_student_count = len(student_ids)
+                
+                if (data['courseCount'] == expected_course_count and 
+                    data['programCount'] == expected_program_count and 
+                    data['studentCount'] == expected_student_count):
+                    self.log_result(
+                        "Classroom Integration (Mixed Content)", 
+                        "PASS", 
+                        "Successfully created classroom with mixed courses and programs",
+                        f"Courses: {data['courseCount']}, Programs: {data['programCount']}, Students: {data['studentCount']}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Classroom Integration (Mixed Content)", 
+                        "FAIL", 
+                        "Count mismatch in mixed content classroom",
+                        f"Expected - Courses: {expected_course_count}, Programs: {expected_program_count}, Students: {expected_student_count}. Got - Courses: {data['courseCount']}, Programs: {data['programCount']}, Students: {data['studentCount']}"
+                    )
+            else:
+                self.log_result(
+                    "Classroom Integration (Mixed Content)", 
+                    "FAIL", 
+                    f"Failed to create mixed content classroom with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Classroom Integration (Mixed Content)", 
+                "FAIL", 
+                "Failed to test mixed content integration",
+                str(e)
+            )
+        return False
+    
+    # =============================================================================
+    # END CLASSROOM MANAGEMENT API TESTS
+    # =============================================================================
+    
     def generate_summary(self):
         """Generate test summary"""
         print("\n" + "=" * 60)
