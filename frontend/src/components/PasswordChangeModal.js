@@ -5,8 +5,10 @@ import { Label } from './ui/label';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
 import { Eye, EyeOff, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
+import { useAuth } from '../contexts/AuthContext';
 
 const PasswordChangeModal = ({ isOpen, onClose, onSuccess, currentUser }) => {
+  const { changePassword } = useAuth();
   const [formData, setFormData] = useState({
     currentPassword: '',
     newPassword: '',
