@@ -6,8 +6,9 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Badge } from '../components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import CoursePreview from '../components/CoursePreview';
 
-import { BookOpen, Clock, Users, Search, Filter, Play, Star } from 'lucide-react';
+import { BookOpen, Clock, Users, Search, Filter, Play, Star, Eye } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 
 const Courses = () => {
