@@ -3541,19 +3541,26 @@ async def submit_quiz_attempt(
     for i, (answer, question) in enumerate(zip(attempt_data.answers, quiz['questions'])):
         if question['type'] == 'multiple_choice':
             try:
-                answer_index = int(answer)
-                correct_index = int(question['correctAnswer'])
-                if answer_index == correct_index:
+                # Handle both string and integer answers
+                answer_index = int(answer) if answer.isdigit() else -1
+                correct_index = int(question['correctAnswer']) if question['correctAnswer'].isdigit() else -1
+                
+                if answer_index >= 0 and correct_index >= 0 and answer_index == correct_index:
                     points_earned += question.get('points', 1)
-            except (ValueError, IndexError):
-                pass  # Invalid answer format
+            except (ValueError, AttributeError):
+                # Invalid answer format or missing correctAnswer
+                pass
         elif question['type'] == 'true_false':
-            if answer.lower() == question['correctAnswer'].lower():
+            # Handle case-insensitive comparison
+            if (answer and question.get('correctAnswer') and 
+                answer.lower().strip() == question['correctAnswer'].lower().strip()):
                 points_earned += question.get('points', 1)
         elif question['type'] in ['short_answer', 'essay']:
-            # For now, manual grading required
-            # Could implement fuzzy matching for short answers
-            pass
+            # For exact match on short answers (case-insensitive)
+            if (question['type'] == 'short_answer' and answer and question.get('correctAnswer') and
+                answer.lower().strip() == question['correctAnswer'].lower().strip()):
+                points_earned += question.get('points', 1)
+            # Essays require manual grading - skip for now
     
     # Calculate percentage score
     score_percentage = (points_earned / total_points * 100) if total_points > 0 else 0
