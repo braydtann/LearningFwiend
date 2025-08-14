@@ -6380,6 +6380,49 @@ class BackendTester:
         # Department API Test 12: Error handling
         self.test_department_error_handling()
         
+        print("\n" + "=" * 60)
+        print("🏫 CLASSROOM MANAGEMENT API TESTS - NEW IMPLEMENTATION")
+        print("=" * 60)
+        
+        # Classroom API Test 1: Create classroom (instructor)
+        self.test_classroom_creation_instructor()
+        
+        # Classroom API Test 2: Create classroom (admin)
+        self.test_classroom_creation_admin()
+        
+        # Classroom API Test 3: Deny classroom creation (learner)
+        self.test_classroom_creation_learner_denied()
+        
+        # Classroom API Test 4: Get all classrooms with counts
+        self.test_get_all_classrooms()
+        
+        # Classroom API Test 5: Get my classrooms (instructor)
+        self.test_get_my_classrooms_instructor()
+        
+        # Classroom API Test 6: Get my classrooms (learner)
+        self.test_get_my_classrooms_learner()
+        
+        # Classroom API Test 7: Get classroom by ID
+        self.test_get_classroom_by_id()
+        
+        # Classroom API Test 8: Validation - invalid trainer
+        self.test_classroom_validation_invalid_trainer()
+        
+        # Classroom API Test 9: Validation - invalid course
+        self.test_classroom_validation_invalid_course()
+        
+        # Classroom API Test 10: Update permissions
+        self.test_classroom_update_permissions()
+        
+        # Classroom API Test 11: Delete permissions
+        self.test_classroom_delete_permissions()
+        
+        # Classroom API Test 12: Soft delete functionality
+        self.test_classroom_soft_delete_functionality()
+        
+        # Classroom API Test 13: Integration - mixed content
+        self.test_classroom_integration_mixed_content()
+        
         return self.generate_summary()
     
     def generate_summary(self):
