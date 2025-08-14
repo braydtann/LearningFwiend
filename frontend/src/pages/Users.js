@@ -608,7 +608,7 @@ const Users = () => {
                     <SelectValue placeholder="Select department" />
                   </SelectTrigger>
                   <SelectContent>
-                    {mockDepartments.map(dept => (
+                    {availableDepartments.map(dept => (
                       <SelectItem key={dept.id} value={dept.name}>
                         <div className="flex items-center">
                           <Building2 className="w-4 h-4 mr-2" />
