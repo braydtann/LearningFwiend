@@ -151,12 +151,12 @@ class CourseModule(BaseModel):
     lessons: List[dict] = []
 
 class CourseCreate(BaseModel):
-    title: str
-    description: str
-    category: str
-    duration: Optional[str] = None
+    title: str = Field(..., min_length=1, max_length=200, description="Course title")
+    description: str = Field(..., min_length=1, max_length=2000, description="Course description")
+    category: str = Field(..., min_length=1, max_length=100, description="Course category")
+    duration: Optional[str] = Field(None, max_length=50)
     thumbnailUrl: Optional[str] = None
-    accessType: Optional[str] = "open"  # open, restricted, invitation
+    accessType: Optional[str] = Field("open", regex="^(open|restricted|invitation)$")
     modules: List[CourseModule] = []
     canvaEmbedCode: Optional[str] = None
     
