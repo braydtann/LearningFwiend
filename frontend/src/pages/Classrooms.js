@@ -218,11 +218,21 @@ const Classrooms = () => {
                       <SelectValue placeholder="Select trainer" />
                     </SelectTrigger>
                     <SelectContent>
-                      {instructors.map(instructor => (
-                        <SelectItem key={instructor.id} value={instructor.id}>
-                          {instructor.name}
+                      {loadingUsers ? (
+                        <SelectItem value="" disabled>
+                          Loading trainers...
                         </SelectItem>
-                      ))}
+                      ) : instructors.length === 0 ? (
+                        <SelectItem value="" disabled>
+                          No instructors available
+                        </SelectItem>
+                      ) : (
+                        instructors.map(instructor => (
+                          <SelectItem key={instructor.id} value={instructor.id}>
+                            {instructor.full_name || instructor.name} ({instructor.username || instructor.email})
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
