@@ -483,7 +483,14 @@ const Departments = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredDepartments.map((department) => (
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-12">
+                    <div className="text-gray-500">Loading departments...</div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredDepartments.map((department) => (
                 <TableRow 
                   key={department.id} 
                   className="cursor-pointer hover:bg-gray-50 transition-colors"
