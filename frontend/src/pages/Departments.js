@@ -25,14 +25,22 @@ import { useToast } from '../hooks/use-toast';
 
 const Departments = () => {
   const { toast } = useToast();
-  const { user, isAdmin } = useAuth();
+  const { 
+    user, 
+    isAdmin, 
+    getAllDepartments, 
+    createDepartment, 
+    updateDepartment, 
+    deleteDepartment 
+  } = useAuth();
   
   // All hooks must be called before any conditional returns
   const [searchTerm, setSearchTerm] = useState('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedDepartment, setSelectedDepartment] = useState(null);
-  const [departments, setDepartments] = useState(mockDepartments); // Use state for departments list
+  const [departments, setDepartments] = useState([]); // Use empty array initially
+  const [loading, setLoading] = useState(true); // Add loading state
   const [newDepartment, setNewDepartment] = useState({
     name: '',
     description: ''
@@ -42,6 +50,39 @@ const Departments = () => {
     name: '',
     description: ''
   });
+
+  // Load departments on component mount
+  useEffect(() => {
+    loadDepartments();
+  }, []);
+
+  const loadDepartments = async () => {
+    setLoading(true);
+    try {
+      const result = await getAllDepartments();
+      if (result.success) {
+        setDepartments(result.departments || []);
+      } else {
+        toast({
+          title: "Failed to load departments",
+          description: result.error || "Unable to fetch departments from server",
+          variant: "destructive",
+        });
+        // Fallback to empty array on error
+        setDepartments([]);
+      }
+    } catch (error) {
+      console.error('Error loading departments:', error);
+      toast({
+        title: "Error loading departments",
+        description: "Network error occurred while loading departments",
+        variant: "destructive",
+      });
+      setDepartments([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Redirect non-admin users AFTER hooks are called
   if (!isAdmin) {
