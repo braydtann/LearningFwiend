@@ -135,8 +135,23 @@ const Courses = () => {
 
 
 
-  const handleViewCourse = (courseId) => {
-    navigate(`/course/${courseId}`);
+  const handleViewCourse = (courseId, action = 'view') => {
+    const course = courses.find(c => c.id === courseId);
+    const isEnrolled = enrolledCourseIds.includes(courseId);
+    const isOwner = course && course.instructor === user?.username;
+    
+    // If it's a preview action or user is not enrolled and not owner, show preview
+    if (action === 'preview' || (!isEnrolled && !isOwner && action === 'view')) {
+      setPreviewCourse(course);
+      setIsPreviewOpen(true);
+    } else {
+      // Otherwise navigate to course detail page
+      navigate(`/course/${courseId}`);
+    }
+  };
+
+  const handlePreviewCourse = (courseId) => {
+    handleViewCourse(courseId, 'preview');
   };
 
   return (
