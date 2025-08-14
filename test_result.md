@@ -847,7 +847,7 @@ frontend:
     implemented: true
     working: false
     file: "/app/frontend/src/pages/Analytics.js"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
     needs_retesting: false
     status_history:
@@ -860,6 +860,9 @@ frontend:
       - working: false
         agent: "testing"
         comment: "CRITICAL BACKEND API ISSUES DETECTED: ❌ GET /api/analytics/system-stats returning incomplete data - missing required fields 'totalUsers', 'totalCourses', 'totalPrograms', 'totalEnrollments' that frontend expects, ❌ GET /api/analytics/dashboard timing out with connection errors, indicating server performance issues, ❌ Authentication issues preventing full testing of analytics endpoints. The analytics APIs exist but are not returning the data structure that the frontend expects, causing integration failures. Backend analytics implementation needs to be reviewed and fixed to match frontend expectations."
+      - working: false
+        agent: "testing"
+        comment: "PRIORITY TESTING COMPLETED - PARTIAL SUCCESS WITH REMAINING ISSUES: ✅ JWT authentication system now working correctly after JWT_SECRET_KEY fix - all user roles can authenticate successfully, ✅ GET /api/analytics/dashboard working correctly - successfully retrieved dashboard analytics with proper authentication, ❌ GET /api/analytics/system-stats still returning incomplete data structure - missing required fields 'totalUsers', 'totalCourses', 'totalPrograms', 'totalEnrollments' that frontend expects, ❌ GET /api/analytics/course/{courseId} failing with 404 errors, ❌ GET /api/analytics/user/{userId} returning incomplete data structure. Authentication issues have been resolved, but the analytics API data structure still doesn't match frontend expectations. Backend analytics implementation needs data structure fixes."
 
   - task: "Quiz Frontend Backend Integration"
     implemented: false
