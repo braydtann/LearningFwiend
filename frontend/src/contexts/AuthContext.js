@@ -1792,6 +1792,404 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // =============================================================================
+  // QUIZ/ASSESSMENT MANAGEMENT FUNCTIONS  
+  // =============================================================================
+
+  const createQuiz = async (quizData) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/quizzes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(quizData),
+      });
+
+      if (response.ok) {
+        const newQuiz = await response.json();
+        return { success: true, quiz: newQuiz };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to create quiz' 
+        };
+      }
+    } catch (error) {
+      console.error('Create quiz error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const getAllQuizzes = async (filters = {}) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const queryParams = new URLSearchParams();
+      
+      if (filters.course_id) queryParams.append('course_id', filters.course_id);
+      if (filters.program_id) queryParams.append('program_id', filters.program_id);
+      if (filters.published_only !== undefined) queryParams.append('published_only', filters.published_only);
+      
+      const url = `${backendUrl}/api/quizzes${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+      
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const quizzes = await response.json();
+        return { success: true, quizzes };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to fetch quizzes' 
+        };
+      }
+    } catch (error) {
+      console.error('Fetch quizzes error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const getMyQuizzes = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/quizzes/my-quizzes`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const quizzes = await response.json();
+        return { success: true, quizzes };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to fetch your quizzes' 
+        };
+      }
+    } catch (error) {
+      console.error('Fetch my quizzes error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const getQuizById = async (quizId, includeAnswers = false) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const url = `${backendUrl}/api/quizzes/${quizId}${includeAnswers ? '?include_answers=true' : ''}`;
+      
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const quiz = await response.json();
+        return { success: true, quiz };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to fetch quiz' 
+        };
+      }
+    } catch (error) {
+      console.error('Fetch quiz error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const updateQuiz = async (quizId, quizData) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/quizzes/${quizId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(quizData),
+      });
+
+      if (response.ok) {
+        const updatedQuiz = await response.json();
+        return { success: true, quiz: updatedQuiz };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to update quiz' 
+        };
+      }
+    } catch (error) {
+      console.error('Update quiz error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const deleteQuiz = async (quizId) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/quizzes/${quizId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        return { success: true };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to delete quiz' 
+        };
+      }
+    } catch (error) {
+      console.error('Delete quiz error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const submitQuizAttempt = async (attemptData) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/quiz-attempts`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(attemptData),
+      });
+
+      if (response.ok) {
+        const attempt = await response.json();
+        return { success: true, attempt };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to submit quiz attempt' 
+        };
+      }
+    } catch (error) {
+      console.error('Submit quiz attempt error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const getQuizAttempts = async (filters = {}) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const queryParams = new URLSearchParams();
+      
+      if (filters.quiz_id) queryParams.append('quiz_id', filters.quiz_id);
+      if (filters.student_id) queryParams.append('student_id', filters.student_id);
+      
+      const url = `${backendUrl}/api/quiz-attempts${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+      
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const attempts = await response.json();
+        return { success: true, attempts };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to fetch quiz attempts' 
+        };
+      }
+    } catch (error) {
+      console.error('Fetch quiz attempts error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const getQuizAttemptById = async (attemptId) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/quiz-attempts/${attemptId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const attempt = await response.json();
+        return { success: true, attempt };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to fetch quiz attempt' 
+        };
+      }
+    } catch (error) {
+      console.error('Fetch quiz attempt error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  // =============================================================================
+  // ANALYTICS MANAGEMENT FUNCTIONS  
+  // =============================================================================
+
+  const getSystemStats = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/analytics/system-stats`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const stats = await response.json();
+        return { success: true, stats };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to fetch system statistics' 
+        };
+      }
+    } catch (error) {
+      console.error('Fetch system stats error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const getCourseAnalytics = async (courseId) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/analytics/course/${courseId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const analytics = await response.json();
+        return { success: true, analytics };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to fetch course analytics' 
+        };
+      }
+    } catch (error) {
+      console.error('Fetch course analytics error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const getUserAnalytics = async (userId) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/analytics/user/${userId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const analytics = await response.json();
+        return { success: true, analytics };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to fetch user analytics' 
+        };
+      }
+    } catch (error) {
+      console.error('Fetch user analytics error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const getAnalyticsDashboard = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/analytics/dashboard`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const dashboard = await response.json();
+        return { success: true, dashboard: dashboard.data };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to fetch analytics dashboard' 
+        };
+      }
+    } catch (error) {
+      console.error('Fetch analytics dashboard error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
   const value = {
     user,
     loading,
