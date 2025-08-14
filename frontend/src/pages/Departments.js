@@ -224,24 +224,44 @@ const Departments = () => {
     setIsEditModalOpen(false);
   };
 
-  const handleDeleteDepartment = (departmentId, departmentName) => {
-    const usersInDepartment = getUsersByDepartment(departmentId);
-    if (usersInDepartment.length > 0) {
+  const handleDeleteDepartment = async (departmentId, departmentName) => {
+    // Check if department has users (based on userCount from backend)
+    const department = departments.find(d => d.id === departmentId);
+    if (department && department.userCount > 0) {
       toast({
         title: "Cannot delete department",
-        description: `${departmentName} has ${usersInDepartment.length} users assigned. Please reassign or remove users first.`,
+        description: `${departmentName} has ${department.userCount} users assigned. Please reassign or remove users first.`,
         variant: "destructive",
       });
       return;
     }
 
-    // Remove department from state
-    setDepartments(prev => prev.filter(dept => dept.id !== departmentId));
+    try {
+      const result = await deleteDepartment(departmentId);
 
-    toast({
-      title: "Department deleted",
-      description: `${departmentName} department has been removed from the system.`,
-    });
+      if (result.success) {
+        toast({
+          title: "Department deleted",
+          description: `${departmentName} department has been removed from the system.`,
+        });
+
+        // Refresh departments list
+        await loadDepartments();
+      } else {
+        toast({
+          title: "Failed to delete department",
+          description: result.error || "Unable to delete department",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Delete department error:', error);
+      toast({
+        title: "Error deleting department",
+        description: "Network error occurred while deleting department",
+        variant: "destructive",
+      });
+    }
   };
 
   const getStatusBadge = (isActive) => {
