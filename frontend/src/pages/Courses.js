@@ -6,7 +6,6 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Badge } from '../components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { mockCourses, getEnrolledCourses } from '../data/mockData';
 
 import { BookOpen, Clock, Users, Search, Filter, Play, Star } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
