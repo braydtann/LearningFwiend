@@ -386,7 +386,7 @@ const Categories = () => {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleDeleteCategory(category.id)}
+                            onClick={() => handleDeleteCategory(category.id, category.name)}
                             className="text-red-600 hover:text-red-800"
                           >
                             <Trash2 className="w-4 h-4" />
