@@ -7,7 +7,7 @@ import requests
 import json
 import uuid
 
-BACKEND_URL = "https://mock-data-cleanup.preview.emergentagent.com/api"
+BACKEND_URL = "https://learning-cloud-api.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 def setup_test_users():
