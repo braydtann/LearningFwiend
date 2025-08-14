@@ -819,15 +819,34 @@ async def enroll_in_course(
             detail="You are already enrolled in this course"
         )
     
+    # Get course details for response
+    course = await db.courses.find_one({"id": enrollment_data.courseId})
+    if not course:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Course not found"
+        )
+    
     # Create enrollment
+    now = datetime.utcnow()
     enrollment_dict = {
         "id": str(uuid.uuid4()),
         "userId": current_user.id,
         "courseId": enrollment_data.courseId,
-        "enrolledAt": datetime.utcnow(),
+        "studentId": current_user.id,
+        "courseName": course.get("title", "Unknown Course"),
+        "studentName": current_user.full_name,
+        "enrollmentDate": now,
+        "enrolledAt": now,
         "progress": 0.0,
+        "lastAccessedAt": None,
         "completedAt": None,
-        "status": "active"
+        "grade": None,
+        "status": "active",
+        "isActive": True,
+        "enrolledBy": current_user.id,
+        "created_at": now,
+        "updated_at": now
     }
     
     await db.enrollments.insert_one(enrollment_dict)
