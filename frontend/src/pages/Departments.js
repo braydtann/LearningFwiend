@@ -119,7 +119,7 @@ const Departments = () => {
     dept.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleCreateDepartment = () => {
+  const handleCreateDepartment = async () => {
     if (!newDepartment.name || !newDepartment.description) {
       toast({
         title: "Missing required fields",
@@ -129,27 +129,38 @@ const Departments = () => {
       return;
     }
 
-    // Create new department object
-    const newDept = {
-      id: (departments.length + 1).toString(),
-      name: newDepartment.name,
-      description: newDepartment.description,
-      createdAt: new Date().toISOString().split('T')[0],
-      createdBy: user.id,
-      isActive: true,
-      userCount: 0
-    };
+    try {
+      const result = await createDepartment({
+        name: newDepartment.name,
+        description: newDepartment.description
+      });
 
-    // Add to departments state
-    setDepartments(prev => [...prev, newDept]);
+      if (result.success) {
+        toast({
+          title: "Department created successfully!",
+          description: `${newDepartment.name} department has been created.`,
+        });
 
-    toast({
-      title: "Department created successfully!",
-      description: `${newDepartment.name} department has been created.`,
-    });
+        // Refresh departments list
+        await loadDepartments();
 
-    setNewDepartment({ name: '', description: '' });
-    setIsCreateModalOpen(false);
+        setNewDepartment({ name: '', description: '' });
+        setIsCreateModalOpen(false);
+      } else {
+        toast({
+          title: "Failed to create department",
+          description: result.error || "Unable to create department",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Create department error:', error);
+      toast({
+        title: "Error creating department",
+        description: "Network error occurred while creating department",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleEditDepartment = (department) => {
