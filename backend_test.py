@@ -12800,6 +12800,826 @@ class BackendTester:
         return False
 
 
+    # =============================================================================
+    # FRONTEND INTEGRATION API TESTS - COMPREHENSIVE TESTING
+    # =============================================================================
+    
+    def test_departments_apis_comprehensive(self):
+        """Comprehensive test of Departments APIs for frontend integration"""
+        print("\n🏢 Testing Departments APIs - Frontend Integration")
+        print("-" * 50)
+        
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Departments APIs - Comprehensive", 
+                "SKIP", 
+                "No admin token available for departments testing",
+                "Admin authentication required"
+            )
+            return False
+        
+        try:
+            admin_token = self.auth_tokens["admin"]
+            
+            # Test 1: GET /api/departments - Get all departments
+            print("  Testing GET /api/departments...")
+            response = requests.get(
+                f"{BACKEND_URL}/departments",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {admin_token}'}
+            )
+            
+            if response.status_code == 200:
+                departments = response.json()
+                self.log_result(
+                    "Departments API - GET All", 
+                    "PASS", 
+                    f"Successfully retrieved {len(departments)} departments",
+                    f"Sample department: {departments[0] if departments else 'None'}"
+                )
+            else:
+                self.log_result(
+                    "Departments API - GET All", 
+                    "FAIL", 
+                    f"Failed to get departments with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+                return False
+            
+            # Test 2: POST /api/departments - Create department
+            print("  Testing POST /api/departments...")
+            new_department_data = {
+                "name": "Frontend Integration Test Department",
+                "description": "Department created during frontend integration testing"
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/departments",
+                json=new_department_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {admin_token}'
+                }
+            )
+            
+            created_department = None
+            if response.status_code == 200:
+                created_department = response.json()
+                required_fields = ['id', 'name', 'description', 'userCount', 'isActive', 'created_at']
+                
+                if all(field in created_department for field in required_fields):
+                    self.log_result(
+                        "Departments API - POST Create", 
+                        "PASS", 
+                        f"Successfully created department: {created_department['name']}",
+                        f"Department ID: {created_department['id']}"
+                    )
+                else:
+                    self.log_result(
+                        "Departments API - POST Create", 
+                        "FAIL", 
+                        "Created department missing required fields",
+                        f"Missing: {[f for f in required_fields if f not in created_department]}"
+                    )
+                    return False
+            else:
+                self.log_result(
+                    "Departments API - POST Create", 
+                    "FAIL", 
+                    f"Failed to create department with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+                return False
+            
+            # Test 3: PUT /api/departments/{id} - Update department
+            if created_department:
+                print("  Testing PUT /api/departments/{id}...")
+                update_data = {
+                    "name": "Updated Frontend Test Department",
+                    "description": "Updated description for frontend integration testing"
+                }
+                
+                response = requests.put(
+                    f"{BACKEND_URL}/departments/{created_department['id']}",
+                    json=update_data,
+                    timeout=TEST_TIMEOUT,
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Authorization': f'Bearer {admin_token}'
+                    }
+                )
+                
+                if response.status_code == 200:
+                    updated_department = response.json()
+                    if updated_department['name'] == update_data['name']:
+                        self.log_result(
+                            "Departments API - PUT Update", 
+                            "PASS", 
+                            f"Successfully updated department name to: {updated_department['name']}",
+                            f"Updated description: {updated_department['description']}"
+                        )
+                    else:
+                        self.log_result(
+                            "Departments API - PUT Update", 
+                            "FAIL", 
+                            "Department update did not reflect changes",
+                            f"Expected: {update_data['name']}, Got: {updated_department['name']}"
+                        )
+                        return False
+                else:
+                    self.log_result(
+                        "Departments API - PUT Update", 
+                        "FAIL", 
+                        f"Failed to update department with status {response.status_code}",
+                        f"Response: {response.text}"
+                    )
+                    return False
+            
+            # Test 4: DELETE /api/departments/{id} - Delete department
+            if created_department:
+                print("  Testing DELETE /api/departments/{id}...")
+                response = requests.delete(
+                    f"{BACKEND_URL}/departments/{created_department['id']}",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {admin_token}'}
+                )
+                
+                if response.status_code == 200:
+                    delete_response = response.json()
+                    if "successfully deleted" in delete_response.get('message', '').lower():
+                        self.log_result(
+                            "Departments API - DELETE", 
+                            "PASS", 
+                            f"Successfully deleted department",
+                            f"Response: {delete_response['message']}"
+                        )
+                    else:
+                        self.log_result(
+                            "Departments API - DELETE", 
+                            "FAIL", 
+                            "Unexpected delete response message",
+                            f"Response: {delete_response}"
+                        )
+                        return False
+                else:
+                    self.log_result(
+                        "Departments API - DELETE", 
+                        "FAIL", 
+                        f"Failed to delete department with status {response.status_code}",
+                        f"Response: {response.text}"
+                    )
+                    return False
+            
+            self.log_result(
+                "Departments APIs - Comprehensive", 
+                "PASS", 
+                "All departments API endpoints working correctly",
+                "CRUD operations tested successfully"
+            )
+            return True
+            
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Departments APIs - Comprehensive", 
+                "FAIL", 
+                "Failed to test departments APIs",
+                str(e)
+            )
+        return False
+    
+    def test_announcements_apis_comprehensive(self):
+        """Comprehensive test of Announcements APIs for frontend integration"""
+        print("\n📢 Testing Announcements APIs - Frontend Integration")
+        print("-" * 50)
+        
+        if "instructor" not in self.auth_tokens and "admin" not in self.auth_tokens:
+            self.log_result(
+                "Announcements APIs - Comprehensive", 
+                "SKIP", 
+                "No instructor or admin token available for announcements testing",
+                "Instructor/Admin authentication required"
+            )
+            return False
+        
+        try:
+            # Use instructor token if available, otherwise admin
+            token = self.auth_tokens.get("instructor", self.auth_tokens.get("admin"))
+            role = "instructor" if "instructor" in self.auth_tokens else "admin"
+            
+            # Test 1: GET /api/announcements - Get all announcements
+            print("  Testing GET /api/announcements...")
+            response = requests.get(
+                f"{BACKEND_URL}/announcements",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {token}'}
+            )
+            
+            if response.status_code == 200:
+                announcements = response.json()
+                self.log_result(
+                    "Announcements API - GET All", 
+                    "PASS", 
+                    f"Successfully retrieved {len(announcements)} announcements",
+                    f"Sample announcement: {announcements[0]['title'] if announcements else 'None'}"
+                )
+            else:
+                self.log_result(
+                    "Announcements API - GET All", 
+                    "FAIL", 
+                    f"Failed to get announcements with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+                return False
+            
+            # Test 2: POST /api/announcements - Create announcement
+            print("  Testing POST /api/announcements...")
+            new_announcement_data = {
+                "title": "Frontend Integration Test Announcement",
+                "content": "This announcement was created during frontend integration testing to verify API functionality.",
+                "type": "general",
+                "targetAudience": "all",
+                "priority": "normal",
+                "isPinned": False
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/announcements",
+                json=new_announcement_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {token}'
+                }
+            )
+            
+            created_announcement = None
+            if response.status_code == 200:
+                created_announcement = response.json()
+                required_fields = ['id', 'title', 'content', 'type', 'authorId', 'authorName', 'created_at']
+                
+                if all(field in created_announcement for field in required_fields):
+                    self.log_result(
+                        "Announcements API - POST Create", 
+                        "PASS", 
+                        f"Successfully created announcement: {created_announcement['title']}",
+                        f"Announcement ID: {created_announcement['id']}, Author: {created_announcement['authorName']}"
+                    )
+                else:
+                    self.log_result(
+                        "Announcements API - POST Create", 
+                        "FAIL", 
+                        "Created announcement missing required fields",
+                        f"Missing: {[f for f in required_fields if f not in created_announcement]}"
+                    )
+                    return False
+            else:
+                self.log_result(
+                    "Announcements API - POST Create", 
+                    "FAIL", 
+                    f"Failed to create announcement with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+                return False
+            
+            # Test 3: PUT /api/announcements/{id} - Update announcement
+            if created_announcement:
+                print("  Testing PUT /api/announcements/{id}...")
+                update_data = {
+                    "title": "Updated Frontend Test Announcement",
+                    "content": "This announcement has been updated during frontend integration testing.",
+                    "priority": "urgent",
+                    "isPinned": True
+                }
+                
+                response = requests.put(
+                    f"{BACKEND_URL}/announcements/{created_announcement['id']}",
+                    json=update_data,
+                    timeout=TEST_TIMEOUT,
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Authorization': f'Bearer {token}'
+                    }
+                )
+                
+                if response.status_code == 200:
+                    updated_announcement = response.json()
+                    if updated_announcement['title'] == update_data['title'] and updated_announcement['isPinned'] == True:
+                        self.log_result(
+                            "Announcements API - PUT Update", 
+                            "PASS", 
+                            f"Successfully updated announcement: {updated_announcement['title']}",
+                            f"Priority: {updated_announcement['priority']}, Pinned: {updated_announcement['isPinned']}"
+                        )
+                    else:
+                        self.log_result(
+                            "Announcements API - PUT Update", 
+                            "FAIL", 
+                            "Announcement update did not reflect changes",
+                            f"Expected title: {update_data['title']}, Got: {updated_announcement['title']}"
+                        )
+                        return False
+                else:
+                    self.log_result(
+                        "Announcements API - PUT Update", 
+                        "FAIL", 
+                        f"Failed to update announcement with status {response.status_code}",
+                        f"Response: {response.text}"
+                    )
+                    return False
+            
+            # Test 4: DELETE /api/announcements/{id} - Delete announcement
+            if created_announcement:
+                print("  Testing DELETE /api/announcements/{id}...")
+                response = requests.delete(
+                    f"{BACKEND_URL}/announcements/{created_announcement['id']}",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {token}'}
+                )
+                
+                if response.status_code == 200:
+                    delete_response = response.json()
+                    if "successfully deleted" in delete_response.get('message', '').lower():
+                        self.log_result(
+                            "Announcements API - DELETE", 
+                            "PASS", 
+                            f"Successfully deleted announcement",
+                            f"Response: {delete_response['message']}"
+                        )
+                    else:
+                        self.log_result(
+                            "Announcements API - DELETE", 
+                            "FAIL", 
+                            "Unexpected delete response message",
+                            f"Response: {delete_response}"
+                        )
+                        return False
+                else:
+                    self.log_result(
+                        "Announcements API - DELETE", 
+                        "FAIL", 
+                        f"Failed to delete announcement with status {response.status_code}",
+                        f"Response: {response.text}"
+                    )
+                    return False
+            
+            self.log_result(
+                "Announcements APIs - Comprehensive", 
+                "PASS", 
+                "All announcements API endpoints working correctly",
+                "CRUD operations tested successfully"
+            )
+            return True
+            
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Announcements APIs - Comprehensive", 
+                "FAIL", 
+                "Failed to test announcements APIs",
+                str(e)
+            )
+        return False
+    
+    def test_certificates_apis_comprehensive(self):
+        """Comprehensive test of Certificates APIs for frontend integration"""
+        print("\n🏆 Testing Certificates APIs - Frontend Integration")
+        print("-" * 50)
+        
+        if not self.auth_tokens:
+            self.log_result(
+                "Certificates APIs - Comprehensive", 
+                "SKIP", 
+                "No authentication tokens available for certificates testing",
+                "Authentication required"
+            )
+            return False
+        
+        try:
+            # Test with different user roles
+            test_results = []
+            
+            # Test 1: GET /api/certificates/my-certificates (for students)
+            if "student" in self.auth_tokens:
+                print("  Testing GET /api/certificates/my-certificates (student)...")
+                response = requests.get(
+                    f"{BACKEND_URL}/certificates/my-certificates",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {self.auth_tokens["student"]}'}
+                )
+                
+                if response.status_code == 200:
+                    certificates = response.json()
+                    self.log_result(
+                        "Certificates API - GET My Certificates (Student)", 
+                        "PASS", 
+                        f"Successfully retrieved {len(certificates)} certificates for student",
+                        f"Sample certificate: {certificates[0]['title'] if certificates else 'None'}"
+                    )
+                    test_results.append(True)
+                else:
+                    self.log_result(
+                        "Certificates API - GET My Certificates (Student)", 
+                        "FAIL", 
+                        f"Failed to get student certificates with status {response.status_code}",
+                        f"Response: {response.text}"
+                    )
+                    test_results.append(False)
+            
+            # Test 2: GET /api/certificates (for admin)
+            if "admin" in self.auth_tokens:
+                print("  Testing GET /api/certificates (admin)...")
+                response = requests.get(
+                    f"{BACKEND_URL}/certificates",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+                )
+                
+                if response.status_code == 200:
+                    certificates = response.json()
+                    self.log_result(
+                        "Certificates API - GET All (Admin)", 
+                        "PASS", 
+                        f"Successfully retrieved {len(certificates)} certificates for admin",
+                        f"Admin can view all certificates"
+                    )
+                    test_results.append(True)
+                else:
+                    self.log_result(
+                        "Certificates API - GET All (Admin)", 
+                        "FAIL", 
+                        f"Failed to get all certificates with status {response.status_code}",
+                        f"Response: {response.text}"
+                    )
+                    test_results.append(False)
+            
+            # Test 3: POST /api/certificates - Create certificate (admin/instructor)
+            token = self.auth_tokens.get("admin", self.auth_tokens.get("instructor"))
+            if token:
+                print("  Testing POST /api/certificates...")
+                
+                # First, get a user ID for the certificate
+                user_id = None
+                if "admin" in self.auth_tokens:
+                    users_response = requests.get(
+                        f"{BACKEND_URL}/auth/admin/users",
+                        timeout=TEST_TIMEOUT,
+                        headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+                    )
+                    if users_response.status_code == 200:
+                        users = users_response.json()
+                        student_users = [u for u in users if u.get('role') == 'learner']
+                        if student_users:
+                            user_id = student_users[0]['id']
+                
+                if user_id:
+                    new_certificate_data = {
+                        "userId": user_id,
+                        "title": "Frontend Integration Test Certificate",
+                        "description": "Certificate awarded during frontend integration testing",
+                        "type": "course_completion",
+                        "courseId": None,  # General certificate
+                        "programId": None,
+                        "issueDate": "2024-01-15T10:00:00Z",
+                        "validUntil": "2025-01-15T10:00:00Z"
+                    }
+                    
+                    response = requests.post(
+                        f"{BACKEND_URL}/certificates",
+                        json=new_certificate_data,
+                        timeout=TEST_TIMEOUT,
+                        headers={
+                            'Content-Type': 'application/json',
+                            'Authorization': f'Bearer {token}'
+                        }
+                    )
+                    
+                    if response.status_code == 200:
+                        created_certificate = response.json()
+                        required_fields = ['id', 'userId', 'title', 'verificationCode', 'issueDate']
+                        
+                        if all(field in created_certificate for field in required_fields):
+                            self.log_result(
+                                "Certificates API - POST Create", 
+                                "PASS", 
+                                f"Successfully created certificate: {created_certificate['title']}",
+                                f"Certificate ID: {created_certificate['id']}, Verification: {created_certificate['verificationCode']}"
+                            )
+                            test_results.append(True)
+                        else:
+                            self.log_result(
+                                "Certificates API - POST Create", 
+                                "FAIL", 
+                                "Created certificate missing required fields",
+                                f"Missing: {[f for f in required_fields if f not in created_certificate]}"
+                            )
+                            test_results.append(False)
+                    else:
+                        self.log_result(
+                            "Certificates API - POST Create", 
+                            "FAIL", 
+                            f"Failed to create certificate with status {response.status_code}",
+                            f"Response: {response.text}"
+                        )
+                        test_results.append(False)
+                else:
+                    self.log_result(
+                        "Certificates API - POST Create", 
+                        "SKIP", 
+                        "No student user found for certificate creation test",
+                        "Need student user to create certificate"
+                    )
+            
+            # Evaluate overall results
+            passed_tests = sum(test_results)
+            total_tests = len(test_results)
+            
+            if passed_tests == total_tests and total_tests > 0:
+                self.log_result(
+                    "Certificates APIs - Comprehensive", 
+                    "PASS", 
+                    f"All {total_tests} certificates API tests passed",
+                    "Certificate management working correctly"
+                )
+                return True
+            elif total_tests > 0:
+                self.log_result(
+                    "Certificates APIs - Comprehensive", 
+                    "FAIL", 
+                    f"Only {passed_tests}/{total_tests} certificates API tests passed",
+                    "Some certificate API issues detected"
+                )
+                return False
+            else:
+                self.log_result(
+                    "Certificates APIs - Comprehensive", 
+                    "SKIP", 
+                    "No certificates API tests could be performed",
+                    "Missing required authentication tokens"
+                )
+                return False
+            
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Certificates APIs - Comprehensive", 
+                "FAIL", 
+                "Failed to test certificates APIs",
+                str(e)
+            )
+        return False
+    
+    def test_analytics_apis_comprehensive(self):
+        """Comprehensive test of Analytics APIs for frontend integration"""
+        print("\n📊 Testing Analytics APIs - Frontend Integration")
+        print("-" * 50)
+        
+        if not self.auth_tokens:
+            self.log_result(
+                "Analytics APIs - Comprehensive", 
+                "SKIP", 
+                "No authentication tokens available for analytics testing",
+                "Authentication required"
+            )
+            return False
+        
+        try:
+            test_results = []
+            
+            # Test 1: GET /api/analytics/system-stats (admin only)
+            if "admin" in self.auth_tokens:
+                print("  Testing GET /api/analytics/system-stats...")
+                response = requests.get(
+                    f"{BACKEND_URL}/analytics/system-stats",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+                )
+                
+                if response.status_code == 200:
+                    stats = response.json()
+                    required_fields = ['totalUsers', 'totalCourses', 'totalPrograms', 'totalEnrollments']
+                    
+                    if all(field in stats for field in required_fields):
+                        self.log_result(
+                            "Analytics API - System Stats", 
+                            "PASS", 
+                            f"Successfully retrieved system statistics",
+                            f"Users: {stats['totalUsers']}, Courses: {stats['totalCourses']}, Programs: {stats['totalPrograms']}"
+                        )
+                        test_results.append(True)
+                    else:
+                        self.log_result(
+                            "Analytics API - System Stats", 
+                            "FAIL", 
+                            "System stats missing required fields",
+                            f"Missing: {[f for f in required_fields if f not in stats]}"
+                        )
+                        test_results.append(False)
+                else:
+                    self.log_result(
+                        "Analytics API - System Stats", 
+                        "FAIL", 
+                        f"Failed to get system stats with status {response.status_code}",
+                        f"Response: {response.text}"
+                    )
+                    test_results.append(False)
+            
+            # Test 2: GET /api/analytics/dashboard (all roles)
+            token = self.auth_tokens.get("admin", self.auth_tokens.get("instructor", self.auth_tokens.get("student")))
+            if token:
+                print("  Testing GET /api/analytics/dashboard...")
+                response = requests.get(
+                    f"{BACKEND_URL}/analytics/dashboard",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {token}'}
+                )
+                
+                if response.status_code == 200:
+                    dashboard = response.json()
+                    # Dashboard structure varies by role, so just check it's valid JSON
+                    if isinstance(dashboard, dict):
+                        self.log_result(
+                            "Analytics API - Dashboard", 
+                            "PASS", 
+                            f"Successfully retrieved dashboard analytics",
+                            f"Dashboard keys: {list(dashboard.keys())}"
+                        )
+                        test_results.append(True)
+                    else:
+                        self.log_result(
+                            "Analytics API - Dashboard", 
+                            "FAIL", 
+                            "Dashboard response is not a valid object",
+                            f"Response type: {type(dashboard)}"
+                        )
+                        test_results.append(False)
+                else:
+                    self.log_result(
+                        "Analytics API - Dashboard", 
+                        "FAIL", 
+                        f"Failed to get dashboard analytics with status {response.status_code}",
+                        f"Response: {response.text}"
+                    )
+                    test_results.append(False)
+            
+            # Test 3: GET /api/analytics/course/{courseId} (if courses exist)
+            if token:
+                print("  Testing GET /api/analytics/course/{courseId}...")
+                
+                # First, get available courses
+                courses_response = requests.get(
+                    f"{BACKEND_URL}/courses",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {token}'}
+                )
+                
+                course_id = None
+                if courses_response.status_code == 200:
+                    courses = courses_response.json()
+                    if courses:
+                        course_id = courses[0]['id']
+                
+                if course_id:
+                    response = requests.get(
+                        f"{BACKEND_URL}/analytics/course/{course_id}",
+                        timeout=TEST_TIMEOUT,
+                        headers={'Authorization': f'Bearer {token}'}
+                    )
+                    
+                    if response.status_code == 200:
+                        course_analytics = response.json()
+                        expected_fields = ['courseId', 'courseName', 'totalEnrollments']
+                        
+                        if all(field in course_analytics for field in expected_fields):
+                            self.log_result(
+                                "Analytics API - Course Analytics", 
+                                "PASS", 
+                                f"Successfully retrieved course analytics",
+                                f"Course: {course_analytics['courseName']}, Enrollments: {course_analytics['totalEnrollments']}"
+                            )
+                            test_results.append(True)
+                        else:
+                            self.log_result(
+                                "Analytics API - Course Analytics", 
+                                "FAIL", 
+                                "Course analytics missing required fields",
+                                f"Missing: {[f for f in expected_fields if f not in course_analytics]}"
+                            )
+                            test_results.append(False)
+                    else:
+                        self.log_result(
+                            "Analytics API - Course Analytics", 
+                            "FAIL", 
+                            f"Failed to get course analytics with status {response.status_code}",
+                            f"Response: {response.text}"
+                        )
+                        test_results.append(False)
+                else:
+                    self.log_result(
+                        "Analytics API - Course Analytics", 
+                        "SKIP", 
+                        "No courses available for analytics testing",
+                        "Need existing courses to test course analytics"
+                    )
+            
+            # Test 4: GET /api/analytics/user/{userId} (admin only)
+            if "admin" in self.auth_tokens:
+                print("  Testing GET /api/analytics/user/{userId}...")
+                
+                # Get a user ID for testing
+                users_response = requests.get(
+                    f"{BACKEND_URL}/auth/admin/users",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+                )
+                
+                user_id = None
+                if users_response.status_code == 200:
+                    users = users_response.json()
+                    student_users = [u for u in users if u.get('role') == 'learner']
+                    if student_users:
+                        user_id = student_users[0]['id']
+                
+                if user_id:
+                    response = requests.get(
+                        f"{BACKEND_URL}/analytics/user/{user_id}",
+                        timeout=TEST_TIMEOUT,
+                        headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+                    )
+                    
+                    if response.status_code == 200:
+                        user_analytics = response.json()
+                        expected_fields = ['userId', 'userName', 'totalEnrollments']
+                        
+                        if all(field in user_analytics for field in expected_fields):
+                            self.log_result(
+                                "Analytics API - User Analytics", 
+                                "PASS", 
+                                f"Successfully retrieved user analytics",
+                                f"User: {user_analytics['userName']}, Enrollments: {user_analytics['totalEnrollments']}"
+                            )
+                            test_results.append(True)
+                        else:
+                            self.log_result(
+                                "Analytics API - User Analytics", 
+                                "FAIL", 
+                                "User analytics missing required fields",
+                                f"Missing: {[f for f in expected_fields if f not in user_analytics]}"
+                            )
+                            test_results.append(False)
+                    else:
+                        self.log_result(
+                            "Analytics API - User Analytics", 
+                            "FAIL", 
+                            f"Failed to get user analytics with status {response.status_code}",
+                            f"Response: {response.text}"
+                        )
+                        test_results.append(False)
+                else:
+                    self.log_result(
+                        "Analytics API - User Analytics", 
+                        "SKIP", 
+                        "No student users available for analytics testing",
+                        "Need student users to test user analytics"
+                    )
+            
+            # Evaluate overall results
+            passed_tests = sum(test_results)
+            total_tests = len(test_results)
+            
+            if passed_tests == total_tests and total_tests > 0:
+                self.log_result(
+                    "Analytics APIs - Comprehensive", 
+                    "PASS", 
+                    f"All {total_tests} analytics API tests passed",
+                    "Analytics system working correctly"
+                )
+                return True
+            elif total_tests > 0:
+                self.log_result(
+                    "Analytics APIs - Comprehensive", 
+                    "FAIL", 
+                    f"Only {passed_tests}/{total_tests} analytics API tests passed",
+                    "Some analytics API issues detected"
+                )
+                return False
+            else:
+                self.log_result(
+                    "Analytics APIs - Comprehensive", 
+                    "SKIP", 
+                    "No analytics API tests could be performed",
+                    "Missing required authentication tokens"
+                )
+                return False
+            
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Analytics APIs - Comprehensive", 
+                "FAIL", 
+                "Failed to test analytics APIs",
+                str(e)
+            )
+        return False
+
+
 if __name__ == "__main__":
     tester = BackendTester()
     summary = tester.run_all_tests()
