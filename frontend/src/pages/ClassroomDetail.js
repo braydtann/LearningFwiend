@@ -24,13 +24,52 @@ import {
 const ClassroomDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user, isLearner } = useAuth();
+  const { user, isLearner, getAllCourses } = useAuth();
+  
+  const [courses, setCourses] = useState([]);
+  const [loadingCourses, setLoadingCourses] = useState(true);
+  const [coursesError, setCoursesError] = useState(null);
   
   const classroom = mockClassrooms.find(c => c.id === id);
   const students = getClassroomStudents(id);
-  const courses = classroom?.courseIds.map(courseId => 
-    mockCourses.find(course => course.id === courseId)
-  ).filter(Boolean) || [];
+  
+  // Load courses from backend
+  useEffect(() => {
+    loadCourses();
+  }, []);
+
+  const loadCourses = async () => {
+    setLoadingCourses(true);
+    setCoursesError(null);
+    try {
+      const result = await getAllCourses();
+      if (result.success) {
+        // Filter courses that are assigned to this classroom
+        const classroomCourses = result.courses.filter(course => 
+          classroom?.courseIds?.includes(course.id)
+        );
+        setCourses(classroomCourses);
+      } else {
+        // Fallback to mock courses if backend fails
+        const fallbackCourses = classroom?.courseIds?.map(courseId => 
+          mockCourses.find(course => course.id === courseId)
+        ).filter(Boolean) || [];
+        setCourses(fallbackCourses);
+        setCoursesError('Failed to load courses from backend, using cached data');
+        console.warn('Failed to load courses from backend:', result.error);
+      }
+    } catch (error) {
+      // Fallback to mock courses
+      console.error('Error loading courses:', error);
+      const fallbackCourses = classroom?.courseIds?.map(courseId => 
+        mockCourses.find(course => course.id === courseId)
+      ).filter(Boolean) || [];
+      setCourses(fallbackCourses);
+      setCoursesError('Network error loading courses');
+    } finally {
+      setLoadingCourses(false);
+    }
+  };
 
   if (!classroom) {
     return (
