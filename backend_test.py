@@ -805,7 +805,219 @@ class BackendTester:
             )
         return False
     
-    def test_password_change_api_detailed(self):
+    def test_password_change_loop_bug_reproduction(self):
+        """Reproduce the exact password change loop bug scenario"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Password Change Loop Bug Reproduction", 
+                "SKIP", 
+                "No admin token available, skipping bug reproduction test",
+                "Admin login required first"
+            )
+            return False
+        
+        try:
+            # Step 1: Create a fresh user with temporary password
+            bug_test_user_data = {
+                "email": "bug.reproduction@covesmart.com",
+                "username": "bug.reproduction",
+                "full_name": "Bug Reproduction User",
+                "role": "learner",
+                "department": "Testing",
+                "temporary_password": "BugTest123!"
+            }
+            
+            # Delete user if exists first
+            users_response = requests.get(
+                f"{BACKEND_URL}/auth/admin/users",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            if users_response.status_code == 200:
+                users = users_response.json()
+                for user in users:
+                    if user.get('email') == 'bug.reproduction@covesmart.com':
+                        # Delete existing user
+                        requests.delete(
+                            f"{BACKEND_URL}/auth/admin/users/{user['id']}",
+                            timeout=TEST_TIMEOUT,
+                            headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+                        )
+                        break
+            
+            create_response = requests.post(
+                f"{BACKEND_URL}/auth/admin/create-user",
+                json=bug_test_user_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if create_response.status_code != 200:
+                self.log_result(
+                    "Password Change Loop Bug - User Creation", 
+                    "FAIL", 
+                    f"Failed to create bug test user, status: {create_response.status_code}",
+                    f"Response: {create_response.text}"
+                )
+                return False
+            
+            created_user = create_response.json()
+            self.log_result(
+                "Password Change Loop Bug - User Creation", 
+                "PASS", 
+                "Created fresh test user with temporary password",
+                f"User: {created_user.get('email')}, first_login_required: {created_user.get('first_login_required')}"
+            )
+            
+            # Step 2: First login with temporary password
+            login_data = {
+                "username_or_email": "bug.reproduction@covesmart.com",
+                "password": "BugTest123!"
+            }
+            
+            login_response = requests.post(
+                f"{BACKEND_URL}/auth/login",
+                json=login_data,
+                timeout=TEST_TIMEOUT,
+                headers={'Content-Type': 'application/json'}
+            )
+            
+            if login_response.status_code != 200:
+                self.log_result(
+                    "Password Change Loop Bug - First Login", 
+                    "FAIL", 
+                    f"Failed first login with temporary password, status: {login_response.status_code}",
+                    f"Response: {login_response.text}"
+                )
+                return False
+            
+            login_data_response = login_response.json()
+            user_token = login_data_response.get('access_token')
+            requires_password_change_initial = login_data_response.get('requires_password_change')
+            
+            self.log_result(
+                "Password Change Loop Bug - First Login", 
+                "PASS", 
+                f"First login successful, requires_password_change: {requires_password_change_initial}",
+                f"This should be True for temporary password users"
+            )
+            
+            if not requires_password_change_initial:
+                self.log_result(
+                    "Password Change Loop Bug - Initial State Check", 
+                    "FAIL", 
+                    "User with temporary password does not require password change",
+                    "This indicates the temporary password system is not working correctly"
+                )
+                return False
+            
+            # Step 3: Change password
+            password_change_data = {
+                "current_password": "BugTest123!",
+                "new_password": "NewBugTest123!"
+            }
+            
+            change_response = requests.post(
+                f"{BACKEND_URL}/auth/change-password",
+                json=password_change_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {user_token}'
+                }
+            )
+            
+            if change_response.status_code != 200:
+                self.log_result(
+                    "Password Change Loop Bug - Password Change", 
+                    "FAIL", 
+                    f"Failed to change password, status: {change_response.status_code}",
+                    f"Response: {change_response.text}"
+                )
+                return False
+            
+            self.log_result(
+                "Password Change Loop Bug - Password Change", 
+                "PASS", 
+                "Password change API call successful",
+                f"Response: {change_response.json()}"
+            )
+            
+            # Step 4: CRITICAL TEST - Login again with new password
+            login_data_new = {
+                "username_or_email": "bug.reproduction@covesmart.com",
+                "password": "NewBugTest123!"
+            }
+            
+            login_response_new = requests.post(
+                f"{BACKEND_URL}/auth/login",
+                json=login_data_new,
+                timeout=TEST_TIMEOUT,
+                headers={'Content-Type': 'application/json'}
+            )
+            
+            if login_response_new.status_code != 200:
+                self.log_result(
+                    "Password Change Loop Bug - Second Login", 
+                    "FAIL", 
+                    f"Failed to login with new password, status: {login_response_new.status_code}",
+                    f"Response: {login_response_new.text}"
+                )
+                return False
+            
+            login_data_new_response = login_response_new.json()
+            requires_password_change_after = login_data_new_response.get('requires_password_change')
+            
+            # THIS IS THE CRITICAL CHECK FOR THE BUG
+            if requires_password_change_after:
+                self.log_result(
+                    "Password Change Loop Bug - CRITICAL BUG CONFIRMED", 
+                    "FAIL", 
+                    "🚨 PASSWORD CHANGE LOOP BUG DETECTED: User still required to change password after successful change",
+                    f"requires_password_change should be False but is: {requires_password_change_after}. This confirms the reported bug where users get stuck in password change loop."
+                )
+                
+                # Get detailed database state for debugging
+                users_response_debug = requests.get(
+                    f"{BACKEND_URL}/auth/admin/users",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+                )
+                
+                if users_response_debug.status_code == 200:
+                    users_debug = users_response_debug.json()
+                    for user in users_debug:
+                        if user.get('email') == 'bug.reproduction@covesmart.com':
+                            self.log_result(
+                                "Password Change Loop Bug - Database State Debug", 
+                                "INFO", 
+                                "Database state after password change shows the issue",
+                                f"first_login_required: {user.get('first_login_required')} (should be False), last_login: {user.get('last_login')}, created_at: {user.get('created_at')}"
+                            )
+                            break
+                
+                return False
+            else:
+                self.log_result(
+                    "Password Change Loop Bug - Bug Check", 
+                    "PASS", 
+                    "No password change loop detected - system working correctly",
+                    f"requires_password_change correctly set to: {requires_password_change_after}"
+                )
+                return True
+                
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Password Change Loop Bug Reproduction", 
+                "FAIL", 
+                "Failed to complete bug reproduction test",
+                str(e)
+            )
+        return False
         """Detailed test of the password change API endpoint"""
         if "admin" not in self.auth_tokens:
             self.log_result(
