@@ -2312,6 +2312,380 @@ async def delete_enrollment(
     return {"message": f"Student has been successfully unenrolled from {enrollment['courseName']}"}
 
 
+# =============================================================================
+# ANNOUNCEMENT MODELS
+# =============================================================================
+
+class AnnouncementCreate(BaseModel):
+    title: str
+    content: str
+    type: str = "general"  # general, course, urgent, maintenance
+    courseId: Optional[str] = None  # If course-specific announcement
+    classroomId: Optional[str] = None  # If classroom-specific announcement
+    targetAudience: str = "all"  # all, instructors, learners, specific_course, specific_classroom
+    priority: str = "normal"  # low, normal, high, urgent
+    expiresAt: Optional[datetime] = None
+    attachments: List[str] = []  # URLs to attached files
+    
+class AnnouncementInDB(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    title: str
+    content: str
+    type: str
+    courseId: Optional[str] = None
+    courseName: Optional[str] = None  # Denormalized
+    classroomId: Optional[str] = None
+    classroomName: Optional[str] = None  # Denormalized
+    targetAudience: str
+    priority: str
+    isActive: bool = True
+    isPinned: bool = False
+    viewCount: int = 0
+    expiresAt: Optional[datetime] = None
+    attachments: List[str] = []
+    authorId: str
+    authorName: str  # Denormalized
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class AnnouncementResponse(BaseModel):
+    id: str
+    title: str
+    content: str
+    type: str
+    courseId: Optional[str] = None
+    courseName: Optional[str] = None
+    classroomId: Optional[str] = None
+    classroomName: Optional[str] = None
+    targetAudience: str
+    priority: str
+    isActive: bool
+    isPinned: bool
+    viewCount: int
+    expiresAt: Optional[datetime] = None
+    attachments: List[str] = []
+    authorId: str
+    authorName: str
+    created_at: datetime
+    updated_at: datetime
+
+class AnnouncementUpdate(BaseModel):
+    title: Optional[str] = None
+    content: Optional[str] = None
+    type: Optional[str] = None
+    courseId: Optional[str] = None
+    classroomId: Optional[str] = None
+    targetAudience: Optional[str] = None
+    priority: Optional[str] = None
+    isPinned: Optional[bool] = None
+    expiresAt: Optional[datetime] = None
+    attachments: Optional[List[str]] = None
+
+
+# =============================================================================
+# ANNOUNCEMENT ENDPOINTS
+# =============================================================================
+
+@api_router.post("/announcements", response_model=AnnouncementResponse)
+async def create_announcement(
+    announcement_data: AnnouncementCreate,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Create a new announcement (instructors and admins only)."""
+    if current_user.role not in ['instructor', 'admin']:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only instructors and admins can create announcements"
+        )
+    
+    # Validate course if course-specific announcement
+    course_name = None
+    if announcement_data.courseId:
+        course = await db.courses.find_one({"id": announcement_data.courseId})
+        if not course:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Specified course not found"
+            )
+        course_name = course['title']
+    
+    # Validate classroom if classroom-specific announcement
+    classroom_name = None
+    if announcement_data.classroomId:
+        classroom = await db.classrooms.find_one({"id": announcement_data.classroomId})
+        if not classroom:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Specified classroom not found"
+            )
+        classroom_name = classroom['name']
+    
+    # Create announcement dictionary
+    announcement_dict = {
+        "id": str(uuid.uuid4()),
+        **announcement_data.dict(),
+        "courseName": course_name,
+        "classroomName": classroom_name,
+        "isActive": True,
+        "isPinned": False,
+        "viewCount": 0,
+        "authorId": current_user.id,
+        "authorName": current_user.full_name,
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
+    }
+    
+    # Insert announcement into database
+    await db.announcements.insert_one(announcement_dict)
+    
+    return AnnouncementResponse(**announcement_dict)
+
+@api_router.get("/announcements", response_model=List[AnnouncementResponse])
+async def get_announcements(
+    current_user: UserResponse = Depends(get_current_user),
+    type: Optional[str] = None,
+    priority: Optional[str] = None,
+    course_id: Optional[str] = None,
+    limit: Optional[int] = 50
+):
+    """Get announcements relevant to current user."""
+    
+    # Base query for active announcements
+    query = {"isActive": True}
+    
+    # Add expiration filter
+    query["$or"] = [
+        {"expiresAt": {"$exists": False}},
+        {"expiresAt": None},
+        {"expiresAt": {"$gt": datetime.utcnow()}}
+    ]
+    
+    # Add type filter if specified
+    if type:
+        query["type"] = type
+    
+    # Add priority filter if specified
+    if priority:
+        query["priority"] = priority
+    
+    # Add course filter if specified
+    if course_id:
+        query["courseId"] = course_id
+    
+    # Role-based filtering
+    if current_user.role == 'learner':
+        # Students see announcements targeted to them
+        query["$and"] = [
+            query.get("$and", {}),
+            {
+                "$or": [
+                    {"targetAudience": "all"},
+                    {"targetAudience": "learners"}
+                ]
+            }
+        ]
+    elif current_user.role == 'instructor':
+        # Instructors see announcements targeted to them or all
+        query["$and"] = [
+            query.get("$and", {}),
+            {
+                "$or": [
+                    {"targetAudience": "all"},
+                    {"targetAudience": "instructors"},
+                    {"authorId": current_user.id}  # Their own announcements
+                ]
+            }
+        ]
+    # Admins see all announcements (no additional filtering)
+    
+    # Get announcements sorted by pinned status and creation date
+    announcements = await db.announcements.find(query).sort([
+        ("isPinned", -1),  # Pinned first
+        ("priority", -1),  # High priority first
+        ("created_at", -1)  # Newest first
+    ]).limit(limit).to_list(limit)
+    
+    return [AnnouncementResponse(**announcement) for announcement in announcements]
+
+@api_router.get("/announcements/{announcement_id}", response_model=AnnouncementResponse)
+async def get_announcement(
+    announcement_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Get a specific announcement by ID and increment view count."""
+    announcement = await db.announcements.find_one({"id": announcement_id, "isActive": True})
+    if not announcement:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Announcement not found"
+        )
+    
+    # Increment view count
+    await db.announcements.update_one(
+        {"id": announcement_id},
+        {"$inc": {"viewCount": 1}}
+    )
+    announcement["viewCount"] += 1
+    
+    return AnnouncementResponse(**announcement)
+
+@api_router.get("/announcements/my-announcements", response_model=List[AnnouncementResponse])
+async def get_my_announcements(current_user: UserResponse = Depends(get_current_user)):
+    """Get announcements created by current user."""
+    if current_user.role not in ['instructor', 'admin']:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only instructors and admins can view their announcements"
+        )
+    
+    announcements = await db.announcements.find({
+        "authorId": current_user.id,
+        "isActive": True
+    }).sort("created_at", -1).to_list(100)
+    
+    return [AnnouncementResponse(**announcement) for announcement in announcements]
+
+@api_router.put("/announcements/{announcement_id}", response_model=AnnouncementResponse)
+async def update_announcement(
+    announcement_id: str,
+    announcement_data: AnnouncementUpdate,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Update an announcement (only by author or admin)."""
+    # Find the announcement
+    announcement = await db.announcements.find_one({"id": announcement_id})
+    if not announcement:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Announcement not found"
+        )
+    
+    # Check permissions (only author or admin can edit)
+    if current_user.role != 'admin' and announcement['authorId'] != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only edit announcements you created"
+        )
+    
+    # Validate course if being updated
+    if announcement_data.courseId:
+        course = await db.courses.find_one({"id": announcement_data.courseId})
+        if not course:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Specified course not found"
+            )
+    
+    # Validate classroom if being updated
+    if announcement_data.classroomId:
+        classroom = await db.classrooms.find_one({"id": announcement_data.classroomId})
+        if not classroom:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Specified classroom not found"
+            )
+    
+    # Update announcement
+    update_data = {k: v for k, v in announcement_data.dict().items() if v is not None}
+    update_data["updated_at"] = datetime.utcnow()
+    
+    # Update denormalized fields if necessary
+    if announcement_data.courseId:
+        course = await db.courses.find_one({"id": announcement_data.courseId})
+        update_data["courseName"] = course['title'] if course else None
+    
+    if announcement_data.classroomId:
+        classroom = await db.classrooms.find_one({"id": announcement_data.classroomId})
+        update_data["classroomName"] = classroom['name'] if classroom else None
+    
+    result = await db.announcements.update_one(
+        {"id": announcement_id},
+        {"$set": update_data}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Announcement not found or no changes made"
+        )
+    
+    # Get updated announcement
+    updated_announcement = await db.announcements.find_one({"id": announcement_id})
+    return AnnouncementResponse(**updated_announcement)
+
+@api_router.delete("/announcements/{announcement_id}")
+async def delete_announcement(
+    announcement_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Delete an announcement (only by author or admin)."""
+    # Find the announcement
+    announcement = await db.announcements.find_one({"id": announcement_id})
+    if not announcement:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Announcement not found"
+        )
+    
+    # Check permissions (only author or admin can delete)
+    if current_user.role != 'admin' and announcement['authorId'] != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only delete announcements you created"
+        )
+    
+    # Soft delete the announcement (set isActive to False)
+    result = await db.announcements.update_one(
+        {"id": announcement_id},
+        {"$set": {"isActive": False, "updated_at": datetime.utcnow()}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Announcement not found"
+        )
+    
+    return {"message": f"Announcement '{announcement['title']}' has been successfully deleted"}
+
+@api_router.put("/announcements/{announcement_id}/pin")
+async def toggle_pin_announcement(
+    announcement_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Pin/unpin an announcement (admins only)."""
+    if current_user.role != 'admin':
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admins can pin/unpin announcements"
+        )
+    
+    # Find the announcement
+    announcement = await db.announcements.find_one({"id": announcement_id})
+    if not announcement:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Announcement not found"
+        )
+    
+    # Toggle pin status
+    new_pin_status = not announcement.get('isPinned', False)
+    
+    result = await db.announcements.update_one(
+        {"id": announcement_id},
+        {"$set": {"isPinned": new_pin_status, "updated_at": datetime.utcnow()}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Announcement not found"
+        )
+    
+    pin_action = "pinned" if new_pin_status else "unpinned"
+    return {"message": f"Announcement has been successfully {pin_action}"}
+
+
 # Include the router in the main app
 app.include_router(api_router)
 
