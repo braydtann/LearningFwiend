@@ -75,23 +75,10 @@ const PasswordChangeModal = ({ isOpen, onClose, onSuccess, currentUser }) => {
         return;
       }
 
-      // Make API call to change password
-      const backendUrl = process.env.REACT_APP_BACKEND_URL;
-      const token = localStorage.getItem('auth_token');
-
-      const response = await fetch(`${backendUrl}/api/auth/change-password`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          current_password: formData.currentPassword,
-          new_password: formData.newPassword
-        })
-      });
-
-      if (response.ok) {
+      // Use AuthContext changePassword function instead of direct API call
+      const result = await changePassword(formData.currentPassword, formData.newPassword);
+      
+      if (result.success) {
         toast({
           title: "Password changed successfully",
           description: "Your password has been updated",
@@ -99,10 +86,9 @@ const PasswordChangeModal = ({ isOpen, onClose, onSuccess, currentUser }) => {
         onSuccess && onSuccess();
         onClose();
       } else {
-        const error = await response.json();
         toast({
           title: "Password change failed",
-          description: error.detail || "Failed to change password",
+          description: result.error || "Failed to change password",
           variant: "destructive",
         });
       }
