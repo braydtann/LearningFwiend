@@ -11,9 +11,9 @@ import sys
 from datetime import datetime
 import time
 
-# Configuration
-BACKEND_URL = "https://learningfwiend.preview.emergentagent.com/api"
-TEST_TIMEOUT = 10
+# Configuration - Updated for MongoDB Atlas Testing
+BACKEND_URL = "https://cef2df94-2dac-49c6-abfc-0dfdaae31c9e.preview.emergentagent.com/api"
+TEST_TIMEOUT = 15
 
 class BackendTester:
     def __init__(self):
