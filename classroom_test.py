@@ -226,11 +226,12 @@ class ClassroomTester:
                 courses = courses_response.json()
             
             # Create classroom data
+            course_ids = [course['id'] for course in courses[:2]] if len(courses) >= 2 else [courses[0]['id']] if courses else []
             classroom_data = {
                 "name": "Test Classroom - API Test",
                 "description": "Testing classroom creation via API after fixes",
                 "trainerId": instructors[0]['id'],
-                "courseIds": courses[:2] if len(courses) >= 2 else [courses[0]['id']] if courses else [],
+                "courseIds": course_ids,
                 "programIds": [],
                 "studentIds": [],
                 "batchId": "BATCH-2024-TEST-001",
