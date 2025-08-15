@@ -9066,7 +9066,7 @@ class BackendTester:
             print("=" * 50)
             self.test_user_creation_atlas()
             self.test_course_creation_atlas()
-            self.test_shared_database_verification()
+            self.test_new_admin_user_verification()
         
         # Core API tests
         print("\n🌐 CORE API TESTS")
