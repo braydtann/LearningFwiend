@@ -372,6 +372,162 @@ class BackendTester:
             )
         return False
     
+    def test_admin_login(self):
+        """Test admin user login"""
+        try:
+            login_data = {
+                "username_or_email": "admin",
+                "password": "NewAdmin123!"
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/auth/login",
+                json=login_data,
+                timeout=TEST_TIMEOUT,
+                headers={'Content-Type': 'application/json'}
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                token = data.get('access_token')
+                user_info = data.get('user', {})
+                
+                if token and user_info.get('role') == 'admin':
+                    self.auth_tokens['admin'] = token
+                    self.log_result(
+                        "Admin Login Test", 
+                        "PASS", 
+                        f"Successfully logged in as admin: {user_info.get('username')}",
+                        f"Token received, role verified: {user_info.get('role')}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Admin Login Test", 
+                        "FAIL", 
+                        "Login successful but missing token or wrong role",
+                        f"Token: {bool(token)}, Role: {user_info.get('role')}"
+                    )
+            else:
+                self.log_result(
+                    "Admin Login Test", 
+                    "FAIL", 
+                    f"Admin login failed with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Admin Login Test", 
+                "FAIL", 
+                "Failed to test admin login",
+                str(e)
+            )
+        return False
+    
+    def test_instructor_login(self):
+        """Test instructor user login"""
+        try:
+            login_data = {
+                "username_or_email": "instructor",
+                "password": "Instructor123!"
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/auth/login",
+                json=login_data,
+                timeout=TEST_TIMEOUT,
+                headers={'Content-Type': 'application/json'}
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                token = data.get('access_token')
+                user_info = data.get('user', {})
+                
+                if token and user_info.get('role') == 'instructor':
+                    self.auth_tokens['instructor'] = token
+                    self.log_result(
+                        "Instructor Login Test", 
+                        "PASS", 
+                        f"Successfully logged in as instructor: {user_info.get('username')}",
+                        f"Token received, role verified: {user_info.get('role')}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Instructor Login Test", 
+                        "FAIL", 
+                        "Login successful but missing token or wrong role",
+                        f"Token: {bool(token)}, Role: {user_info.get('role')}"
+                    )
+            else:
+                self.log_result(
+                    "Instructor Login Test", 
+                    "FAIL", 
+                    f"Instructor login failed with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Instructor Login Test", 
+                "FAIL", 
+                "Failed to test instructor login",
+                str(e)
+            )
+        return False
+    
+    def test_student_login(self):
+        """Test student user login"""
+        try:
+            login_data = {
+                "username_or_email": "student",
+                "password": "Student123!"
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/auth/login",
+                json=login_data,
+                timeout=TEST_TIMEOUT,
+                headers={'Content-Type': 'application/json'}
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                token = data.get('access_token')
+                user_info = data.get('user', {})
+                
+                if token and user_info.get('role') == 'learner':
+                    self.auth_tokens['learner'] = token
+                    self.log_result(
+                        "Student Login Test", 
+                        "PASS", 
+                        f"Successfully logged in as student: {user_info.get('username')}",
+                        f"Token received, role verified: {user_info.get('role')}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Student Login Test", 
+                        "FAIL", 
+                        "Login successful but missing token or wrong role",
+                        f"Token: {bool(token)}, Role: {user_info.get('role')}"
+                    )
+            else:
+                self.log_result(
+                    "Student Login Test", 
+                    "FAIL", 
+                    f"Student login failed with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Student Login Test", 
+                "FAIL", 
+                "Failed to test student login",
+                str(e)
+            )
+        return False
+    
     def test_backend_health(self):
         """Test if backend service is accessible"""
         try:
