@@ -13,7 +13,7 @@ import time
 import uuid
 
 # Configuration
-BACKEND_URL = "https://learning-cloud-api.preview.emergentagent.com/api"
+BACKEND_URL = "https://learningfwiend.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 class ComprehensiveBackendTester:
