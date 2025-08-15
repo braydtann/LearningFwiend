@@ -217,11 +217,11 @@ const Classrooms = () => {
         name: newClassroom.name,
         batchId: newClassroom.batchId,
         description: newClassroom.description,
-        instructorId: newClassroom.trainerId,
+        trainerId: newClassroom.trainerId,  // Fixed: use trainerId not instructorId
         courseIds: newClassroom.courseIds,
         programIds: newClassroom.programIds,
         studentIds: newClassroom.studentIds,
-        departmentId: newClassroom.departmentId,
+        department: newClassroom.departmentId,  // Fixed: use department not departmentId
         startDate: newClassroom.startDate,
         endDate: newClassroom.endDate
       });
