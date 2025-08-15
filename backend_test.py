@@ -15452,7 +15452,19 @@ class BackendTester:
 
 if __name__ == "__main__":
     tester = BackendTester()
-    summary = tester.run_all_tests()
     
-    # Exit with appropriate code
-    sys.exit(0 if summary['failed'] == 0 else 1)
+    # Run NEW ADMIN CREDENTIALS TESTING based on review request
+    print("🔐 EXECUTING NEW ADMIN CREDENTIALS TESTING SUITE")
+    print("Based on review request: Test new system administrator login after updating admin credentials")
+    
+    admin_summary = tester.run_new_admin_credentials_tests()
+    
+    # Exit with appropriate code based on admin credentials testing
+    if admin_summary['assessment'] in ['EXCELLENT', 'GOOD']:
+        print(f"\n✅ NEW ADMIN CREDENTIALS TESTING COMPLETED SUCCESSFULLY")
+        print(f"Assessment: {admin_summary['assessment']}")
+        sys.exit(0)
+    else:
+        print(f"\n❌ NEW ADMIN CREDENTIALS TESTING FAILED")
+        print(f"Assessment: {admin_summary['assessment']}")
+        sys.exit(1)
