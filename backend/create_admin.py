@@ -25,25 +25,25 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
 async def create_admin_user():
-    """Create a default admin user."""
+    """Create Brayden T as the system administrator."""
     
     # Check if admin already exists
-    existing_admin = await db.users.find_one({"username": "admin"})
+    existing_admin = await db.users.find_one({"email": "brayden.t@covesmart.com"})
     if existing_admin:
-        print("❌ Admin user already exists!")
+        print("❌ Admin user (Brayden T) already exists!")
         return
     
     # Admin user details
     admin_data = {
         "id": str(uuid.uuid4()),
-        "email": "admin@learningfwiend.com",
-        "username": "admin",
-        "full_name": "System Administrator",
+        "email": "brayden.t@covesmart.com",
+        "username": "brayden.t@covesmart.com",
+        "full_name": "Brayden T",
         "role": "admin",
-        "department": None,
-        "hashed_password": pwd_context.hash("Admin123!"),  # Temporary password: Admin123!
-        "is_temporary_password": True,
-        "first_login_required": True,
+        "department": "Administration",
+        "hashed_password": pwd_context.hash("Hawaii2020!"),
+        "is_temporary_password": False,  # Not temporary - user specified
+        "first_login_required": False,   # Don't force password change
         "is_active": True,
         "created_at": datetime.utcnow(),
         "last_login": None,
@@ -53,12 +53,13 @@ async def create_admin_user():
     # Insert admin user
     await db.users.insert_one(admin_data)
     
-    print("✅ Default admin user created successfully!")
+    print("✅ System administrator (Brayden T) created successfully!")
     print("\n📋 Admin Credentials:")
-    print("   Username: admin")
-    print("   Email: admin@learningfwiend.com")
-    print("   Temporary Password: Admin123!")
-    print("\n⚠️  IMPORTANT: The admin must change this password on first login!")
+    print("   Name: Brayden T")
+    print("   Username: brayden.t@covesmart.com")
+    print("   Email: brayden.t@covesmart.com")
+    print("   Password: Hawaii2020!")
+    print("\n✅ Admin can login immediately with these credentials!")
     
     # Also create some sample users
     sample_users = [
