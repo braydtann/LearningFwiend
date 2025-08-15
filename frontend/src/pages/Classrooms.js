@@ -24,7 +24,8 @@ import {
   Target,
   UserPlus,
   CheckCircle,
-  XCircle
+  XCircle,
+  AlertTriangle
 } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 
