@@ -55,17 +55,6 @@ const Login = () => {
     setLoading(false);
   };
 
-  const quickLogin = (role) => {
-    const credentials = {
-      admin: { username: 'admin', password: 'NewAdmin123!' },
-      instructor: { username: 'instructor', password: 'Instructor123!' },
-      learner: { username: 'student', password: 'Student123!' }
-    };
-    
-    setUsernameOrEmail(credentials[role].username);
-    setPassword(credentials[role].password);
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
