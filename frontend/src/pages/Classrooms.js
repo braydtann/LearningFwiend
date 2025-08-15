@@ -659,7 +659,7 @@ const Classrooms = () => {
 
                       {/* Access Status Indicator */}
                       {(() => {
-                        const accessStatus = getClassroomAccessStatus(classroom);
+                        const accessStatus = getAccessStatus(classroom);
                         return (
                           <div className={`flex items-center text-sm p-2 rounded-lg ${
                             accessStatus.status === 'expired' 
