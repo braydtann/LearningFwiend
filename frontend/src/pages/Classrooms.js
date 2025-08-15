@@ -186,7 +186,7 @@ const Classrooms = () => {
   const instructors = allUsers.filter(u => u.role === 'instructor');
   const students = allUsers.filter(u => u.role === 'learner');
 
-  const handleCreateClassroom = () => {
+  const handleCreateClassroom = async () => {
     if (!newClassroom.name || !newClassroom.batchId || !newClassroom.trainerId || !newClassroom.departmentId) {
       toast({
         title: "Missing required fields",
@@ -205,17 +205,47 @@ const Classrooms = () => {
       return;
     }
 
-    // Get department name for display
-    const selectedDepartment = mockDepartments.find(d => d.id === newClassroom.departmentId);
-    const departmentName = selectedDepartment ? selectedDepartment.name : 'Unknown Department';
+    try {
+      // Create classroom using backend API
+      const result = await createClassroom({
+        name: newClassroom.name,
+        batchId: newClassroom.batchId,
+        description: newClassroom.description,
+        instructorId: newClassroom.trainerId,
+        courseIds: newClassroom.courseIds,
+        programIds: newClassroom.programIds,
+        studentIds: newClassroom.studentIds,
+        departmentId: newClassroom.departmentId,
+        startDate: newClassroom.startDate,
+        endDate: newClassroom.endDate
+      });
 
-    toast({
-      title: "Classroom created successfully!",
-      description: `${newClassroom.name} (${newClassroom.batchId}) has been created for ${departmentName} and is ready for students.`,
-    });
+      if (result.success) {
+        toast({
+          title: "Classroom created successfully!",
+          description: `${newClassroom.name} (${newClassroom.batchId}) has been created and is ready for students.`,
+        });
 
-    resetForm();
-    setIsCreateModalOpen(false);
+        // Reload classrooms to show the new one
+        await loadClassrooms();
+        
+        resetForm();
+        setIsCreateModalOpen(false);
+      } else {
+        toast({
+          title: "Failed to create classroom",
+          description: result.error || "An error occurred while creating the classroom.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error creating classroom:', error);
+      toast({
+        title: "Error creating classroom",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const getStatusColor = (status) => {
