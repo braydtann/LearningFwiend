@@ -141,45 +141,6 @@ const Login = () => {
 
             {/* LoginPal OAuth Button */}
             <LoginPalButton />
-
-            {/* Quick Login Demo Buttons */}
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <p className="text-sm text-gray-500 text-center mb-3">Quick Demo Login:</p>
-              <div className="space-y-2">
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  onClick={() => quickLogin('admin')}
-                  type="button"
-                >
-                  <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
-                  Login as Admin
-                </Button>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  onClick={() => quickLogin('instructor')}
-                  type="button"
-                >
-                  <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                  Login as Instructor
-                </Button>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  onClick={() => quickLogin('learner')}
-                  type="button"
-                >
-                  <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                  Login as Student
-                </Button>
-              </div>
-              <div className="mt-3 p-2 bg-blue-50 rounded-lg">
-                <p className="text-xs text-blue-700 text-center">
-                  <strong>Note:</strong> All demo accounts use temporary passwords and will require password change on first login.
-                </p>
-              </div>
-            </div>
           </CardContent>
         </Card>
       </div>
