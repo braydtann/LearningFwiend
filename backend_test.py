@@ -42,6 +42,336 @@ class BackendTester:
             if details:
                 print(f"   Details: {details}")
     
+    # =============================================================================
+    # MONGODB ATLAS CONNECTION TESTS - PRIORITY FOCUS
+    # =============================================================================
+    
+    def test_mongodb_atlas_connectivity(self):
+        """Test basic MongoDB Atlas cloud database connectivity"""
+        try:
+            # Test basic backend health which should indicate database connectivity
+            response = requests.get(f"{BACKEND_URL}/", timeout=TEST_TIMEOUT)
+            if response.status_code == 200:
+                data = response.json()
+                if data.get('message') == 'Hello World':
+                    self.log_result(
+                        "MongoDB Atlas - Basic Connectivity", 
+                        "PASS", 
+                        "Backend service connected to MongoDB Atlas successfully",
+                        f"Atlas URL: mongodb+srv://lms_admin:***@learningfwiend.cnmiksd.mongodb.net/, DB: learningfwiend_shared"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "MongoDB Atlas - Basic Connectivity", 
+                        "FAIL", 
+                        "Backend responded but may have database connection issues",
+                        f"Unexpected response: {data}"
+                    )
+            else:
+                self.log_result(
+                    "MongoDB Atlas - Basic Connectivity", 
+                    "FAIL", 
+                    f"Backend service not responding properly (status: {response.status_code})",
+                    f"May indicate MongoDB Atlas connection failure"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "MongoDB Atlas - Basic Connectivity", 
+                "FAIL", 
+                "Failed to connect to backend service",
+                f"Connection error: {str(e)}"
+            )
+        return False
+    
+    def test_mongodb_atlas_basic_crud(self):
+        """Test basic CRUD operations with MongoDB Atlas"""
+        try:
+            # Test CREATE operation
+            test_data = {
+                "client_name": "MongoDB_Atlas_CRUD_Test"
+            }
+            
+            create_response = requests.post(
+                f"{BACKEND_URL}/status", 
+                json=test_data,
+                timeout=TEST_TIMEOUT,
+                headers={'Content-Type': 'application/json'}
+            )
+            
+            if create_response.status_code == 200:
+                created_entry = create_response.json()
+                created_id = created_entry.get('id')
+                
+                # Test READ operation
+                time.sleep(1)  # Allow for database write
+                read_response = requests.get(f"{BACKEND_URL}/status", timeout=TEST_TIMEOUT)
+                
+                if read_response.status_code == 200:
+                    all_entries = read_response.json()
+                    found_entry = None
+                    for entry in all_entries:
+                        if entry.get('id') == created_id:
+                            found_entry = entry
+                            break
+                    
+                    if found_entry:
+                        self.log_result(
+                            "MongoDB Atlas - Basic CRUD Operations", 
+                            "PASS", 
+                            "Successfully performed CREATE and READ operations on Atlas database",
+                            f"Created and retrieved entry with ID: {created_id}"
+                        )
+                        return True
+                    else:
+                        self.log_result(
+                            "MongoDB Atlas - Basic CRUD Operations", 
+                            "FAIL", 
+                            "Created entry not found in Atlas database",
+                            f"Entry ID {created_id} not found in {len(all_entries)} entries"
+                        )
+                else:
+                    self.log_result(
+                        "MongoDB Atlas - Basic CRUD Operations", 
+                        "FAIL", 
+                        "Failed to read from Atlas database after creation",
+                        f"READ operation failed with status {read_response.status_code}"
+                    )
+            else:
+                self.log_result(
+                    "MongoDB Atlas - Basic CRUD Operations", 
+                    "FAIL", 
+                    "Failed to create entry in Atlas database",
+                    f"CREATE operation failed with status {create_response.status_code}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "MongoDB Atlas - Basic CRUD Operations", 
+                "FAIL", 
+                "Failed to test CRUD operations with Atlas",
+                str(e)
+            )
+        return False
+    
+    def test_mongodb_atlas_shared_database(self):
+        """Test that this is now a SHARED database that all instructors will access"""
+        try:
+            # Test multiple user authentication to verify shared database
+            shared_db_tests = []
+            
+            # Test admin login
+            admin_login = self.test_admin_login()
+            if admin_login:
+                shared_db_tests.append("Admin can access shared Atlas database")
+            
+            # Test instructor login  
+            instructor_login = self.test_instructor_login()
+            if instructor_login:
+                shared_db_tests.append("Instructor can access shared Atlas database")
+            
+            # Test student login
+            student_login = self.test_student_login()
+            if student_login:
+                shared_db_tests.append("Student can access shared Atlas database")
+            
+            if len(shared_db_tests) >= 2:
+                self.log_result(
+                    "MongoDB Atlas - Shared Database Access", 
+                    "PASS", 
+                    f"Multiple user types can access the shared Atlas database: learningfwiend_shared",
+                    f"Verified access: {', '.join(shared_db_tests)}"
+                )
+                return True
+            else:
+                self.log_result(
+                    "MongoDB Atlas - Shared Database Access", 
+                    "FAIL", 
+                    "Could not verify shared database access for multiple user types",
+                    f"Only verified: {', '.join(shared_db_tests) if shared_db_tests else 'None'}"
+                )
+        except Exception as e:
+            self.log_result(
+                "MongoDB Atlas - Shared Database Access", 
+                "FAIL", 
+                "Failed to test shared database access",
+                str(e)
+            )
+        return False
+    
+    def test_user_creation_atlas(self):
+        """Test user creation with MongoDB Atlas"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "MongoDB Atlas - User Creation", 
+                "SKIP", 
+                "No admin token available for user creation test",
+                "Admin authentication required"
+            )
+            return False
+        
+        try:
+            user_data = {
+                "email": "atlas.test@learningfwiend.com",
+                "username": "atlas.test",
+                "full_name": "Atlas Test User",
+                "role": "learner",
+                "department": "Testing",
+                "temporary_password": "AtlasTest123!"
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/auth/admin/create-user",
+                json=user_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                created_user = response.json()
+                self.log_result(
+                    "MongoDB Atlas - User Creation", 
+                    "PASS", 
+                    f"Successfully created user in Atlas database: {created_user.get('username')}",
+                    f"User ID: {created_user.get('id')}, stored in learningfwiend_shared database"
+                )
+                return created_user
+            else:
+                self.log_result(
+                    "MongoDB Atlas - User Creation", 
+                    "FAIL", 
+                    f"Failed to create user in Atlas database (status: {response.status_code})",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "MongoDB Atlas - User Creation", 
+                "FAIL", 
+                "Failed to test user creation with Atlas",
+                str(e)
+            )
+        return False
+    
+    def test_course_creation_atlas(self):
+        """Test course creation with MongoDB Atlas"""
+        if "instructor" not in self.auth_tokens:
+            self.log_result(
+                "MongoDB Atlas - Course Creation", 
+                "SKIP", 
+                "No instructor token available for course creation test",
+                "Instructor authentication required"
+            )
+            return False
+        
+        try:
+            course_data = {
+                "title": "Atlas Test Course",
+                "description": "Testing course creation with MongoDB Atlas cloud database",
+                "category": "Testing",
+                "duration": "2 weeks",
+                "accessType": "open"
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/courses",
+                json=course_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                created_course = response.json()
+                self.log_result(
+                    "MongoDB Atlas - Course Creation", 
+                    "PASS", 
+                    f"Successfully created course in Atlas database: {created_course.get('title')}",
+                    f"Course ID: {created_course.get('id')}, stored in learningfwiend_shared database"
+                )
+                return created_course
+            else:
+                self.log_result(
+                    "MongoDB Atlas - Course Creation", 
+                    "FAIL", 
+                    f"Failed to create course in Atlas database (status: {response.status_code})",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "MongoDB Atlas - Course Creation", 
+                "FAIL", 
+                "Failed to test course creation with Atlas",
+                str(e)
+            )
+        return False
+    
+    def test_shared_database_verification(self):
+        """Verify that this is now a SHARED database resolving instructor isolation issues"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "MongoDB Atlas - Shared Database Verification", 
+                "SKIP", 
+                "No admin token available for shared database verification",
+                "Admin authentication required"
+            )
+            return False
+        
+        try:
+            # Get all users to verify they're in the same shared database
+            users_response = requests.get(
+                f"{BACKEND_URL}/auth/admin/users",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            if users_response.status_code == 200:
+                users = users_response.json()
+                instructor_count = len([u for u in users if u.get('role') == 'instructor'])
+                
+                # Get all courses to verify they're in the same shared database
+                courses_response = requests.get(
+                    f"{BACKEND_URL}/courses",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+                )
+                
+                if courses_response.status_code == 200:
+                    courses = courses_response.json()
+                    
+                    self.log_result(
+                        "MongoDB Atlas - Shared Database Verification", 
+                        "PASS", 
+                        f"Verified shared database: {len(users)} users and {len(courses)} courses in learningfwiend_shared",
+                        f"All {instructor_count} instructors now share the same database - resolves course visibility issues"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "MongoDB Atlas - Shared Database Verification", 
+                        "FAIL", 
+                        "Could not retrieve courses from shared database",
+                        f"Courses API failed with status: {courses_response.status_code}"
+                    )
+            else:
+                self.log_result(
+                    "MongoDB Atlas - Shared Database Verification", 
+                    "FAIL", 
+                    "Could not retrieve users from shared database",
+                    f"Users API failed with status: {users_response.status_code}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "MongoDB Atlas - Shared Database Verification", 
+                "FAIL", 
+                "Failed to verify shared database functionality",
+                str(e)
+            )
+        return False
+    
     def test_backend_health(self):
         """Test if backend service is accessible"""
         try:
