@@ -7707,6 +7707,13 @@ class BackendTester:
         # Course API Test 8: Complete workflow
         self.test_complete_course_workflow()
         
+        print("\n" + "=" * 80)
+        print("🔧 CRITICAL: COURSE EDITING FUNCTIONALITY TESTS - REVIEW REQUEST")
+        print("=" * 80)
+        
+        # CRITICAL TEST: Course Editing Workflow - User Reported Issues
+        self.test_course_editing_workflow_comprehensive()
+        
         print("\n" + "=" * 60)
         print("🏷️  CATEGORY MANAGEMENT API TESTS - NEW IMPLEMENTATION")
         print("=" * 60)
