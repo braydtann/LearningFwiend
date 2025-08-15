@@ -2236,6 +2236,7 @@ export const AuthProvider = ({ children }) => {
     checkAuthStatus,
     // Course management
     createCourse,
+    updateCourse,
     getAllCourses,
     getMyCourses,
     getCourseById,
