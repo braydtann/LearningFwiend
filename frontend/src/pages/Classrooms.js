@@ -175,6 +175,23 @@ const Classrooms = () => {
   const instructors = allUsers.filter(u => u.role === 'instructor');
   const students = allUsers.filter(u => u.role === 'learner');
 
+  // Simple access status check
+  const getAccessStatus = (classroom) => {
+    if (!classroom.endDate) return { status: 'active', message: 'Active' };
+    
+    const endDate = new Date(classroom.endDate);
+    const now = new Date();
+    const daysUntilEnd = Math.ceil((endDate - now) / (1000 * 60 * 60 * 24));
+    
+    if (daysUntilEnd < 0) {
+      return { status: 'expired', message: 'Expired' };
+    } else if (daysUntilEnd <= 7) {
+      return { status: 'ending-soon', message: `Ending in ${daysUntilEnd} days` };
+    } else {
+      return { status: 'active', message: 'Active' };
+    }
+  };
+
   const handleCreateClassroom = async () => {
     if (!newClassroom.name || !newClassroom.batchId || !newClassroom.trainerId || !newClassroom.departmentId) {
       toast({
