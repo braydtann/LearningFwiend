@@ -3416,8 +3416,567 @@ class BackendTester:
         return passed_validations > len(validation_results) * 0.8  # 80% pass rate
     
     # =============================================================================
-    # COURSE MANAGEMENT API TESTS - CRITICAL FOR COURSEDETAIL FIX
+    # COURSE EDITING FUNCTIONALITY TESTS - CRITICAL REVIEW REQUEST
     # =============================================================================
+    
+    def test_course_editing_workflow_comprehensive(self):
+        """
+        CRITICAL TEST: Course Editing Functionality - Review Request Focus
+        
+        Tests the complete course editing workflow to verify:
+        1. PUT /api/courses/{course_id} endpoint exists and works correctly
+        2. Course update workflow - create a course, then update it via PUT endpoint
+        3. Verify that updating a course modifies the existing course rather than creating a new one
+        4. Test course creation still works correctly (POST endpoint)
+        
+        This addresses the user-reported issues:
+        - When editing a course, instead of updating the existing course, it creates a new/separate course
+        - Preview functionality creating new courses instead of showing preview modal
+        """
+        print("\n" + "="*80)
+        print("🔍 COURSE EDITING FUNCTIONALITY - CRITICAL REVIEW REQUEST TESTING")
+        print("="*80)
+        
+        if "instructor" not in self.auth_tokens:
+            # Try to login as instructor first
+            self.test_instructor_login()
+        
+        if "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Course Editing Workflow - Authentication", 
+                "FAIL", 
+                "No instructor token available for course editing tests",
+                "Instructor authentication required for course management"
+            )
+            return False
+        
+        # Step 1: Create a course to edit
+        original_course = self.test_course_creation_for_editing()
+        if not original_course:
+            self.log_result(
+                "Course Editing Workflow - Course Creation", 
+                "FAIL", 
+                "Could not create initial course for editing tests",
+                "Course creation is prerequisite for editing tests"
+            )
+            return False
+        
+        # Step 2: Test PUT endpoint exists and works
+        put_endpoint_works = self.test_course_put_endpoint(original_course['id'])
+        if not put_endpoint_works:
+            self.log_result(
+                "Course Editing Workflow - PUT Endpoint", 
+                "FAIL", 
+                "PUT /api/courses/{course_id} endpoint not working correctly",
+                "This is the core issue reported by user"
+            )
+            return False
+        
+        # Step 3: Test complete update workflow
+        update_workflow_works = self.test_course_update_workflow(original_course)
+        if not update_workflow_works:
+            self.log_result(
+                "Course Editing Workflow - Update Workflow", 
+                "FAIL", 
+                "Course update workflow not working correctly",
+                "Course editing creates new course instead of updating existing"
+            )
+            return False
+        
+        # Step 4: Verify no duplicate courses created
+        no_duplicates = self.test_course_no_duplicates_on_edit(original_course)
+        if not no_duplicates:
+            self.log_result(
+                "Course Editing Workflow - No Duplicates", 
+                "FAIL", 
+                "Course editing creates duplicate courses instead of updating",
+                "This is the exact issue reported by user"
+            )
+            return False
+        
+        # Step 5: Test course retrieval after edit
+        retrieval_works = self.test_course_retrieval_after_edit(original_course['id'])
+        if not retrieval_works:
+            self.log_result(
+                "Course Editing Workflow - Retrieval After Edit", 
+                "FAIL", 
+                "Cannot retrieve course after editing",
+                "Course may not be properly updated in database"
+            )
+            return False
+        
+        self.log_result(
+            "Course Editing Workflow - Comprehensive Test", 
+            "PASS", 
+            "All course editing functionality tests passed successfully",
+            "Course editing workflow is working correctly - user issues should be resolved"
+        )
+        return True
+    
+    def test_course_creation_for_editing(self):
+        """Create a course specifically for editing tests"""
+        token = self.auth_tokens.get("instructor")
+        
+        test_course_data = {
+            "title": "Course Editing Test - Original",
+            "description": "This course will be used to test editing functionality",
+            "category": "Testing",
+            "duration": "4 weeks",
+            "thumbnailUrl": "https://example.com/original-thumbnail.jpg",
+            "accessType": "open",
+            "modules": [
+                {
+                    "title": "Original Module",
+                    "lessons": [
+                        {
+                            "id": "lesson-original",
+                            "title": "Original Lesson",
+                            "type": "text",
+                            "content": "Original lesson content"
+                        }
+                    ]
+                }
+            ]
+        }
+        
+        try:
+            response = requests.post(
+                f"{BACKEND_URL}/courses",
+                json=test_course_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {token}'
+                }
+            )
+            
+            if response.status_code == 200:
+                course = response.json()
+                self.log_result(
+                    "Course Editing - Create Test Course", 
+                    "PASS", 
+                    f"Created test course for editing: '{course.get('title')}'",
+                    f"Course ID: {course.get('id')}"
+                )
+                return course
+            else:
+                self.log_result(
+                    "Course Editing - Create Test Course", 
+                    "FAIL", 
+                    f"Failed to create test course, status: {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Course Editing - Create Test Course", 
+                "FAIL", 
+                "Failed to create test course for editing",
+                str(e)
+            )
+        return None
+    
+    def test_course_put_endpoint(self, course_id):
+        """Test that PUT /api/courses/{course_id} endpoint exists and works"""
+        token = self.auth_tokens.get("instructor")
+        
+        updated_course_data = {
+            "title": "Course Editing Test - Updated via PUT",
+            "description": "This course has been updated using PUT endpoint",
+            "category": "Testing",
+            "duration": "6 weeks",  # Changed from 4 weeks
+            "thumbnailUrl": "https://example.com/updated-thumbnail.jpg",
+            "accessType": "open",
+            "modules": [
+                {
+                    "title": "Updated Module",
+                    "lessons": [
+                        {
+                            "id": "lesson-updated",
+                            "title": "Updated Lesson",
+                            "type": "text",
+                            "content": "Updated lesson content via PUT"
+                        }
+                    ]
+                }
+            ]
+        }
+        
+        try:
+            response = requests.put(
+                f"{BACKEND_URL}/courses/{course_id}",
+                json=updated_course_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {token}'
+                }
+            )
+            
+            if response.status_code == 200:
+                updated_course = response.json()
+                
+                # Verify the course was actually updated
+                if (updated_course.get('id') == course_id and
+                    updated_course.get('title') == updated_course_data['title'] and
+                    updated_course.get('description') == updated_course_data['description'] and
+                    updated_course.get('duration') == updated_course_data['duration']):
+                    
+                    self.log_result(
+                        "Course Editing - PUT Endpoint Test", 
+                        "PASS", 
+                        f"PUT endpoint successfully updated course {course_id}",
+                        f"Updated title: '{updated_course.get('title')}', Duration: {updated_course.get('duration')}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Course Editing - PUT Endpoint Test", 
+                        "FAIL", 
+                        "PUT endpoint returned success but data wasn't updated correctly",
+                        f"Expected title: '{updated_course_data['title']}', Got: '{updated_course.get('title')}'"
+                    )
+            elif response.status_code == 404:
+                self.log_result(
+                    "Course Editing - PUT Endpoint Test", 
+                    "FAIL", 
+                    f"Course not found for update: {course_id}",
+                    "Course may not exist or ID is incorrect"
+                )
+            elif response.status_code == 403:
+                self.log_result(
+                    "Course Editing - PUT Endpoint Test", 
+                    "FAIL", 
+                    "Access denied - instructor cannot update course",
+                    "Permission issue with course editing"
+                )
+            else:
+                self.log_result(
+                    "Course Editing - PUT Endpoint Test", 
+                    "FAIL", 
+                    f"PUT endpoint failed with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Course Editing - PUT Endpoint Test", 
+                "FAIL", 
+                "Failed to test PUT endpoint",
+                str(e)
+            )
+        return False
+    
+    def test_course_update_workflow(self, original_course):
+        """Test the complete course update workflow"""
+        course_id = original_course['id']
+        original_title = original_course['title']
+        
+        # Get course count before update
+        courses_before = self.get_all_courses_count()
+        
+        # Update the course
+        token = self.auth_tokens.get("instructor")
+        
+        workflow_update_data = {
+            "title": f"{original_title} - Workflow Updated",
+            "description": "Updated through complete workflow test",
+            "category": "Testing",
+            "duration": "8 weeks",
+            "thumbnailUrl": "https://example.com/workflow-updated.jpg",
+            "accessType": "open",
+            "modules": original_course.get('modules', [])
+        }
+        
+        try:
+            # Perform the update
+            response = requests.put(
+                f"{BACKEND_URL}/courses/{course_id}",
+                json=workflow_update_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {token}'
+                }
+            )
+            
+            if response.status_code == 200:
+                updated_course = response.json()
+                
+                # Get course count after update
+                courses_after = self.get_all_courses_count()
+                
+                # Verify workflow
+                if (courses_before == courses_after and  # No new courses created
+                    updated_course.get('id') == course_id and  # Same course ID
+                    updated_course.get('title') == workflow_update_data['title']):  # Title updated
+                    
+                    self.log_result(
+                        "Course Editing - Update Workflow Test", 
+                        "PASS", 
+                        "Course update workflow working correctly",
+                        f"Course updated in-place, no duplicates created. Courses before: {courses_before}, after: {courses_after}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Course Editing - Update Workflow Test", 
+                        "FAIL", 
+                        "Course update workflow created issues",
+                        f"Courses before: {courses_before}, after: {courses_after}, ID match: {updated_course.get('id') == course_id}"
+                    )
+            else:
+                self.log_result(
+                    "Course Editing - Update Workflow Test", 
+                    "FAIL", 
+                    f"Update workflow failed with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Course Editing - Update Workflow Test", 
+                "FAIL", 
+                "Failed to test update workflow",
+                str(e)
+            )
+        return False
+    
+    def test_course_no_duplicates_on_edit(self, original_course):
+        """Test that editing doesn't create duplicate courses"""
+        course_id = original_course['id']
+        original_title = original_course['title']
+        
+        # Get all courses before edit
+        all_courses_before = self.get_all_courses_list()
+        courses_with_similar_title_before = [
+            c for c in all_courses_before 
+            if original_title.lower() in c.get('title', '').lower()
+        ]
+        
+        # Perform multiple edits to test for duplicates
+        token = self.auth_tokens.get("instructor")
+        
+        for i in range(3):  # Test 3 consecutive edits
+            edit_data = {
+                "title": f"{original_title} - Edit {i+1}",
+                "description": f"Edit number {i+1} to test for duplicates",
+                "category": "Testing",
+                "duration": f"{4+i} weeks",
+                "thumbnailUrl": f"https://example.com/edit-{i+1}.jpg",
+                "accessType": "open",
+                "modules": original_course.get('modules', [])
+            }
+            
+            try:
+                response = requests.put(
+                    f"{BACKEND_URL}/courses/{course_id}",
+                    json=edit_data,
+                    timeout=TEST_TIMEOUT,
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Authorization': f'Bearer {token}'
+                    }
+                )
+                
+                if response.status_code != 200:
+                    self.log_result(
+                        "Course Editing - No Duplicates Test", 
+                        "FAIL", 
+                        f"Edit {i+1} failed with status {response.status_code}",
+                        f"Response: {response.text}"
+                    )
+                    return False
+                    
+            except requests.exceptions.RequestException as e:
+                self.log_result(
+                    "Course Editing - No Duplicates Test", 
+                    "FAIL", 
+                    f"Edit {i+1} request failed",
+                    str(e)
+                )
+                return False
+        
+        # Get all courses after edits
+        all_courses_after = self.get_all_courses_list()
+        courses_with_similar_title_after = [
+            c for c in all_courses_after 
+            if original_title.lower() in c.get('title', '').lower() or 
+               'edit' in c.get('title', '').lower()
+        ]
+        
+        # Check for duplicates
+        if len(courses_with_similar_title_after) == len(courses_with_similar_title_before):
+            # Find the updated course
+            updated_course = None
+            for course in all_courses_after:
+                if course.get('id') == course_id:
+                    updated_course = course
+                    break
+            
+            if updated_course and 'Edit 3' in updated_course.get('title', ''):
+                self.log_result(
+                    "Course Editing - No Duplicates Test", 
+                    "PASS", 
+                    "No duplicate courses created during multiple edits",
+                    f"Course properly updated to: '{updated_course.get('title')}'"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Course Editing - No Duplicates Test", 
+                    "FAIL", 
+                    "Course not properly updated after edits",
+                    f"Expected 'Edit 3' in title, got: '{updated_course.get('title') if updated_course else 'Course not found'}'"
+                )
+        else:
+            self.log_result(
+                "Course Editing - No Duplicates Test", 
+                "FAIL", 
+                "Duplicate courses detected after editing",
+                f"Courses before: {len(courses_with_similar_title_before)}, after: {len(courses_with_similar_title_after)}"
+            )
+        return False
+    
+    def test_course_retrieval_after_edit(self, course_id):
+        """Test that course can be retrieved correctly after editing"""
+        token = self.auth_tokens.get("instructor")
+        
+        try:
+            response = requests.get(
+                f"{BACKEND_URL}/courses/{course_id}",
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Authorization': f'Bearer {token}'
+                }
+            )
+            
+            if response.status_code == 200:
+                course = response.json()
+                
+                # Verify it's the edited course
+                if (course.get('id') == course_id and
+                    'Edit 3' in course.get('title', '') and
+                    course.get('description') and
+                    course.get('updated_at')):
+                    
+                    self.log_result(
+                        "Course Editing - Retrieval After Edit", 
+                        "PASS", 
+                        f"Successfully retrieved edited course: '{course.get('title')}'",
+                        f"Course ID: {course_id}, Last updated: {course.get('updated_at')}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Course Editing - Retrieval After Edit", 
+                        "FAIL", 
+                        "Retrieved course doesn't match expected edited state",
+                        f"Title: '{course.get('title')}', ID match: {course.get('id') == course_id}"
+                    )
+            elif response.status_code == 404:
+                self.log_result(
+                    "Course Editing - Retrieval After Edit", 
+                    "FAIL", 
+                    f"Course not found after editing: {course_id}",
+                    "Course may have been deleted or corrupted during edit"
+                )
+            else:
+                self.log_result(
+                    "Course Editing - Retrieval After Edit", 
+                    "FAIL", 
+                    f"Failed to retrieve course after edit, status: {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Course Editing - Retrieval After Edit", 
+                "FAIL", 
+                "Failed to retrieve course after editing",
+                str(e)
+            )
+        return False
+    
+    def get_all_courses_count(self):
+        """Helper method to get total course count"""
+        token = self.auth_tokens.get("instructor") or self.auth_tokens.get("admin")
+        if not token:
+            return 0
+        
+        try:
+            response = requests.get(
+                f"{BACKEND_URL}/courses",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {token}'}
+            )
+            
+            if response.status_code == 200:
+                courses = response.json()
+                return len(courses) if isinstance(courses, list) else 0
+        except:
+            pass
+        return 0
+    
+    def get_all_courses_list(self):
+        """Helper method to get all courses list"""
+        token = self.auth_tokens.get("instructor") or self.auth_tokens.get("admin")
+        if not token:
+            return []
+        
+        try:
+            response = requests.get(
+                f"{BACKEND_URL}/courses",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {token}'}
+            )
+            
+            if response.status_code == 200:
+                courses = response.json()
+                return courses if isinstance(courses, list) else []
+        except:
+            pass
+        return []
+    
+    def test_instructor_login(self):
+        """Helper method to ensure instructor login for course editing tests"""
+        if "instructor" in self.auth_tokens:
+            return True
+        
+        try:
+            login_data = {
+                "username_or_email": "instructor",
+                "password": "Instructor123!"
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/auth/login",
+                json=login_data,
+                timeout=TEST_TIMEOUT,
+                headers={'Content-Type': 'application/json'}
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                self.auth_tokens["instructor"] = data.get('access_token')
+                self.log_result(
+                    "Course Editing - Instructor Login", 
+                    "PASS", 
+                    "Successfully logged in as instructor for course editing tests",
+                    f"Token received for user: {data.get('user', {}).get('username')}"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Course Editing - Instructor Login", 
+                    "FAIL", 
+                    f"Failed to login as instructor, status: {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Course Editing - Instructor Login", 
+                "FAIL", 
+                "Failed to login as instructor",
+                str(e)
+            )
+        return False
     
     def test_course_creation_api(self):
         """Test POST /api/courses - Create new course with proper authentication"""
