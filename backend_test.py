@@ -8371,6 +8371,146 @@ class BackendTester:
         
         return analytics_success
     
+    def run_new_admin_credentials_tests(self):
+        """Run comprehensive tests for the new admin credentials system"""
+        print("\n" + "="*80)
+        print("🔐 NEW ADMIN CREDENTIALS TESTING - COMPREHENSIVE SUITE")
+        print("="*80)
+        print("Testing updated system administrator login after credential changes:")
+        print("• Removed existing admin user from database")
+        print("• Created new admin user: Brayden T")
+        print("• Email/Username: brayden.t@covesmart.com")
+        print("• Password: Hawaii2020!")
+        print("• Role: admin")
+        print("• No temporary password (permanent login)")
+        print("• No forced password change required")
+        print("="*80)
+        
+        # Test sequence for new admin credentials
+        test_sequence = [
+            ("Backend Health Check", self.test_backend_health),
+            ("NEW Admin Login Test", self.test_admin_login),
+            ("OLD Admin Credentials Should Fail", self.test_old_admin_login_should_fail),
+            ("NEW Admin User Verification", self.test_new_admin_user_verification),
+            ("Admin-Only Endpoints Access", self.test_admin_only_endpoints_access),
+            ("Admin User Management Capabilities", self.test_admin_user_management_capabilities),
+            ("MongoDB Atlas Connection Verification", self.test_mongodb_atlas_connectivity),
+            ("MongoDB Atlas Shared Database Access", self.test_mongodb_atlas_shared_database)
+        ]
+        
+        print(f"\n🧪 Running {len(test_sequence)} comprehensive tests for new admin credentials...\n")
+        
+        for test_name, test_method in test_sequence:
+            print(f"Running: {test_name}...")
+            try:
+                test_method()
+            except Exception as e:
+                self.log_result(
+                    test_name,
+                    "FAIL",
+                    f"Test execution failed with exception: {str(e)}",
+                    f"Exception type: {type(e).__name__}"
+                )
+            print()  # Add spacing between tests
+        
+        return self.generate_new_admin_test_summary()
+    
+    def generate_new_admin_test_summary(self):
+        """Generate summary specifically for new admin credentials testing"""
+        print("\n" + "="*80)
+        print("📊 NEW ADMIN CREDENTIALS TEST RESULTS SUMMARY")
+        print("="*80)
+        
+        # Filter results for new admin specific tests
+        admin_test_keywords = [
+            "NEW Admin", "OLD Admin", "Admin-Only", "Admin User Management", 
+            "Admin User Verification", "Backend Health", "MongoDB Atlas"
+        ]
+        
+        admin_results = [r for r in self.results if any(keyword in r['test'] for keyword in admin_test_keywords)]
+        
+        admin_passed = len([r for r in admin_results if r['status'] == 'PASS'])
+        admin_failed = len([r for r in admin_results if r['status'] == 'FAIL'])
+        admin_skipped = len([r for r in admin_results if r['status'] == 'SKIP'])
+        
+        print(f"📈 ADMIN CREDENTIALS TEST RESULTS:")
+        print(f"   ✅ Passed: {admin_passed}")
+        print(f"   ❌ Failed: {admin_failed}")
+        print(f"   ⏭️  Skipped: {admin_skipped}")
+        print(f"   📊 Success Rate: {(admin_passed/(admin_passed+admin_failed)*100):.1f}%" if (admin_passed+admin_failed) > 0 else "   📊 Success Rate: N/A")
+        
+        print(f"\n🔍 DETAILED RESULTS:")
+        for result in admin_results:
+            status_icon = "✅" if result['status'] == 'PASS' else "❌" if result['status'] == 'FAIL' else "⏭️"
+            print(f"   {status_icon} {result['test']}: {result['message']}")
+            if result['status'] == 'FAIL' and result.get('details'):
+                print(f"      Details: {result['details']}")
+        
+        # Critical findings summary
+        print(f"\n🎯 CRITICAL FINDINGS:")
+        
+        new_admin_login = any(r['test'] == 'NEW Admin Login Test' and r['status'] == 'PASS' for r in admin_results)
+        old_admin_blocked = any(r['test'] == 'OLD Admin Credentials Should Fail' and r['status'] == 'PASS' for r in admin_results)
+        admin_verification = any(r['test'] == 'NEW Admin User Verification' and r['status'] == 'PASS' for r in admin_results)
+        admin_access = any(r['test'] == 'Admin-Only Endpoints Access' and r['status'] == 'PASS' for r in admin_results)
+        
+        if new_admin_login:
+            print("   ✅ NEW admin credentials (brayden.t@covesmart.com / Hawaii2020!) working correctly")
+        else:
+            print("   ❌ NEW admin credentials login FAILED - Critical issue")
+            
+        if old_admin_blocked:
+            print("   ✅ OLD admin credentials properly blocked - Security maintained")
+        else:
+            print("   ❌ OLD admin credentials still working - SECURITY RISK")
+            
+        if admin_verification:
+            print("   ✅ NEW admin user properly stored in MongoDB Atlas")
+        else:
+            print("   ❌ NEW admin user verification FAILED")
+            
+        if admin_access:
+            print("   ✅ NEW admin has full admin permissions and access")
+        else:
+            print("   ❌ NEW admin permissions FAILED - Access issues detected")
+        
+        # Overall assessment
+        critical_tests_passed = sum([new_admin_login, old_admin_blocked, admin_verification, admin_access])
+        
+        print(f"\n🏆 OVERALL ASSESSMENT:")
+        if critical_tests_passed == 4:
+            print("   🎉 EXCELLENT: All critical admin credential tests passed!")
+            print("   ✅ New admin system is fully functional and secure")
+            assessment = "EXCELLENT"
+        elif critical_tests_passed >= 3:
+            print("   ⚠️  GOOD: Most critical tests passed, minor issues detected")
+            print("   🔧 Some fine-tuning may be needed")
+            assessment = "GOOD"
+        elif critical_tests_passed >= 2:
+            print("   ⚠️  MODERATE: Some critical issues detected")
+            print("   🚨 Requires attention before production use")
+            assessment = "MODERATE"
+        else:
+            print("   🚨 CRITICAL: Major issues with new admin credentials")
+            print("   ❌ System not ready for production use")
+            assessment = "CRITICAL"
+        
+        print("="*80)
+        
+        return {
+            'total_tests': len(admin_results),
+            'passed': admin_passed,
+            'failed': admin_failed,
+            'skipped': admin_skipped,
+            'success_rate': (admin_passed/(admin_passed+admin_failed)*100) if (admin_passed+admin_failed) > 0 else 0,
+            'assessment': assessment,
+            'critical_tests_passed': critical_tests_passed,
+            'new_admin_login': new_admin_login,
+            'old_admin_blocked': old_admin_blocked,
+            'admin_verification': admin_verification,
+            'admin_access': admin_access
+        }
+    
     def run_all_tests(self):
         """Run all backend tests with focus on MongoDB Atlas connection"""
         print("🚀 Starting Backend Testing Suite for LearningFwiend LMS")
