@@ -1003,9 +1003,22 @@ export const AuthProvider = ({ children }) => {
         return { success: true, classroom: newClassroom };
       } else {
         const errorData = await response.json();
+        
+        // Handle different error formats
+        let errorMessage = 'Failed to create classroom';
+        
+        if (typeof errorData.detail === 'string') {
+          errorMessage = errorData.detail;
+        } else if (Array.isArray(errorData.detail)) {
+          // Handle Pydantic validation errors (array of error objects)
+          errorMessage = errorData.detail.map(err => err.msg || 'Validation error').join(', ');
+        } else if (errorData.message) {
+          errorMessage = errorData.message;
+        }
+        
         return { 
           success: false, 
-          error: errorData.detail || 'Failed to create classroom' 
+          error: errorMessage
         };
       }
     } catch (error) {
