@@ -36,9 +36,11 @@ const Classrooms = () => {
   const [realUsers, setRealUsers] = useState([]);
   const [realCourses, setRealCourses] = useState([]);
   const [realPrograms, setRealPrograms] = useState([]);
+  const [classrooms, setClassrooms] = useState([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [loadingCourses, setLoadingCourses] = useState(false);
   const [loadingPrograms, setLoadingPrograms] = useState(false);
+  const [loadingClassrooms, setLoadingClassrooms] = useState(true);
   const [newClassroom, setNewClassroom] = useState({
     name: '',
     batchId: '',
