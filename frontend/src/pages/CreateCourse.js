@@ -17,7 +17,7 @@ import CoursePreview from '../components/CoursePreview';
 const CreateCourse = () => {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { user, createCourse, getCourseById, getAllCategories } = useAuth();
+  const { user, createCourse, updateCourse, getCourseById, getAllCategories } = useAuth();
   const { toast } = useToast();
   
   const isEditing = Boolean(id);
