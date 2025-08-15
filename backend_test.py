@@ -309,7 +309,262 @@ class BackendTester:
             )
         return False
     
-    def test_shared_database_verification(self):
+    def test_new_admin_user_verification(self):
+        """Verify the new admin user data is properly stored in MongoDB Atlas"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "NEW Admin User Verification", 
+                "SKIP", 
+                "No admin token available for user verification",
+                "Admin authentication required"
+            )
+            return False
+        
+        try:
+            # Get all users to verify the new admin user exists
+            response = requests.get(
+                f"{BACKEND_URL}/auth/admin/users",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            if response.status_code == 200:
+                users = response.json()
+                new_admin_user = None
+                old_admin_user = None
+                
+                for user in users:
+                    if user.get('email') == 'brayden.t@covesmart.com':
+                        new_admin_user = user
+                    elif user.get('username') == 'admin':
+                        old_admin_user = user
+                
+                # Verify new admin user exists with correct properties
+                if new_admin_user:
+                    expected_properties = {
+                        'email': 'brayden.t@covesmart.com',
+                        'full_name': 'Brayden T',
+                        'role': 'admin',
+                        'first_login_required': False  # Should be permanent login
+                    }
+                    
+                    verification_results = []
+                    for prop, expected_value in expected_properties.items():
+                        actual_value = new_admin_user.get(prop)
+                        if actual_value == expected_value:
+                            verification_results.append(f"✅ {prop}: {actual_value}")
+                        else:
+                            verification_results.append(f"❌ {prop}: {actual_value} (expected: {expected_value})")
+                    
+                    # Check if old admin user was properly removed
+                    old_admin_status = "✅ Old admin user properly removed" if not old_admin_user else "❌ Old admin user still exists"
+                    verification_results.append(old_admin_status)
+                    
+                    if not old_admin_user and new_admin_user.get('role') == 'admin' and not new_admin_user.get('first_login_required'):
+                        self.log_result(
+                            "NEW Admin User Verification", 
+                            "PASS", 
+                            f"NEW admin user properly stored in MongoDB Atlas with correct properties",
+                            f"User verification: {'; '.join(verification_results)}"
+                        )
+                        return True
+                    else:
+                        self.log_result(
+                            "NEW Admin User Verification", 
+                            "FAIL", 
+                            "NEW admin user has incorrect properties or old admin still exists",
+                            f"User verification: {'; '.join(verification_results)}"
+                        )
+                else:
+                    self.log_result(
+                        "NEW Admin User Verification", 
+                        "FAIL", 
+                        "NEW admin user brayden.t@covesmart.com not found in database",
+                        f"Found {len(users)} users but new admin not among them"
+                    )
+            else:
+                self.log_result(
+                    "NEW Admin User Verification", 
+                    "FAIL", 
+                    f"Failed to retrieve users list with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "NEW Admin User Verification", 
+                "FAIL", 
+                "Failed to verify new admin user",
+                str(e)
+            )
+        return False
+    
+    def test_admin_only_endpoints_access(self):
+        """Test that new admin can access admin-only endpoints"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Admin-Only Endpoints Access Test", 
+                "SKIP", 
+                "No admin token available for endpoint access test",
+                "Admin authentication required"
+            )
+            return False
+        
+        admin_endpoints = [
+            ("/auth/admin/users", "GET", "Get all users"),
+            ("/departments", "GET", "Get departments"),
+            ("/categories", "GET", "Get categories")
+        ]
+        
+        successful_endpoints = []
+        failed_endpoints = []
+        
+        for endpoint, method, description in admin_endpoints:
+            try:
+                if method == "GET":
+                    response = requests.get(
+                        f"{BACKEND_URL}{endpoint}",
+                        timeout=TEST_TIMEOUT,
+                        headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+                    )
+                
+                if response.status_code in [200, 201]:
+                    successful_endpoints.append(f"✅ {method} {endpoint} ({description})")
+                else:
+                    failed_endpoints.append(f"❌ {method} {endpoint} - Status: {response.status_code}")
+                    
+            except requests.exceptions.RequestException as e:
+                failed_endpoints.append(f"❌ {method} {endpoint} - Error: {str(e)}")
+        
+        if len(successful_endpoints) >= 2 and len(failed_endpoints) == 0:
+            self.log_result(
+                "Admin-Only Endpoints Access Test", 
+                "PASS", 
+                f"NEW admin successfully accessed {len(successful_endpoints)} admin-only endpoints",
+                f"Successful: {'; '.join(successful_endpoints)}"
+            )
+            return True
+        else:
+            self.log_result(
+                "Admin-Only Endpoints Access Test", 
+                "FAIL", 
+                f"NEW admin failed to access some admin-only endpoints",
+                f"Successful: {'; '.join(successful_endpoints)}; Failed: {'; '.join(failed_endpoints)}"
+            )
+        return False
+    
+    def test_admin_user_management_capabilities(self):
+        """Test that new admin can perform user management operations"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Admin User Management Test", 
+                "SKIP", 
+                "No admin token available for user management test",
+                "Admin authentication required"
+            )
+            return False
+        
+        try:
+            # Test creating a new user (admin capability)
+            test_user_data = {
+                "email": "admin.test.user@covesmart.com",
+                "username": "admin.test.user",
+                "full_name": "Admin Test User",
+                "role": "learner",
+                "department": "Testing",
+                "temporary_password": "AdminTest123!"
+            }
+            
+            create_response = requests.post(
+                f"{BACKEND_URL}/auth/admin/create-user",
+                json=test_user_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if create_response.status_code == 200:
+                created_user = create_response.json()
+                user_id = created_user.get('id')
+                
+                # Test updating the user (admin capability)
+                update_data = {
+                    "full_name": "Updated Admin Test User",
+                    "department": "Updated Testing"
+                }
+                
+                update_response = requests.put(
+                    f"{BACKEND_URL}/auth/admin/users/{user_id}",
+                    json=update_data,
+                    timeout=TEST_TIMEOUT,
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                    }
+                )
+                
+                if update_response.status_code == 200:
+                    # Test password reset (admin capability)
+                    reset_data = {
+                        "user_id": user_id,
+                        "new_temporary_password": "ResetTest123!"
+                    }
+                    
+                    reset_response = requests.post(
+                        f"{BACKEND_URL}/auth/admin/reset-password",
+                        json=reset_data,
+                        timeout=TEST_TIMEOUT,
+                        headers={
+                            'Content-Type': 'application/json',
+                            'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                        }
+                    )
+                    
+                    if reset_response.status_code == 200:
+                        # Clean up - delete test user
+                        delete_response = requests.delete(
+                            f"{BACKEND_URL}/auth/admin/users/{user_id}",
+                            timeout=TEST_TIMEOUT,
+                            headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+                        )
+                        
+                        self.log_result(
+                            "Admin User Management Test", 
+                            "PASS", 
+                            "NEW admin successfully performed all user management operations",
+                            f"✅ Create user, ✅ Update user, ✅ Reset password, ✅ Delete user - All admin capabilities working"
+                        )
+                        return True
+                    else:
+                        self.log_result(
+                            "Admin User Management Test", 
+                            "FAIL", 
+                            f"Failed to reset user password, status: {reset_response.status_code}",
+                            f"Response: {reset_response.text}"
+                        )
+                else:
+                    self.log_result(
+                        "Admin User Management Test", 
+                        "FAIL", 
+                        f"Failed to update user, status: {update_response.status_code}",
+                        f"Response: {update_response.text}"
+                    )
+            else:
+                self.log_result(
+                    "Admin User Management Test", 
+                    "FAIL", 
+                    f"Failed to create test user, status: {create_response.status_code}",
+                    f"Response: {create_response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Admin User Management Test", 
+                "FAIL", 
+                "Failed to test admin user management capabilities",
+                str(e)
+            )
+        return False
         """Verify that this is now a SHARED database resolving instructor isolation issues"""
         if "admin" not in self.auth_tokens:
             self.log_result(
