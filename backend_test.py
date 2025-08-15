@@ -8450,9 +8450,9 @@ class BackendTester:
         print(f"\n🎯 CRITICAL FINDINGS:")
         
         new_admin_login = any(r['test'] == 'NEW Admin Login Test' and r['status'] == 'PASS' for r in admin_results)
-        old_admin_blocked = any(r['test'] == 'OLD Admin Credentials Should Fail' and r['status'] == 'PASS' for r in admin_results)
+        old_admin_blocked = any(r['test'] == 'OLD Admin Credentials Test' and r['status'] == 'PASS' for r in admin_results)
         admin_verification = any(r['test'] == 'NEW Admin User Verification' and r['status'] == 'PASS' for r in admin_results)
-        admin_access = any(r['test'] == 'Admin-Only Endpoints Access' and r['status'] == 'PASS' for r in admin_results)
+        admin_access = any(r['test'] == 'Admin-Only Endpoints Access Test' and r['status'] == 'PASS' for r in admin_results)
         
         if new_admin_login:
             print("   ✅ NEW admin credentials (brayden.t@covesmart.com / Hawaii2020!) working correctly")
