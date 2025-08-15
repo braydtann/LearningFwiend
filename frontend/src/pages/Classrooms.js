@@ -29,7 +29,7 @@ import {
 import { useToast } from '../hooks/use-toast';
 
 const Classrooms = () => {
-  const { user, isAdmin, isInstructor, isLearner, getAllUsers, getAllCourses, getAllPrograms } = useAuth();
+  const { user, isAdmin, isInstructor, isLearner, getAllUsers, getAllCourses, getAllPrograms, getAllClassrooms, createClassroom } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
