@@ -715,7 +715,14 @@ const CreateCourse = () => {
         canvaEmbedCode: courseData.canvaEmbedCode
       };
 
-      const result = await createCourse(coursePayload);
+      let result;
+      if (isEditing) {
+        // Update existing course
+        result = await updateCourse(id, coursePayload);
+      } else {
+        // Create new course
+        result = await createCourse(coursePayload);
+      }
 
       if (result.success) {
         toast({
