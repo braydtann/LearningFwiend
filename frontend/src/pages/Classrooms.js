@@ -695,7 +695,7 @@ const Classrooms = () => {
 
                     <div className="flex items-center space-x-2 mt-4">
                       {(() => {
-                        const accessStatus = getClassroomAccessStatus(classroom);
+                        const accessStatus = getAccessStatus(classroom);
                         const isExpired = accessStatus.status === 'expired';
                         
                         return (
