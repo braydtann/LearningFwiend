@@ -54,12 +54,35 @@ const Classrooms = () => {
     endDate: ''
   });
 
-  // Load real users, courses, and programs from backend on component mount
+  // Load real users, courses, programs, and classrooms from backend on component mount
   useEffect(() => {
     loadUsers();
     loadCourses();
     loadPrograms();
+    loadClassrooms();
   }, []);
+
+  const loadClassrooms = async () => {
+    setLoadingClassrooms(true);
+    try {
+      if (getAllClassrooms) {
+        const result = await getAllClassrooms();
+        if (result.success) {
+          setClassrooms(result.classrooms);
+        } else {
+          console.error('Failed to load classrooms:', result.error);
+          setClassrooms(mockClassrooms);
+        }
+      } else {
+        setClassrooms(mockClassrooms);
+      }
+    } catch (error) {
+      console.error('Error loading classrooms:', error);
+      setClassrooms(mockClassrooms);
+    } finally {
+      setLoadingClassrooms(false);
+    }
+  };
 
   const loadUsers = async () => {
     setLoadingUsers(true);
