@@ -71,14 +71,14 @@ const Classrooms = () => {
           setClassrooms(result.classrooms);
         } else {
           console.error('Failed to load classrooms:', result.error);
-          setClassrooms(mockClassrooms);
+          setClassrooms([]);
         }
       } else {
-        setClassrooms(mockClassrooms);
+        setClassrooms([]);
       }
     } catch (error) {
       console.error('Error loading classrooms:', error);
-      setClassrooms(mockClassrooms);
+      setClassrooms([]);
     } finally {
       setLoadingClassrooms(false);
     }
