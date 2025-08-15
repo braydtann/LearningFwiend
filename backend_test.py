@@ -8511,6 +8511,520 @@ class BackendTester:
             'admin_access': admin_access
         }
     
+    # =============================================================================
+    # CLASSROOM CREATION FIX TESTING - PRIORITY FOCUS
+    # =============================================================================
+    
+    def test_classroom_creation_with_valid_data(self):
+        """Test classroom creation with valid data - should work without errors"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Classroom Creation - Valid Data Test", 
+                "SKIP", 
+                "No admin token available for classroom creation test",
+                "Admin authentication required"
+            )
+            return False
+        
+        try:
+            # First, get a valid instructor ID
+            users_response = requests.get(
+                f"{BACKEND_URL}/auth/admin/users",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            if users_response.status_code != 200:
+                self.log_result(
+                    "Classroom Creation - Valid Data Test", 
+                    "FAIL", 
+                    "Could not fetch users to get instructor ID",
+                    f"Users API failed with status: {users_response.status_code}"
+                )
+                return False
+            
+            users = users_response.json()
+            instructor = None
+            for user in users:
+                if user.get('role') == 'instructor':
+                    instructor = user
+                    break
+            
+            if not instructor:
+                self.log_result(
+                    "Classroom Creation - Valid Data Test", 
+                    "SKIP", 
+                    "No instructor user found for classroom creation test",
+                    "Need at least one instructor user in database"
+                )
+                return False
+            
+            # Create classroom with valid data using correct field names
+            classroom_data = {
+                "name": "Test Classroom - Valid Data",
+                "description": "Testing classroom creation with valid data after field mapping fix",
+                "trainerId": instructor['id'],  # Fixed: use trainerId not instructorId
+                "courseIds": [],
+                "programIds": [],
+                "studentIds": [],
+                "batchId": "BATCH-2024-TEST-001",
+                "department": "Testing Department",  # Fixed: use department not departmentId
+                "startDate": "2024-01-15T00:00:00Z",
+                "endDate": "2024-03-15T00:00:00Z"
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/classrooms",
+                json=classroom_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                created_classroom = response.json()
+                self.log_result(
+                    "Classroom Creation - Valid Data Test", 
+                    "PASS", 
+                    f"Successfully created classroom with valid data: {created_classroom.get('name')}",
+                    f"Classroom ID: {created_classroom.get('id')}, Trainer: {created_classroom.get('trainerName')}, Batch: {created_classroom.get('batchId')}"
+                )
+                return created_classroom
+            else:
+                error_text = response.text
+                self.log_result(
+                    "Classroom Creation - Valid Data Test", 
+                    "FAIL", 
+                    f"Failed to create classroom with valid data (status: {response.status_code})",
+                    f"Response: {error_text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Classroom Creation - Valid Data Test", 
+                "FAIL", 
+                "Failed to test classroom creation with valid data",
+                str(e)
+            )
+        return False
+    
+    def test_classroom_creation_with_invalid_data(self):
+        """Test classroom creation with invalid data - should show proper error messages (not objects)"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Classroom Creation - Invalid Data Test", 
+                "SKIP", 
+                "No admin token available for classroom creation test",
+                "Admin authentication required"
+            )
+            return False
+        
+        try:
+            # Test with missing required fields
+            invalid_classroom_data = {
+                "name": "",  # Empty name should trigger validation error
+                "description": "Testing invalid data handling",
+                "trainerId": "invalid-trainer-id",  # Invalid trainer ID
+                "courseIds": [],
+                "programIds": [],
+                "studentIds": [],
+                "batchId": "",  # Empty batch ID
+                "department": "",  # Empty department
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/classrooms",
+                json=invalid_classroom_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if response.status_code in [400, 422]:  # Validation error expected
+                try:
+                    error_data = response.json()
+                    
+                    # Check if error is properly formatted (not raw Pydantic objects)
+                    if isinstance(error_data.get('detail'), str):
+                        # Good: Error is a string
+                        self.log_result(
+                            "Classroom Creation - Invalid Data Test", 
+                            "PASS", 
+                            "Invalid data properly rejected with user-friendly error message",
+                            f"Error message: {error_data['detail']}"
+                        )
+                        return True
+                    elif isinstance(error_data.get('detail'), list):
+                        # Check if it's properly formatted validation errors
+                        detail_list = error_data['detail']
+                        if all(isinstance(item, dict) and 'msg' in item for item in detail_list):
+                            # Good: Validation errors are properly structured
+                            error_messages = [item['msg'] for item in detail_list]
+                            self.log_result(
+                                "Classroom Creation - Invalid Data Test", 
+                                "PASS", 
+                                "Invalid data properly rejected with structured validation errors",
+                                f"Validation errors: {', '.join(error_messages)}"
+                            )
+                            return True
+                        else:
+                            # Bad: Raw objects being returned
+                            self.log_result(
+                                "Classroom Creation - Invalid Data Test", 
+                                "FAIL", 
+                                "CRITICAL: Raw validation objects returned instead of user-friendly messages",
+                                f"Raw error objects: {error_data['detail']}"
+                            )
+                            return False
+                    else:
+                        self.log_result(
+                            "Classroom Creation - Invalid Data Test", 
+                            "FAIL", 
+                            "Unexpected error format returned",
+                            f"Error data: {error_data}"
+                        )
+                        return False
+                        
+                except json.JSONDecodeError:
+                    self.log_result(
+                        "Classroom Creation - Invalid Data Test", 
+                        "FAIL", 
+                        "Error response is not valid JSON",
+                        f"Response text: {response.text}"
+                    )
+                    return False
+            else:
+                self.log_result(
+                    "Classroom Creation - Invalid Data Test", 
+                    "FAIL", 
+                    f"Expected validation error (400/422) but got status: {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Classroom Creation - Invalid Data Test", 
+                "FAIL", 
+                "Failed to test classroom creation with invalid data",
+                str(e)
+            )
+        return False
+    
+    def test_classroom_field_mapping_fix(self):
+        """Test that field mapping works correctly (trainerId, department)"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Classroom Creation - Field Mapping Test", 
+                "SKIP", 
+                "No admin token available for field mapping test",
+                "Admin authentication required"
+            )
+            return False
+        
+        try:
+            # Get a valid instructor
+            users_response = requests.get(
+                f"{BACKEND_URL}/auth/admin/users",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            if users_response.status_code != 200:
+                self.log_result(
+                    "Classroom Creation - Field Mapping Test", 
+                    "FAIL", 
+                    "Could not fetch users for field mapping test",
+                    f"Users API failed with status: {users_response.status_code}"
+                )
+                return False
+            
+            users = users_response.json()
+            instructor = None
+            for user in users:
+                if user.get('role') == 'instructor':
+                    instructor = user
+                    break
+            
+            if not instructor:
+                self.log_result(
+                    "Classroom Creation - Field Mapping Test", 
+                    "SKIP", 
+                    "No instructor user found for field mapping test",
+                    "Need at least one instructor user in database"
+                )
+                return False
+            
+            # Test with correct field names (after fix)
+            correct_field_data = {
+                "name": "Field Mapping Test Classroom",
+                "description": "Testing correct field mapping after fix",
+                "trainerId": instructor['id'],  # Correct: trainerId (not instructorId)
+                "courseIds": [],
+                "programIds": [],
+                "studentIds": [],
+                "batchId": "BATCH-2024-MAPPING-001",
+                "department": "Field Mapping Test Dept",  # Correct: department (not departmentId)
+                "startDate": "2024-01-15T00:00:00Z",
+                "endDate": "2024-03-15T00:00:00Z"
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/classrooms",
+                json=correct_field_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                created_classroom = response.json()
+                
+                # Verify the field mapping worked correctly
+                if (created_classroom.get('trainerId') == instructor['id'] and 
+                    created_classroom.get('trainerName') == instructor['full_name'] and
+                    created_classroom.get('department') == "Field Mapping Test Dept"):
+                    
+                    self.log_result(
+                        "Classroom Creation - Field Mapping Test", 
+                        "PASS", 
+                        "Field mapping fix working correctly - trainerId and department fields properly mapped",
+                        f"✅ trainerId: {created_classroom.get('trainerId')} → trainerName: {created_classroom.get('trainerName')}, ✅ department: {created_classroom.get('department')}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Classroom Creation - Field Mapping Test", 
+                        "FAIL", 
+                        "Field mapping not working correctly",
+                        f"Expected trainerId: {instructor['id']}, got: {created_classroom.get('trainerId')}; Expected department: 'Field Mapping Test Dept', got: {created_classroom.get('department')}"
+                    )
+            else:
+                self.log_result(
+                    "Classroom Creation - Field Mapping Test", 
+                    "FAIL", 
+                    f"Failed to create classroom for field mapping test (status: {response.status_code})",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Classroom Creation - Field Mapping Test", 
+                "FAIL", 
+                "Failed to test field mapping",
+                str(e)
+            )
+        return False
+    
+    def test_classroom_appears_in_list(self):
+        """Test that created classrooms appear in the list immediately"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Classroom List Integration Test", 
+                "SKIP", 
+                "No admin token available for classroom list test",
+                "Admin authentication required"
+            )
+            return False
+        
+        try:
+            # First, get current classroom count
+            initial_response = requests.get(
+                f"{BACKEND_URL}/classrooms",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            if initial_response.status_code != 200:
+                self.log_result(
+                    "Classroom List Integration Test", 
+                    "FAIL", 
+                    "Could not fetch initial classroom list",
+                    f"Classrooms API failed with status: {initial_response.status_code}"
+                )
+                return False
+            
+            initial_classrooms = initial_response.json()
+            initial_count = len(initial_classrooms)
+            
+            # Create a new classroom
+            created_classroom = self.test_classroom_creation_with_valid_data()
+            if not created_classroom:
+                self.log_result(
+                    "Classroom List Integration Test", 
+                    "FAIL", 
+                    "Could not create classroom for list integration test",
+                    "Classroom creation failed"
+                )
+                return False
+            
+            # Get updated classroom list
+            updated_response = requests.get(
+                f"{BACKEND_URL}/classrooms",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            if updated_response.status_code != 200:
+                self.log_result(
+                    "Classroom List Integration Test", 
+                    "FAIL", 
+                    "Could not fetch updated classroom list",
+                    f"Classrooms API failed with status: {updated_response.status_code}"
+                )
+                return False
+            
+            updated_classrooms = updated_response.json()
+            updated_count = len(updated_classrooms)
+            
+            # Check if the new classroom appears in the list
+            new_classroom_found = False
+            for classroom in updated_classrooms:
+                if classroom.get('id') == created_classroom.get('id'):
+                    new_classroom_found = True
+                    break
+            
+            if new_classroom_found and updated_count == initial_count + 1:
+                self.log_result(
+                    "Classroom List Integration Test", 
+                    "PASS", 
+                    "Created classroom appears in list immediately",
+                    f"Classroom count increased from {initial_count} to {updated_count}, new classroom ID: {created_classroom.get('id')} found in list"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Classroom List Integration Test", 
+                    "FAIL", 
+                    "Created classroom does not appear in list immediately",
+                    f"Initial count: {initial_count}, Updated count: {updated_count}, New classroom found: {new_classroom_found}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Classroom List Integration Test", 
+                "FAIL", 
+                "Failed to test classroom list integration",
+                str(e)
+            )
+        return False
+    
+    def test_error_messages_are_user_friendly(self):
+        """Verify error messages are user-friendly strings, not objects"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Error Message Format Test", 
+                "SKIP", 
+                "No admin token available for error message test",
+                "Admin authentication required"
+            )
+            return False
+        
+        try:
+            # Test various invalid scenarios to check error message formats
+            test_scenarios = [
+                {
+                    "name": "Empty required fields",
+                    "data": {
+                        "name": "",
+                        "trainerId": "",
+                        "department": "",
+                        "batchId": ""
+                    }
+                },
+                {
+                    "name": "Invalid trainer ID",
+                    "data": {
+                        "name": "Test Classroom",
+                        "trainerId": "non-existent-trainer-id",
+                        "department": "Test Dept",
+                        "batchId": "BATCH-001"
+                    }
+                },
+                {
+                    "name": "Invalid data types",
+                    "data": {
+                        "name": 123,  # Should be string
+                        "trainerId": ["invalid"],  # Should be string
+                        "courseIds": "not-an-array",  # Should be array
+                        "department": None,
+                        "batchId": "BATCH-001"
+                    }
+                }
+            ]
+            
+            all_errors_user_friendly = True
+            error_details = []
+            
+            for scenario in test_scenarios:
+                response = requests.post(
+                    f"{BACKEND_URL}/classrooms",
+                    json=scenario["data"],
+                    timeout=TEST_TIMEOUT,
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                    }
+                )
+                
+                if response.status_code in [400, 422]:
+                    try:
+                        error_data = response.json()
+                        detail = error_data.get('detail', 'No detail provided')
+                        
+                        # Check if error contains raw objects (the bug we're testing for)
+                        if isinstance(detail, list):
+                            # Check if it's properly formatted validation errors
+                            for item in detail:
+                                if isinstance(item, dict):
+                                    # Check for raw Pydantic error object keys
+                                    if any(key in item for key in ['type', 'loc', 'input', 'url']):
+                                        if 'msg' not in item:
+                                            all_errors_user_friendly = False
+                                            error_details.append(f"❌ {scenario['name']}: Raw Pydantic object found: {item}")
+                                        else:
+                                            error_details.append(f"✅ {scenario['name']}: Proper validation error: {item['msg']}")
+                                    else:
+                                        error_details.append(f"✅ {scenario['name']}: User-friendly error object")
+                                else:
+                                    error_details.append(f"✅ {scenario['name']}: Simple error format")
+                        elif isinstance(detail, str):
+                            error_details.append(f"✅ {scenario['name']}: String error message: {detail}")
+                        else:
+                            all_errors_user_friendly = False
+                            error_details.append(f"❌ {scenario['name']}: Unexpected error format: {type(detail)}")
+                            
+                    except json.JSONDecodeError:
+                        all_errors_user_friendly = False
+                        error_details.append(f"❌ {scenario['name']}: Non-JSON error response")
+                else:
+                    error_details.append(f"⚠️ {scenario['name']}: Unexpected status code {response.status_code}")
+            
+            if all_errors_user_friendly:
+                self.log_result(
+                    "Error Message Format Test", 
+                    "PASS", 
+                    "All error messages are user-friendly (no raw Pydantic objects)",
+                    f"Tested {len(test_scenarios)} scenarios: {'; '.join(error_details)}"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Error Message Format Test", 
+                    "FAIL", 
+                    "Some error messages contain raw objects instead of user-friendly text",
+                    f"Error analysis: {'; '.join(error_details)}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Error Message Format Test", 
+                "FAIL", 
+                "Failed to test error message formats",
+                str(e)
+            )
+        return False
+    
     def run_all_tests(self):
         """Run all backend tests with focus on MongoDB Atlas connection"""
         print("🚀 Starting Backend Testing Suite for LearningFwiend LMS")
