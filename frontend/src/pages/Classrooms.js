@@ -178,7 +178,6 @@ const Classrooms = () => {
     return [];
   };
 
-  const classrooms = getClassroomsForUser();
   // Use real data from backend with fallbacks to mock data
   const allUsers = realUsers.length > 0 ? realUsers : mockUsers;
   const allCourses = realCourses.length > 0 ? realCourses : mockCourses;
