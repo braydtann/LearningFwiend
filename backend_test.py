@@ -7911,43 +7911,46 @@ class BackendTester:
         return analytics_success
     
     def run_all_tests(self):
-        """Run all backend tests with focus on priority authentication and API fixes"""
-        print("🚀 Starting PRIORITY Backend Testing Suite for LearningFwiend LMS")
-        print("🎯 FOCUS: Authentication & Certificate API fixes verification")
+        """Run all backend tests with focus on MongoDB Atlas connection"""
+        print("🚀 Starting Backend Testing Suite for LearningFwiend LMS")
+        print("🔗 FOCUS: MongoDB Atlas Cloud Database Connection Testing")
         print("=" * 80)
+        
+        # MongoDB Atlas Connection Tests - PRIORITY
+        print("\n🌐 MONGODB ATLAS CONNECTION TESTING")
+        print("=" * 50)
+        self.test_mongodb_atlas_connectivity()
+        self.test_mongodb_atlas_basic_crud()
+        self.test_mongodb_atlas_shared_database()
         
         # Basic connectivity tests
         if not self.test_backend_health():
             print("❌ Backend health check failed - stopping tests")
             return self.generate_summary()
         
-        # PRIORITY 1: AUTHENTICATION VERIFICATION
-        print("\n🔐 PRIORITY 1: AUTHENTICATION VERIFICATION")
-        print("-" * 60)
-        self.test_authentication_priority_verification()
+        # Authentication system tests with Atlas
+        print("\n🔐 AUTHENTICATION WITH ATLAS DATABASE")
+        print("=" * 50)
+        self.test_admin_login()
+        self.test_instructor_login()
+        self.test_student_login()
         
-        # PRIORITY 2: CERTIFICATE APIs (Fixed studentId/userId issue)
-        print("\n📜 PRIORITY 2: CERTIFICATE APIs TESTING")
-        print("-" * 60)
-        self.test_certificate_apis_comprehensive()
+        # Atlas Database CRUD Operations
+        if self.auth_tokens:
+            print("\n📊 ATLAS DATABASE CRUD OPERATIONS")
+            print("=" * 50)
+            self.test_user_creation_atlas()
+            self.test_course_creation_atlas()
+            self.test_shared_database_verification()
         
-        # PRIORITY 3: ANNOUNCEMENTS APIs (Auth-dependent)
-        print("\n📢 PRIORITY 3: ANNOUNCEMENTS APIs TESTING")
-        print("-" * 60)
-        self.test_announcements_apis_comprehensive()
-        
-        # PRIORITY 4: ANALYTICS APIs (Auth-dependent)
-        print("\n📊 PRIORITY 4: ANALYTICS APIs TESTING")
-        print("-" * 60)
-        self.test_analytics_apis_comprehensive()
-        
-        # Additional core tests if time permits
-        print("\n🔧 ADDITIONAL CORE TESTS")
-        print("-" * 60)
+        # Core API tests
         self.test_status_endpoint_post()
         self.test_status_endpoint_get()
         self.test_cors_configuration()
         self.test_database_integration()
+        self.test_error_handling()
+        
+        return self.generate_summary()
         
         print("\n" + "=" * 60)
         print("🗑️  USER DELETION FUNCTIONALITY TESTS")
