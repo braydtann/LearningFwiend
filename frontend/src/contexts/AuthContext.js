@@ -329,6 +329,37 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateCourse = async (courseId, courseData) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/courses/${courseId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(courseData),
+      });
+
+      if (response.ok) {
+        const updatedCourse = await response.json();
+        return { success: true, course: updatedCourse };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to update course' 
+        };
+      }
+    } catch (error) {
+      console.error('Update course error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
   const getAllCourses = async () => {
     try {
       const token = localStorage.getItem('auth_token');
