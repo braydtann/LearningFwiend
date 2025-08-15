@@ -166,18 +166,6 @@ const Classrooms = () => {
     });
   };
 
-  // Get classrooms based on user role
-  const getClassroomsForUser = () => {
-    if (isAdmin) {
-      return mockClassrooms;
-    } else if (isInstructor) {
-      return getClassroomsForTrainer(user.id);
-    } else if (isLearner) {
-      return getStudentClassrooms(user.id);
-    }
-    return [];
-  };
-
   // Use real data from backend with fallbacks to mock data
   const allUsers = realUsers.length > 0 ? realUsers : mockUsers;
   const allCourses = realCourses.length > 0 ? realCourses : mockCourses;
