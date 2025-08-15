@@ -813,11 +813,16 @@ const CreateCourse = () => {
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
-                    {categories.map(category => (
+                    {categories.filter(category => category && category.trim() !== '').map(category => (
                       <SelectItem key={category} value={category}>
                         {category}
                       </SelectItem>
                     ))}
+                    {categories.length === 0 && (
+                      <SelectItem key="loading" value="Technology">
+                        Technology (Loading categories...)
+                      </SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
