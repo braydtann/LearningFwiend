@@ -377,7 +377,7 @@ class BackendTester:
         try:
             login_data = {
                 "username_or_email": "admin",
-                "password": "NewAdmin123!"
+                "password": "Admin123!"
             }
             
             response = requests.post(
