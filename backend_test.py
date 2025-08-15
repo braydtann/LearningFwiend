@@ -373,11 +373,12 @@ class BackendTester:
         return False
     
     def test_admin_login(self):
-        """Test admin user login"""
+        """Test admin user login with NEW admin credentials"""
         try:
+            # Test NEW admin credentials: brayden.t@covesmart.com / Hawaii2020!
             login_data = {
-                "username_or_email": "admin",
-                "password": "Admin123!"
+                "username_or_email": "brayden.t@covesmart.com",
+                "password": "Hawaii2020!"
             }
             
             response = requests.post(
@@ -391,35 +392,84 @@ class BackendTester:
                 data = response.json()
                 token = data.get('access_token')
                 user_info = data.get('user', {})
+                requires_password_change = data.get('requires_password_change', False)
                 
                 if token and user_info.get('role') == 'admin':
                     self.auth_tokens['admin'] = token
                     self.log_result(
-                        "Admin Login Test", 
+                        "NEW Admin Login Test", 
                         "PASS", 
-                        f"Successfully logged in as admin: {user_info.get('username')}",
-                        f"Token received, role verified: {user_info.get('role')}"
+                        f"Successfully logged in as NEW admin: {user_info.get('email')} ({user_info.get('full_name')})",
+                        f"Token received, role verified: {user_info.get('role')}, requires_password_change: {requires_password_change}, permanent login: {not requires_password_change}"
                     )
                     return True
                 else:
                     self.log_result(
-                        "Admin Login Test", 
+                        "NEW Admin Login Test", 
                         "FAIL", 
                         "Login successful but missing token or wrong role",
-                        f"Token: {bool(token)}, Role: {user_info.get('role')}"
+                        f"Token: {bool(token)}, Role: {user_info.get('role')}, Expected: admin"
                     )
             else:
                 self.log_result(
-                    "Admin Login Test", 
+                    "NEW Admin Login Test", 
                     "FAIL", 
-                    f"Admin login failed with status {response.status_code}",
+                    f"NEW admin login failed with status {response.status_code}",
                     f"Response: {response.text}"
                 )
         except requests.exceptions.RequestException as e:
             self.log_result(
-                "Admin Login Test", 
+                "NEW Admin Login Test", 
                 "FAIL", 
-                "Failed to test admin login",
+                "Failed to test NEW admin login",
+                str(e)
+            )
+        return False
+    
+    def test_old_admin_login_should_fail(self):
+        """Test that OLD admin credentials no longer work"""
+        try:
+            # Test OLD admin credentials should fail
+            login_data = {
+                "username_or_email": "admin",
+                "password": "Admin123!"
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/auth/login",
+                json=login_data,
+                timeout=TEST_TIMEOUT,
+                headers={'Content-Type': 'application/json'}
+            )
+            
+            if response.status_code == 401:
+                self.log_result(
+                    "OLD Admin Credentials Test", 
+                    "PASS", 
+                    "OLD admin credentials correctly rejected with 401 Unauthorized",
+                    f"Old admin user 'admin' no longer exists in database as expected"
+                )
+                return True
+            elif response.status_code == 200:
+                self.log_result(
+                    "OLD Admin Credentials Test", 
+                    "FAIL", 
+                    "SECURITY ISSUE: OLD admin credentials still work - old admin user was not properly removed",
+                    f"Old admin user should have been deleted but still exists and can login"
+                )
+                return False
+            else:
+                self.log_result(
+                    "OLD Admin Credentials Test", 
+                    "FAIL", 
+                    f"Unexpected status code {response.status_code} for old admin login",
+                    f"Expected 401 (user not found), got: {response.status_code}, Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "OLD Admin Credentials Test", 
+                "FAIL", 
+                "Failed to test old admin credentials",
                 str(e)
             )
         return False
