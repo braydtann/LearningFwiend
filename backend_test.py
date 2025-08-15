@@ -9026,29 +9026,39 @@ class BackendTester:
         return False
     
     def run_all_tests(self):
-        """Run all backend tests with focus on MongoDB Atlas connection"""
+        """Run all backend tests with focus on classroom creation fix"""
         print("🚀 Starting Backend Testing Suite for LearningFwiend LMS")
-        print("🔗 FOCUS: MongoDB Atlas Cloud Database Connection Testing")
+        print("🏫 PRIORITY FOCUS: Classroom Creation Fix Testing")
         print("=" * 80)
         
-        # MongoDB Atlas Connection Tests - PRIORITY
+        # Basic connectivity tests first
+        if not self.test_backend_health():
+            print("❌ Backend health check failed - stopping tests")
+            return self.generate_summary()
+        
+        # Authentication system tests (needed for classroom tests)
+        print("\n🔐 AUTHENTICATION TESTS")
+        print("=" * 50)
+        self.test_admin_login()
+        self.test_instructor_login()
+        self.test_student_login()
+        
+        # CLASSROOM CREATION FIX TESTING - PRIORITY FOCUS
+        if self.auth_tokens:
+            print("\n🏫 CLASSROOM CREATION FIX TESTING (PRIORITY)")
+            print("=" * 50)
+            self.test_classroom_creation_with_valid_data()
+            self.test_classroom_creation_with_invalid_data()
+            self.test_classroom_field_mapping_fix()
+            self.test_classroom_appears_in_list()
+            self.test_error_messages_are_user_friendly()
+        
+        # MongoDB Atlas Connection Tests
         print("\n🌐 MONGODB ATLAS CONNECTION TESTING")
         print("=" * 50)
         self.test_mongodb_atlas_connectivity()
         self.test_mongodb_atlas_basic_crud()
         self.test_mongodb_atlas_shared_database()
-        
-        # Basic connectivity tests
-        if not self.test_backend_health():
-            print("❌ Backend health check failed - stopping tests")
-            return self.generate_summary()
-        
-        # Authentication system tests with Atlas
-        print("\n🔐 AUTHENTICATION WITH ATLAS DATABASE")
-        print("=" * 50)
-        self.test_admin_login()
-        self.test_instructor_login()
-        self.test_student_login()
         
         # Atlas Database CRUD Operations
         if self.auth_tokens:
@@ -9059,6 +9069,8 @@ class BackendTester:
             self.test_shared_database_verification()
         
         # Core API tests
+        print("\n🌐 CORE API TESTS")
+        print("=" * 50)
         self.test_status_endpoint_post()
         self.test_status_endpoint_get()
         self.test_cors_configuration()
