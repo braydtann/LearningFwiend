@@ -64,15 +64,27 @@ const CreateCourse = () => {
     setLoadingCategories(true);
     try {
       const result = await getAllCategories();
-      if (result.success) {
-        setCategories(result.categories.map(cat => cat.name));
+      if (result.success && result.categories && result.categories.length > 0) {
+        // Filter out any categories with empty names and ensure valid values
+        const validCategories = result.categories
+          .filter(cat => cat.name && cat.name.trim() !== '')
+          .map(cat => cat.name.trim());
+        
+        if (validCategories.length > 0) {
+          setCategories(validCategories);
+        } else {
+          // Fallback to default categories if all are invalid
+          setCategories(['Technology', 'Business', 'Design', 'Marketing']);
+        }
       } else {
-        // Fallback to mock categories if backend fails
-        console.warn('Failed to load categories from backend, using mock data:', result.error);
+        // Fallback to default categories if backend fails
+        console.warn('Failed to load categories from backend, using default categories:', result.error);
+        setCategories(['Technology', 'Business', 'Design', 'Marketing']);
       }
     } catch (error) {
-      // Fallback to mock categories
+      // Fallback to default categories
       console.error('Error loading categories:', error);
+      setCategories(['Technology', 'Business', 'Design', 'Marketing']);
     } finally {
       setLoadingCategories(false);
     }
