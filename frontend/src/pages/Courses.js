@@ -174,6 +174,39 @@ const Courses = () => {
     handleViewCourse(courseId, 'preview');
   };
 
+  const handleDeleteCourse = async (courseId, courseName) => {
+    if (!window.confirm(`Are you sure you want to delete the course "${courseName}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const result = await deleteCourse(courseId);
+      
+      if (result.success) {
+        toast({
+          title: "Course deleted successfully",
+          description: `"${courseName}" has been permanently deleted.`,
+        });
+        
+        // Reload courses to update the list
+        loadCourses();
+      } else {
+        toast({
+          title: "Failed to delete course",
+          description: result.error || "An error occurred while deleting the course.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error deleting course:', error);
+      toast({
+        title: "Error deleting course",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-8">
       {/* Header */}
