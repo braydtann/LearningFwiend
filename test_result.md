@@ -1570,21 +1570,22 @@ metadata:
 
 test_plan:
   current_focus:
-    - "React Select Component Error Fix"
-    - "Course Preview Bug Fix Verification"
-    - "Announcements Form Testing"
-  stuck_tasks:
-    - "React Select Component Validation Error"
+    - "Course Visibility Bug Fix"
+    - "Save as Draft Functionality"
+    - "Course Status Database Integration"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
   backend_testing_complete: true
   frontend_testing_complete: false
   comprehensive_e2e_complete: false
   classroom_creation_testing_complete: true
-  new_feature_development_phase: "priority_3_apis"
+  course_visibility_testing_complete: true
+  draft_functionality_testing_complete: true
+  new_feature_development_phase: "course_management_enhancements"
   production_readiness_backend: true
   authentication_system_phase: "completed"
-  frontend_integration_testing_phase: "critical_select_error"
+  frontend_integration_testing_phase: "course_features_verified"
 
 agent_communication:
   - agent: "main"
