@@ -345,6 +345,21 @@ const Courses = () => {
                 const isOwner = user?.id === course.instructorId;
                 const canEdit = isOwner || isAdmin; // Admins can edit any course
                 
+                // Debug logging (remove in production)
+                if (course.title === "Atlas Test Course") {
+                  console.log("Debug course ownership:", {
+                    courseTitle: course.title,
+                    courseInstructorId: course.instructorId,
+                    courseInstructor: course.instructor,
+                    userId: user?.id,
+                    username: user?.username,
+                    userRole: user?.role,
+                    isOwner,
+                    isAdmin,
+                    canEdit
+                  });
+                }
+                
                 return (
                   <Card key={course.id} className="hover:shadow-lg transition-shadow">
                     <div className="aspect-video relative overflow-hidden rounded-t-lg">
