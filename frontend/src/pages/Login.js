@@ -122,14 +122,16 @@ const Login = () => {
             </form>
 
             {/* OAuth Separator */}
-            <div className="my-6 flex items-center">
+            {/* TEMPORARILY HIDDEN - LoginPal not going live yet */}
+            {/* <div className="my-6 flex items-center">
               <div className="flex-1 border-t border-gray-300"></div>
               <div className="mx-4 text-sm text-gray-500">or</div>
               <div className="flex-1 border-t border-gray-300"></div>
-            </div>
+            </div> */}
 
             {/* LoginPal OAuth Button */}
-            <LoginPalButton />
+            {/* TEMPORARILY HIDDEN - LoginPal not going live yet */}
+            {/* <LoginPalButton /> */}
           </CardContent>
         </Card>
       </div>
