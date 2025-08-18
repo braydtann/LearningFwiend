@@ -11758,6 +11758,676 @@ class BackendTester:
             )
         return False
     
+    # =============================================================================
+    # ENROLLMENT API TESTS - CRITICAL PRIORITY FOR REVIEW REQUEST
+    # =============================================================================
+    
+    def test_enrollment_api_post(self):
+        """Test POST /api/enrollments endpoint for student self-enrollment"""
+        if "learner" not in self.auth_tokens:
+            self.log_result(
+                "Enrollment API - POST /api/enrollments", 
+                "SKIP", 
+                "No student token available for enrollment test",
+                "Student authentication required"
+            )
+            return False
+        
+        try:
+            # First, get available courses
+            courses_response = requests.get(
+                f"{BACKEND_URL}/courses",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["learner"]}'}
+            )
+            
+            if courses_response.status_code != 200:
+                self.log_result(
+                    "Enrollment API - POST /api/enrollments", 
+                    "FAIL", 
+                    "Could not retrieve courses for enrollment test",
+                    f"Courses API failed with status: {courses_response.status_code}"
+                )
+                return False
+            
+            courses = courses_response.json()
+            if not courses:
+                self.log_result(
+                    "Enrollment API - POST /api/enrollments", 
+                    "SKIP", 
+                    "No courses available for enrollment test",
+                    "Need at least one course to test enrollment"
+                )
+                return False
+            
+            # Test enrollment in first available course
+            test_course = courses[0]
+            enrollment_data = {
+                "courseId": test_course["id"]
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/enrollments",
+                json=enrollment_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["learner"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                enrollment = response.json()
+                
+                # Verify response model structure
+                required_fields = ['id', 'userId', 'courseId', 'enrolledAt', 'progress', 'status']
+                missing_fields = [field for field in required_fields if field not in enrollment]
+                
+                if not missing_fields:
+                    # Verify field values
+                    if (enrollment['courseId'] == test_course['id'] and 
+                        enrollment['userId'] and 
+                        enrollment['progress'] == 0.0 and
+                        enrollment['status'] == 'active'):
+                        
+                        self.log_result(
+                            "Enrollment API - POST /api/enrollments", 
+                            "PASS", 
+                            f"Successfully enrolled student in course: {test_course['title']}",
+                            f"Enrollment ID: {enrollment['id']}, Response model validation passed"
+                        )
+                        return enrollment
+                    else:
+                        self.log_result(
+                            "Enrollment API - POST /api/enrollments", 
+                            "FAIL", 
+                            "Enrollment created but with incorrect field values",
+                            f"CourseId match: {enrollment['courseId'] == test_course['id']}, Progress: {enrollment['progress']}, Status: {enrollment['status']}"
+                        )
+                else:
+                    self.log_result(
+                        "Enrollment API - POST /api/enrollments", 
+                        "FAIL", 
+                        "Enrollment response missing required fields",
+                        f"Missing fields: {missing_fields}"
+                    )
+            elif response.status_code == 400:
+                # Check if it's a duplicate enrollment error
+                error_text = response.text.lower()
+                if "already enrolled" in error_text:
+                    self.log_result(
+                        "Enrollment API - POST /api/enrollments", 
+                        "PASS", 
+                        "Correctly prevents duplicate enrollment",
+                        f"Duplicate enrollment prevention working: {response.text}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Enrollment API - POST /api/enrollments", 
+                        "FAIL", 
+                        f"Enrollment failed with 400 error: {response.text}",
+                        "May indicate Pydantic validation errors or other issues"
+                    )
+            else:
+                self.log_result(
+                    "Enrollment API - POST /api/enrollments", 
+                    "FAIL", 
+                    f"Enrollment failed with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Enrollment API - POST /api/enrollments", 
+                "FAIL", 
+                "Failed to test enrollment API",
+                str(e)
+            )
+        return False
+    
+    def test_enrollment_api_get_my_enrollments(self):
+        """Test GET /api/enrollments endpoint for students to view their enrollments"""
+        if "learner" not in self.auth_tokens:
+            self.log_result(
+                "Enrollment API - GET /api/enrollments", 
+                "SKIP", 
+                "No student token available for get enrollments test",
+                "Student authentication required"
+            )
+            return False
+        
+        try:
+            response = requests.get(
+                f"{BACKEND_URL}/enrollments",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["learner"]}'}
+            )
+            
+            if response.status_code == 200:
+                enrollments = response.json()
+                
+                if isinstance(enrollments, list):
+                    if enrollments:
+                        # Verify response model structure for each enrollment
+                        sample_enrollment = enrollments[0]
+                        required_fields = ['id', 'userId', 'courseId', 'enrolledAt', 'progress', 'status']
+                        missing_fields = [field for field in required_fields if field not in sample_enrollment]
+                        
+                        if not missing_fields:
+                            self.log_result(
+                                "Enrollment API - GET /api/enrollments", 
+                                "PASS", 
+                                f"Successfully retrieved {len(enrollments)} student enrollments",
+                                f"Response model validation passed, sample fields: {list(sample_enrollment.keys())}"
+                            )
+                            return enrollments
+                        else:
+                            self.log_result(
+                                "Enrollment API - GET /api/enrollments", 
+                                "FAIL", 
+                                "Enrollment response missing required fields",
+                                f"Missing fields: {missing_fields}"
+                            )
+                    else:
+                        self.log_result(
+                            "Enrollment API - GET /api/enrollments", 
+                            "PASS", 
+                            "Successfully retrieved empty enrollments list (student not enrolled in any courses)",
+                            "Empty list response is valid"
+                        )
+                        return []
+                else:
+                    self.log_result(
+                        "Enrollment API - GET /api/enrollments", 
+                        "FAIL", 
+                        "Response is not a list",
+                        f"Response type: {type(enrollments)}, Content: {enrollments}"
+                    )
+            else:
+                self.log_result(
+                    "Enrollment API - GET /api/enrollments", 
+                    "FAIL", 
+                    f"Get enrollments failed with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Enrollment API - GET /api/enrollments", 
+                "FAIL", 
+                "Failed to test get enrollments API",
+                str(e)
+            )
+        return False
+    
+    def test_enrollment_response_model_validation(self):
+        """Test that enrollment response models work correctly without Pydantic validation errors"""
+        if "learner" not in self.auth_tokens:
+            self.log_result(
+                "Enrollment Response Model Validation", 
+                "SKIP", 
+                "No student token available for response model test",
+                "Student authentication required"
+            )
+            return False
+        
+        try:
+            # Get current enrollments to test response model
+            response = requests.get(
+                f"{BACKEND_URL}/enrollments",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["learner"]}'}
+            )
+            
+            if response.status_code == 200:
+                enrollments = response.json()
+                
+                # Test response model structure
+                model_validation_results = []
+                
+                for enrollment in enrollments:
+                    # Check for the specific fields that were causing issues
+                    has_userId = 'userId' in enrollment
+                    has_enrolledAt = 'enrolledAt' in enrollment
+                    
+                    # Check for old problematic fields
+                    has_studentId = 'studentId' in enrollment
+                    has_enrollmentDate = 'enrollmentDate' in enrollment
+                    
+                    model_validation_results.append({
+                        'enrollment_id': enrollment.get('id', 'unknown'),
+                        'has_userId': has_userId,
+                        'has_enrolledAt': has_enrolledAt,
+                        'has_old_studentId': has_studentId,
+                        'has_old_enrollmentDate': has_enrollmentDate,
+                        'userId_value': enrollment.get('userId'),
+                        'enrolledAt_value': enrollment.get('enrolledAt')
+                    })
+                
+                # Analyze results
+                all_have_correct_fields = all(r['has_userId'] and r['has_enrolledAt'] for r in model_validation_results)
+                
+                if all_have_correct_fields:
+                    self.log_result(
+                        "Enrollment Response Model Validation", 
+                        "PASS", 
+                        f"All {len(enrollments)} enrollments have correct response model fields (userId, enrolledAt)",
+                        f"Model mismatch issues resolved - no Pydantic validation errors expected"
+                    )
+                    return True
+                else:
+                    problematic_enrollments = [r for r in model_validation_results if not (r['has_userId'] and r['has_enrolledAt'])]
+                    self.log_result(
+                        "Enrollment Response Model Validation", 
+                        "FAIL", 
+                        f"Some enrollments still have model mismatch issues",
+                        f"Problematic enrollments: {len(problematic_enrollments)}, Details: {problematic_enrollments}"
+                    )
+            else:
+                self.log_result(
+                    "Enrollment Response Model Validation", 
+                    "FAIL", 
+                    f"Could not retrieve enrollments for model validation, status: {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Enrollment Response Model Validation", 
+                "FAIL", 
+                "Failed to test enrollment response model validation",
+                str(e)
+            )
+        return False
+    
+    def test_enrollment_complete_workflow(self):
+        """Test complete enrollment workflow: login as student → enroll in course → view enrollments"""
+        try:
+            # Step 1: Login as student (already done in auth tests)
+            if "learner" not in self.auth_tokens:
+                self.log_result(
+                    "Enrollment Complete Workflow", 
+                    "FAIL", 
+                    "Student authentication not available for complete workflow test",
+                    "Need student login first"
+                )
+                return False
+            
+            # Step 2: Get available courses
+            courses_response = requests.get(
+                f"{BACKEND_URL}/courses",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["learner"]}'}
+            )
+            
+            if courses_response.status_code != 200:
+                self.log_result(
+                    "Enrollment Complete Workflow", 
+                    "FAIL", 
+                    "Could not retrieve courses for workflow test",
+                    f"Courses API failed with status: {courses_response.status_code}"
+                )
+                return False
+            
+            courses = courses_response.json()
+            if not courses:
+                self.log_result(
+                    "Enrollment Complete Workflow", 
+                    "SKIP", 
+                    "No courses available for complete workflow test",
+                    "Need at least one course to test complete workflow"
+                )
+                return False
+            
+            # Step 3: Enroll in a course
+            test_course = courses[0]
+            enrollment_data = {
+                "courseId": test_course["id"]
+            }
+            
+            enroll_response = requests.post(
+                f"{BACKEND_URL}/enrollments",
+                json=enrollment_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["learner"]}'
+                }
+            )
+            
+            enrollment_success = False
+            if enroll_response.status_code == 200:
+                enrollment_success = True
+            elif enroll_response.status_code == 400 and "already enrolled" in enroll_response.text.lower():
+                enrollment_success = True  # Already enrolled is also success for workflow
+            
+            if not enrollment_success:
+                self.log_result(
+                    "Enrollment Complete Workflow", 
+                    "FAIL", 
+                    f"Failed to enroll in course during workflow test, status: {enroll_response.status_code}",
+                    f"Response: {enroll_response.text}"
+                )
+                return False
+            
+            # Step 4: View enrollments
+            view_response = requests.get(
+                f"{BACKEND_URL}/enrollments",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["learner"]}'}
+            )
+            
+            if view_response.status_code == 200:
+                enrollments = view_response.json()
+                
+                # Verify the enrolled course appears in the list
+                enrolled_course_ids = [e.get('courseId') for e in enrollments]
+                
+                if test_course['id'] in enrolled_course_ids:
+                    self.log_result(
+                        "Enrollment Complete Workflow", 
+                        "PASS", 
+                        f"Complete enrollment workflow successful: login → enroll → view enrollments",
+                        f"Student enrolled in '{test_course['title']}' and can view {len(enrollments)} total enrollments"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Enrollment Complete Workflow", 
+                        "FAIL", 
+                        "Enrolled course not found in student's enrollment list",
+                        f"Expected course ID: {test_course['id']}, Found course IDs: {enrolled_course_ids}"
+                    )
+            else:
+                self.log_result(
+                    "Enrollment Complete Workflow", 
+                    "FAIL", 
+                    f"Failed to view enrollments during workflow test, status: {view_response.status_code}",
+                    f"Response: {view_response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Enrollment Complete Workflow", 
+                "FAIL", 
+                "Failed to test complete enrollment workflow",
+                str(e)
+            )
+        return False
+    
+    def test_enrollment_duplicate_prevention(self):
+        """Test that duplicate enrollments are properly prevented"""
+        if "learner" not in self.auth_tokens:
+            self.log_result(
+                "Enrollment Duplicate Prevention", 
+                "SKIP", 
+                "No student token available for duplicate prevention test",
+                "Student authentication required"
+            )
+            return False
+        
+        try:
+            # Get available courses
+            courses_response = requests.get(
+                f"{BACKEND_URL}/courses",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["learner"]}'}
+            )
+            
+            if courses_response.status_code != 200 or not courses_response.json():
+                self.log_result(
+                    "Enrollment Duplicate Prevention", 
+                    "SKIP", 
+                    "No courses available for duplicate prevention test",
+                    "Need at least one course to test duplicate prevention"
+                )
+                return False
+            
+            courses = courses_response.json()
+            test_course = courses[0]
+            enrollment_data = {
+                "courseId": test_course["id"]
+            }
+            
+            # First enrollment attempt
+            first_response = requests.post(
+                f"{BACKEND_URL}/enrollments",
+                json=enrollment_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["learner"]}'
+                }
+            )
+            
+            # Second enrollment attempt (should be prevented)
+            second_response = requests.post(
+                f"{BACKEND_URL}/enrollments",
+                json=enrollment_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["learner"]}'
+                }
+            )
+            
+            # Analyze results
+            if second_response.status_code == 400:
+                error_text = second_response.text.lower()
+                if "already enrolled" in error_text:
+                    self.log_result(
+                        "Enrollment Duplicate Prevention", 
+                        "PASS", 
+                        "Duplicate enrollment correctly prevented with appropriate error message",
+                        f"Error message: {second_response.text}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Enrollment Duplicate Prevention", 
+                        "FAIL", 
+                        "Got 400 error but not for duplicate enrollment reason",
+                        f"Error message: {second_response.text}"
+                    )
+            else:
+                self.log_result(
+                    "Enrollment Duplicate Prevention", 
+                    "FAIL", 
+                    f"Duplicate enrollment not prevented, status: {second_response.status_code}",
+                    f"Should return 400 with 'already enrolled' message, got: {second_response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Enrollment Duplicate Prevention", 
+                "FAIL", 
+                "Failed to test enrollment duplicate prevention",
+                str(e)
+            )
+        return False
+    
+    def test_enrollment_course_validation(self):
+        """Test that enrollment validates course existence"""
+        if "learner" not in self.auth_tokens:
+            self.log_result(
+                "Enrollment Course Validation", 
+                "SKIP", 
+                "No student token available for course validation test",
+                "Student authentication required"
+            )
+            return False
+        
+        try:
+            # Test enrollment with non-existent course ID
+            fake_course_id = "non-existent-course-id-12345"
+            enrollment_data = {
+                "courseId": fake_course_id
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/enrollments",
+                json=enrollment_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["learner"]}'
+                }
+            )
+            
+            if response.status_code == 404:
+                self.log_result(
+                    "Enrollment Course Validation", 
+                    "PASS", 
+                    "Correctly validates course existence and returns 404 for non-existent course",
+                    f"Error message: {response.text}"
+                )
+                return True
+            elif response.status_code == 400:
+                error_text = response.text.lower()
+                if "not found" in error_text or "course" in error_text:
+                    self.log_result(
+                        "Enrollment Course Validation", 
+                        "PASS", 
+                        "Correctly validates course existence with 400 error",
+                        f"Error message: {response.text}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Enrollment Course Validation", 
+                        "FAIL", 
+                        "Got 400 error but not for course validation reason",
+                        f"Error message: {response.text}"
+                    )
+            else:
+                self.log_result(
+                    "Enrollment Course Validation", 
+                    "FAIL", 
+                    f"Course validation not working, status: {response.status_code}",
+                    f"Should return 404 or 400 for non-existent course, got: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Enrollment Course Validation", 
+                "FAIL", 
+                "Failed to test enrollment course validation",
+                str(e)
+            )
+        return False
+    
+    def test_enrollment_permission_validation(self):
+        """Test that only learners can enroll in courses"""
+        try:
+            # Get available courses first
+            if "learner" not in self.auth_tokens:
+                self.log_result(
+                    "Enrollment Permission Validation", 
+                    "SKIP", 
+                    "No student token available to get courses for permission test",
+                    "Student authentication required"
+                )
+                return False
+            
+            courses_response = requests.get(
+                f"{BACKEND_URL}/courses",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["learner"]}'}
+            )
+            
+            if courses_response.status_code != 200 or not courses_response.json():
+                self.log_result(
+                    "Enrollment Permission Validation", 
+                    "SKIP", 
+                    "No courses available for permission validation test",
+                    "Need at least one course to test permissions"
+                )
+                return False
+            
+            courses = courses_response.json()
+            test_course = courses[0]
+            enrollment_data = {
+                "courseId": test_course["id"]
+            }
+            
+            permission_test_results = []
+            
+            # Test instructor trying to enroll (should fail)
+            if "instructor" in self.auth_tokens:
+                instructor_response = requests.post(
+                    f"{BACKEND_URL}/enrollments",
+                    json=enrollment_data,
+                    timeout=TEST_TIMEOUT,
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                    }
+                )
+                
+                if instructor_response.status_code == 403:
+                    permission_test_results.append("✅ Instructor correctly denied enrollment (403)")
+                else:
+                    permission_test_results.append(f"❌ Instructor enrollment not properly restricted (status: {instructor_response.status_code})")
+            
+            # Test admin trying to enroll (should fail)
+            if "admin" in self.auth_tokens:
+                admin_response = requests.post(
+                    f"{BACKEND_URL}/enrollments",
+                    json=enrollment_data,
+                    timeout=TEST_TIMEOUT,
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                    }
+                )
+                
+                if admin_response.status_code == 403:
+                    permission_test_results.append("✅ Admin correctly denied enrollment (403)")
+                else:
+                    permission_test_results.append(f"❌ Admin enrollment not properly restricted (status: {admin_response.status_code})")
+            
+            # Test learner enrollment (should succeed or already enrolled)
+            learner_response = requests.post(
+                f"{BACKEND_URL}/enrollments",
+                json=enrollment_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["learner"]}'
+                }
+            )
+            
+            if learner_response.status_code in [200, 400]:  # 400 might be "already enrolled"
+                if learner_response.status_code == 200 or "already enrolled" in learner_response.text.lower():
+                    permission_test_results.append("✅ Learner correctly allowed to enroll")
+                else:
+                    permission_test_results.append(f"❌ Learner enrollment failed unexpectedly: {learner_response.text}")
+            else:
+                permission_test_results.append(f"❌ Learner enrollment failed with status: {learner_response.status_code}")
+            
+            # Analyze results
+            successful_tests = [r for r in permission_test_results if r.startswith("✅")]
+            failed_tests = [r for r in permission_test_results if r.startswith("❌")]
+            
+            if len(failed_tests) == 0:
+                self.log_result(
+                    "Enrollment Permission Validation", 
+                    "PASS", 
+                    f"All permission validation tests passed ({len(successful_tests)}/{len(permission_test_results)})",
+                    f"Results: {'; '.join(permission_test_results)}"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Enrollment Permission Validation", 
+                    "FAIL", 
+                    f"Some permission validation tests failed ({len(failed_tests)}/{len(permission_test_results)})",
+                    f"Results: {'; '.join(permission_test_results)}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Enrollment Permission Validation", 
+                "FAIL", 
+                "Failed to test enrollment permission validation",
+                str(e)
+            )
+        return False
+
     def test_certificate_creation(self):
         """Test POST /api/certificates - Create certificates (instructor/admin only)"""
         if "instructor" not in self.auth_tokens and "admin" not in self.auth_tokens:
