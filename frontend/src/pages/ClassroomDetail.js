@@ -669,7 +669,7 @@ const ClassroomDetail = () => {
                     <span className="text-sm text-gray-600">Overall Progress</span>
                     <span className="font-semibold">{classroom.metrics?.averageProgress || 0}%</span>
                   </div>
-                  <Progress value={classroom.metrics.averageProgress} className="h-3" />
+                  <Progress value={classroom.metrics?.averageProgress || 0} className="h-3" />
                   
                   <div className="grid grid-cols-2 gap-4 pt-4">
                     <div className="text-center p-3 bg-green-50 rounded-lg">
