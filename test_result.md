@@ -1724,17 +1724,71 @@ backend:
         agent: "testing"
         comment: "COMPREHENSIVE CONTINUE LEARNING FLOW TESTING COMPLETED SUCCESSFULLY: ✅ Orphaned Enrollment Cleanup - Successfully cleaned up 18 orphaned enrollment records that referenced non-existent courses ✅ Admin-Only Access Control - Cleanup endpoint correctly requires admin role ✅ Student Enrollments After Cleanup - All remaining enrollments now reference valid courses only ✅ Complete Continue Learning Flow - End-to-end testing successful: student creation, course creation, classroom auto-enrollment, student login, enrollment verification, and course access all functional ✅ Error Handling Improved - CourseDetail.js now shows user-friendly error page instead of blank page for missing courses. SUCCESS RATE: 89.5% overall. Continue Learning blank page issue is fully resolved."
 
-  - task: "Classroom Creation Flexibility"
+  - task: "Student Classroom Editing Permission Removal"
     implemented: true
     working: true
-    file: "/app/frontend/src/pages/Classrooms.js"
+    file: "/app/frontend/src/pages/ClassroomDetail.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "USER ISSUE: Students can edit classroom details - need to remove this permission."
+      - working: true
+        agent: "main"
+        comment: "PERMISSION FIX IMPLEMENTED: Added role-based access control to ClassroomDetail.js. Edit controls and edit form now only shown for !isLearner (instructors and admins only). Students no longer see Edit Classroom button or edit form interface."
+
+  - task: "LoginPal Visibility Hiding"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/Login.js, /app/frontend/src/components/Sidebar.js"
     stuck_count: 0
     priority: "medium"
     needs_retesting: false
     status_history:
+      - working: false
+        agent: "user"
+        comment: "USER REQUEST: Hide LoginPal visibility on login page and admin dashboard because it's not going live for a while."
       - working: true
         agent: "main"
-        comment: "REQUIREMENT ALREADY IMPLEMENTED: Classroom creation logic already allows either programs OR courses, not requiring both. The validation in handleCreateClassroom (lines 231-238) correctly requires at least one course OR program to be selected, providing the flexibility requested by user."
+        comment: "LOGINPAL HIDDEN SUCCESSFULLY: 1) Commented out LoginPal OAuth button and separator on Login.js with 'TEMPORARILY HIDDEN - LoginPal not going live yet' comments, 2) Commented out LoginPal Status menu item in Sidebar.js admin navigation. LoginPal is now completely hidden from user interface until ready for launch."
+
+  - task: "Announcement Post Button White Screen Fix"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/Announcements.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "USER ISSUE: When creating an announcement and clicking 'Post' button, it goes to a white screen."
+      - working: true
+        agent: "main"
+        comment: "FIELD MAPPING BUG FIXED: Found that frontend was sending 'message' field but backend expected 'content' field. Updated Announcements.js to send 'content' instead of 'message' in announcementData object. Backend testing confirmed POST /api/announcements now works correctly with proper field mapping."
+      - working: true
+        agent: "testing"
+        comment: "ANNOUNCEMENT CREATION TESTING COMPLETED SUCCESSFULLY: ✅ POST /api/announcements endpoint working correctly with 'content' field ✅ Successfully created test announcement with proper content storage ✅ Returned data matches input content exactly ✅ No more white screen issue - announcements can be created successfully."
+
+  - task: "User Department Dropdown Mismatch Fix"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/Users.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "USER ISSUE: When editing a user on the users menu and selecting department, the dropdown doesn't match the list of departments available."
+      - working: true
+        agent: "main"
+        comment: "DEPARTMENT DROPDOWN DATA SOURCE FIX: Updated Users.js to load departments from backend getAllDepartments() API instead of extracting from existing users. Added separate loadDepartments() function that calls real departments endpoint with fallback to user extraction if backend fails. This ensures dropdown shows all available departments, not just ones currently assigned to users."
+      - working: true
+        agent: "testing"
+        comment: "DEPARTMENT DROPDOWN FUNCTIONALITY TESTING COMPLETED SUCCESSFULLY: ✅ GET /api/departments endpoint working correctly ✅ Returns proper department structure with required fields (id, name) for dropdown ✅ Successfully created test departments (Engineering, Marketing, HR) to verify functionality ✅ Department data properly formatted for frontend dropdown usage. User editing dropdown now shows all available departments instead of just user-extracted ones."
 
 metadata:
   created_by: "main_agent"
