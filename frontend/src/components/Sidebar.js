@@ -85,12 +85,13 @@ const Sidebar = () => {
       label: 'Categories', 
       roles: ['admin', 'instructor'] 
     },
-    { 
-      path: '/loginpal-status', 
-      icon: Shield, 
-      label: 'LoginPal Status', 
-      roles: ['admin'] 
-    },
+    // TEMPORARILY HIDDEN - LoginPal not going live yet
+    // { 
+    //   path: '/loginpal-status', 
+    //   icon: Shield, 
+    //   label: 'LoginPal Status', 
+    //   roles: ['admin'] 
+    // },
     { 
       path: '/analytics', 
       icon: BarChart, 
