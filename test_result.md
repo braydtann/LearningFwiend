@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Continue Learning Blank Page Investigation: Quick investigation of the 'Continue Learning' blank page issue. Need to: 1) Check what courses are currently available in the database via GET /api/courses, 2) Test GET /api/courses/{course_id} endpoint for a specific course to see if it returns proper data, 3) Verify that the course IDs being used in frontend links are valid and exist in database, 4) Check if there are any issues with the course retrieval that would cause CourseDetail.js to show a blank page. Focus on identifying why CourseDetail.js would show a blank page when students click 'Continue Learning'."
+user_problem_statement: "Test the new bug fixes to ensure everything is working properly: 1. Clean up any remaining orphaned enrollments using POST /api/enrollments/cleanup-orphaned, 2. Test the announcement creation endpoint POST /api/announcements to ensure it works with the corrected data format (content instead of message), 3. Test that the department endpoints GET /api/departments are working properly for the user editing dropdown fix, 4. Verify that classroom permissions are working correctly (only instructors/admins can edit classrooms). Focus on confirming all 4 bug fixes are working correctly in the backend."
 
 backend:
   - task: "Continue Learning Blank Page Investigation"
