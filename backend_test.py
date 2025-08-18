@@ -9601,6 +9601,17 @@ class BackendTester:
         self.test_instructor_login()
         self.test_student_login()
         
+        # ISSUE-SPECIFIC TESTS FOR REVIEW REQUEST - PRIORITY FOCUS
+        if self.auth_tokens:
+            print("\n🔧 ISSUE-SPECIFIC TESTS FOR REVIEW REQUEST (PRIORITY)")
+            print("=" * 50)
+            self.test_course_deletion_admin_permissions()
+            self.test_course_deletion_instructor_own_course()
+            self.test_program_deletion_admin_permissions()
+            self.test_program_deletion_instructor_own_program()
+            self.test_course_preview_validation_with_modules()
+            self.test_course_preview_validation_without_modules()
+        
         # CLASSROOM CREATION FIX TESTING - PRIORITY FOCUS
         if self.auth_tokens:
             print("\n🏫 CLASSROOM CREATION FIX TESTING (PRIORITY)")
