@@ -478,7 +478,7 @@ const ClassroomDetail = () => {
                   <div className="text-sm text-green-600">Completion Rate</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-orange-700">{classroom.metrics.averageTestScore}</div>
+                  <div className="text-2xl font-bold text-orange-700">{classroom.metrics?.averageTestScore || 0}</div>
                   <div className="text-sm text-orange-600">Avg. Test Score</div>
                 </div>
                 <div className="text-center">
