@@ -13,7 +13,7 @@ import { useToast } from '../hooks/use-toast';
 
 const Users = () => {
   const { toast } = useToast();
-  const { user, isAdmin, createUser, resetUserPassword, getAllUsers, deleteUser, updateUser } = useAuth();
+  const { user, isAdmin, createUser, resetUserPassword, getAllUsers, getAllDepartments, deleteUser, updateUser } = useAuth();
   
   // Add state for departments derived from users
   const [availableDepartments, setAvailableDepartments] = useState([]);
