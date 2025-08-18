@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { edgeCompatibleFetch, showBrowserWarning } from '../utils/browserCompat';
 
 // Edge compatibility check and polyfill
 if (typeof Promise === 'undefined') {
