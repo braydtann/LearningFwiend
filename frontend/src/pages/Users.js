@@ -82,7 +82,7 @@ const Users = () => {
 
   // Load users and departments on component mount
   useEffect(() => {
-    fetchUsers();
+    loadUsers();
   }, []);
 
   // Load departments when users change or on component mount
