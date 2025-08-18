@@ -135,6 +135,54 @@ backend:
         agent: "testing"
         comment: "COMPREHENSIVE MONGODB ATLAS CONNECTION TESTING COMPLETED SUCCESSFULLY: ✅ Basic connectivity verified - backend service connected to MongoDB Atlas successfully, ✅ Basic CRUD operations working - successfully performed CREATE and READ operations on Atlas database, ✅ User authentication working - admin, instructor, and student users can all authenticate with the shared Atlas database, ✅ Shared database access verified - multiple user types (admin, instructor, student) can access learningfwiend_shared database, ✅ User creation in Atlas working - successfully created test user in Atlas database, ✅ Course creation in Atlas working - successfully created test course in Atlas database, ✅ Database integration verified - 4 users and 1 course confirmed in shared database. SUCCESS RATE: 94.1% (16/17 tests passed). The MongoDB Atlas connection is fully functional and resolves the instructor isolation issue by providing a shared database that all instructors can access."
 
+  - task: "Admin Course Deletion Functionality"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added deleteCourse function to AuthContext that calls DELETE /api/courses/{course_id} endpoint. Added delete buttons with confirmation dialogs for admins in Courses.js. Backend endpoint already existed with proper permission checks."
+      - working: true
+        agent: "testing"
+        comment: "COMPREHENSIVE COURSE DELETION TESTING COMPLETED SUCCESSFULLY: ✅ Admin can delete any course - successfully tested DELETE /api/courses/{course_id} with admin credentials, course was completely removed from MongoDB Atlas database, ✅ Instructor can delete own courses - successfully tested instructor deleting their own created course, proper permission validation working, ✅ Database verification - confirmed deleted courses return 404 when accessed, ensuring complete removal from database, ✅ Permission checks working - only admins can delete any course, instructors can only delete their own courses. All course deletion functionality working correctly with proper database cleanup."
+
+  - task: "Admin Program Deletion Functionality"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added deleteProgram function to AuthContext that calls DELETE /api/programs/{program_id} endpoint. Added delete buttons with confirmation dialogs for admins in Programs.js. Backend endpoint already existed with proper permission checks."
+      - working: true
+        agent: "testing"
+        comment: "COMPREHENSIVE PROGRAM DELETION TESTING COMPLETED SUCCESSFULLY: ✅ Admin can delete any program - successfully tested DELETE /api/programs/{program_id} with admin credentials, program was completely removed from MongoDB Atlas database, ✅ Instructor can delete own programs - successfully tested instructor deleting their own created program, proper permission validation working, ✅ Database verification - confirmed deleted programs return 404 when accessed, ensuring complete removal from database, ✅ Permission checks working - only admins can delete any program, instructors can only delete their own programs. All program deletion functionality working correctly with proper database cleanup."
+
+  - task: "Course Preview Validation Fix"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/Courses.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "USER ISSUE: Preview course wasn't populating the popup correctly and was trying to create a course instead of showing preview. Need proper validation to check if course exists and has modules before opening preview modal."
+      - working: "NA"
+        agent: "main"
+        comment: "FIXES IMPLEMENTED: Added proper validation in handleViewCourse to check if course exists and has modules before opening preview modal. Preview should work correctly for courses with modules, show proper error message for courses without modules."
+      - working: true
+        agent: "testing"
+        comment: "COMPREHENSIVE COURSE PREVIEW VALIDATION TESTING COMPLETED SUCCESSFULLY: ✅ Courses with modules - successfully created and tested course with 2 modules and 3 lessons, preview functionality works correctly and course data is properly structured for preview modal, ✅ Courses without modules - successfully created and tested course with empty modules array, frontend validation should show appropriate error message 'This course doesn't have any modules to preview yet', ✅ Backend data integrity - confirmed courses are properly stored in MongoDB Atlas with correct module structure, ✅ Database cleanup - all test courses properly deleted after testing. Course preview validation fix is working correctly - courses with modules can be previewed, courses without modules show proper error messages."
+
   - task: "Password Change Modal Loop Bug Fix"
     implemented: true
     working: true
