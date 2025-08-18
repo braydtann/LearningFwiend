@@ -58,7 +58,7 @@
 ##
 ## agent_communication:
 ##     -agent: "main"  # or "testing" or "user"
-##     -message: "ISSUE RESOLVED: Fixed two critical bugs causing 'No courses enrolled yet' on student dashboard: 1) StudentDashboard was using mock data instead of real backend enrollments, 2) AuthContext was calling wrong API endpoint. Backend auto-enrollment confirmed working. Frontend now properly loads real enrollment data. Ready for frontend testing to verify complete resolution."
+##     -message: "NEW BUGS REPORTED: User identified 4 critical issues to fix: 1) Students can edit classroom details (need to remove permission), 2) LoginPal visibility needs to be hidden on login page and admin dashboard, 3) Announcement 'Post' button causes white screen, 4) User department dropdown in edit modal doesn't match available departments. Starting systematic fixes for all issues."
 
 # Protocol Guidelines for Main agent
 #
