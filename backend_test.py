@@ -13169,6 +13169,15 @@ class BackendTester:
             self.test_enrollment_course_validation()
             self.test_enrollment_permission_validation()
         
+        # ORPHANED ENROLLMENT CLEANUP TESTS - CONTINUE LEARNING FIX (CRITICAL PRIORITY)
+        if self.auth_tokens:
+            print("\n🔧 ORPHANED ENROLLMENT CLEANUP TESTS - CONTINUE LEARNING FIX (CRITICAL)")
+            print("=" * 50)
+            self.test_orphaned_enrollment_cleanup_admin_only()
+            self.test_orphaned_enrollment_cleanup_functionality()
+            self.test_student_enrollments_after_cleanup()
+            self.test_continue_learning_flow_scenario()
+        
         # Core API tests
         print("\n🌐 CORE API TESTS")
         print("=" * 50)
