@@ -216,7 +216,12 @@ const StudentDashboard = () => {
           </div>
         </CardHeader>
         <CardContent>
-          {enrolledCourses.length === 0 ? (
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading your enrolled courses...</p>
+            </div>
+          ) : enrolledCourses.length === 0 ? (
             <div className="text-center py-12">
               <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No courses enrolled yet</h3>
