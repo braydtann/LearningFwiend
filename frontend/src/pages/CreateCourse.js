@@ -788,7 +788,8 @@ const CreateCourse = () => {
         thumbnailUrl: courseData.thumbnailUrl,
         accessType: courseData.accessType || 'open',
         modules: courseData.modules || [],
-        canvaEmbedCode: courseData.canvaEmbedCode
+        canvaEmbedCode: courseData.canvaEmbedCode,
+        status: "published"  // Publish the course
       };
 
       let result;
