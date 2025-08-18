@@ -84,6 +84,13 @@ const Users = () => {
     fetchUsers();
   }, []);
 
+  // Load departments when users change
+  useEffect(() => {
+    if (users.length > 0) {
+      loadDepartments();
+    }
+  }, [users]);
+
   const fetchUsers = async () => {
     setLoading(true);
     const result = await getAllUsers();
