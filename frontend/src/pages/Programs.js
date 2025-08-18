@@ -175,6 +175,42 @@ const Programs = () => {
     }
   };
 
+  const handleDeleteProgram = async (programId, programName) => {
+    if (!window.confirm(`Are you sure you want to delete the program "${programName}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const result = await deleteProgram(programId);
+      
+      if (result.success) {
+        toast({
+          title: "Program deleted successfully",
+          description: `"${programName}" has been permanently deleted.`,
+        });
+        
+        // Reload programs to update the list
+        const programsResult = await getAllPrograms();
+        if (programsResult.success) {
+          setPrograms(programsResult.programs);
+        }
+      } else {
+        toast({
+          title: "Failed to delete program",
+          description: result.error || "An error occurred while deleting the program.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error deleting program:', error);
+      toast({
+        title: "Error deleting program",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleCourseSelection = (courseId, checked) => {
     if (checked) {
       setNewProgram(prev => ({
