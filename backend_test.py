@@ -12322,6 +12322,7 @@ class BackendTester:
         if self.auth_tokens:
             print("\n🏫 CLASSROOM AUTO-ENROLLMENT FUNCTIONALITY TESTS (PRIORITY)")
             print("=" * 50)
+            self.test_classroom_auto_enrollment_complete_workflow()  # NEW TEST FOR USER REQUEST
             self.test_classroom_auto_enrollment_workflow()
             self.test_classroom_auto_enrollment_with_programs()
             self.test_classroom_auto_enrollment_mixed_courses_programs()
