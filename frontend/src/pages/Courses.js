@@ -445,14 +445,34 @@ const Courses = () => {
                           >
                             Edit
                           </Button>
+                          {isAdmin && (
+                            <Button 
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleDeleteCourse(course.id, course.title)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
                         </div>
                       ) : isEnrolled ? (
-                        <Button 
-                          className="w-full"
-                          onClick={() => handleViewCourse(course.id)}
-                        >
-                          Continue Learning
-                        </Button>
+                        <div className="flex space-x-2">
+                          <Button 
+                            className="flex-1"
+                            onClick={() => handleViewCourse(course.id)}
+                          >
+                            Continue Learning
+                          </Button>
+                          {isAdmin && (
+                            <Button 
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleDeleteCourse(course.id, course.title)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </div>
                       ) : (
                         <div className="flex space-x-2">
                           <Button 
@@ -469,6 +489,15 @@ const Courses = () => {
                           >
                             Enroll
                           </Button>
+                          {isAdmin && (
+                            <Button 
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleDeleteCourse(course.id, course.title)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
                         </div>
                       )}
                     </CardContent>
