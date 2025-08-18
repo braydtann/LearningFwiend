@@ -32,14 +32,34 @@ import { useToast } from '../hooks/use-toast';
 const ClassroomDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user, isLearner, getAllCourses } = useAuth();
+  const [searchParams] = useSearchParams();
+  const isEditMode = searchParams.get('mode') === 'edit';
+  const { user, isLearner, getAllCourses, getClassroomById, updateClassroom, getAllUsers, getAllPrograms } = useAuth();
+  const { toast } = useToast();
   
+  const [classroom, setClassroom] = useState(null);
   const [courses, setCourses] = useState([]);
+  const [loadingClassroom, setLoadingClassroom] = useState(true);
   const [loadingCourses, setLoadingCourses] = useState(true);
   const [coursesError, setCoursesError] = useState(null);
   
-  const classroom = mockClassrooms.find(c => c.id === id);
-  const students = getClassroomStudents(id);
+  // Edit mode states
+  const [editData, setEditData] = useState({
+    name: '',
+    batchId: '',
+    description: '',
+    trainerId: '',
+    courseIds: [],
+    programIds: [],
+    department: '',
+    startDate: '',
+    endDate: '',
+    maxStudents: 30
+  });
+  const [availableUsers, setAvailableUsers] = useState([]);
+  const [availableCourses, setAvailableCourses] = useState([]);
+  const [availablePrograms, setAvailablePrograms] = useState([]);
+  const [saving, setSaving] = useState(false);
   
   // Load courses from backend
   useEffect(() => {
