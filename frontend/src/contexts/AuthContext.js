@@ -412,17 +412,12 @@ export const AuthProvider = ({ children }) => {
     try {
       const token = localStorage.getItem('auth_token');
       
-      // Edge-compatible fetch with explicit headers
-      const response = await fetch(`${backendUrl}/api/courses`, {
+      // Use Edge-compatible fetch
+      const response = await edgeCompatibleFetch(`${backendUrl}/api/courses`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Cache-Control': 'no-cache'  // Edge compatibility
-        },
-        credentials: 'same-origin',  // Edge CORS compatibility
-        cache: 'no-cache'  // Prevent Edge caching issues
+          'Authorization': `Bearer ${token}`
+        }
       });
 
       if (response.ok) {
