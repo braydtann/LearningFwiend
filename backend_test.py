@@ -9025,6 +9025,564 @@ class BackendTester:
             )
         return False
     
+    # =============================================================================
+    # ISSUE-SPECIFIC TESTS FOR REVIEW REQUEST
+    # =============================================================================
+    
+    def test_course_deletion_admin_permissions(self):
+        """Test that admin can delete any course"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Course Deletion - Admin Permissions", 
+                "SKIP", 
+                "No admin token available for course deletion test",
+                "Admin authentication required"
+            )
+            return False
+        
+        try:
+            # First create a test course to delete
+            course_data = {
+                "title": "Test Course for Deletion",
+                "description": "This course will be deleted to test admin deletion functionality",
+                "category": "Testing",
+                "duration": "1 week",
+                "accessType": "open"
+            }
+            
+            create_response = requests.post(
+                f"{BACKEND_URL}/courses",
+                json=course_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if create_response.status_code != 200:
+                self.log_result(
+                    "Course Deletion - Admin Permissions", 
+                    "FAIL", 
+                    f"Failed to create test course for deletion, status: {create_response.status_code}",
+                    f"Response: {create_response.text}"
+                )
+                return False
+            
+            created_course = create_response.json()
+            course_id = created_course.get('id')
+            
+            # Now test deletion with admin credentials
+            delete_response = requests.delete(
+                f"{BACKEND_URL}/courses/{course_id}",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            if delete_response.status_code == 200:
+                # Verify course is actually deleted from database
+                get_response = requests.get(
+                    f"{BACKEND_URL}/courses/{course_id}",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+                )
+                
+                if get_response.status_code == 404:
+                    self.log_result(
+                        "Course Deletion - Admin Permissions", 
+                        "PASS", 
+                        "Admin successfully deleted course and it was removed from database",
+                        f"Course ID: {course_id}, verified deletion with 404 response"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Course Deletion - Admin Permissions", 
+                        "FAIL", 
+                        "Course deletion appeared successful but course still exists in database",
+                        f"GET request returned status: {get_response.status_code}"
+                    )
+            else:
+                self.log_result(
+                    "Course Deletion - Admin Permissions", 
+                    "FAIL", 
+                    f"Admin failed to delete course, status: {delete_response.status_code}",
+                    f"Response: {delete_response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Course Deletion - Admin Permissions", 
+                "FAIL", 
+                "Failed to test admin course deletion",
+                str(e)
+            )
+        return False
+    
+    def test_course_deletion_instructor_own_course(self):
+        """Test that instructor can delete their own course"""
+        if "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Course Deletion - Instructor Own Course", 
+                "SKIP", 
+                "No instructor token available for course deletion test",
+                "Instructor authentication required"
+            )
+            return False
+        
+        try:
+            # Create a course as instructor
+            course_data = {
+                "title": "Instructor Test Course for Deletion",
+                "description": "This course will be deleted to test instructor deletion functionality",
+                "category": "Testing",
+                "duration": "1 week",
+                "accessType": "open"
+            }
+            
+            create_response = requests.post(
+                f"{BACKEND_URL}/courses",
+                json=course_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if create_response.status_code != 200:
+                self.log_result(
+                    "Course Deletion - Instructor Own Course", 
+                    "FAIL", 
+                    f"Failed to create test course as instructor, status: {create_response.status_code}",
+                    f"Response: {create_response.text}"
+                )
+                return False
+            
+            created_course = create_response.json()
+            course_id = created_course.get('id')
+            
+            # Test deletion with instructor credentials (should work for own course)
+            delete_response = requests.delete(
+                f"{BACKEND_URL}/courses/{course_id}",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["instructor"]}'}
+            )
+            
+            if delete_response.status_code == 200:
+                # Verify course is actually deleted from database
+                get_response = requests.get(
+                    f"{BACKEND_URL}/courses/{course_id}",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {self.auth_tokens["instructor"]}'}
+                )
+                
+                if get_response.status_code == 404:
+                    self.log_result(
+                        "Course Deletion - Instructor Own Course", 
+                        "PASS", 
+                        "Instructor successfully deleted their own course and it was removed from database",
+                        f"Course ID: {course_id}, verified deletion with 404 response"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Course Deletion - Instructor Own Course", 
+                        "FAIL", 
+                        "Course deletion appeared successful but course still exists in database",
+                        f"GET request returned status: {get_response.status_code}"
+                    )
+            else:
+                self.log_result(
+                    "Course Deletion - Instructor Own Course", 
+                    "FAIL", 
+                    f"Instructor failed to delete their own course, status: {delete_response.status_code}",
+                    f"Response: {delete_response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Course Deletion - Instructor Own Course", 
+                "FAIL", 
+                "Failed to test instructor course deletion",
+                str(e)
+            )
+        return False
+    
+    def test_program_deletion_admin_permissions(self):
+        """Test that admin can delete any program"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Program Deletion - Admin Permissions", 
+                "SKIP", 
+                "No admin token available for program deletion test",
+                "Admin authentication required"
+            )
+            return False
+        
+        try:
+            # First create a test program to delete
+            program_data = {
+                "title": "Test Program for Deletion",
+                "description": "This program will be deleted to test admin deletion functionality",
+                "courseIds": [],
+                "nestedProgramIds": [],
+                "duration": "4 weeks"
+            }
+            
+            create_response = requests.post(
+                f"{BACKEND_URL}/programs",
+                json=program_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if create_response.status_code != 200:
+                self.log_result(
+                    "Program Deletion - Admin Permissions", 
+                    "FAIL", 
+                    f"Failed to create test program for deletion, status: {create_response.status_code}",
+                    f"Response: {create_response.text}"
+                )
+                return False
+            
+            created_program = create_response.json()
+            program_id = created_program.get('id')
+            
+            # Now test deletion with admin credentials
+            delete_response = requests.delete(
+                f"{BACKEND_URL}/programs/{program_id}",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            if delete_response.status_code == 200:
+                # Verify program is actually deleted from database
+                get_response = requests.get(
+                    f"{BACKEND_URL}/programs/{program_id}",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+                )
+                
+                if get_response.status_code == 404:
+                    self.log_result(
+                        "Program Deletion - Admin Permissions", 
+                        "PASS", 
+                        "Admin successfully deleted program and it was removed from database",
+                        f"Program ID: {program_id}, verified deletion with 404 response"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Program Deletion - Admin Permissions", 
+                        "FAIL", 
+                        "Program deletion appeared successful but program still exists in database",
+                        f"GET request returned status: {get_response.status_code}"
+                    )
+            else:
+                self.log_result(
+                    "Program Deletion - Admin Permissions", 
+                    "FAIL", 
+                    f"Admin failed to delete program, status: {delete_response.status_code}",
+                    f"Response: {delete_response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Program Deletion - Admin Permissions", 
+                "FAIL", 
+                "Failed to test admin program deletion",
+                str(e)
+            )
+        return False
+    
+    def test_program_deletion_instructor_own_program(self):
+        """Test that instructor can delete their own program"""
+        if "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Program Deletion - Instructor Own Program", 
+                "SKIP", 
+                "No instructor token available for program deletion test",
+                "Instructor authentication required"
+            )
+            return False
+        
+        try:
+            # Create a program as instructor
+            program_data = {
+                "title": "Instructor Test Program for Deletion",
+                "description": "This program will be deleted to test instructor deletion functionality",
+                "courseIds": [],
+                "nestedProgramIds": [],
+                "duration": "4 weeks"
+            }
+            
+            create_response = requests.post(
+                f"{BACKEND_URL}/programs",
+                json=program_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if create_response.status_code != 200:
+                self.log_result(
+                    "Program Deletion - Instructor Own Program", 
+                    "FAIL", 
+                    f"Failed to create test program as instructor, status: {create_response.status_code}",
+                    f"Response: {create_response.text}"
+                )
+                return False
+            
+            created_program = create_response.json()
+            program_id = created_program.get('id')
+            
+            # Test deletion with instructor credentials (should work for own program)
+            delete_response = requests.delete(
+                f"{BACKEND_URL}/programs/{program_id}",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["instructor"]}'}
+            )
+            
+            if delete_response.status_code == 200:
+                # Verify program is actually deleted from database
+                get_response = requests.get(
+                    f"{BACKEND_URL}/programs/{program_id}",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {self.auth_tokens["instructor"]}'}
+                )
+                
+                if get_response.status_code == 404:
+                    self.log_result(
+                        "Program Deletion - Instructor Own Program", 
+                        "PASS", 
+                        "Instructor successfully deleted their own program and it was removed from database",
+                        f"Program ID: {program_id}, verified deletion with 404 response"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Program Deletion - Instructor Own Program", 
+                        "FAIL", 
+                        "Program deletion appeared successful but program still exists in database",
+                        f"GET request returned status: {get_response.status_code}"
+                    )
+            else:
+                self.log_result(
+                    "Program Deletion - Instructor Own Program", 
+                    "FAIL", 
+                    f"Instructor failed to delete their own program, status: {delete_response.status_code}",
+                    f"Response: {delete_response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Program Deletion - Instructor Own Program", 
+                "FAIL", 
+                "Failed to test instructor program deletion",
+                str(e)
+            )
+        return False
+    
+    def test_course_preview_validation_with_modules(self):
+        """Test course preview functionality for courses with modules"""
+        if "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Course Preview - With Modules", 
+                "SKIP", 
+                "No instructor token available for course preview test",
+                "Instructor authentication required"
+            )
+            return False
+        
+        try:
+            # Create a course with modules for preview testing
+            course_data = {
+                "title": "Course Preview Test with Modules",
+                "description": "This course has modules and should allow preview",
+                "category": "Testing",
+                "duration": "2 weeks",
+                "accessType": "open",
+                "modules": [
+                    {
+                        "title": "Module 1: Introduction",
+                        "lessons": [
+                            {"title": "Lesson 1", "type": "video", "content": "Sample content"},
+                            {"title": "Lesson 2", "type": "text", "content": "Sample text content"}
+                        ]
+                    },
+                    {
+                        "title": "Module 2: Advanced Topics",
+                        "lessons": [
+                            {"title": "Lesson 3", "type": "video", "content": "Advanced content"}
+                        ]
+                    }
+                ]
+            }
+            
+            create_response = requests.post(
+                f"{BACKEND_URL}/courses",
+                json=course_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if create_response.status_code == 200:
+                created_course = create_response.json()
+                course_id = created_course.get('id')
+                
+                # Verify course can be retrieved and has modules
+                get_response = requests.get(
+                    f"{BACKEND_URL}/courses/{course_id}",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {self.auth_tokens["instructor"]}'}
+                )
+                
+                if get_response.status_code == 200:
+                    course_data = get_response.json()
+                    modules = course_data.get('modules', [])
+                    
+                    if len(modules) > 0:
+                        self.log_result(
+                            "Course Preview - With Modules", 
+                            "PASS", 
+                            f"Course with modules created successfully and can be previewed",
+                            f"Course ID: {course_id}, Modules: {len(modules)}, Total lessons: {sum(len(m.get('lessons', [])) for m in modules)}"
+                        )
+                        
+                        # Clean up - delete test course
+                        requests.delete(
+                            f"{BACKEND_URL}/courses/{course_id}",
+                            timeout=TEST_TIMEOUT,
+                            headers={'Authorization': f'Bearer {self.auth_tokens["instructor"]}'}
+                        )
+                        return True
+                    else:
+                        self.log_result(
+                            "Course Preview - With Modules", 
+                            "FAIL", 
+                            "Course was created but modules were not saved properly",
+                            f"Expected modules but got: {modules}"
+                        )
+                else:
+                    self.log_result(
+                        "Course Preview - With Modules", 
+                        "FAIL", 
+                        f"Failed to retrieve created course, status: {get_response.status_code}",
+                        f"Response: {get_response.text}"
+                    )
+            else:
+                self.log_result(
+                    "Course Preview - With Modules", 
+                    "FAIL", 
+                    f"Failed to create course with modules, status: {create_response.status_code}",
+                    f"Response: {create_response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Course Preview - With Modules", 
+                "FAIL", 
+                "Failed to test course preview with modules",
+                str(e)
+            )
+        return False
+    
+    def test_course_preview_validation_without_modules(self):
+        """Test course preview functionality for courses without modules"""
+        if "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Course Preview - Without Modules", 
+                "SKIP", 
+                "No instructor token available for course preview test",
+                "Instructor authentication required"
+            )
+            return False
+        
+        try:
+            # Create a course without modules for preview testing
+            course_data = {
+                "title": "Course Preview Test without Modules",
+                "description": "This course has no modules and should show error message",
+                "category": "Testing",
+                "duration": "2 weeks",
+                "accessType": "open",
+                "modules": []  # Empty modules array
+            }
+            
+            create_response = requests.post(
+                f"{BACKEND_URL}/courses",
+                json=course_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if create_response.status_code == 200:
+                created_course = create_response.json()
+                course_id = created_course.get('id')
+                
+                # Verify course can be retrieved and has no modules
+                get_response = requests.get(
+                    f"{BACKEND_URL}/courses/{course_id}",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {self.auth_tokens["instructor"]}'}
+                )
+                
+                if get_response.status_code == 200:
+                    course_data = get_response.json()
+                    modules = course_data.get('modules', [])
+                    
+                    if len(modules) == 0:
+                        self.log_result(
+                            "Course Preview - Without Modules", 
+                            "PASS", 
+                            f"Course without modules created successfully - frontend should show error message for preview",
+                            f"Course ID: {course_id}, Modules: {len(modules)} (empty as expected)"
+                        )
+                        
+                        # Clean up - delete test course
+                        requests.delete(
+                            f"{BACKEND_URL}/courses/{course_id}",
+                            timeout=TEST_TIMEOUT,
+                            headers={'Authorization': f'Bearer {self.auth_tokens["instructor"]}'}
+                        )
+                        return True
+                    else:
+                        self.log_result(
+                            "Course Preview - Without Modules", 
+                            "FAIL", 
+                            "Course was created with modules when it should have none",
+                            f"Expected empty modules but got: {len(modules)} modules"
+                        )
+                else:
+                    self.log_result(
+                        "Course Preview - Without Modules", 
+                        "FAIL", 
+                        f"Failed to retrieve created course, status: {get_response.status_code}",
+                        f"Response: {get_response.text}"
+                    )
+            else:
+                self.log_result(
+                    "Course Preview - Without Modules", 
+                    "FAIL", 
+                    f"Failed to create course without modules, status: {create_response.status_code}",
+                    f"Response: {create_response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Course Preview - Without Modules", 
+                "FAIL", 
+                "Failed to test course preview without modules",
+                str(e)
+            )
+        return False
+    
     def run_all_tests(self):
         """Run all backend tests with focus on classroom creation fix"""
         print("🚀 Starting Backend Testing Suite for LearningFwiend LMS")
