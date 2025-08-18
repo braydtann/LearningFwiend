@@ -470,7 +470,7 @@ const ClassroomDetail = () => {
               <h3 className="text-lg font-semibold text-blue-900 mb-4">Trainer KPIs</h3>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-700">{classroom.metrics.averageProgress}%</div>
+                  <div className="text-2xl font-bold text-blue-700">{classroom.metrics?.averageProgress || 0}%</div>
                   <div className="text-sm text-blue-600">Average Progress</div>
                 </div>
                 <div className="text-center">
