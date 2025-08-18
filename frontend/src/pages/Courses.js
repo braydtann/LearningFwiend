@@ -12,7 +12,7 @@ import { BookOpen, Clock, Users, Search, Filter, Play, Star, Eye } from 'lucide-
 import { useToast } from '../hooks/use-toast';
 
 const Courses = () => {
-  const { user, isAdmin, isInstructor, isLearner, getAllCourses, getMyCourses, enrollInCourse, unenrollFromCourse } = useAuth();
+  const { user, isAdmin, isInstructor, isLearner, getAllCourses, getMyCourses, enrollInCourse, unenrollFromCourse, deleteCourse } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
