@@ -90,7 +90,7 @@ const Users = () => {
     loadDepartments();
   }, [users]);
 
-  const fetchUsers = async () => {
+  const loadUsers = async () => {
     setLoading(true);
     const result = await getAllUsers();
     
