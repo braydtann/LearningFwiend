@@ -154,6 +154,28 @@ const Classrooms = () => {
     }
   };
 
+  const loadDepartments = async () => {
+    setLoadingDepartments(true);
+    try {
+      if (getAllDepartments) {
+        const result = await getAllDepartments();
+        if (result.success) {
+          setRealDepartments(result.departments);
+        } else {
+          console.error('Failed to load departments:', result.error);
+          setRealDepartments(mockDepartments);
+        }
+      } else {
+        setRealDepartments(mockDepartments);
+      }
+    } catch (error) {
+      console.error('Error loading departments:', error);
+      setRealDepartments(mockDepartments);
+    } finally {
+      setLoadingDepartments(false);
+    }
+  };
+
   // Reset form function
   const resetForm = () => {
     setNewClassroom({
