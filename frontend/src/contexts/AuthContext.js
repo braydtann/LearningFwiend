@@ -1,5 +1,15 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
+// Edge compatibility check and polyfill
+if (typeof Promise === 'undefined') {
+  console.error('Promise not supported. Please use a modern browser or add polyfills.');
+}
+
+// Edge fetch polyfill check
+if (typeof fetch === 'undefined') {
+  console.error('Fetch API not supported. Please use a modern browser.');
+}
+
 const AuthContext = createContext();
 
 export const useAuth = () => {
