@@ -10523,6 +10523,915 @@ class BackendTester:
             )
         return False
     
+    
+    # =============================================================================
+    # CLASSROOM AUTO-ENROLLMENT FUNCTIONALITY TESTS - PRIORITY FOCUS
+    # =============================================================================
+    
+    def test_classroom_auto_enrollment_workflow(self):
+        """Test complete classroom auto-enrollment workflow: create classroom with students → verify enrollments created → verify student can access courses"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Classroom Auto-Enrollment Workflow", 
+                "SKIP", 
+                "No admin token available for classroom auto-enrollment test",
+                "Admin authentication required"
+            )
+            return False
+        
+        try:
+            # Step 1: Create test courses first
+            test_courses = []
+            for i in range(2):
+                course_data = {
+                    "title": f"Auto-Enrollment Test Course {i+1}",
+                    "description": f"Course for testing classroom auto-enrollment functionality {i+1}",
+                    "category": "Testing",
+                    "duration": "2 weeks",
+                    "accessType": "open"
+                }
+                
+                course_response = requests.post(
+                    f"{BACKEND_URL}/courses",
+                    json=course_data,
+                    timeout=TEST_TIMEOUT,
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                    }
+                )
+                
+                if course_response.status_code == 200:
+                    test_courses.append(course_response.json())
+                else:
+                    self.log_result(
+                        "Classroom Auto-Enrollment Workflow", 
+                        "FAIL", 
+                        f"Failed to create test course {i+1} for auto-enrollment test",
+                        f"Course creation failed with status: {course_response.status_code}"
+                    )
+                    return False
+            
+            # Step 2: Create test student
+            student_data = {
+                "email": "autoenroll.student@test.com",
+                "username": "autoenroll.student",
+                "full_name": "Auto Enrollment Test Student",
+                "role": "learner",
+                "department": "Testing",
+                "temporary_password": "AutoEnroll123!"
+            }
+            
+            student_response = requests.post(
+                f"{BACKEND_URL}/auth/admin/create-user",
+                json=student_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if student_response.status_code != 200:
+                self.log_result(
+                    "Classroom Auto-Enrollment Workflow", 
+                    "FAIL", 
+                    "Failed to create test student for auto-enrollment test",
+                    f"Student creation failed with status: {student_response.status_code}"
+                )
+                return False
+            
+            test_student = student_response.json()
+            
+            # Step 3: Get instructor for classroom
+            users_response = requests.get(
+                f"{BACKEND_URL}/auth/admin/users",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            if users_response.status_code != 200:
+                self.log_result(
+                    "Classroom Auto-Enrollment Workflow", 
+                    "FAIL", 
+                    "Failed to get users for instructor selection",
+                    f"Users API failed with status: {users_response.status_code}"
+                )
+                return False
+            
+            users = users_response.json()
+            instructor = next((u for u in users if u.get('role') == 'instructor'), None)
+            
+            if not instructor:
+                self.log_result(
+                    "Classroom Auto-Enrollment Workflow", 
+                    "FAIL", 
+                    "No instructor found for classroom creation",
+                    "Instructor user required for classroom auto-enrollment test"
+                )
+                return False
+            
+            # Step 4: Create classroom with student assigned and courses
+            classroom_data = {
+                "name": "Auto-Enrollment Test Classroom",
+                "description": "Testing classroom auto-enrollment functionality",
+                "trainerId": instructor['id'],
+                "courseIds": [course['id'] for course in test_courses],
+                "programIds": [],
+                "studentIds": [test_student['id']],
+                "department": "Testing",
+                "maxStudents": 50
+            }
+            
+            classroom_response = requests.post(
+                f"{BACKEND_URL}/classrooms",
+                json=classroom_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if classroom_response.status_code != 200:
+                self.log_result(
+                    "Classroom Auto-Enrollment Workflow", 
+                    "FAIL", 
+                    f"Failed to create classroom with auto-enrollment (status: {classroom_response.status_code})",
+                    f"Response: {classroom_response.text}"
+                )
+                return False
+            
+            created_classroom = classroom_response.json()
+            
+            # Step 5: Login as student to get token
+            student_login_data = {
+                "username_or_email": "autoenroll.student",
+                "password": "AutoEnroll123!"
+            }
+            
+            student_login_response = requests.post(
+                f"{BACKEND_URL}/auth/login",
+                json=student_login_data,
+                timeout=TEST_TIMEOUT,
+                headers={'Content-Type': 'application/json'}
+            )
+            
+            if student_login_response.status_code != 200:
+                self.log_result(
+                    "Classroom Auto-Enrollment Workflow", 
+                    "FAIL", 
+                    "Failed to login as test student",
+                    f"Student login failed with status: {student_login_response.status_code}"
+                )
+                return False
+            
+            student_token = student_login_response.json().get('access_token')
+            
+            # Step 6: Verify student can see enrolled courses via GET /api/enrollments
+            enrollments_response = requests.get(
+                f"{BACKEND_URL}/enrollments",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {student_token}'}
+            )
+            
+            if enrollments_response.status_code != 200:
+                self.log_result(
+                    "Classroom Auto-Enrollment Workflow", 
+                    "FAIL", 
+                    f"Failed to get student enrollments (status: {enrollments_response.status_code})",
+                    f"Response: {enrollments_response.text}"
+                )
+                return False
+            
+            enrollments = enrollments_response.json()
+            
+            # Step 7: Verify enrollments were created for all classroom courses
+            enrolled_course_ids = [enrollment['courseId'] for enrollment in enrollments]
+            expected_course_ids = [course['id'] for course in test_courses]
+            
+            auto_enrolled_courses = []
+            missing_enrollments = []
+            
+            for course_id in expected_course_ids:
+                if course_id in enrolled_course_ids:
+                    auto_enrolled_courses.append(course_id)
+                else:
+                    missing_enrollments.append(course_id)
+            
+            # Step 8: Verify student can access the courses
+            accessible_courses = []
+            for course in test_courses:
+                course_response = requests.get(
+                    f"{BACKEND_URL}/courses/{course['id']}",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {student_token}'}
+                )
+                
+                if course_response.status_code == 200:
+                    accessible_courses.append(course['id'])
+            
+            # Cleanup - Delete test data
+            try:
+                # Delete classroom
+                requests.delete(
+                    f"{BACKEND_URL}/classrooms/{created_classroom['id']}",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+                )
+                
+                # Delete test student
+                requests.delete(
+                    f"{BACKEND_URL}/auth/admin/users/{test_student['id']}",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+                )
+                
+                # Delete test courses
+                for course in test_courses:
+                    requests.delete(
+                        f"{BACKEND_URL}/courses/{course['id']}",
+                        timeout=TEST_TIMEOUT,
+                        headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+                    )
+            except:
+                pass  # Cleanup errors are not critical
+            
+            # Evaluate results
+            if len(auto_enrolled_courses) == len(expected_course_ids) and len(missing_enrollments) == 0:
+                self.log_result(
+                    "Classroom Auto-Enrollment Workflow", 
+                    "PASS", 
+                    f"✅ COMPLETE AUTO-ENROLLMENT WORKFLOW SUCCESSFUL: Student automatically enrolled in all {len(auto_enrolled_courses)} classroom courses and can access them",
+                    f"✅ Classroom created with {len(expected_course_ids)} courses, ✅ Student auto-enrolled in all courses, ✅ Student can access enrolled courses via GET /api/enrollments ({len(enrollments)} enrollments found), ✅ Student can access individual courses ({len(accessible_courses)} courses accessible)"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Classroom Auto-Enrollment Workflow", 
+                    "FAIL", 
+                    f"❌ AUTO-ENROLLMENT INCOMPLETE: Expected {len(expected_course_ids)} enrollments, got {len(auto_enrolled_courses)}",
+                    f"Auto-enrolled courses: {auto_enrolled_courses}, Missing enrollments: {missing_enrollments}, Accessible courses: {accessible_courses}"
+                )
+                return False
+                
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Classroom Auto-Enrollment Workflow", 
+                "FAIL", 
+                "Failed to test classroom auto-enrollment workflow",
+                str(e)
+            )
+        return False
+    
+    def test_classroom_auto_enrollment_with_programs(self):
+        """Test classroom auto-enrollment with programs - students should be enrolled in all program courses"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Classroom Auto-Enrollment with Programs", 
+                "SKIP", 
+                "No admin token available for program auto-enrollment test",
+                "Admin authentication required"
+            )
+            return False
+        
+        try:
+            # Step 1: Create test courses for program
+            program_courses = []
+            for i in range(2):
+                course_data = {
+                    "title": f"Program Auto-Enrollment Course {i+1}",
+                    "description": f"Course {i+1} for testing program auto-enrollment",
+                    "category": "Testing",
+                    "duration": "3 weeks",
+                    "accessType": "open"
+                }
+                
+                course_response = requests.post(
+                    f"{BACKEND_URL}/courses",
+                    json=course_data,
+                    timeout=TEST_TIMEOUT,
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                    }
+                )
+                
+                if course_response.status_code == 200:
+                    program_courses.append(course_response.json())
+                else:
+                    self.log_result(
+                        "Classroom Auto-Enrollment with Programs", 
+                        "FAIL", 
+                        f"Failed to create program course {i+1}",
+                        f"Course creation failed with status: {course_response.status_code}"
+                    )
+                    return False
+            
+            # Step 2: Create test program with courses
+            program_data = {
+                "title": "Auto-Enrollment Test Program",
+                "description": "Program for testing classroom auto-enrollment with programs",
+                "courseIds": [course['id'] for course in program_courses],
+                "duration": "6 weeks"
+            }
+            
+            program_response = requests.post(
+                f"{BACKEND_URL}/programs",
+                json=program_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if program_response.status_code != 200:
+                self.log_result(
+                    "Classroom Auto-Enrollment with Programs", 
+                    "FAIL", 
+                    "Failed to create test program",
+                    f"Program creation failed with status: {program_response.status_code}"
+                )
+                return False
+            
+            test_program = program_response.json()
+            
+            # Step 3: Create test student
+            student_data = {
+                "email": "program.autoenroll@test.com",
+                "username": "program.autoenroll",
+                "full_name": "Program Auto Enrollment Student",
+                "role": "learner",
+                "department": "Testing",
+                "temporary_password": "ProgramEnroll123!"
+            }
+            
+            student_response = requests.post(
+                f"{BACKEND_URL}/auth/admin/create-user",
+                json=student_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if student_response.status_code != 200:
+                self.log_result(
+                    "Classroom Auto-Enrollment with Programs", 
+                    "FAIL", 
+                    "Failed to create test student for program auto-enrollment",
+                    f"Student creation failed with status: {student_response.status_code}"
+                )
+                return False
+            
+            test_student = student_response.json()
+            
+            # Step 4: Get instructor
+            users_response = requests.get(
+                f"{BACKEND_URL}/auth/admin/users",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            users = users_response.json()
+            instructor = next((u for u in users if u.get('role') == 'instructor'), None)
+            
+            if not instructor:
+                self.log_result(
+                    "Classroom Auto-Enrollment with Programs", 
+                    "FAIL", 
+                    "No instructor found for classroom creation",
+                    "Instructor required for program auto-enrollment test"
+                )
+                return False
+            
+            # Step 5: Create classroom with student and program assigned
+            classroom_data = {
+                "name": "Program Auto-Enrollment Classroom",
+                "description": "Testing program auto-enrollment in classroom",
+                "trainerId": instructor['id'],
+                "courseIds": [],  # No direct courses, only program courses
+                "programIds": [test_program['id']],
+                "studentIds": [test_student['id']],
+                "department": "Testing"
+            }
+            
+            classroom_response = requests.post(
+                f"{BACKEND_URL}/classrooms",
+                json=classroom_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if classroom_response.status_code != 200:
+                self.log_result(
+                    "Classroom Auto-Enrollment with Programs", 
+                    "FAIL", 
+                    f"Failed to create classroom with program (status: {classroom_response.status_code})",
+                    f"Response: {classroom_response.text}"
+                )
+                return False
+            
+            created_classroom = classroom_response.json()
+            
+            # Step 6: Login as student
+            student_login_data = {
+                "username_or_email": "program.autoenroll",
+                "password": "ProgramEnroll123!"
+            }
+            
+            student_login_response = requests.post(
+                f"{BACKEND_URL}/auth/login",
+                json=student_login_data,
+                timeout=TEST_TIMEOUT,
+                headers={'Content-Type': 'application/json'}
+            )
+            
+            if student_login_response.status_code != 200:
+                self.log_result(
+                    "Classroom Auto-Enrollment with Programs", 
+                    "FAIL", 
+                    "Failed to login as program test student",
+                    f"Student login failed with status: {student_login_response.status_code}"
+                )
+                return False
+            
+            student_token = student_login_response.json().get('access_token')
+            
+            # Step 7: Check student enrollments
+            enrollments_response = requests.get(
+                f"{BACKEND_URL}/enrollments",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {student_token}'}
+            )
+            
+            if enrollments_response.status_code != 200:
+                self.log_result(
+                    "Classroom Auto-Enrollment with Programs", 
+                    "FAIL", 
+                    f"Failed to get program student enrollments (status: {enrollments_response.status_code})",
+                    f"Response: {enrollments_response.text}"
+                )
+                return False
+            
+            enrollments = enrollments_response.json()
+            enrolled_course_ids = [enrollment['courseId'] for enrollment in enrollments]
+            expected_program_course_ids = [course['id'] for course in program_courses]
+            
+            # Verify all program courses are enrolled
+            program_enrollments = []
+            missing_program_enrollments = []
+            
+            for course_id in expected_program_course_ids:
+                if course_id in enrolled_course_ids:
+                    program_enrollments.append(course_id)
+                else:
+                    missing_program_enrollments.append(course_id)
+            
+            # Cleanup
+            try:
+                requests.delete(f"{BACKEND_URL}/classrooms/{created_classroom['id']}", timeout=TEST_TIMEOUT, headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'})
+                requests.delete(f"{BACKEND_URL}/auth/admin/users/{test_student['id']}", timeout=TEST_TIMEOUT, headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'})
+                requests.delete(f"{BACKEND_URL}/programs/{test_program['id']}", timeout=TEST_TIMEOUT, headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'})
+                for course in program_courses:
+                    requests.delete(f"{BACKEND_URL}/courses/{course['id']}", timeout=TEST_TIMEOUT, headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'})
+            except:
+                pass
+            
+            # Evaluate results
+            if len(program_enrollments) == len(expected_program_course_ids) and len(missing_program_enrollments) == 0:
+                self.log_result(
+                    "Classroom Auto-Enrollment with Programs", 
+                    "PASS", 
+                    f"✅ PROGRAM AUTO-ENROLLMENT SUCCESSFUL: Student automatically enrolled in all {len(program_enrollments)} program courses",
+                    f"✅ Program created with {len(expected_program_course_ids)} courses, ✅ Classroom created with program assigned, ✅ Student auto-enrolled in all program courses, ✅ Total enrollments found: {len(enrollments)}"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Classroom Auto-Enrollment with Programs", 
+                    "FAIL", 
+                    f"❌ PROGRAM AUTO-ENROLLMENT INCOMPLETE: Expected {len(expected_program_course_ids)} program enrollments, got {len(program_enrollments)}",
+                    f"Program enrollments: {program_enrollments}, Missing: {missing_program_enrollments}"
+                )
+                return False
+                
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Classroom Auto-Enrollment with Programs", 
+                "FAIL", 
+                "Failed to test program auto-enrollment",
+                str(e)
+            )
+        return False
+    
+    def test_classroom_auto_enrollment_mixed_courses_programs(self):
+        """Test classroom auto-enrollment with both direct courses and program courses"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Classroom Mixed Auto-Enrollment", 
+                "SKIP", 
+                "No admin token available for mixed auto-enrollment test",
+                "Admin authentication required"
+            )
+            return False
+        
+        try:
+            # Create direct courses
+            direct_courses = []
+            course_data = {
+                "title": "Direct Course for Mixed Test",
+                "description": "Direct course for mixed auto-enrollment test",
+                "category": "Testing",
+                "duration": "2 weeks",
+                "accessType": "open"
+            }
+            
+            course_response = requests.post(
+                f"{BACKEND_URL}/courses",
+                json=course_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if course_response.status_code == 200:
+                direct_courses.append(course_response.json())
+            
+            # Create program courses
+            program_courses = []
+            program_course_data = {
+                "title": "Program Course for Mixed Test",
+                "description": "Program course for mixed auto-enrollment test",
+                "category": "Testing",
+                "duration": "3 weeks",
+                "accessType": "open"
+            }
+            
+            program_course_response = requests.post(
+                f"{BACKEND_URL}/courses",
+                json=program_course_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if program_course_response.status_code == 200:
+                program_courses.append(program_course_response.json())
+            
+            # Create program
+            program_data = {
+                "title": "Mixed Test Program",
+                "description": "Program for mixed auto-enrollment test",
+                "courseIds": [course['id'] for course in program_courses],
+                "duration": "3 weeks"
+            }
+            
+            program_response = requests.post(
+                f"{BACKEND_URL}/programs",
+                json=program_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if program_response.status_code != 200:
+                self.log_result(
+                    "Classroom Mixed Auto-Enrollment", 
+                    "FAIL", 
+                    "Failed to create test program for mixed test",
+                    f"Program creation failed with status: {program_response.status_code}"
+                )
+                return False
+            
+            test_program = program_response.json()
+            
+            # Create test student
+            student_data = {
+                "email": "mixed.autoenroll@test.com",
+                "username": "mixed.autoenroll",
+                "full_name": "Mixed Auto Enrollment Student",
+                "role": "learner",
+                "department": "Testing",
+                "temporary_password": "MixedEnroll123!"
+            }
+            
+            student_response = requests.post(
+                f"{BACKEND_URL}/auth/admin/create-user",
+                json=student_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if student_response.status_code != 200:
+                self.log_result(
+                    "Classroom Mixed Auto-Enrollment", 
+                    "FAIL", 
+                    "Failed to create test student for mixed auto-enrollment",
+                    f"Student creation failed with status: {student_response.status_code}"
+                )
+                return False
+            
+            test_student = student_response.json()
+            
+            # Get instructor
+            users_response = requests.get(
+                f"{BACKEND_URL}/auth/admin/users",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            users = users_response.json()
+            instructor = next((u for u in users if u.get('role') == 'instructor'), None)
+            
+            # Create classroom with both direct courses and programs
+            classroom_data = {
+                "name": "Mixed Auto-Enrollment Classroom",
+                "description": "Testing mixed course and program auto-enrollment",
+                "trainerId": instructor['id'],
+                "courseIds": [course['id'] for course in direct_courses],
+                "programIds": [test_program['id']],
+                "studentIds": [test_student['id']],
+                "department": "Testing"
+            }
+            
+            classroom_response = requests.post(
+                f"{BACKEND_URL}/classrooms",
+                json=classroom_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if classroom_response.status_code != 200:
+                self.log_result(
+                    "Classroom Mixed Auto-Enrollment", 
+                    "FAIL", 
+                    f"Failed to create mixed classroom (status: {classroom_response.status_code})",
+                    f"Response: {classroom_response.text}"
+                )
+                return False
+            
+            created_classroom = classroom_response.json()
+            
+            # Login as student and check enrollments
+            student_login_data = {
+                "username_or_email": "mixed.autoenroll",
+                "password": "MixedEnroll123!"
+            }
+            
+            student_login_response = requests.post(
+                f"{BACKEND_URL}/auth/login",
+                json=student_login_data,
+                timeout=TEST_TIMEOUT,
+                headers={'Content-Type': 'application/json'}
+            )
+            
+            student_token = student_login_response.json().get('access_token')
+            
+            enrollments_response = requests.get(
+                f"{BACKEND_URL}/enrollments",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {student_token}'}
+            )
+            
+            enrollments = enrollments_response.json()
+            enrolled_course_ids = [enrollment['courseId'] for enrollment in enrollments]
+            
+            # Expected: all direct courses + all program courses
+            expected_direct_course_ids = [course['id'] for course in direct_courses]
+            expected_program_course_ids = [course['id'] for course in program_courses]
+            all_expected_course_ids = expected_direct_course_ids + expected_program_course_ids
+            
+            enrolled_direct = [cid for cid in expected_direct_course_ids if cid in enrolled_course_ids]
+            enrolled_program = [cid for cid in expected_program_course_ids if cid in enrolled_course_ids]
+            
+            # Cleanup
+            try:
+                requests.delete(f"{BACKEND_URL}/classrooms/{created_classroom['id']}", timeout=TEST_TIMEOUT, headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'})
+                requests.delete(f"{BACKEND_URL}/auth/admin/users/{test_student['id']}", timeout=TEST_TIMEOUT, headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'})
+                requests.delete(f"{BACKEND_URL}/programs/{test_program['id']}", timeout=TEST_TIMEOUT, headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'})
+                for course in direct_courses + program_courses:
+                    requests.delete(f"{BACKEND_URL}/courses/{course['id']}", timeout=TEST_TIMEOUT, headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'})
+            except:
+                pass
+            
+            # Evaluate results
+            total_enrolled = len(enrolled_direct) + len(enrolled_program)
+            total_expected = len(all_expected_course_ids)
+            
+            if total_enrolled == total_expected:
+                self.log_result(
+                    "Classroom Mixed Auto-Enrollment", 
+                    "PASS", 
+                    f"✅ MIXED AUTO-ENROLLMENT SUCCESSFUL: Student enrolled in all {total_enrolled} courses (direct + program)",
+                    f"✅ Direct courses enrolled: {len(enrolled_direct)}/{len(expected_direct_course_ids)}, ✅ Program courses enrolled: {len(enrolled_program)}/{len(expected_program_course_ids)}, ✅ Total enrollments: {len(enrollments)}"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Classroom Mixed Auto-Enrollment", 
+                    "FAIL", 
+                    f"❌ MIXED AUTO-ENROLLMENT INCOMPLETE: Expected {total_expected} enrollments, got {total_enrolled}",
+                    f"Direct enrolled: {enrolled_direct}, Program enrolled: {enrolled_program}"
+                )
+                return False
+                
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Classroom Mixed Auto-Enrollment", 
+                "FAIL", 
+                "Failed to test mixed auto-enrollment",
+                str(e)
+            )
+        return False
+    
+    def test_classroom_auto_enrollment_duplicate_prevention(self):
+        """Test that auto-enrollment prevents duplicate enrollments if student is already enrolled"""
+        if "admin" not in self.auth_tokens or "learner" not in self.auth_tokens:
+            self.log_result(
+                "Auto-Enrollment Duplicate Prevention", 
+                "SKIP", 
+                "Admin and learner tokens required for duplicate prevention test",
+                "Both admin and learner authentication required"
+            )
+            return False
+        
+        try:
+            # Create test course
+            course_data = {
+                "title": "Duplicate Prevention Test Course",
+                "description": "Course for testing duplicate enrollment prevention",
+                "category": "Testing",
+                "duration": "2 weeks",
+                "accessType": "open"
+            }
+            
+            course_response = requests.post(
+                f"{BACKEND_URL}/courses",
+                json=course_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if course_response.status_code != 200:
+                self.log_result(
+                    "Auto-Enrollment Duplicate Prevention", 
+                    "FAIL", 
+                    "Failed to create test course for duplicate prevention test",
+                    f"Course creation failed with status: {course_response.status_code}"
+                )
+                return False
+            
+            test_course = course_response.json()
+            
+            # Get existing learner user
+            users_response = requests.get(
+                f"{BACKEND_URL}/auth/admin/users",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            users = users_response.json()
+            learner = next((u for u in users if u.get('role') == 'learner'), None)
+            instructor = next((u for u in users if u.get('role') == 'instructor'), None)
+            
+            if not learner or not instructor:
+                self.log_result(
+                    "Auto-Enrollment Duplicate Prevention", 
+                    "FAIL", 
+                    "Required users not found for duplicate prevention test",
+                    f"Learner found: {bool(learner)}, Instructor found: {bool(instructor)}"
+                )
+                return False
+            
+            # Step 1: Manually enroll student in course first
+            enrollment_data = {"courseId": test_course['id']}
+            
+            manual_enrollment_response = requests.post(
+                f"{BACKEND_URL}/enrollments",
+                json=enrollment_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["learner"]}'
+                }
+            )
+            
+            if manual_enrollment_response.status_code != 200:
+                self.log_result(
+                    "Auto-Enrollment Duplicate Prevention", 
+                    "FAIL", 
+                    "Failed to manually enroll student for duplicate test",
+                    f"Manual enrollment failed with status: {manual_enrollment_response.status_code}"
+                )
+                return False
+            
+            # Step 2: Get initial enrollment count
+            initial_enrollments_response = requests.get(
+                f"{BACKEND_URL}/enrollments",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["learner"]}'}
+            )
+            
+            initial_enrollments = initial_enrollments_response.json()
+            initial_count = len(initial_enrollments)
+            
+            # Step 3: Create classroom with same student and course (should not create duplicate)
+            classroom_data = {
+                "name": "Duplicate Prevention Classroom",
+                "description": "Testing duplicate enrollment prevention",
+                "trainerId": instructor['id'],
+                "courseIds": [test_course['id']],
+                "programIds": [],
+                "studentIds": [learner['id']],
+                "department": "Testing"
+            }
+            
+            classroom_response = requests.post(
+                f"{BACKEND_URL}/classrooms",
+                json=classroom_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if classroom_response.status_code != 200:
+                self.log_result(
+                    "Auto-Enrollment Duplicate Prevention", 
+                    "FAIL", 
+                    f"Failed to create classroom for duplicate test (status: {classroom_response.status_code})",
+                    f"Response: {classroom_response.text}"
+                )
+                return False
+            
+            created_classroom = classroom_response.json()
+            
+            # Step 4: Check final enrollment count (should be same as initial)
+            final_enrollments_response = requests.get(
+                f"{BACKEND_URL}/enrollments",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["learner"]}'}
+            )
+            
+            final_enrollments = final_enrollments_response.json()
+            final_count = len(final_enrollments)
+            
+            # Cleanup
+            try:
+                requests.delete(f"{BACKEND_URL}/classrooms/{created_classroom['id']}", timeout=TEST_TIMEOUT, headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'})
+                requests.delete(f"{BACKEND_URL}/courses/{test_course['id']}", timeout=TEST_TIMEOUT, headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'})
+            except:
+                pass
+            
+            # Evaluate results
+            if final_count == initial_count:
+                self.log_result(
+                    "Auto-Enrollment Duplicate Prevention", 
+                    "PASS", 
+                    f"✅ DUPLICATE PREVENTION SUCCESSFUL: No duplicate enrollment created (maintained {final_count} enrollments)",
+                    f"✅ Initial enrollments: {initial_count}, ✅ Final enrollments: {final_count}, ✅ No duplicates created during classroom auto-enrollment"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Auto-Enrollment Duplicate Prevention", 
+                    "FAIL", 
+                    f"❌ DUPLICATE PREVENTION FAILED: Enrollment count changed from {initial_count} to {final_count}",
+                    f"Duplicate enrollments may have been created during classroom auto-enrollment"
+                )
+                return False
+                
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Auto-Enrollment Duplicate Prevention", 
+                "FAIL", 
+                "Failed to test duplicate enrollment prevention",
+                str(e)
+            )
+        return False
+
     def run_all_tests(self):
         """Run all backend tests with focus on classroom creation fix"""
         print("🚀 Starting Backend Testing Suite for LearningFwiend LMS")
