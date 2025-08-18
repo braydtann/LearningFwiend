@@ -137,11 +137,31 @@ const Courses = () => {
 
   const handleViewCourse = (courseId, action = 'view') => {
     const course = courses.find(c => c.id === courseId);
+    
+    if (!course) {
+      toast({
+        title: "Course not found",
+        description: "The requested course could not be found.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     const isEnrolled = enrolledCourseIds.includes(courseId);
     const isOwner = course && course.instructor === user?.username;
     
     // If it's a preview action or user is not enrolled and not owner, show preview
     if (action === 'preview' || (!isEnrolled && !isOwner && action === 'view')) {
+      // Ensure course has required structure for preview
+      if (!course.modules || course.modules.length === 0) {
+        toast({
+          title: "Preview not available",
+          description: "This course doesn't have any modules to preview yet.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       setPreviewCourse(course);
       setIsPreviewOpen(true);
     } else {
