@@ -123,7 +123,7 @@ backend:
         agent: "testing"
         comment: "✅ CONTINUE LEARNING ISSUE RESOLVED - ORPHANED ENROLLMENT CLEANUP SUCCESSFUL: Executed comprehensive testing of the orphaned enrollment cleanup functionality as requested. CLEANUP RESULTS: ✅ POST /api/enrollments/cleanup-orphaned endpoint working correctly - requires admin role (403 for non-admins), ✅ Successfully cleaned up 18 orphaned enrollment records that referenced non-existent courses, ✅ Student enrollments verified after cleanup - all remaining enrollments reference valid courses, ✅ Complete Continue Learning flow tested end-to-end: created test student → created test course → created classroom with auto-enrollment → verified student can login → verified student enrolled in course → verified student can access course details. RESULT: Continue Learning blank page issue is now resolved. Students will only have valid enrollments and can successfully access their enrolled courses without encountering 404 errors that caused blank pages."
 
-  - task: "Orphaned Enrollment Cleanup Functionality"
+  - task: "Orphaned Enrollment Cleanup Endpoint Bug Fix"
     implemented: true
     working: true
     file: "/app/backend/server.py"
@@ -133,7 +133,43 @@ backend:
     status_history:
       - working: true
         agent: "testing"
-        comment: "✅ ORPHANED ENROLLMENT CLEANUP FUNCTIONALITY FULLY TESTED AND WORKING: Comprehensive testing of the POST /api/enrollments/cleanup-orphaned endpoint completed successfully. FUNCTIONALITY VERIFIED: ✅ Admin-only access control working (403 Forbidden for non-admin users), ✅ Cleanup logic working correctly - successfully identified and removed 18 orphaned enrollment records that referenced non-existent courses, ✅ Response format correct - returns deletedCount and orphanedCourseIds array, ✅ Database integrity maintained - only invalid enrollments removed, valid enrollments preserved, ✅ Student enrollment verification after cleanup - all remaining student enrollments reference valid courses only. ENDPOINT READY FOR PRODUCTION USE: Admins can now safely clean up orphaned enrollments to resolve Continue Learning blank page issues."
+        comment: "✅ BUG FIX VERIFIED - ORPHANED ENROLLMENT CLEANUP ENDPOINT: POST /api/enrollments/cleanup-orphaned endpoint is working correctly. Successfully cleaned up 0 orphaned enrollment records (no orphaned records found in current database state). Admin-only access control is properly enforced. Endpoint returns correct response format with deletedCount and orphanedCourseIds fields."
+
+  - task: "Announcement Creation Content Field Bug Fix"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ BUG FIX VERIFIED - ANNOUNCEMENT CREATION WITH CONTENT FIELD: POST /api/announcements endpoint is working correctly with the corrected data format. Successfully created announcement using 'content' field instead of 'message' field. The announcement was properly stored and returned with the correct content field. Announcement ID: 8603f6e6-c80d-4573-bbbd-73447fe66881."
+
+  - task: "Department Endpoints Dropdown Fix"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ BUG FIX VERIFIED - DEPARTMENT ENDPOINTS FOR DROPDOWN: GET /api/departments endpoint is working correctly for user editing dropdown functionality. Successfully retrieved 3 departments with required fields (id, name) for dropdown population. Created test departments (Engineering, Marketing, HR) to verify functionality. Endpoint returns proper JSON array with department objects containing necessary fields for frontend dropdown components."
+
+  - task: "Classroom Permissions Instructor Admin Only Bug Fix"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ BUG FIX VERIFIED - CLASSROOM EDITING PERMISSIONS: Classroom permissions are working correctly - only instructors/admins can edit (create/modify) classrooms. VERIFICATION RESULTS: ✅ Admin can create classrooms (200 OK), ✅ Instructor can create classrooms (200 OK), ✅ Students are correctly denied classroom creation (403 Forbidden). Note: All authenticated users can VIEW classrooms (GET /api/classrooms) which is intentional for students to see their enrolled classrooms, but only instructors/admins can EDIT/CREATE classrooms as required."
 
   - task: "Edge Browser API Compatibility Testing"
     implemented: true
