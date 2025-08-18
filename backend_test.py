@@ -11831,6 +11831,12 @@ class BackendTester:
             print("\n🎯 COURSE ENROLLMENT FIX TESTING - USER REQUEST (HIGHEST PRIORITY)")
             print("=" * 50)
             self.test_course_enrollment_fix_comprehensive()
+            
+        # CLASSROOM AUTO-ENROLLMENT INVESTIGATION - USER ISSUE (CRITICAL PRIORITY)
+        if self.auth_tokens:
+            print("\n🔍 CLASSROOM AUTO-ENROLLMENT INVESTIGATION - USER ISSUE (CRITICAL)")
+            print("=" * 50)
+            self.test_classroom_auto_enrollment_investigation()
         
         # CLASSROOM CREATION FIX TESTING - PRIORITY FOCUS
         if self.auth_tokens:
