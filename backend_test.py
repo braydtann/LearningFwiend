@@ -12710,6 +12710,363 @@ class BackendTester:
             )
         return False
 
+    # =============================================================================
+    # CONTINUE LEARNING BLANK PAGE INVESTIGATION TESTS
+    # =============================================================================
+    
+    def test_continue_learning_investigation(self):
+        """Comprehensive investigation of Continue Learning blank page issue"""
+        print("\n🔍 CONTINUE LEARNING BLANK PAGE INVESTIGATION")
+        print("=" * 60)
+        
+        # Step 1: Check available courses in database
+        available_courses = self.test_get_available_courses()
+        
+        # Step 2: Test specific course retrieval
+        if available_courses:
+            self.test_specific_course_retrieval(available_courses)
+        
+        # Step 3: Check student enrollments
+        self.test_student_enrollments()
+        
+        # Step 4: Test course detail endpoint with real course IDs
+        if available_courses:
+            self.test_course_detail_endpoints(available_courses)
+        
+        # Step 5: Verify course data structure
+        if available_courses:
+            self.test_course_data_structure(available_courses)
+    
+    def test_get_available_courses(self):
+        """Test GET /api/courses to see what courses are available"""
+        if "learner" not in self.auth_tokens:
+            # Try to login as student first
+            self.test_student_login()
+        
+        if "learner" not in self.auth_tokens:
+            self.log_result(
+                "Get Available Courses", 
+                "SKIP", 
+                "No student token available for course listing test",
+                "Student authentication required"
+            )
+            return []
+        
+        try:
+            response = requests.get(
+                f"{BACKEND_URL}/courses",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["learner"]}'}
+            )
+            
+            if response.status_code == 200:
+                courses = response.json()
+                course_details = []
+                
+                for course in courses:
+                    course_info = {
+                        'id': course.get('id'),
+                        'title': course.get('title'),
+                        'status': course.get('status'),
+                        'instructor': course.get('instructor'),
+                        'modules': len(course.get('modules', []))
+                    }
+                    course_details.append(course_info)
+                
+                course_titles = []
+                for c in course_details[:3]:
+                    title = c['title']
+                    course_id = c['id'][:8] if c['id'] else 'unknown'
+                    course_titles.append(f"{title} (ID: {course_id}...)")
+                
+                self.log_result(
+                    "Get Available Courses", 
+                    "PASS", 
+                    f"Successfully retrieved {len(courses)} available courses from database",
+                    f"Courses: {course_titles}"
+                )
+                return courses
+            else:
+                self.log_result(
+                    "Get Available Courses", 
+                    "FAIL", 
+                    f"Failed to retrieve courses, status: {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Get Available Courses", 
+                "FAIL", 
+                "Failed to test course retrieval",
+                str(e)
+            )
+        return []
+    
+    def test_specific_course_retrieval(self, courses):
+        """Test GET /api/courses/{course_id} for specific courses"""
+        if not courses:
+            self.log_result(
+                "Specific Course Retrieval", 
+                "SKIP", 
+                "No courses available for specific retrieval test",
+                "Course availability required"
+            )
+            return
+        
+        # Test first 3 courses
+        test_courses = courses[:3]
+        successful_retrievals = 0
+        failed_retrievals = 0
+        
+        for course in test_courses:
+            course_id = course.get('id')
+            course_title = course.get('title', 'Unknown')
+            
+            try:
+                response = requests.get(
+                    f"{BACKEND_URL}/courses/{course_id}",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {self.auth_tokens["learner"]}'}
+                )
+                
+                if response.status_code == 200:
+                    retrieved_course = response.json()
+                    successful_retrievals += 1
+                    
+                    # Check if course has proper data structure
+                    required_fields = ['id', 'title', 'description', 'modules']
+                    missing_fields = [field for field in required_fields if field not in retrieved_course]
+                    
+                    if not missing_fields:
+                        print(f"   ✅ Course '{course_title}' (ID: {course_id[:8]}...) retrieved successfully")
+                    else:
+                        print(f"   ⚠️  Course '{course_title}' missing fields: {missing_fields}")
+                        
+                elif response.status_code == 404:
+                    failed_retrievals += 1
+                    print(f"   ❌ Course '{course_title}' (ID: {course_id[:8]}...) not found (404)")
+                else:
+                    failed_retrievals += 1
+                    print(f"   ❌ Course '{course_title}' retrieval failed with status {response.status_code}")
+                    
+            except requests.exceptions.RequestException as e:
+                failed_retrievals += 1
+                print(f"   ❌ Course '{course_title}' retrieval error: {str(e)}")
+        
+        if successful_retrievals > 0:
+            self.log_result(
+                "Specific Course Retrieval", 
+                "PASS", 
+                f"Successfully retrieved {successful_retrievals}/{len(test_courses)} courses by ID",
+                f"Course detail endpoints working for individual course access"
+            )
+        else:
+            self.log_result(
+                "Specific Course Retrieval", 
+                "FAIL", 
+                f"Failed to retrieve any courses by ID ({failed_retrievals}/{len(test_courses)} failed)",
+                f"Course detail endpoints may be causing blank page issue"
+            )
+    
+    def test_student_enrollments(self):
+        """Test GET /api/enrollments to see what courses student is enrolled in"""
+        if "learner" not in self.auth_tokens:
+            self.log_result(
+                "Student Enrollments", 
+                "SKIP", 
+                "No student token available for enrollment test",
+                "Student authentication required"
+            )
+            return []
+        
+        try:
+            response = requests.get(
+                f"{BACKEND_URL}/enrollments",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["learner"]}'}
+            )
+            
+            if response.status_code == 200:
+                enrollments = response.json()
+                
+                if enrollments:
+                    enrollment_details = []
+                    for enrollment in enrollments:
+                        enrollment_info = {
+                            'courseId': enrollment.get('courseId'),
+                            'enrolledAt': enrollment.get('enrolledAt'),
+                            'progress': enrollment.get('progress', 0),
+                            'status': enrollment.get('status')
+                        }
+                        enrollment_details.append(enrollment_info)
+                    
+                    enrolled_course_ids = []
+                    for e in enrollment_details[:3]:
+                        course_id = e['courseId'][:8] if e['courseId'] else 'unknown'
+                        enrolled_course_ids.append(course_id + '...')
+                    
+                    self.log_result(
+                        "Student Enrollments", 
+                        "PASS", 
+                        f"Student has {len(enrollments)} course enrollments",
+                        f"Enrolled courses: {enrolled_course_ids}"
+                    )
+                    return enrollments
+                else:
+                    self.log_result(
+                        "Student Enrollments", 
+                        "PASS", 
+                        "Student has no course enrollments (empty list)",
+                        "This could explain blank 'Continue Learning' page - no enrolled courses"
+                    )
+                    return []
+            else:
+                self.log_result(
+                    "Student Enrollments", 
+                    "FAIL", 
+                    f"Failed to retrieve student enrollments, status: {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Student Enrollments", 
+                "FAIL", 
+                "Failed to test student enrollments",
+                str(e)
+            )
+        return []
+    
+    def test_course_detail_endpoints(self, courses):
+        """Test course detail endpoints with real course IDs from database"""
+        if not courses:
+            self.log_result(
+                "Course Detail Endpoints", 
+                "SKIP", 
+                "No courses available for endpoint testing",
+                "Course availability required"
+            )
+            return
+        
+        # Test with first course
+        test_course = courses[0]
+        course_id = test_course.get('id')
+        course_title = test_course.get('title', 'Unknown')
+        
+        try:
+            # Test the exact endpoint that CourseDetail.js would call
+            response = requests.get(
+                f"{BACKEND_URL}/courses/{course_id}",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["learner"]}'}
+            )
+            
+            if response.status_code == 200:
+                course_data = response.json()
+                
+                # Check for fields that CourseDetail.js needs
+                critical_fields = ['id', 'title', 'description', 'modules', 'instructor']
+                missing_critical = [field for field in critical_fields if field not in course_data]
+                
+                # Check modules structure
+                modules = course_data.get('modules', [])
+                modules_valid = True
+                if modules:
+                    for module in modules:
+                        if not isinstance(module, dict) or 'title' not in module:
+                            modules_valid = False
+                            break
+                
+                if not missing_critical and modules_valid:
+                    self.log_result(
+                        "Course Detail Endpoints", 
+                        "PASS", 
+                        f"Course detail endpoint returns complete data for CourseDetail.js",
+                        f"Course '{course_title}' has all required fields and {len(modules)} modules"
+                    )
+                else:
+                    self.log_result(
+                        "Course Detail Endpoints", 
+                        "FAIL", 
+                        f"Course detail endpoint missing critical data for CourseDetail.js",
+                        f"Missing fields: {missing_critical}, Modules valid: {modules_valid}"
+                    )
+            else:
+                self.log_result(
+                    "Course Detail Endpoints", 
+                    "FAIL", 
+                    f"Course detail endpoint failed for valid course ID, status: {response.status_code}",
+                    f"This would cause CourseDetail.js to show blank page. Course ID: {course_id}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Course Detail Endpoints", 
+                "FAIL", 
+                "Course detail endpoint request failed",
+                f"Network error would cause blank page: {str(e)}"
+            )
+    
+    def test_course_data_structure(self, courses):
+        """Verify course data structure matches what frontend expects"""
+        if not courses:
+            self.log_result(
+                "Course Data Structure", 
+                "SKIP", 
+                "No courses available for data structure test",
+                "Course availability required"
+            )
+            return
+        
+        # Analyze first few courses
+        test_courses = courses[:3]
+        structure_issues = []
+        valid_courses = 0
+        
+        for course in test_courses:
+            course_title = course.get('title', 'Unknown')
+            issues = []
+            
+            # Check required fields
+            required_fields = ['id', 'title', 'description', 'instructor', 'modules']
+            for field in required_fields:
+                if field not in course:
+                    issues.append(f"Missing {field}")
+            
+            # Check modules structure
+            modules = course.get('modules', [])
+            if not isinstance(modules, list):
+                issues.append("Modules is not a list")
+            else:
+                for i, module in enumerate(modules):
+                    if not isinstance(module, dict):
+                        issues.append(f"Module {i} is not an object")
+                    elif 'title' not in module:
+                        issues.append(f"Module {i} missing title")
+            
+            # Check ID format (should be UUID)
+            course_id = course.get('id', '')
+            if not course_id or len(course_id) < 30:
+                issues.append("Invalid course ID format")
+            
+            if issues:
+                structure_issues.append(f"Course '{course_title}': {', '.join(issues)}")
+            else:
+                valid_courses += 1
+        
+        if valid_courses == len(test_courses):
+            self.log_result(
+                "Course Data Structure", 
+                "PASS", 
+                f"All {len(test_courses)} tested courses have valid data structure",
+                f"Course data structure matches frontend expectations"
+            )
+        else:
+            self.log_result(
+                "Course Data Structure", 
+                "FAIL", 
+                f"Data structure issues found in {len(structure_issues)} courses",
+                f"Issues: {'; '.join(structure_issues[:2])}"
+            )
+
     def run_all_tests(self):
         """Run all backend tests with focus on classroom creation fix"""
         print("🚀 Starting Backend Testing Suite for LearningFwiend LMS")
