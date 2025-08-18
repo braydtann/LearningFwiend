@@ -370,7 +370,7 @@ const Courses = () => {
                           }}
                         >
                           <Play className="w-4 h-4 mr-2" />
-                          {isOwner ? 'Manage' : isEnrolled ? 'Continue' : 'Preview'}
+                          {canEdit ? 'Manage' : isEnrolled ? 'Continue' : 'Preview'}
                         </Button>
                       </div>
                     </div>
