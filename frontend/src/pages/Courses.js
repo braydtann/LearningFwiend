@@ -27,9 +27,8 @@ const Courses = () => {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [previewCourse, setPreviewCourse] = useState(null);
 
-  // TODO: Replace with backend enrollment data when enrollment APIs are fully implemented
-  // For now, using mock data as fallback for enrolled courses display
-  const enrolledCourses = [];  // Replace with backend call when ready
+  // Get enrolled courses for learners
+  const enrolledCourses = isLearner ? enrollments.map(enrollment => enrollment.course).filter(Boolean) : [];
   const enrolledCourseIds = enrolledCourses.map(course => course.id);
 
   // Load courses on component mount
