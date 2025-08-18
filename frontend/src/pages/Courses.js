@@ -199,13 +199,10 @@ const Courses = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            {user?.role === 'instructor' ? 'My Courses' : 'All Courses'}
+            All Courses
           </h1>
           <p className="text-gray-600">
-            {user?.role === 'instructor' 
-              ? 'Manage and track your created courses'
-              : 'Discover and enroll in courses'
-            }
+            Discover and manage all available courses
           </p>
         </div>
         {user?.role === 'instructor' && (
