@@ -362,8 +362,7 @@ const Courses = () => {
                           className="bg-white text-black hover:bg-gray-100"
                           onClick={() => {
                             const isEnrolled = enrolledCourseIds.includes(course.id);
-                            const isOwner = course.instructor === user?.username;
-                            if (isOwner || isEnrolled) {
+                            if (canEdit || isEnrolled) {
                               handleViewCourse(course.id, 'view');
                             } else {
                               handlePreviewCourse(course.id);
