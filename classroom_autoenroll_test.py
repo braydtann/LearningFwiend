@@ -12,7 +12,7 @@ from datetime import datetime
 import time
 
 # Configuration
-BACKEND_URL = "https://03cfefa1-083c-4699-a0b1-524999ee34d1.preview.emergentagent.com/api"
+BACKEND_URL = "https://edusys-migration.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 class ClassroomAutoEnrollmentTester:
