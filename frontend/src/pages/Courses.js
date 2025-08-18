@@ -343,6 +343,7 @@ const Courses = () => {
               {filteredCourses.map((course) => {
                 const isEnrolled = enrolledCourseIds.includes(course.id);
                 const isOwner = user?.id === course.instructorId;
+                const canEdit = isOwner || isAdmin; // Admins can edit any course
                 
                 return (
                   <Card key={course.id} className="hover:shadow-lg transition-shadow">
