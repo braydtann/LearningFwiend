@@ -32,9 +32,15 @@ export const AuthProvider = ({ children }) => {
 
       // Validate token by getting current user info
       const response = await fetch(`${backendUrl}/api/auth/me`, {
+        method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache'
+        },
+        credentials: 'same-origin',
+        cache: 'no-cache'
       });
 
       if (response.ok) {
