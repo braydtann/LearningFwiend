@@ -18178,18 +18178,51 @@ class BackendTester:
 if __name__ == "__main__":
     tester = BackendTester()
     
-    # Run NEW ADMIN CREDENTIALS TESTING based on review request
-    print("🔐 EXECUTING NEW ADMIN CREDENTIALS TESTING SUITE")
-    print("Based on review request: Test new system administrator login after updating admin credentials")
+    # Run ENROLLMENT API TESTING based on review request
+    print("📚 EXECUTING ENROLLMENT API TESTING SUITE")
+    print("Based on review request: Test enrollment functionality to verify fixes work")
+    print()
+    print("=" * 80)
+    print("📚 ENROLLMENT API TESTING - CRITICAL PRIORITY")
+    print("=" * 80)
+    print("Testing enrollment functionality fixes:")
+    print("• POST /api/enrollments endpoint for student self-enrollment")
+    print("• GET /api/enrollments endpoint for students to view enrollments")
+    print("• Response models working correctly without Pydantic validation errors")
+    print("• Complete enrollment workflow: login → enroll → view enrollments")
+    print("• Model mismatch issues resolved (userId/enrolledAt vs studentId/enrollmentDate)")
+    print("=" * 80)
+    print()
     
-    admin_summary = tester.run_new_admin_credentials_tests()
+    # Run authentication first
+    print("🔐 AUTHENTICATION SETUP")
+    print("=" * 50)
+    tester.test_admin_login()
+    tester.test_instructor_login()
+    tester.test_student_login()
     
-    # Exit with appropriate code based on admin credentials testing
-    if admin_summary['assessment'] in ['EXCELLENT', 'GOOD']:
-        print(f"\n✅ NEW ADMIN CREDENTIALS TESTING COMPLETED SUCCESSFULLY")
-        print(f"Assessment: {admin_summary['assessment']}")
-        sys.exit(0)
-    else:
-        print(f"\n❌ NEW ADMIN CREDENTIALS TESTING FAILED")
-        print(f"Assessment: {admin_summary['assessment']}")
-        sys.exit(1)
+    # Run enrollment API tests
+    enrollment_tests = [
+        ("Enrollment API - POST /api/enrollments", tester.test_enrollment_api_post),
+        ("Enrollment API - GET /api/enrollments", tester.test_enrollment_api_get_my_enrollments),
+        ("Enrollment Response Model Validation", tester.test_enrollment_response_model_validation),
+        ("Enrollment Complete Workflow", tester.test_enrollment_complete_workflow),
+        ("Enrollment Duplicate Prevention", tester.test_enrollment_duplicate_prevention),
+        ("Enrollment Course Validation", tester.test_enrollment_course_validation),
+        ("Enrollment Permission Validation", tester.test_enrollment_permission_validation)
+    ]
+    
+    print(f"\n🧪 Running {len(enrollment_tests)} comprehensive enrollment API tests...")
+    print()
+    
+    for test_name, test_func in enrollment_tests:
+        print(f"Running: {test_name}...")
+        test_func()
+    
+    print()
+    print("=" * 80)
+    print("📊 ENROLLMENT API TEST RESULTS SUMMARY")
+    print("=" * 80)
+    tester.print_summary()
+    print()
+    print("✅ ENROLLMENT API TESTING COMPLETED")
