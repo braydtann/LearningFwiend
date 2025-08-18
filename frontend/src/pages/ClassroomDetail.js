@@ -61,10 +61,79 @@ const ClassroomDetail = () => {
   const [availablePrograms, setAvailablePrograms] = useState([]);
   const [saving, setSaving] = useState(false);
   
-  // Load courses from backend
+  // Load classroom data from backend
   useEffect(() => {
-    loadCourses();
-  }, []);
+    loadClassroomData();
+  }, [id]);
+
+  // Load additional data for edit mode
+  useEffect(() => {
+    if (isEditMode) {
+      loadEditData();
+    }
+  }, [isEditMode]);
+
+  const loadClassroomData = async () => {
+    setLoadingClassroom(true);
+    try {
+      const result = await getClassroomById(id);
+      if (result.success) {
+        setClassroom(result.classroom);
+        setEditData(result.classroom);
+      } else {
+        // Fallback to mock data
+        const mockClassroom = mockClassrooms.find(c => c.id === id);
+        if (mockClassroom) {
+          setClassroom(mockClassroom);
+          setEditData(mockClassroom);
+        } else {
+          toast({
+            title: "Classroom not found",
+            description: "The requested classroom could not be found.",
+            variant: "destructive",
+          });
+          navigate('/classrooms');
+        }
+      }
+    } catch (error) {
+      console.error('Error loading classroom:', error);
+      // Fallback to mock data
+      const mockClassroom = mockClassrooms.find(c => c.id === id);
+      if (mockClassroom) {
+        setClassroom(mockClassroom);
+        setEditData(mockClassroom);
+      }
+    } finally {
+      setLoadingClassroom(false);
+    }
+  };
+
+  const loadEditData = async () => {
+    try {
+      // Load users, courses, programs for edit dropdowns
+      const [usersResult, coursesResult, programsResult] = await Promise.all([
+        getAllUsers(),
+        getAllCourses(),
+        getAllPrograms()
+      ]);
+
+      if (usersResult.success) {
+        setAvailableUsers(usersResult.users);
+      }
+      
+      if (coursesResult.success) {
+        setAvailableCourses(coursesResult.courses);
+      }
+      
+      if (programsResult.success) {
+        setAvailablePrograms(programsResult.programs);
+      }
+    } catch (error) {
+      console.error('Error loading edit data:', error);
+    }
+  };
+
+  const students = classroom ? getClassroomStudents(classroom.id) : [];
 
   const loadCourses = async () => {
     setLoadingCourses(true);
