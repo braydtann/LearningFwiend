@@ -210,11 +210,11 @@ const CourseDetail = () => {
           <div>
             <div className="aspect-video relative overflow-hidden rounded-lg mb-6">
               <img 
-                src={course.thumbnailUrl || course.thumbnail || 'https://via.placeholder.com/640x360?text=Course+Image'} 
+                src={course.thumbnailUrl || course.thumbnail || '/default-course-image.png'} 
                 alt={course.title}
                 className="w-full h-full object-cover"
                 onError={(e) => {
-                  e.target.src = 'https://via.placeholder.com/640x360?text=Course+Image';
+                  e.target.src = '/default-course-image.png';
                 }}
               />
               {(selectedLesson?.type === 'video' || selectedLesson?.type === 'presentation') && 
