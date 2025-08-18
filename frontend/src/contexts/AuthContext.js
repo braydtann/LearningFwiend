@@ -360,6 +360,34 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const deleteCourse = async (courseId) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/courses/${courseId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+      });
+
+      if (response.ok) {
+        return { success: true, message: 'Course deleted successfully' };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to delete course' 
+        };
+      }
+    } catch (error) {
+      console.error('Delete course error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
   const getAllCourses = async () => {
     try {
       const token = localStorage.getItem('auth_token');
