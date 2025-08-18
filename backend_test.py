@@ -13068,9 +13068,9 @@ class BackendTester:
             )
 
     def run_all_tests(self):
-        """Run all backend tests with focus on classroom creation fix"""
+        """Run all backend tests with focus on Continue Learning investigation"""
         print("🚀 Starting Backend Testing Suite for LearningFwiend LMS")
-        print("🏫 PRIORITY FOCUS: Classroom Creation Fix Testing")
+        print("🔍 PRIORITY FOCUS: Continue Learning Blank Page Investigation")
         print("=" * 80)
         
         # Basic connectivity tests first
@@ -13078,12 +13078,18 @@ class BackendTester:
             print("❌ Backend health check failed - stopping tests")
             return self.generate_summary()
         
-        # Authentication system tests (needed for classroom tests)
+        # Authentication system tests (needed for course tests)
         print("\n🔐 AUTHENTICATION TESTS")
         print("=" * 50)
         self.test_admin_login()
         self.test_instructor_login()
         self.test_student_login()
+        
+        # CONTINUE LEARNING INVESTIGATION - HIGHEST PRIORITY
+        if self.auth_tokens:
+            print("\n🔍 CONTINUE LEARNING BLANK PAGE INVESTIGATION (HIGHEST PRIORITY)")
+            print("=" * 50)
+            self.test_continue_learning_investigation()
         
         # COURSE VISIBILITY AND DRAFT FUNCTIONALITY TESTS - NEW FEATURES (PRIORITY)
         if self.auth_tokens:
