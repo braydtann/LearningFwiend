@@ -897,6 +897,40 @@ async def unenroll_from_course(
     
     return {"message": "Successfully unenrolled from course"}
 
+@api_router.post("/enrollments/cleanup-orphaned")
+async def cleanup_orphaned_enrollments(current_user: UserResponse = Depends(get_current_user)):
+    """Clean up enrollment records that reference non-existent courses (admin only)."""
+    if current_user.role != 'admin':
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admins can cleanup orphaned enrollments"
+        )
+    
+    # Get all enrollments
+    all_enrollments = await db.enrollments.find({}).to_list(10000)
+    
+    # Get all valid course IDs
+    all_courses = await db.courses.find({}).to_list(10000)
+    valid_course_ids = {course["id"] for course in all_courses}
+    
+    # Find orphaned enrollments
+    orphaned_enrollments = []
+    for enrollment in all_enrollments:
+        if enrollment["courseId"] not in valid_course_ids:
+            orphaned_enrollments.append(enrollment)
+    
+    # Delete orphaned enrollments
+    deleted_count = 0
+    for enrollment in orphaned_enrollments:
+        await db.enrollments.delete_one({"id": enrollment["id"]})
+        deleted_count += 1
+    
+    return {
+        "message": f"Successfully cleaned up {deleted_count} orphaned enrollment records",
+        "deletedCount": deleted_count,
+        "orphanedCourseIds": list(set(e["courseId"] for e in orphaned_enrollments))
+    }
+
 
 # =============================================================================
 # PROGRAM MANAGEMENT ENDPOINTS
