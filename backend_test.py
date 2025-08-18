@@ -18223,6 +18223,6 @@ if __name__ == "__main__":
     print("=" * 80)
     print("📊 ENROLLMENT API TEST RESULTS SUMMARY")
     print("=" * 80)
-    tester.print_summary()
+    summary = tester.generate_summary()
     print()
     print("✅ ENROLLMENT API TESTING COMPLETED")
