@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "NEW SYSTEM ADMINISTRATOR LOGIN TESTING: Test the new system administrator login after updating admin credentials. Removed existing admin user from database, created new admin user: Brayden T with email/username: brayden.t@covesmart.com, password: Hawaii2020!, role: admin, no temporary password (permanent login), no forced password change required."
+user_problem_statement: "EDGE BROWSER COMPATIBILITY TESTING: Test Edge browser compatibility for the course loading issue. Problem: Courses are showing up in Chrome and Firefox but not in Microsoft Edge. Expected root causes: JavaScript ES6/modern syntax compatibility, Fetch API issues, Authentication token storage, CORS or network request handling, Console errors. Testing needed: API endpoints with Edge user agents, Authentication flow, Network requests, Compatibility issues."
 
 backend:
   - task: "New System Administrator Login Authentication"
