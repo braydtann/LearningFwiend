@@ -80,15 +80,14 @@ const Users = () => {
     new_temporary_password: ''
   });
 
+  // Load users and departments on component mount
   useEffect(() => {
     fetchUsers();
   }, []);
 
-  // Load departments when users change
+  // Load departments when users change or on component mount
   useEffect(() => {
-    if (users.length > 0) {
-      loadDepartments();
-    }
+    loadDepartments();
   }, [users]);
 
   const fetchUsers = async () => {
