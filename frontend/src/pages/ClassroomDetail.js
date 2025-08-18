@@ -483,7 +483,7 @@ const ClassroomDetail = () => {
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-purple-700">
-                    {classroom.metrics.averageTimeToCompletion ? `${classroom.metrics.averageTimeToCompletion}h` : 'N/A'}
+                    {classroom.metrics?.averageTimeToCompletion ? `${classroom.metrics.averageTimeToCompletion}h` : 'N/A'}
                   </div>
                   <div className="text-sm text-purple-600">Avg. Time to Complete</div>
                 </div>
