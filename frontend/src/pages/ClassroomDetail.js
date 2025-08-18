@@ -673,7 +673,7 @@ const ClassroomDetail = () => {
                   
                   <div className="grid grid-cols-2 gap-4 pt-4">
                     <div className="text-center p-3 bg-green-50 rounded-lg">
-                      <div className="text-lg font-bold text-green-700">{classroom.metrics.completedStudents}</div>
+                      <div className="text-lg font-bold text-green-700">{classroom.metrics?.completedStudents || 0}</div>
                       <div className="text-sm text-green-600">Completed</div>
                     </div>
                     <div className="text-center p-3 bg-orange-50 rounded-lg">
