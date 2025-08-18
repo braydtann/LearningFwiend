@@ -1627,10 +1627,12 @@ metadata:
 
 test_plan:
   current_focus:
+    - "Enrollment API Response Model Fix"
     - "Course Visibility Bug Fix"
     - "Save as Draft Functionality"
     - "Course Status Database Integration"
-  stuck_tasks: []
+  stuck_tasks:
+    - "Enrollment API Response Model Fix"
   test_all: false
   test_priority: "high_first"
   backend_testing_complete: true
