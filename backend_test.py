@@ -1646,6 +1646,444 @@ class BackendTester:
         return False
 
     # =============================================================================
+    # ORPHANED ENROLLMENT CLEANUP TESTS - CONTINUE LEARNING FIX
+    # =============================================================================
+    
+    def test_orphaned_enrollment_cleanup_admin_only(self):
+        """Test that orphaned enrollment cleanup requires admin role"""
+        if "learner" not in self.auth_tokens:
+            self.log_result(
+                "Orphaned Enrollment Cleanup - Admin Only Access", 
+                "SKIP", 
+                "No learner token available for permission test",
+                "Learner authentication required"
+            )
+            return False
+        
+        try:
+            # Test with learner token (should fail)
+            response = requests.post(
+                f"{BACKEND_URL}/enrollments/cleanup-orphaned",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["learner"]}'}
+            )
+            
+            if response.status_code == 403:
+                self.log_result(
+                    "Orphaned Enrollment Cleanup - Admin Only Access", 
+                    "PASS", 
+                    "Cleanup endpoint correctly requires admin role - learner access denied",
+                    f"Learner received 403 Forbidden as expected"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Orphaned Enrollment Cleanup - Admin Only Access", 
+                    "FAIL", 
+                    f"Cleanup endpoint should require admin role but allowed learner access",
+                    f"Expected 403, got {response.status_code}: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Orphaned Enrollment Cleanup - Admin Only Access", 
+                "FAIL", 
+                "Failed to test admin-only access for cleanup endpoint",
+                str(e)
+            )
+        return False
+    
+    def test_orphaned_enrollment_cleanup_functionality(self):
+        """Test the orphaned enrollment cleanup functionality"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Orphaned Enrollment Cleanup - Functionality", 
+                "SKIP", 
+                "No admin token available for cleanup test",
+                "Admin authentication required"
+            )
+            return False
+        
+        try:
+            # First, get current enrollments to understand the state
+            enrollments_response = requests.get(
+                f"{BACKEND_URL}/enrollments",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            initial_enrollments = []
+            if enrollments_response.status_code == 200:
+                initial_enrollments = enrollments_response.json()
+            
+            # Get all courses to identify valid course IDs
+            courses_response = requests.get(
+                f"{BACKEND_URL}/courses",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            valid_course_ids = set()
+            if courses_response.status_code == 200:
+                courses = courses_response.json()
+                valid_course_ids = {course['id'] for course in courses}
+            
+            # Run the cleanup
+            cleanup_response = requests.post(
+                f"{BACKEND_URL}/enrollments/cleanup-orphaned",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            if cleanup_response.status_code == 200:
+                cleanup_result = cleanup_response.json()
+                deleted_count = cleanup_result.get('deletedCount', 0)
+                orphaned_course_ids = cleanup_result.get('orphanedCourseIds', [])
+                
+                self.log_result(
+                    "Orphaned Enrollment Cleanup - Functionality", 
+                    "PASS", 
+                    f"Successfully cleaned up {deleted_count} orphaned enrollment records",
+                    f"Orphaned course IDs removed: {orphaned_course_ids[:5]}{'...' if len(orphaned_course_ids) > 5 else ''}"
+                )
+                return cleanup_result
+            else:
+                self.log_result(
+                    "Orphaned Enrollment Cleanup - Functionality", 
+                    "FAIL", 
+                    f"Cleanup endpoint failed with status {cleanup_response.status_code}",
+                    f"Response: {cleanup_response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Orphaned Enrollment Cleanup - Functionality", 
+                "FAIL", 
+                "Failed to test orphaned enrollment cleanup functionality",
+                str(e)
+            )
+        return False
+    
+    def test_student_enrollments_after_cleanup(self):
+        """Test that student enrollments are valid after cleanup"""
+        if "learner" not in self.auth_tokens:
+            self.log_result(
+                "Student Enrollments After Cleanup", 
+                "SKIP", 
+                "No learner token available for enrollment verification",
+                "Learner authentication required"
+            )
+            return False
+        
+        try:
+            # Get student enrollments
+            enrollments_response = requests.get(
+                f"{BACKEND_URL}/enrollments",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["learner"]}'}
+            )
+            
+            if enrollments_response.status_code == 200:
+                enrollments = enrollments_response.json()
+                
+                # Get all courses to verify enrollment validity
+                courses_response = requests.get(
+                    f"{BACKEND_URL}/courses",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {self.auth_tokens["learner"]}'}
+                )
+                
+                if courses_response.status_code == 200:
+                    courses = courses_response.json()
+                    valid_course_ids = {course['id'] for course in courses}
+                    
+                    # Check if all enrollments reference valid courses
+                    valid_enrollments = []
+                    invalid_enrollments = []
+                    
+                    for enrollment in enrollments:
+                        course_id = enrollment.get('courseId')
+                        if course_id in valid_course_ids:
+                            valid_enrollments.append(enrollment)
+                        else:
+                            invalid_enrollments.append(enrollment)
+                    
+                    if len(invalid_enrollments) == 0:
+                        self.log_result(
+                            "Student Enrollments After Cleanup", 
+                            "PASS", 
+                            f"All {len(valid_enrollments)} student enrollments reference valid courses",
+                            f"No orphaned enrollments found - cleanup was successful"
+                        )
+                        return True
+                    else:
+                        self.log_result(
+                            "Student Enrollments After Cleanup", 
+                            "FAIL", 
+                            f"Found {len(invalid_enrollments)} invalid enrollments after cleanup",
+                            f"Invalid course IDs: {[e.get('courseId') for e in invalid_enrollments]}"
+                        )
+                else:
+                    self.log_result(
+                        "Student Enrollments After Cleanup", 
+                        "FAIL", 
+                        "Could not retrieve courses to verify enrollment validity",
+                        f"Courses API failed with status: {courses_response.status_code}"
+                    )
+            else:
+                self.log_result(
+                    "Student Enrollments After Cleanup", 
+                    "FAIL", 
+                    "Could not retrieve student enrollments for verification",
+                    f"Enrollments API failed with status: {enrollments_response.status_code}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Student Enrollments After Cleanup", 
+                "FAIL", 
+                "Failed to verify student enrollments after cleanup",
+                str(e)
+            )
+        return False
+    
+    def test_continue_learning_flow_scenario(self):
+        """Test complete Continue Learning flow with student, course, and classroom"""
+        if "admin" not in self.auth_tokens or "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Continue Learning Flow Scenario", 
+                "SKIP", 
+                "Need both admin and instructor tokens for complete flow test",
+                "Admin and instructor authentication required"
+            )
+            return False
+        
+        try:
+            # Step 1: Create a test student
+            student_data = {
+                "email": "continue.learning.test@learningfwiend.com",
+                "username": "continue.learning.test",
+                "full_name": "Continue Learning Test Student",
+                "role": "learner",
+                "department": "Testing",
+                "temporary_password": "ContinueTest123!"
+            }
+            
+            student_response = requests.post(
+                f"{BACKEND_URL}/auth/admin/create-user",
+                json=student_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if student_response.status_code != 200:
+                self.log_result(
+                    "Continue Learning Flow Scenario", 
+                    "FAIL", 
+                    "Failed to create test student for Continue Learning flow",
+                    f"Student creation failed: {student_response.text}"
+                )
+                return False
+            
+            created_student = student_response.json()
+            student_id = created_student.get('id')
+            
+            # Step 2: Create a test course
+            course_data = {
+                "title": "Continue Learning Test Course",
+                "description": "Test course for Continue Learning flow verification",
+                "category": "Testing",
+                "duration": "2 weeks",
+                "accessType": "open",
+                "modules": [
+                    {
+                        "title": "Module 1: Test Content",
+                        "lessons": [
+                            {
+                                "title": "Lesson 1: Introduction",
+                                "type": "text",
+                                "content": "Welcome to the Continue Learning test course"
+                            }
+                        ]
+                    }
+                ]
+            }
+            
+            course_response = requests.post(
+                f"{BACKEND_URL}/courses",
+                json=course_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if course_response.status_code != 200:
+                self.log_result(
+                    "Continue Learning Flow Scenario", 
+                    "FAIL", 
+                    "Failed to create test course for Continue Learning flow",
+                    f"Course creation failed: {course_response.text}"
+                )
+                return False
+            
+            created_course = course_response.json()
+            course_id = created_course.get('id')
+            
+            # Step 3: Get instructor ID for classroom creation
+            instructor_users_response = requests.get(
+                f"{BACKEND_URL}/auth/admin/users",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            instructor_id = None
+            if instructor_users_response.status_code == 200:
+                users = instructor_users_response.json()
+                for user in users:
+                    if user.get('role') == 'instructor':
+                        instructor_id = user.get('id')
+                        break
+            
+            if not instructor_id:
+                self.log_result(
+                    "Continue Learning Flow Scenario", 
+                    "FAIL", 
+                    "Could not find instructor ID for classroom creation",
+                    "Instructor user required for classroom"
+                )
+                return False
+            
+            # Step 4: Create a classroom with the student and course
+            classroom_data = {
+                "name": "Continue Learning Test Classroom",
+                "description": "Test classroom for Continue Learning flow",
+                "trainerId": instructor_id,
+                "courseIds": [course_id],
+                "programIds": [],
+                "studentIds": [student_id],
+                "department": "Testing"
+            }
+            
+            classroom_response = requests.post(
+                f"{BACKEND_URL}/classrooms",
+                json=classroom_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if classroom_response.status_code != 200:
+                self.log_result(
+                    "Continue Learning Flow Scenario", 
+                    "FAIL", 
+                    "Failed to create test classroom for Continue Learning flow",
+                    f"Classroom creation failed: {classroom_response.text}"
+                )
+                return False
+            
+            created_classroom = classroom_response.json()
+            
+            # Step 5: Login as the test student
+            student_login_data = {
+                "username_or_email": student_data["username"],
+                "password": student_data["temporary_password"]
+            }
+            
+            student_login_response = requests.post(
+                f"{BACKEND_URL}/auth/login",
+                json=student_login_data,
+                timeout=TEST_TIMEOUT,
+                headers={'Content-Type': 'application/json'}
+            )
+            
+            if student_login_response.status_code != 200:
+                self.log_result(
+                    "Continue Learning Flow Scenario", 
+                    "FAIL", 
+                    "Test student could not login for Continue Learning flow",
+                    f"Student login failed: {student_login_response.text}"
+                )
+                return False
+            
+            student_login_result = student_login_response.json()
+            student_token = student_login_result.get('access_token')
+            
+            # Step 6: Verify student can see their enrollments (auto-enrolled via classroom)
+            time.sleep(2)  # Allow for auto-enrollment processing
+            
+            student_enrollments_response = requests.get(
+                f"{BACKEND_URL}/enrollments",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {student_token}'}
+            )
+            
+            if student_enrollments_response.status_code == 200:
+                student_enrollments = student_enrollments_response.json()
+                
+                # Check if student is enrolled in the test course
+                enrolled_course_ids = [e.get('courseId') for e in student_enrollments]
+                
+                if course_id in enrolled_course_ids:
+                    # Step 7: Verify student can access the course details (Continue Learning flow)
+                    course_detail_response = requests.get(
+                        f"{BACKEND_URL}/courses/{course_id}",
+                        timeout=TEST_TIMEOUT,
+                        headers={'Authorization': f'Bearer {student_token}'}
+                    )
+                    
+                    if course_detail_response.status_code == 200:
+                        course_details = course_detail_response.json()
+                        
+                        self.log_result(
+                            "Continue Learning Flow Scenario", 
+                            "PASS", 
+                            "Complete Continue Learning flow working correctly",
+                            f"✅ Student created, ✅ Course created, ✅ Classroom created with auto-enrollment, ✅ Student can login, ✅ Student enrolled in course, ✅ Student can access course details - Continue Learning flow functional"
+                        )
+                        
+                        # Cleanup: Delete test student
+                        requests.delete(
+                            f"{BACKEND_URL}/auth/admin/users/{student_id}",
+                            timeout=TEST_TIMEOUT,
+                            headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+                        )
+                        
+                        return True
+                    else:
+                        self.log_result(
+                            "Continue Learning Flow Scenario", 
+                            "FAIL", 
+                            "Student cannot access course details - Continue Learning will show blank page",
+                            f"Course detail access failed: {course_detail_response.status_code} - {course_detail_response.text}"
+                        )
+                else:
+                    self.log_result(
+                        "Continue Learning Flow Scenario", 
+                        "FAIL", 
+                        "Student not auto-enrolled in classroom course - Continue Learning will show 'No courses enrolled'",
+                        f"Expected course ID {course_id} in enrollments, got: {enrolled_course_ids}"
+                    )
+            else:
+                self.log_result(
+                    "Continue Learning Flow Scenario", 
+                    "FAIL", 
+                    "Student cannot retrieve enrollments - Continue Learning will fail",
+                    f"Enrollments API failed: {student_enrollments_response.status_code} - {student_enrollments_response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Continue Learning Flow Scenario", 
+                "FAIL", 
+                "Failed to test complete Continue Learning flow scenario",
+                str(e)
+            )
+        return False
+
+    # =============================================================================
     # CRITICAL PASSWORD CHANGE LOOP BUG INVESTIGATION
     # =============================================================================
     
