@@ -58,7 +58,7 @@
 ##
 ## agent_communication:
 ##     -agent: "main"  # or "testing" or "user"
-##     -message: "Need to investigate why student dashboard shows 'No courses enrolled yet' despite classroom auto-enrollment being implemented. Will test both the backend auto-enrollment logic and frontend enrollment detection to identify root cause."
+##     -message: "ISSUE RESOLVED: Fixed two critical bugs causing 'No courses enrolled yet' on student dashboard: 1) StudentDashboard was using mock data instead of real backend enrollments, 2) AuthContext was calling wrong API endpoint. Backend auto-enrollment confirmed working. Frontend now properly loads real enrollment data. Ready for frontend testing to verify complete resolution."
 
 # Protocol Guidelines for Main agent
 #
