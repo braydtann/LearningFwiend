@@ -120,12 +120,21 @@ const CourseDetail = () => {
   if (error || !course) {
     return (
       <div className="text-center py-12">
+        <AlertTriangle className="h-16 w-16 text-orange-500 mx-auto mb-4" />
         <h1 className="text-2xl font-bold text-gray-900 mb-4">
-          {error || 'Course not found'}
+          Course Not Available
         </h1>
-        <Button onClick={() => navigate('/courses')}>
-          Back to Courses
-        </Button>
+        <p className="text-gray-600 mb-6">
+          {error || 'This course is no longer available or may have been removed.'}
+        </p>
+        <div className="space-x-4">
+          <Button onClick={() => navigate('/courses')}>
+            Browse All Courses
+          </Button>
+          <Button variant="outline" onClick={() => navigate('/dashboard')}>
+            Back to Dashboard
+          </Button>
+        </div>
       </div>
     );
   }
