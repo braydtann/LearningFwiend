@@ -249,19 +249,52 @@ const ClassroomDetail = () => {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex items-center space-x-4 mb-6">
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={() => navigate('/classrooms')}
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
-        </Button>
-        <div className="h-6 border-l border-gray-300"></div>
-        <nav className="text-sm text-gray-500">
-          <span>Classrooms</span> / <span className="text-gray-900">{classroom.name}</span>
-        </nav>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center space-x-4">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => navigate('/classrooms')}
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
+          </Button>
+          <div className="h-6 border-l border-gray-300"></div>
+          <nav className="text-sm text-gray-500">
+            <span>Classrooms</span> / <span className="text-gray-900">{classroom.name}</span>
+          </nav>
+        </div>
+
+        {/* Edit Mode Controls */}
+        <div className="flex items-center space-x-2">
+          {isEditMode ? (
+            <>
+              <Button 
+                variant="outline" 
+                onClick={handleCancel}
+                disabled={saving}
+              >
+                <X className="w-4 h-4 mr-2" />
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleSave}
+                disabled={saving}
+              >
+                <Save className="w-4 h-4 mr-2" />
+                {saving ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </>
+          ) : (
+            <Button 
+              variant="outline"
+              onClick={() => navigate(`/classroom/${id}?mode=edit`)}
+            >
+              <Edit className="w-4 h-4 mr-2" />
+              Edit Classroom
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Classroom Overview */}
