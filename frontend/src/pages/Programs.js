@@ -31,7 +31,7 @@ import {
 import { useToast } from '../hooks/use-toast';
 
 const Programs = () => {
-  const { user, getAllPrograms, getAllCourses, createProgram } = useAuth();
+  const { user, isAdmin, getAllPrograms, getAllCourses, createProgram, deleteProgram } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
