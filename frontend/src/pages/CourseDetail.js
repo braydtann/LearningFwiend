@@ -27,7 +27,7 @@ import { useToast } from '../hooks/use-toast';
 const CourseDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user, isLearner, getCourseById } = useAuth();
+  const { user, isLearner, getCourseById, getMyEnrollments } = useAuth();
   const { toast } = useToast();
   const [selectedLesson, setSelectedLesson] = useState(null);
   const [course, setCourse] = useState(null);
