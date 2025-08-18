@@ -87,26 +87,44 @@ const Users = () => {
   const fetchUsers = async () => {
     setLoading(true);
     const result = await getAllUsers();
+    
     if (result.success) {
       setUsers(result.users);
-      
-      // Extract unique departments from users
-      const userDepartments = result.users
-        .map(user => user.department)
-        .filter(dept => dept && dept.trim() !== '')
-        .filter((dept, index, arr) => arr.indexOf(dept) === index);
-      
-      setAvailableDepartments(userDepartments.map(name => ({ id: name, name })));
     } else {
       toast({
         title: "Error loading users",
         description: result.error,
         variant: "destructive",
       });
-      // No fallback departments if backend fails
-      setAvailableDepartments([]);
     }
     setLoading(false);
+  };
+
+  // Load departments from backend
+  const loadDepartments = async () => {
+    try {
+      const result = await getAllDepartments();
+      if (result.success) {
+        setAvailableDepartments(result.departments || []);
+      } else {
+        // Fallback to extracting departments from users if backend fails
+        const userDepartments = users
+          .map(user => user.department)
+          .filter(dept => dept && dept.trim() !== '')
+          .filter((dept, index, arr) => arr.indexOf(dept) === index);
+        
+        setAvailableDepartments(userDepartments.map(name => ({ id: name, name })));
+      }
+    } catch (error) {
+      console.error('Error loading departments:', error);
+      // Fallback to extracting departments from users
+      const userDepartments = users
+        .map(user => user.department)
+        .filter(dept => dept && dept.trim() !== '')
+        .filter((dept, index, arr) => arr.indexOf(dept) === index);
+      
+      setAvailableDepartments(userDepartments.map(name => ({ id: name, name })));
+    }
   };
 
   const filteredUsers = users.filter(user => {
