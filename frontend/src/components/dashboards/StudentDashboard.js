@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
@@ -9,13 +9,74 @@ import { getEnrolledCourses, getUserCertificates, getStudentClassrooms, getUserQ
 import { BookOpen, Clock, Award, TrendingUp, Play, Users, ClipboardCheck } from 'lucide-react';
 
 const StudentDashboard = () => {
-  const { user } = useAuth();
+  const { user, getMyEnrollments, getAllCourses } = useAuth();
   const navigate = useNavigate();
   
-  const enrolledCourses = getEnrolledCourses(user?.id);
+  const [enrolledCourses, setEnrolledCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
+  // Get other data from mock (these don't have backend equivalents yet)
   const certificates = getUserCertificates(user?.id);
   const studentClassrooms = getStudentClassrooms(user?.id);
   const quizResults = getUserQuizResults(user?.id);
+
+  // Load real enrollment data from backend
+  useEffect(() => {
+    if (user) {
+      loadEnrollments();
+    }
+  }, [user]);
+
+  const loadEnrollments = async () => {
+    setLoading(true);
+    try {
+      const enrollmentResult = await getMyEnrollments();
+      
+      if (enrollmentResult.success && enrollmentResult.enrollments.length > 0) {
+        // Get course details for each enrollment
+        const courseResult = await getAllCourses();
+        
+        if (courseResult.success) {
+          const enrolledCourseData = enrollmentResult.enrollments.map(enrollment => {
+            const course = courseResult.courses.find(c => c.id === enrollment.courseId);
+            return {
+              id: enrollment.courseId,
+              title: course?.title || enrollment.courseName || 'Unknown Course',
+              thumbnail: course?.thumbnailUrl || course?.thumbnail || '/default-course-image.jpg',
+              instructor: course?.instructor || 'Unknown',
+              duration: course?.duration || '1 week',
+              progress: enrollment.progress || 0,
+              enrollmentId: enrollment.id
+            };
+          });
+          setEnrolledCourses(enrolledCourseData);
+        } else {
+          // Fallback to enrollment data only
+          const enrolledCourseData = enrollmentResult.enrollments.map(enrollment => ({
+            id: enrollment.courseId,
+            title: enrollment.courseName || 'Unknown Course',
+            thumbnail: '/default-course-image.jpg',
+            instructor: 'Unknown',
+            duration: '1 week',
+            progress: enrollment.progress || 0,
+            enrollmentId: enrollment.id
+          }));
+          setEnrolledCourses(enrolledCourseData);
+        }
+      } else {
+        // Fallback to mock data if no backend enrollments
+        const mockEnrolledCourses = getEnrolledCourses(user?.id);
+        setEnrolledCourses(mockEnrolledCourses);
+      }
+    } catch (error) {
+      console.error('Error loading enrollments:', error);
+      // Fallback to mock data on error
+      const mockEnrolledCourses = getEnrolledCourses(user?.id);
+      setEnrolledCourses(mockEnrolledCourses);
+    } finally {
+      setLoading(false);
+    }
+  };
   
   const stats = {
     enrolled: enrolledCourses.length,
