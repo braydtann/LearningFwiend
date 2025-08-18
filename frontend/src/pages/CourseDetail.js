@@ -92,8 +92,8 @@ const CourseDetail = () => {
       setLoadingEnrollments(false);
     }
   };
-  const enrolledCourses = isLearner ? getEnrolledCourses(user?.id) : [];
-  const isEnrolled = enrolledCourses.some(c => c.id === id);
+  // Check if user is enrolled using real backend data
+  const isEnrolled = isLearner && enrollments.some(enrollment => enrollment.courseId === id);
   const progress = isLearner ? getCourseProgress(user?.id, id) : 0;
 
   // Check classroom access for enrolled students
