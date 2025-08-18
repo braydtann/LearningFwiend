@@ -706,7 +706,7 @@ const ClassroomDetail = () => {
                       <Award className="h-5 w-5 text-purple-600 mr-2" />
                       <span className="text-sm font-medium">Completion Rate</span>
                     </div>
-                    <span className="font-bold text-purple-700">{classroom.metrics.completionRate}%</span>
+                    <span className="font-bold text-purple-700">{classroom.metrics?.completionRate || 0}%</span>
                   </div>
                   
                   <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
