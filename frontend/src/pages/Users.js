@@ -354,7 +354,7 @@ const Users = () => {
       setIsEditModalOpen(false);
       setSelectedUserForEdit(null);
       setEditUserData({ full_name: '', email: '', role: 'learner', department: '', is_active: true });
-      fetchUsers(); // Refresh user list
+      loadUsers(); // Refresh user list
     } else {
       toast({
         title: "User update failed",
