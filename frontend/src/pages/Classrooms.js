@@ -247,7 +247,7 @@ const Classrooms = () => {
         courseIds: newClassroom.courseIds,
         programIds: newClassroom.programIds,
         studentIds: newClassroom.studentIds,
-        department: newClassroom.departmentId,  // Fixed: use department not departmentId
+        department: newClassroom.departmentName,  // Fixed: use department name
         startDate: newClassroom.startDate,
         endDate: newClassroom.endDate
       });
