@@ -265,36 +265,38 @@ const ClassroomDetail = () => {
           </nav>
         </div>
 
-        {/* Edit Mode Controls */}
-        <div className="flex items-center space-x-2">
-          {isEditMode ? (
-            <>
+        {/* Edit Mode Controls - Only for instructors and admins */}
+        {!isLearner && (
+          <div className="flex items-center space-x-2">
+            {isEditMode ? (
+              <>
+                <Button 
+                  variant="outline" 
+                  onClick={handleCancel}
+                  disabled={saving}
+                >
+                  <X className="w-4 h-4 mr-2" />
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleSave}
+                  disabled={saving}
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  {saving ? 'Saving...' : 'Save Changes'}
+                </Button>
+              </>
+            ) : (
               <Button 
-                variant="outline" 
-                onClick={handleCancel}
-                disabled={saving}
+                variant="outline"
+                onClick={() => navigate(`/classroom/${id}?mode=edit`)}
               >
-                <X className="w-4 h-4 mr-2" />
-                Cancel
+                <Edit className="w-4 h-4 mr-2" />
+                Edit Classroom
               </Button>
-              <Button 
-                onClick={handleSave}
-                disabled={saving}
-              >
-                <Save className="w-4 h-4 mr-2" />
-                {saving ? 'Saving...' : 'Save Changes'}
-              </Button>
-            </>
-          ) : (
-            <Button 
-              variant="outline"
-              onClick={() => navigate(`/classroom/${id}?mode=edit`)}
-            >
-              <Edit className="w-4 h-4 mr-2" />
-              Edit Classroom
-            </Button>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Edit Form - Only show in edit mode */}
