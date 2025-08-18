@@ -474,7 +474,7 @@ const ClassroomDetail = () => {
                   <div className="text-sm text-blue-600">Average Progress</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-green-700">{classroom.metrics.completionRate}%</div>
+                  <div className="text-2xl font-bold text-green-700">{classroom.metrics?.completionRate || 0}%</div>
                   <div className="text-sm text-green-600">Completion Rate</div>
                 </div>
                 <div className="text-center">
