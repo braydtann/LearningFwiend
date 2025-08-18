@@ -11432,6 +11432,354 @@ class BackendTester:
             )
         return False
 
+    def test_course_enrollment_fix_comprehensive(self):
+        """Comprehensive test of the course enrollment fix as requested by user"""
+        print("\n🎯 COURSE ENROLLMENT FIX TESTING - User Request")
+        print("=" * 60)
+        
+        # Step 1: Get available course IDs
+        available_courses = self.get_available_course_ids()
+        if not available_courses:
+            self.log_result(
+                "Course Enrollment Fix - Get Course IDs", 
+                "FAIL", 
+                "No courses available for enrollment testing",
+                "Need courses to test enrollment functionality"
+            )
+            return False
+        
+        # Step 2: Create test student user
+        test_student = self.create_test_student_user()
+        if not test_student:
+            self.log_result(
+                "Course Enrollment Fix - Create Student", 
+                "FAIL", 
+                "Could not create test student user",
+                "Student user required for enrollment testing"
+            )
+            return False
+        
+        # Step 3: Create classroom and assign student with courses
+        classroom_result = self.create_classroom_with_student_and_courses(test_student, available_courses[:2])
+        if not classroom_result:
+            self.log_result(
+                "Course Enrollment Fix - Create Classroom", 
+                "FAIL", 
+                "Could not create classroom with student and courses",
+                "Classroom creation required for auto-enrollment testing"
+            )
+            return False
+        
+        # Step 4: Verify auto-enrollment
+        enrollment_verification = self.verify_student_auto_enrollment(test_student, available_courses[:2])
+        if not enrollment_verification:
+            self.log_result(
+                "Course Enrollment Fix - Verify Auto-Enrollment", 
+                "FAIL", 
+                "Student was not auto-enrolled in classroom courses",
+                "Auto-enrollment functionality not working"
+            )
+            return False
+        
+        # Step 5: Provide credentials and course IDs for frontend testing
+        self.provide_frontend_testing_credentials(test_student, available_courses[:2])
+        
+        self.log_result(
+            "Course Enrollment Fix - Comprehensive Test", 
+            "PASS", 
+            "Course enrollment fix testing completed successfully",
+            f"Student {test_student['username']} auto-enrolled in {len(available_courses[:2])} courses"
+        )
+        return True
+    
+    def get_available_course_ids(self):
+        """Get list of available course IDs from GET /api/courses"""
+        try:
+            # Use admin token to get all courses
+            if "admin" not in self.auth_tokens:
+                self.test_admin_login()
+            
+            response = requests.get(
+                f"{BACKEND_URL}/courses",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            if response.status_code == 200:
+                courses = response.json()
+                course_list = []
+                for course in courses:
+                    course_list.append({
+                        'id': course.get('id'),
+                        'title': course.get('title'),
+                        'instructor': course.get('instructor')
+                    })
+                
+                self.log_result(
+                    "Get Available Course IDs", 
+                    "PASS", 
+                    f"Retrieved {len(course_list)} available courses",
+                    f"Course IDs: {[c['id'][:8] + '...' for c in course_list[:3]]}"
+                )
+                return course_list
+            else:
+                self.log_result(
+                    "Get Available Course IDs", 
+                    "FAIL", 
+                    f"Failed to retrieve courses, status: {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Get Available Course IDs", 
+                "FAIL", 
+                "Failed to get available course IDs",
+                str(e)
+            )
+        return []
+    
+    def create_test_student_user(self):
+        """Create a test student user for enrollment testing"""
+        try:
+            if "admin" not in self.auth_tokens:
+                self.test_admin_login()
+            
+            student_data = {
+                "email": "enrollment.test.student@learningfwiend.com",
+                "username": "enrollment.test.student",
+                "full_name": "Enrollment Test Student",
+                "role": "learner",
+                "department": "Testing",
+                "temporary_password": "EnrollTest123!"
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/auth/admin/create-user",
+                json=student_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                created_student = response.json()
+                
+                # Login as the student to get their token
+                login_data = {
+                    "username_or_email": student_data["username"],
+                    "password": student_data["temporary_password"]
+                }
+                
+                login_response = requests.post(
+                    f"{BACKEND_URL}/auth/login",
+                    json=login_data,
+                    timeout=TEST_TIMEOUT,
+                    headers={'Content-Type': 'application/json'}
+                )
+                
+                if login_response.status_code == 200:
+                    login_result = login_response.json()
+                    created_student['auth_token'] = login_result.get('access_token')
+                    created_student['password'] = student_data["temporary_password"]
+                    
+                    self.log_result(
+                        "Create Test Student User", 
+                        "PASS", 
+                        f"Successfully created and authenticated test student: {created_student['username']}",
+                        f"Student ID: {created_student['id']}, Email: {created_student['email']}"
+                    )
+                    return created_student
+                else:
+                    self.log_result(
+                        "Create Test Student User", 
+                        "FAIL", 
+                        f"Created student but login failed, status: {login_response.status_code}",
+                        f"Login response: {login_response.text}"
+                    )
+            else:
+                self.log_result(
+                    "Create Test Student User", 
+                    "FAIL", 
+                    f"Failed to create test student, status: {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Create Test Student User", 
+                "FAIL", 
+                "Failed to create test student user",
+                str(e)
+            )
+        return None
+    
+    def create_classroom_with_student_and_courses(self, student, courses):
+        """Create a classroom and assign the student to it with courses"""
+        try:
+            if "admin" not in self.auth_tokens:
+                self.test_admin_login()
+            
+            # Get an instructor to assign as trainer
+            users_response = requests.get(
+                f"{BACKEND_URL}/auth/admin/users",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            if users_response.status_code != 200:
+                self.log_result(
+                    "Create Classroom - Get Instructor", 
+                    "FAIL", 
+                    "Could not retrieve users to find instructor",
+                    f"Users API failed with status: {users_response.status_code}"
+                )
+                return False
+            
+            users = users_response.json()
+            instructor = None
+            for user in users:
+                if user.get('role') == 'instructor':
+                    instructor = user
+                    break
+            
+            if not instructor:
+                self.log_result(
+                    "Create Classroom - Get Instructor", 
+                    "FAIL", 
+                    "No instructor found to assign as trainer",
+                    "Need instructor user for classroom creation"
+                )
+                return False
+            
+            classroom_data = {
+                "name": "Enrollment Test Classroom",
+                "description": "Testing classroom auto-enrollment functionality",
+                "trainerId": instructor['id'],
+                "courseIds": [course['id'] for course in courses],
+                "programIds": [],
+                "studentIds": [student['id']],
+                "department": "Testing"
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/classrooms",
+                json=classroom_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                created_classroom = response.json()
+                self.log_result(
+                    "Create Classroom with Student and Courses", 
+                    "PASS", 
+                    f"Successfully created classroom with student and {len(courses)} courses",
+                    f"Classroom ID: {created_classroom['id']}, Student: {student['username']}, Courses: {[c['title'] for c in courses]}"
+                )
+                return created_classroom
+            else:
+                self.log_result(
+                    "Create Classroom with Student and Courses", 
+                    "FAIL", 
+                    f"Failed to create classroom, status: {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Create Classroom with Student and Courses", 
+                "FAIL", 
+                "Failed to create classroom with student and courses",
+                str(e)
+            )
+        return False
+    
+    def verify_student_auto_enrollment(self, student, courses):
+        """Verify that the student is auto-enrolled in the classroom courses"""
+        try:
+            # Get student's enrollments
+            response = requests.get(
+                f"{BACKEND_URL}/enrollments",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {student["auth_token"]}'}
+            )
+            
+            if response.status_code == 200:
+                enrollments = response.json()
+                enrolled_course_ids = [enrollment['courseId'] for enrollment in enrollments]
+                expected_course_ids = [course['id'] for course in courses]
+                
+                # Check if all expected courses are in enrollments
+                auto_enrolled_courses = []
+                missing_enrollments = []
+                
+                for course in courses:
+                    if course['id'] in enrolled_course_ids:
+                        auto_enrolled_courses.append(course['title'])
+                    else:
+                        missing_enrollments.append(course['title'])
+                
+                if len(auto_enrolled_courses) == len(courses):
+                    self.log_result(
+                        "Verify Student Auto-Enrollment", 
+                        "PASS", 
+                        f"Student successfully auto-enrolled in all {len(courses)} classroom courses",
+                        f"Auto-enrolled courses: {auto_enrolled_courses}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Verify Student Auto-Enrollment", 
+                        "FAIL", 
+                        f"Student not auto-enrolled in all courses. Missing: {missing_enrollments}",
+                        f"Enrolled: {auto_enrolled_courses}, Missing: {missing_enrollments}"
+                    )
+            else:
+                self.log_result(
+                    "Verify Student Auto-Enrollment", 
+                    "FAIL", 
+                    f"Failed to get student enrollments, status: {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Verify Student Auto-Enrollment", 
+                "FAIL", 
+                "Failed to verify student auto-enrollment",
+                str(e)
+            )
+        return False
+    
+    def provide_frontend_testing_credentials(self, student, courses):
+        """Provide the course ID and student credentials for frontend testing"""
+        print("\n" + "="*80)
+        print("🎯 FRONTEND TESTING CREDENTIALS - For 'Continue Learning' Flow")
+        print("="*80)
+        print(f"📧 Student Email: {student['email']}")
+        print(f"👤 Student Username: {student['username']}")
+        print(f"🔑 Student Password: {student['password']}")
+        print(f"🆔 Student ID: {student['id']}")
+        print("\n📚 ENROLLED COURSE DETAILS:")
+        for i, course in enumerate(courses, 1):
+            print(f"   {i}. Course ID: {course['id']}")
+            print(f"      Course Title: {course['title']}")
+            print(f"      Instructor: {course['instructor']}")
+        print("\n🔗 Backend URL: " + BACKEND_URL.replace('/api', ''))
+        print("="*80)
+        print("✅ Use these credentials to test the 'Continue Learning' button")
+        print("✅ Student should see enrolled courses instead of enrollment options")
+        print("="*80)
+        
+        self.log_result(
+            "Provide Frontend Testing Credentials", 
+            "PASS", 
+            "Successfully provided student credentials and course IDs for frontend testing",
+            f"Student: {student['username']}, Courses: {len(courses)}, Ready for 'Continue Learning' flow testing"
+        )
+
     def run_all_tests(self):
         """Run all backend tests with focus on classroom creation fix"""
         print("🚀 Starting Backend Testing Suite for LearningFwiend LMS")
