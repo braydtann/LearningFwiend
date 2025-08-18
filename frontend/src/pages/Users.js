@@ -210,7 +210,7 @@ const Users = () => {
         temporary_password: '' 
       });
       setIsCreateModalOpen(false);
-      fetchUsers(); // Refresh user list
+      loadUsers(); // Refresh user list
     } else {
       toast({
         title: "User creation failed",
