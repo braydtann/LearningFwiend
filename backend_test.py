@@ -10585,6 +10585,18 @@ class BackendTester:
             self.test_course_creation_atlas()
             self.test_new_admin_user_verification()
         
+        # ENROLLMENT API TESTS - CRITICAL PRIORITY FOR REVIEW REQUEST
+        if self.auth_tokens:
+            print("\n📚 ENROLLMENT API TESTS (CRITICAL PRIORITY)")
+            print("=" * 50)
+            self.test_enrollment_api_post()
+            self.test_enrollment_api_get_my_enrollments()
+            self.test_enrollment_response_model_validation()
+            self.test_enrollment_complete_workflow()
+            self.test_enrollment_duplicate_prevention()
+            self.test_enrollment_course_validation()
+            self.test_enrollment_permission_validation()
+        
         # Core API tests
         print("\n🌐 CORE API TESTS")
         print("=" * 50)
