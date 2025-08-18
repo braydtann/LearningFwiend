@@ -391,10 +391,18 @@ export const AuthProvider = ({ children }) => {
   const getAllCourses = async () => {
     try {
       const token = localStorage.getItem('auth_token');
+      
+      // Edge-compatible fetch with explicit headers
       const response = await fetch(`${backendUrl}/api/courses`, {
+        method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache'  // Edge compatibility
+        },
+        credentials: 'same-origin',  // Edge CORS compatibility
+        cache: 'no-cache'  // Prevent Edge caching issues
       });
 
       if (response.ok) {
