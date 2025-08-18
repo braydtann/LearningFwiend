@@ -297,6 +297,125 @@ const ClassroomDetail = () => {
         </div>
       </div>
 
+      {/* Edit Form - Only show in edit mode */}
+      {isEditMode && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Edit Classroom</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="name">Classroom Name *</Label>
+                <Input
+                  id="name"
+                  value={editData.name}
+                  onChange={(e) => handleInputChange('name', e.target.value)}
+                  placeholder="Enter classroom name"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="batchId">Batch ID</Label>
+                <Input
+                  id="batchId"
+                  value={editData.batchId}
+                  onChange={(e) => handleInputChange('batchId', e.target.value)}
+                  placeholder="e.g., BATCH-2024-Q1-001"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={editData.description}
+                onChange={(e) => handleInputChange('description', e.target.value)}
+                placeholder="Describe the purpose and goals of this classroom"
+                rows={3}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="trainer">Trainer</Label>
+                <Select 
+                  value={editData.trainerId} 
+                  onValueChange={(value) => handleInputChange('trainerId', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select trainer" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableUsers
+                      .filter(user => user.role === 'instructor' || user.role === 'admin')
+                      .map(user => (
+                        <SelectItem key={user.id} value={user.id}>
+                          {user.full_name} ({user.email})
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="department">Department</Label>
+                <Select 
+                  value={editData.department} 
+                  onValueChange={(value) => handleInputChange('department', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select department" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Technology">Technology</SelectItem>
+                    <SelectItem value="Marketing">Marketing</SelectItem>
+                    <SelectItem value="Sales">Sales</SelectItem>
+                    <SelectItem value="Human Resources">Human Resources</SelectItem>
+                    <SelectItem value="Finance">Finance</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="startDate">Start Date</Label>
+                <Input
+                  id="startDate"
+                  type="date"
+                  value={editData.startDate}
+                  onChange={(e) => handleInputChange('startDate', e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="endDate">End Date</Label>
+                <Input
+                  id="endDate"
+                  type="date"
+                  value={editData.endDate}
+                  onChange={(e) => handleInputChange('endDate', e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="maxStudents">Maximum Students</Label>
+              <Input
+                id="maxStudents"
+                type="number"
+                value={editData.maxStudents}
+                onChange={(e) => handleInputChange('maxStudents', parseInt(e.target.value) || 30)}
+                min="1"
+                max="100"
+              />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Classroom Overview */}
       <Card>
         <CardContent className="p-8">
