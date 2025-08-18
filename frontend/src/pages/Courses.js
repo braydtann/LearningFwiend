@@ -39,30 +39,16 @@ const Courses = () => {
   const loadCourses = async () => {
     setLoading(true);
     try {
-      if (isInstructor || isAdmin) {
-        // For instructors and admins, get their courses
-        const result = await getMyCourses();
-        if (result.success) {
-          setCourses(result.courses);
-        } else {
-          toast({
-            title: "Error loading courses",
-            description: result.error,
-            variant: "destructive",
-          });
-        }
+      // All users should see all available courses for collaboration
+      const result = await getAllCourses();
+      if (result.success) {
+        setCourses(result.courses);
       } else {
-        // For students, get all available courses
-        const result = await getAllCourses();
-        if (result.success) {
-          setCourses(result.courses);
-        } else {
-          toast({
-            title: "Error loading courses",
-            description: result.error,
-            variant: "destructive",
-          });
-        }
+        toast({
+          title: "Error loading courses",
+          description: result.error,
+          variant: "destructive",
+        });
       }
     } catch (error) {
       toast({
