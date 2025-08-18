@@ -1321,7 +1321,7 @@ export const AuthProvider = ({ children }) => {
   const getMyEnrollments = async () => {
     try {
       const token = localStorage.getItem('auth_token');
-      const response = await fetch(`${backendUrl}/api/enrollments/my-enrollments`, {
+      const response = await fetch(`${backendUrl}/api/enrollments`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
