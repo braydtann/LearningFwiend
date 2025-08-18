@@ -22,6 +22,7 @@ const CreateCourse = () => {
   
   const isEditing = Boolean(id);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [backendCourse, setBackendCourse] = useState(null);
   const [loadingCourse, setLoadingCourse] = useState(isEditing);
   
