@@ -37,9 +37,9 @@ class DatabaseKeepAlive:
             self.client = AsyncIOMotorClient(self.mongo_url)
             self.db = self.client[self.db_name]
             
-            # Test connection
-            await self.db.admin.command('ping')
-            logger.info("✅ Connected to MongoDB Atlas successfully")
+            # Test connection with server info
+            server_info = await self.client.server_info()
+            logger.info(f"✅ Connected to MongoDB Atlas successfully - Version: {server_info.get('version')}")
             return True
             
         except Exception as e:
@@ -49,14 +49,14 @@ class DatabaseKeepAlive:
     async def ping_database(self):
         """Perform a lightweight database operation to keep cluster active"""
         try:
-            # Simple ping command
-            result = await self.db.admin.command('ping')
+            # Simple ping using client
+            server_info = await self.client.server_info()
             
-            if result.get('ok') == 1:
+            if server_info:
                 logger.info("✅ Database ping successful - cluster is active")
                 return True
             else:
-                logger.warning("⚠️ Database ping returned unexpected result")
+                logger.warning("⚠️ Database ping returned no server info")
                 return False
                 
         except Exception as e:
