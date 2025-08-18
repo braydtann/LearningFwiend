@@ -450,7 +450,7 @@ const ClassroomDetail = () => {
                   <Users className="h-5 w-5 text-gray-500" />
                   <div>
                     <p className="text-sm text-gray-500">Students</p>
-                    <p className="font-medium">{classroom.metrics.totalStudents}</p>
+                    <p className="font-medium">{classroom.metrics?.totalStudents || classroom.totalStudents || 0}</p>
                   </div>
                 </div>
                 
