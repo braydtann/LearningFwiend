@@ -698,7 +698,7 @@ const ClassroomDetail = () => {
                       <Target className="h-5 w-5 text-blue-600 mr-2" />
                       <span className="text-sm font-medium">Average Test Score</span>
                     </div>
-                    <span className="font-bold text-blue-700">{classroom.metrics.averageTestScore}</span>
+                    <span className="font-bold text-blue-700">{classroom.metrics?.averageTestScore || 0}</span>
                   </div>
                   
                   <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
