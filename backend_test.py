@@ -12,7 +12,7 @@ from datetime import datetime
 import time
 
 # Configuration - Updated for MongoDB Atlas Testing
-BACKEND_URL = "http://localhost:8001/api"
+BACKEND_URL = "https://edusys-migration.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 class BackendTester:
