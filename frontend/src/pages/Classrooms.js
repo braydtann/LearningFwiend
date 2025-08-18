@@ -52,7 +52,7 @@ const Classrooms = () => {
     courseIds: [],
     programIds: [], // New: Program selection
     studentIds: [],
-    departmentId: '', // New: Department selection
+    departmentName: '', // Changed from departmentId to departmentName
     startDate: '',
     endDate: ''
   });
