@@ -667,7 +667,7 @@ const ClassroomDetail = () => {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Overall Progress</span>
-                    <span className="font-semibold">{classroom.metrics.averageProgress}%</span>
+                    <span className="font-semibold">{classroom.metrics?.averageProgress || 0}%</span>
                   </div>
                   <Progress value={classroom.metrics.averageProgress} className="h-3" />
                   
