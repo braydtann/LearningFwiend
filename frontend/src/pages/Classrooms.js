@@ -416,8 +416,8 @@ const Classrooms = () => {
                       <SelectValue placeholder="Select department" />
                     </SelectTrigger>
                     <SelectContent>
-                      {mockDepartments.map(department => (
-                        <SelectItem key={department.id} value={department.id}>
+                      {allDepartments.map(department => (
+                        <SelectItem key={department.id} value={department.name}>
                           {department.name}
                         </SelectItem>
                       ))}
