@@ -57,11 +57,12 @@ const Classrooms = () => {
     endDate: ''
   });
 
-  // Load real users, courses, programs, and classrooms from backend on component mount
+  // Load real users, courses, programs, departments, and classrooms from backend on component mount
   useEffect(() => {
     loadUsers();
     loadCourses();
     loadPrograms();
+    loadDepartments();
     loadClassrooms();
   }, []);
 
