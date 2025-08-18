@@ -12,7 +12,7 @@ import { BookOpen, Clock, Users, Search, Filter, Play, Star, Eye, Trash2 } from 
 import { useToast } from '../hooks/use-toast';
 
 const Courses = () => {
-  const { user, isAdmin, isInstructor, isLearner, getAllCourses, getMyCourses, enrollInCourse, unenrollFromCourse, deleteCourse } = useAuth();
+  const { user, isAdmin, isInstructor, isLearner, getAllCourses, getMyCourses, enrollInCourse, unenrollFromCourse, deleteCourse, getMyEnrollments } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
