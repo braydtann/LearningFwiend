@@ -1571,6 +1571,21 @@ backend:
         agent: "testing"
         comment: "ANALYTICS API TESTING COMPLETED WITH MIXED RESULTS: Comprehensive testing of Analytics management APIs shows excellent functionality for admin role but authentication issues for instructor role. ✅ SYSTEM ANALYTICS SUCCESS: GET /api/analytics/system-stats working perfectly for admin role with comprehensive statistics including users (totalUsers, activeUsers, newUsersThisMonth, usersByRole, usersByDepartment), courses (totalCourses, publishedCourses, draftCourses, coursesThisMonth, coursesByCategory, enrollmentStats), quizzes (totalQuizzes, publishedQuizzes, totalAttempts, averageScore, passRate, quizzesThisMonth), enrollments, certificates, and announcements statistics. ✅ USER ANALYTICS SUCCESS: User analytics working correctly for admin role with proper data structure (userId, userName, role, enrolledCourses, completedCourses, averageScore, totalQuizAttempts, certificatesEarned) and accurate data types. ✅ ANALYTICS DASHBOARD SUCCESS: Dashboard working for admin with correct role-specific data (totalUsers, totalCourses, totalEnrollments, totalCertificates). ✅ ANALYTICS PERMISSIONS SUCCESS: Role-based access control working correctly (learners properly denied access to system stats with 403). ✅ ANALYTICS CALCULATIONS SUCCESS: All statistical calculations accurate and consistent (user role totals match, course status counts reasonable, quiz statistics within valid ranges 0-100%). ❌ INSTRUCTOR AUTHENTICATION ISSUES: System analytics failing for instructor role with 401 'User not found' errors, Course analytics cannot be tested due to instructor authentication failures. CONCLUSION: Analytics APIs are properly implemented and fully functional for admin role, but instructor access is blocked by authentication middleware issues. Core analytics functionality is production-ready with accurate calculations and proper access control."
 
+  - task: "Course Image Display Fix with Default Fallback"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/Courses.js, /app/frontend/src/pages/CourseDetail.js, /app/frontend/src/pages/CreateCourse.js, /app/frontend/public/default-course-image.png"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "USER ISSUE: Course images not displaying properly - showing white screen with broken image icon flashing. Also requested default fallback image when no image URL is provided."
+      - working: true
+        agent: "main"
+        comment: "FIXED: Downloaded custom default course image to /app/frontend/public/default-course-image.png. Updated all course display components (Courses.js, CourseDetail.js) to use '/default-course-image.png' instead of generic placeholder. Fixed data mapping bug in CreateCourse.js where 'thumbnailUrl' field was mismatched with 'thumbnail' form field. All course images now display properly with beautiful classroom scene as default fallback."
+
 metadata:
   created_by: "main_agent"
   version: "1.3"
