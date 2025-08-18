@@ -714,7 +714,7 @@ const Classrooms = () => {
                               <Button 
                                 size="sm" 
                                 variant="outline"
-                                onClick={() => navigate(`/classroom/${classroom.id}/manage`)}
+                                onClick={() => navigate(`/classroom/${classroom.id}?mode=edit`)}
                               >
                                 <Edit className="w-4 h-4" />
                               </Button>
