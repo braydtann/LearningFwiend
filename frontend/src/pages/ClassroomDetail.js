@@ -168,6 +168,56 @@ const ClassroomDetail = () => {
     }
   };
 
+  // Load courses when classroom data is available
+  useEffect(() => {
+    if (classroom) {
+      loadCourses();
+    }
+  }, [classroom]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const result = await updateClassroom(id, editData);
+      if (result.success) {
+        setClassroom(result.classroom);
+        toast({
+          title: "Classroom updated",
+          description: "The classroom has been successfully updated.",
+        });
+        // Exit edit mode
+        navigate(`/classroom/${id}`);
+      } else {
+        toast({
+          title: "Update failed",
+          description: result.error || "Failed to update classroom.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred while updating the classroom.",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    // Reset edit data and exit edit mode
+    setEditData(classroom);
+    navigate(`/classroom/${id}`);
+  };
+
+  const handleInputChange = (field, value) => {
+    setEditData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
   if (!classroom) {
     return (
       <div className="text-center py-12">
