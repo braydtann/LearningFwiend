@@ -1780,6 +1780,15 @@ const CreateCourse = () => {
             Cancel
           </Button>
           <div className="flex items-center space-x-4">
+            <Button 
+              type="button"
+              variant="outline"
+              onClick={handleSaveDraft}
+              disabled={isSavingDraft || !courseData.title.trim()}
+              className="flex items-center"
+            >
+              {isSavingDraft ? 'Saving...' : 'Save as Draft'}
+            </Button>
             <Button
               variant="outline"
               onClick={() => setIsPreviewOpen(true)}
