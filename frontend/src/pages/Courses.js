@@ -89,8 +89,11 @@ const Courses = () => {
         title: "Enrolled successfully!",
         description: "You have been enrolled in the course.",
       });
-      // Reload courses to update enrollment status
+      // Reload courses and enrollments to update enrollment status
       loadCourses();
+      if (isLearner) {
+        loadEnrollments();
+      }
     } else {
       toast({
         title: "Enrollment failed",
