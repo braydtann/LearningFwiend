@@ -58,7 +58,7 @@
 ##
 ## agent_communication:
 ##     -agent: "main"  # or "testing" or "user"
-##     -message: "Communication message between agents"
+##     -message: "Need to investigate why student dashboard shows 'No courses enrolled yet' despite classroom auto-enrollment being implemented. Will test both the backend auto-enrollment logic and frontend enrollment detection to identify root cause."
 
 # Protocol Guidelines for Main agent
 #
