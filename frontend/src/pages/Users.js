@@ -303,7 +303,7 @@ const Users = () => {
 
       setIsDeleteModalOpen(false);
       setSelectedUserForDelete(null);
-      fetchUsers(); // Refresh user list
+      loadUsers(); // Refresh user list
     } else {
       toast({
         title: "User deletion failed",
