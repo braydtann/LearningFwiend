@@ -219,7 +219,7 @@ const Classrooms = () => {
   };
 
   const handleCreateClassroom = async () => {
-    if (!newClassroom.name || !newClassroom.batchId || !newClassroom.trainerId || !newClassroom.departmentId) {
+    if (!newClassroom.name || !newClassroom.batchId || !newClassroom.trainerId || !newClassroom.departmentName) {
       toast({
         title: "Missing required fields",
         description: "Please fill in all required information including name, batch ID, trainer, and department.",
