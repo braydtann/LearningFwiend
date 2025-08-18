@@ -13505,6 +13505,337 @@ class BackendTester:
                 f"Issues: {'; '.join(structure_issues[:2])}"
             )
 
+    # =============================================================================
+    # BUG FIX TESTS - SPECIFIC REVIEW REQUEST
+    # =============================================================================
+    
+    def test_orphaned_enrollment_cleanup_endpoint(self):
+        """Test POST /api/enrollments/cleanup-orphaned endpoint"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Orphaned Enrollment Cleanup Endpoint", 
+                "SKIP", 
+                "No admin token available for cleanup test",
+                "Admin authentication required"
+            )
+            return False
+        
+        try:
+            response = requests.post(
+                f"{BACKEND_URL}/enrollments/cleanup-orphaned",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                deleted_count = data.get('deletedCount', 0)
+                orphaned_course_ids = data.get('orphanedCourseIds', [])
+                
+                self.log_result(
+                    "Orphaned Enrollment Cleanup Endpoint", 
+                    "PASS", 
+                    f"Successfully cleaned up {deleted_count} orphaned enrollment records",
+                    f"Orphaned course IDs: {orphaned_course_ids[:5]}{'...' if len(orphaned_course_ids) > 5 else ''}"
+                )
+                return True
+            elif response.status_code == 403:
+                self.log_result(
+                    "Orphaned Enrollment Cleanup Endpoint", 
+                    "FAIL", 
+                    "Admin access control not working - got 403 with admin token",
+                    f"Response: {response.text}"
+                )
+            else:
+                self.log_result(
+                    "Orphaned Enrollment Cleanup Endpoint", 
+                    "FAIL", 
+                    f"Cleanup endpoint failed with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Orphaned Enrollment Cleanup Endpoint", 
+                "FAIL", 
+                "Failed to test orphaned enrollment cleanup",
+                str(e)
+            )
+        return False
+    
+    def test_announcement_creation_with_content_field(self):
+        """Test POST /api/announcements with corrected data format (content instead of message)"""
+        if "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Announcement Creation with Content Field", 
+                "SKIP", 
+                "No instructor token available for announcement test",
+                "Instructor authentication required"
+            )
+            return False
+        
+        try:
+            # Test with correct 'content' field
+            announcement_data = {
+                "title": "Bug Fix Test Announcement",
+                "content": "Testing announcement creation with corrected content field instead of message field",
+                "type": "general",
+                "targetAudience": "all",
+                "priority": "normal"
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/announcements",
+                json=announcement_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                created_announcement = response.json()
+                returned_content = created_announcement.get('content')
+                
+                if returned_content == announcement_data['content']:
+                    self.log_result(
+                        "Announcement Creation with Content Field", 
+                        "PASS", 
+                        "Successfully created announcement with correct 'content' field",
+                        f"Announcement ID: {created_announcement.get('id')}, Content properly stored"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Announcement Creation with Content Field", 
+                        "FAIL", 
+                        "Content field not properly stored or returned",
+                        f"Expected: {announcement_data['content'][:50]}..., Got: {returned_content[:50] if returned_content else 'None'}..."
+                    )
+            else:
+                self.log_result(
+                    "Announcement Creation with Content Field", 
+                    "FAIL", 
+                    f"Failed to create announcement, status: {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Announcement Creation with Content Field", 
+                "FAIL", 
+                "Failed to test announcement creation",
+                str(e)
+            )
+        return False
+    
+    def test_departments_endpoint_for_dropdown_fix(self):
+        """Test GET /api/departments endpoint for user editing dropdown fix"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Departments Endpoint for Dropdown Fix", 
+                "SKIP", 
+                "No admin token available for departments test",
+                "Admin authentication required"
+            )
+            return False
+        
+        try:
+            response = requests.get(
+                f"{BACKEND_URL}/departments",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            if response.status_code == 200:
+                departments = response.json()
+                
+                if isinstance(departments, list):
+                    # Check if departments have required fields for dropdown
+                    required_fields = ['id', 'name']
+                    valid_departments = []
+                    
+                    for dept in departments:
+                        if all(field in dept for field in required_fields):
+                            valid_departments.append(dept)
+                    
+                    if len(valid_departments) > 0:
+                        self.log_result(
+                            "Departments Endpoint for Dropdown Fix", 
+                            "PASS", 
+                            f"Successfully retrieved {len(valid_departments)} departments with required fields for dropdown",
+                            f"Sample department: {valid_departments[0] if valid_departments else 'None'}"
+                        )
+                        return True
+                    else:
+                        self.log_result(
+                            "Departments Endpoint for Dropdown Fix", 
+                            "FAIL", 
+                            "No departments have required fields for dropdown functionality",
+                            f"Total departments: {len(departments)}, Valid for dropdown: 0"
+                        )
+                else:
+                    self.log_result(
+                        "Departments Endpoint for Dropdown Fix", 
+                        "FAIL", 
+                        "Departments endpoint did not return a list",
+                        f"Response type: {type(departments)}"
+                    )
+            else:
+                self.log_result(
+                    "Departments Endpoint for Dropdown Fix", 
+                    "FAIL", 
+                    f"Failed to retrieve departments, status: {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Departments Endpoint for Dropdown Fix", 
+                "FAIL", 
+                "Failed to test departments endpoint",
+                str(e)
+            )
+        return False
+    
+    def test_classroom_permissions_instructor_admin_only(self):
+        """Test that only instructors/admins can edit classrooms"""
+        # Test with admin token
+        admin_can_access = False
+        if "admin" in self.auth_tokens:
+            try:
+                response = requests.get(
+                    f"{BACKEND_URL}/classrooms",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+                )
+                admin_can_access = response.status_code == 200
+            except:
+                pass
+        
+        # Test with instructor token
+        instructor_can_access = False
+        if "instructor" in self.auth_tokens:
+            try:
+                response = requests.get(
+                    f"{BACKEND_URL}/classrooms",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {self.auth_tokens["instructor"]}'}
+                )
+                instructor_can_access = response.status_code == 200
+            except:
+                pass
+        
+        # Test with learner token (should be denied)
+        learner_denied = True
+        if "learner" in self.auth_tokens:
+            try:
+                response = requests.get(
+                    f"{BACKEND_URL}/classrooms",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {self.auth_tokens["learner"]}'}
+                )
+                learner_denied = response.status_code == 403
+            except:
+                pass
+        
+        # Evaluate results
+        if admin_can_access and instructor_can_access and learner_denied:
+            self.log_result(
+                "Classroom Permissions - Instructor/Admin Only", 
+                "PASS", 
+                "Classroom permissions working correctly - only instructors/admins can access",
+                f"Admin access: {admin_can_access}, Instructor access: {instructor_can_access}, Learner denied: {learner_denied}"
+            )
+            return True
+        else:
+            self.log_result(
+                "Classroom Permissions - Instructor/Admin Only", 
+                "FAIL", 
+                "Classroom permissions not working correctly",
+                f"Admin access: {admin_can_access}, Instructor access: {instructor_can_access}, Learner denied: {learner_denied}"
+            )
+        return False
+    
+    def test_classroom_creation_permissions(self):
+        """Test classroom creation permissions (instructors/admins only)"""
+        if "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Classroom Creation Permissions", 
+                "SKIP", 
+                "No instructor token available for classroom creation test",
+                "Instructor authentication required"
+            )
+            return False
+        
+        try:
+            # Get a valid instructor ID for trainer field
+            users_response = requests.get(
+                f"{BACKEND_URL}/auth/admin/users",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens.get("admin", self.auth_tokens["instructor"])}'}
+            )
+            
+            trainer_id = None
+            if users_response.status_code == 200:
+                users = users_response.json()
+                for user in users:
+                    if user.get('role') == 'instructor':
+                        trainer_id = user.get('id')
+                        break
+            
+            if not trainer_id:
+                self.log_result(
+                    "Classroom Creation Permissions", 
+                    "SKIP", 
+                    "No instructor found for classroom creation test",
+                    "Valid instructor ID required for trainerId field"
+                )
+                return False
+            
+            classroom_data = {
+                "name": "Permission Test Classroom",
+                "description": "Testing classroom creation permissions",
+                "trainerId": trainer_id,
+                "courseIds": [],
+                "programIds": [],
+                "studentIds": [],
+                "department": "Testing"
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/classrooms",
+                json=classroom_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                created_classroom = response.json()
+                self.log_result(
+                    "Classroom Creation Permissions", 
+                    "PASS", 
+                    "Instructor can successfully create classrooms",
+                    f"Classroom ID: {created_classroom.get('id')}, Name: {created_classroom.get('name')}"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Classroom Creation Permissions", 
+                    "FAIL", 
+                    f"Instructor failed to create classroom, status: {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Classroom Creation Permissions", 
+                "FAIL", 
+                "Failed to test classroom creation permissions",
+                str(e)
+            )
+        return False
+
     def run_all_tests(self):
         """Run all backend tests with focus on Continue Learning investigation"""
         print("🚀 Starting Backend Testing Suite for LearningFwiend LMS")
