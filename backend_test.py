@@ -10528,6 +10528,435 @@ class BackendTester:
     # CLASSROOM AUTO-ENROLLMENT FUNCTIONALITY TESTS - PRIORITY FOCUS
     # =============================================================================
     
+    def test_classroom_auto_enrollment_complete_workflow(self):
+        """
+        COMPREHENSIVE TEST FOR USER REQUEST: Test the updated classroom auto-enrollment functionality 
+        to verify the user's dashboard issue is resolved. Focus on:
+        1. Create a test student and test course
+        2. Create a classroom with the student and course to test creation auto-enrollment
+        3. Verify the student is auto-enrolled via GET /api/enrollments
+        4. Test updating a classroom by adding another student to verify update auto-enrollment 
+        5. Confirm both students can retrieve their enrollments properly
+        6. Test the complete workflow to ensure students assigned to classrooms will see courses on their dashboard
+        """
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Classroom Auto-Enrollment Complete Workflow", 
+                "SKIP", 
+                "No admin token available for comprehensive workflow test",
+                "Admin authentication required"
+            )
+            return False
+        
+        try:
+            print("🎯 TESTING COMPLETE CLASSROOM AUTO-ENROLLMENT WORKFLOW AS REQUESTED")
+            
+            # STEP 1: Create test student
+            print("📝 Step 1: Creating test student...")
+            student_data = {
+                "email": "dashboard.test.student@learningfwiend.com",
+                "username": "dashboard.test.student",
+                "full_name": "Dashboard Test Student",
+                "role": "learner",
+                "department": "Testing",
+                "temporary_password": "DashboardTest123!"
+            }
+            
+            student_response = requests.post(
+                f"{BACKEND_URL}/auth/admin/create-user",
+                json=student_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if student_response.status_code != 200:
+                self.log_result(
+                    "Classroom Auto-Enrollment Complete Workflow", 
+                    "FAIL", 
+                    "Failed to create test student",
+                    f"Student creation failed: {student_response.text}"
+                )
+                return False
+            
+            student = student_response.json()
+            student_id = student.get('id')
+            print(f"✅ Created test student: {student.get('username')} (ID: {student_id})")
+            
+            # STEP 2: Create second test student for update testing
+            print("📝 Step 2: Creating second test student...")
+            student2_data = {
+                "email": "dashboard.test.student2@learningfwiend.com",
+                "username": "dashboard.test.student2",
+                "full_name": "Dashboard Test Student 2",
+                "role": "learner",
+                "department": "Testing",
+                "temporary_password": "DashboardTest123!"
+            }
+            
+            student2_response = requests.post(
+                f"{BACKEND_URL}/auth/admin/create-user",
+                json=student2_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if student2_response.status_code != 200:
+                self.log_result(
+                    "Classroom Auto-Enrollment Complete Workflow", 
+                    "FAIL", 
+                    "Failed to create second test student",
+                    f"Student 2 creation failed: {student2_response.text}"
+                )
+                return False
+            
+            student2 = student2_response.json()
+            student2_id = student2.get('id')
+            print(f"✅ Created second test student: {student2.get('username')} (ID: {student2_id})")
+            
+            # STEP 3: Create test course
+            print("📝 Step 3: Creating test course...")
+            course_data = {
+                "title": "Dashboard Test Course",
+                "description": "Test course for dashboard auto-enrollment verification",
+                "category": "Testing",
+                "duration": "2 weeks",
+                "accessType": "open"
+            }
+            
+            course_response = requests.post(
+                f"{BACKEND_URL}/courses",
+                json=course_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if course_response.status_code != 200:
+                self.log_result(
+                    "Classroom Auto-Enrollment Complete Workflow", 
+                    "FAIL", 
+                    "Failed to create test course",
+                    f"Course creation failed: {course_response.text}"
+                )
+                return False
+            
+            course = course_response.json()
+            course_id = course.get('id')
+            print(f"✅ Created test course: {course.get('title')} (ID: {course_id})")
+            
+            # STEP 4: Get initial enrollment count for student
+            print("📝 Step 4: Checking initial enrollment count...")
+            
+            # Login as student to get token
+            student_login_data = {
+                "username_or_email": "dashboard.test.student",
+                "password": "DashboardTest123!"
+            }
+            
+            student_login_response = requests.post(
+                f"{BACKEND_URL}/auth/login",
+                json=student_login_data,
+                timeout=TEST_TIMEOUT,
+                headers={'Content-Type': 'application/json'}
+            )
+            
+            if student_login_response.status_code != 200:
+                self.log_result(
+                    "Classroom Auto-Enrollment Complete Workflow", 
+                    "FAIL", 
+                    "Failed to login as test student",
+                    f"Student login failed: {student_login_response.text}"
+                )
+                return False
+            
+            student_token = student_login_response.json().get('access_token')
+            
+            # Check initial enrollments
+            initial_enrollments_response = requests.get(
+                f"{BACKEND_URL}/enrollments",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {student_token}'}
+            )
+            
+            initial_enrollments = initial_enrollments_response.json() if initial_enrollments_response.status_code == 200 else []
+            initial_count = len(initial_enrollments)
+            print(f"✅ Initial enrollment count for student: {initial_count}")
+            
+            # STEP 5: Create classroom with student and course (test creation auto-enrollment)
+            print("📝 Step 5: Creating classroom with student and course...")
+            classroom_data = {
+                "name": "Dashboard Test Classroom",
+                "description": "Test classroom for dashboard auto-enrollment verification",
+                "trainerId": self.auth_tokens.get("instructor_id", "instructor-id-placeholder"),
+                "courseIds": [course_id],
+                "programIds": [],
+                "studentIds": [student_id],
+                "department": "Testing"
+            }
+            
+            # Get instructor ID if available
+            if "instructor" in self.auth_tokens:
+                instructor_me_response = requests.get(
+                    f"{BACKEND_URL}/auth/me",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {self.auth_tokens["instructor"]}'}
+                )
+                if instructor_me_response.status_code == 200:
+                    instructor_info = instructor_me_response.json()
+                    classroom_data["trainerId"] = instructor_info.get('id')
+            
+            classroom_response = requests.post(
+                f"{BACKEND_URL}/classrooms",
+                json=classroom_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if classroom_response.status_code != 200:
+                self.log_result(
+                    "Classroom Auto-Enrollment Complete Workflow", 
+                    "FAIL", 
+                    "Failed to create classroom",
+                    f"Classroom creation failed: {classroom_response.text}"
+                )
+                return False
+            
+            classroom = classroom_response.json()
+            classroom_id = classroom.get('id')
+            print(f"✅ Created classroom: {classroom.get('name')} (ID: {classroom_id})")
+            
+            # STEP 6: Verify student is auto-enrolled via GET /api/enrollments
+            print("📝 Step 6: Verifying student auto-enrollment...")
+            time.sleep(2)  # Allow time for auto-enrollment processing
+            
+            post_creation_enrollments_response = requests.get(
+                f"{BACKEND_URL}/enrollments",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {student_token}'}
+            )
+            
+            if post_creation_enrollments_response.status_code != 200:
+                self.log_result(
+                    "Classroom Auto-Enrollment Complete Workflow", 
+                    "FAIL", 
+                    "Failed to retrieve student enrollments after classroom creation",
+                    f"Enrollments API failed: {post_creation_enrollments_response.text}"
+                )
+                return False
+            
+            post_creation_enrollments = post_creation_enrollments_response.json()
+            post_creation_count = len(post_creation_enrollments)
+            
+            # Check if student was auto-enrolled in the course
+            enrolled_course_ids = [enrollment.get('courseId') for enrollment in post_creation_enrollments]
+            is_auto_enrolled = course_id in enrolled_course_ids
+            
+            if not is_auto_enrolled:
+                self.log_result(
+                    "Classroom Auto-Enrollment Complete Workflow", 
+                    "FAIL", 
+                    "Student was NOT auto-enrolled in classroom course",
+                    f"Expected course ID {course_id} not found in enrollments: {enrolled_course_ids}"
+                )
+                return False
+            
+            print(f"✅ Student auto-enrolled successfully! Enrollment count: {initial_count} → {post_creation_count}")
+            
+            # STEP 7: Test updating classroom by adding second student (test update auto-enrollment)
+            print("📝 Step 7: Testing classroom update with second student...")
+            
+            # Login as second student to get token
+            student2_login_data = {
+                "username_or_email": "dashboard.test.student2",
+                "password": "DashboardTest123!"
+            }
+            
+            student2_login_response = requests.post(
+                f"{BACKEND_URL}/auth/login",
+                json=student2_login_data,
+                timeout=TEST_TIMEOUT,
+                headers={'Content-Type': 'application/json'}
+            )
+            
+            if student2_login_response.status_code != 200:
+                self.log_result(
+                    "Classroom Auto-Enrollment Complete Workflow", 
+                    "FAIL", 
+                    "Failed to login as second test student",
+                    f"Student 2 login failed: {student2_login_response.text}"
+                )
+                return False
+            
+            student2_token = student2_login_response.json().get('access_token')
+            
+            # Check initial enrollments for student 2
+            student2_initial_enrollments_response = requests.get(
+                f"{BACKEND_URL}/enrollments",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {student2_token}'}
+            )
+            
+            student2_initial_enrollments = student2_initial_enrollments_response.json() if student2_initial_enrollments_response.status_code == 200 else []
+            student2_initial_count = len(student2_initial_enrollments)
+            
+            # Update classroom to add second student
+            updated_classroom_data = {
+                "name": "Dashboard Test Classroom",
+                "description": "Test classroom for dashboard auto-enrollment verification",
+                "trainerId": classroom_data["trainerId"],
+                "courseIds": [course_id],
+                "programIds": [],
+                "studentIds": [student_id, student2_id],  # Add second student
+                "department": "Testing"
+            }
+            
+            classroom_update_response = requests.put(
+                f"{BACKEND_URL}/classrooms/{classroom_id}",
+                json=updated_classroom_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if classroom_update_response.status_code != 200:
+                self.log_result(
+                    "Classroom Auto-Enrollment Complete Workflow", 
+                    "FAIL", 
+                    "Failed to update classroom with second student",
+                    f"Classroom update failed: {classroom_update_response.text}"
+                )
+                return False
+            
+            print(f"✅ Updated classroom to include second student")
+            
+            # STEP 8: Verify second student is auto-enrolled after update
+            print("📝 Step 8: Verifying second student auto-enrollment after update...")
+            time.sleep(2)  # Allow time for auto-enrollment processing
+            
+            student2_post_update_enrollments_response = requests.get(
+                f"{BACKEND_URL}/enrollments",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {student2_token}'}
+            )
+            
+            if student2_post_update_enrollments_response.status_code != 200:
+                self.log_result(
+                    "Classroom Auto-Enrollment Complete Workflow", 
+                    "FAIL", 
+                    "Failed to retrieve second student enrollments after classroom update",
+                    f"Student 2 enrollments API failed: {student2_post_update_enrollments_response.text}"
+                )
+                return False
+            
+            student2_post_update_enrollments = student2_post_update_enrollments_response.json()
+            student2_post_update_count = len(student2_post_update_enrollments)
+            
+            # Check if second student was auto-enrolled in the course
+            student2_enrolled_course_ids = [enrollment.get('courseId') for enrollment in student2_post_update_enrollments]
+            student2_is_auto_enrolled = course_id in student2_enrolled_course_ids
+            
+            if not student2_is_auto_enrolled:
+                self.log_result(
+                    "Classroom Auto-Enrollment Complete Workflow", 
+                    "FAIL", 
+                    "Second student was NOT auto-enrolled in classroom course after update",
+                    f"Expected course ID {course_id} not found in student 2 enrollments: {student2_enrolled_course_ids}"
+                )
+                return False
+            
+            print(f"✅ Second student auto-enrolled successfully! Enrollment count: {student2_initial_count} → {student2_post_update_count}")
+            
+            # STEP 9: Confirm both students can retrieve their enrollments properly
+            print("📝 Step 9: Final verification - both students can retrieve enrollments...")
+            
+            # Re-check first student enrollments
+            final_student1_enrollments_response = requests.get(
+                f"{BACKEND_URL}/enrollments",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {student_token}'}
+            )
+            
+            final_student2_enrollments_response = requests.get(
+                f"{BACKEND_URL}/enrollments",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {student2_token}'}
+            )
+            
+            if final_student1_enrollments_response.status_code != 200 or final_student2_enrollments_response.status_code != 200:
+                self.log_result(
+                    "Classroom Auto-Enrollment Complete Workflow", 
+                    "FAIL", 
+                    "Failed to retrieve final enrollments for both students",
+                    f"Student 1: {final_student1_enrollments_response.status_code}, Student 2: {final_student2_enrollments_response.status_code}"
+                )
+                return False
+            
+            final_student1_enrollments = final_student1_enrollments_response.json()
+            final_student2_enrollments = final_student2_enrollments_response.json()
+            
+            # Verify both students have the course enrollment
+            student1_has_course = course_id in [e.get('courseId') for e in final_student1_enrollments]
+            student2_has_course = course_id in [e.get('courseId') for e in final_student2_enrollments]
+            
+            if not (student1_has_course and student2_has_course):
+                self.log_result(
+                    "Classroom Auto-Enrollment Complete Workflow", 
+                    "FAIL", 
+                    "Final verification failed - not both students have course enrollment",
+                    f"Student 1 has course: {student1_has_course}, Student 2 has course: {student2_has_course}"
+                )
+                return False
+            
+            # STEP 10: Test complete workflow success
+            print("📝 Step 10: Complete workflow verification...")
+            
+            # Verify enrollment response model has all required fields
+            sample_enrollment = final_student1_enrollments[0] if final_student1_enrollments else {}
+            required_fields = ['id', 'userId', 'courseId', 'enrolledAt', 'progress', 'status']
+            missing_fields = [field for field in required_fields if field not in sample_enrollment]
+            
+            if missing_fields:
+                self.log_result(
+                    "Classroom Auto-Enrollment Complete Workflow", 
+                    "FAIL", 
+                    "Enrollment response model missing required fields",
+                    f"Missing fields: {missing_fields}, Sample enrollment: {sample_enrollment}"
+                )
+                return False
+            
+            # SUCCESS - All steps completed successfully
+            self.log_result(
+                "Classroom Auto-Enrollment Complete Workflow", 
+                "PASS", 
+                "✅ COMPLETE WORKFLOW SUCCESS: All classroom auto-enrollment functionality working correctly",
+                f"✅ Created test students and course, ✅ Classroom creation auto-enrolled student 1, ✅ Classroom update auto-enrolled student 2, ✅ Both students can retrieve enrollments via GET /api/enrollments, ✅ All enrollment response fields present, ✅ Dashboard issue should be resolved - students assigned to classrooms will see courses"
+            )
+            
+            print("🎉 COMPLETE WORKFLOW TEST PASSED - Dashboard issue should be resolved!")
+            return True
+            
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Classroom Auto-Enrollment Complete Workflow", 
+                "FAIL", 
+                "Failed to complete classroom auto-enrollment workflow test",
+                str(e)
+            )
+        return False
+
     def test_classroom_auto_enrollment_workflow(self):
         """Test complete classroom auto-enrollment workflow: create classroom with students → verify enrollments created → verify student can access courses"""
         if "admin" not in self.auth_tokens:
