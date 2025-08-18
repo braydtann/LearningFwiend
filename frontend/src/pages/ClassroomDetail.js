@@ -299,8 +299,8 @@ const ClassroomDetail = () => {
         )}
       </div>
 
-      {/* Edit Form - Only show in edit mode */}
-      {isEditMode && (
+      {/* Edit Form - Only show in edit mode and for instructors/admins */}
+      {isEditMode && !isLearner && (
         <Card>
           <CardHeader>
             <CardTitle>Edit Classroom</CardTitle>
