@@ -1793,15 +1793,24 @@ async def create_classroom(
     # Insert classroom into database
     await db.classrooms.insert_one(classroom_dict)
     
-    # AUTO-ENROLL STUDENTS IN CLASSROOM COURSES
+    # AUTO-ENROLL STUDENTS IN CLASSROOM COURSES AND PROGRAM COURSES
     # When students are assigned to a classroom, automatically enroll them in all courses
     enrollment_count = 0
     for student_id in classroom_data.studentIds:
         student = await db.users.find_one({"id": student_id})
         if student and student['role'] == 'learner':
             
-            # Enroll in all courses assigned to this classroom
-            for course_id in classroom_data.courseIds:
+            # Collect all course IDs from direct courses and program courses
+            all_course_ids = set(classroom_data.courseIds)
+            
+            # Add courses from programs
+            for program_id in classroom_data.programIds:
+                program = await db.programs.find_one({"id": program_id})
+                if program and "courseIds" in program:
+                    all_course_ids.update(program["courseIds"])
+            
+            # Enroll in all collected courses
+            for course_id in all_course_ids:
                 # Check if student is already enrolled in this course
                 existing_enrollment = await db.enrollments.find_one({
                     "userId": student_id,
