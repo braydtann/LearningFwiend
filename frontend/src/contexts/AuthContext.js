@@ -2278,6 +2278,7 @@ export const AuthProvider = ({ children }) => {
     // Course management
     createCourse,
     updateCourse,
+    deleteCourse,
     getAllCourses,
     getMyCourses,
     getCourseById,
