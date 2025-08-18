@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "EDGE BROWSER COMPATIBILITY TESTING: Test Edge browser compatibility for the course loading issue. Problem: Courses are showing up in Chrome and Firefox but not in Microsoft Edge. Expected root causes: JavaScript ES6/modern syntax compatibility, Fetch API issues, Authentication token storage, CORS or network request handling, Console errors. Testing needed: API endpoints with Edge user agents, Authentication flow, Network requests, Compatibility issues."
+user_problem_statement: "Continue Learning Blank Page Investigation: Quick investigation of the 'Continue Learning' blank page issue. Need to: 1) Check what courses are currently available in the database via GET /api/courses, 2) Test GET /api/courses/{course_id} endpoint for a specific course to see if it returns proper data, 3) Verify that the course IDs being used in frontend links are valid and exist in database, 4) Check if there are any issues with the course retrieval that would cause CourseDetail.js to show a blank page. Focus on identifying why CourseDetail.js would show a blank page when students click 'Continue Learning'."
 
 backend:
   - task: "Edge Browser API Compatibility Testing"
