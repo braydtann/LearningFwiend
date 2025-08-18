@@ -409,8 +409,8 @@ const Classrooms = () => {
                 <div className="space-y-2">
                   <Label>Select Department</Label>
                   <Select 
-                    value={newClassroom.departmentId} 
-                    onValueChange={(value) => setNewClassroom(prev => ({ ...prev, departmentId: value }))}
+                    value={newClassroom.departmentName} 
+                    onValueChange={(value) => setNewClassroom(prev => ({ ...prev, departmentName: value }))}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select department" />
