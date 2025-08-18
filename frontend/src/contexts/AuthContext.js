@@ -29,7 +29,10 @@ export const AuthProvider = ({ children }) => {
   const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
   useEffect(() => {
-    // Check if user is logged in by checking token and validating it
+    // Show browser compatibility warning if needed
+    showBrowserWarning();
+    
+    // Check if user is already authenticated
     checkAuthStatus();
   }, []);
 
