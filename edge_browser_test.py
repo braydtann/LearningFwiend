@@ -12,7 +12,7 @@ from datetime import datetime
 import time
 
 # Configuration
-BACKEND_URL = "https://cef2df94-2dac-49c6-abfc-0dfdaae31c9e.preview.emergentagent.com/api"
+BACKEND_URL = "https://lms-bugfix.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 class EdgeBrowserTester:
@@ -356,7 +356,7 @@ class EdgeBrowserTester:
         """Test CORS handling with Edge-specific headers"""
         try:
             edge_headers = self.get_edge_headers()
-            edge_headers['Origin'] = 'https://cef2df94-2dac-49c6-abfc-0dfdaae31c9e.preview.emergentagent.com'
+            edge_headers['Origin'] = 'https://lms-bugfix.preview.emergentagent.com'
             
             # Test preflight request (OPTIONS)
             options_response = requests.options(

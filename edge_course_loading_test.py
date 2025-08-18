@@ -10,7 +10,7 @@ import time
 from datetime import datetime
 
 # Configuration
-BACKEND_URL = "https://cef2df94-2dac-49c6-abfc-0dfdaae31c9e.preview.emergentagent.com/api"
+BACKEND_URL = "https://lms-bugfix.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 class EdgeCourseLoadingTester:
