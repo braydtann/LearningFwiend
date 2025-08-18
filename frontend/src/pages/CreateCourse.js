@@ -701,6 +701,69 @@ const CreateCourse = () => {
     }));
   };
 
+  const handleSaveDraft = async () => {
+    if (!courseData.title.trim()) {
+      toast({
+        title: "Title required",
+        description: "Please enter a course title to save as draft.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSavingDraft(true);
+    
+    try {
+      const coursePayload = {
+        title: courseData.title,
+        description: courseData.description || "Draft course - description to be added",
+        category: courseData.category || "Uncategorized",
+        duration: courseData.duration || "TBD",
+        thumbnailUrl: courseData.thumbnailUrl,
+        accessType: courseData.accessType || 'open',
+        modules: courseData.modules || [],
+        canvaEmbedCode: courseData.canvaEmbedCode,
+        status: "draft"  // Save as draft
+      };
+
+      let result;
+      if (isEditing) {
+        // Update existing course as draft
+        result = await updateCourse(id, coursePayload);
+      } else {
+        // Create new course as draft
+        result = await createCourse(coursePayload);
+      }
+
+      if (result.success) {
+        toast({
+          title: "Draft saved!",
+          description: `Your course "${courseData.title}" has been saved as a draft. You can continue editing it later.`,
+        });
+        
+        // If it's a new course, navigate to edit mode to continue working on it
+        if (!isEditing && result.course) {
+          navigate(`/edit-course/${result.course.id}`);
+        }
+      } else {
+        toast({
+          title: "Draft save failed",
+          description: result.error || "Failed to save course as draft.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error saving draft:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred while saving the draft.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingDraft(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
