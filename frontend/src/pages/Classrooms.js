@@ -186,7 +186,7 @@ const Classrooms = () => {
       courseIds: [],
       programIds: [],
       studentIds: [],
-      departmentId: '',
+      departmentName: '',
       startDate: '',
       endDate: ''
     });
