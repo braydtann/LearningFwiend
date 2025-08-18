@@ -152,15 +152,18 @@ backend:
 
   - task: "Enrollment API Response Model Fix"
     implemented: true
-    working: false
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "testing"
         comment: "CRITICAL ENROLLMENT API ISSUE DISCOVERED: ❌ Course enrollment API failing with 500 Internal Server Error due to Pydantic validation errors. Backend response model mismatch: API expects 'userId' and 'enrolledAt' fields but backend returns 'studentId' and 'enrollmentDate'. ❌ Get my enrollments API also failing with 500 error. IMPACT: Students cannot enroll in courses or view their enrollments. Backend logs show: 'Field required' errors for 'userId' and 'enrolledAt' in EnrollmentResponse model. REQUIRES IMMEDIATE BACKEND MODEL FIX to align response fields with API expectations. Authentication system working correctly - admin and student login successful, 8 courses available for enrollment."
+      - working: true
+        agent: "testing"
+        comment: "COMPREHENSIVE ENROLLMENT API TESTING COMPLETED SUCCESSFULLY: ✅ POST /api/enrollments endpoint working perfectly - students can successfully enroll in courses with proper response model validation (userId, enrolledAt fields), ✅ GET /api/enrollments endpoint working correctly - students can view their enrollments with all required fields present, ✅ Response model validation passed - all enrollments have correct fields (userId, enrolledAt) with no Pydantic validation errors, ✅ Complete enrollment workflow successful: login as student → enroll in course → view enrollments, ✅ Duplicate enrollment prevention working correctly with appropriate error messages, ✅ Course validation working - returns 404 for non-existent courses, ✅ Permission validation working - only learners can enroll, instructors and admins correctly denied with 403. SUCCESS RATE: 100.0% (10/10 tests passed). ASSESSMENT: EXCELLENT - All enrollment functionality is working correctly. The model mismatch issues have been resolved and students can now properly enroll in courses and view their enrollments without any Pydantic validation errors."
 
   - task: "Admin Course Deletion Functionality"
     implemented: true
