@@ -1793,6 +1793,59 @@ async def create_classroom(
     # Insert classroom into database
     await db.classrooms.insert_one(classroom_dict)
     
+    # AUTO-ENROLL STUDENTS IN CLASSROOM COURSES
+    # When students are assigned to a classroom, automatically enroll them in all courses
+    enrollment_count = 0
+    for student_id in classroom_data.studentIds:
+        student = await db.users.find_one({"id": student_id})
+        if student and student['role'] == 'learner':
+            
+            # Enroll in all courses assigned to this classroom
+            for course_id in classroom_data.courseIds:
+                # Check if student is already enrolled in this course
+                existing_enrollment = await db.enrollments.find_one({
+                    "userId": student_id,
+                    "courseId": course_id
+                })
+                
+                if not existing_enrollment:
+                    # Get course details for enrollment
+                    course = await db.courses.find_one({"id": course_id})
+                    if course:
+                        # Create enrollment
+                        now = datetime.utcnow()
+                        enrollment_dict = {
+                            "id": str(uuid.uuid4()),
+                            "userId": student_id,
+                            "courseId": course_id,
+                            "studentId": student_id,  # For compatibility
+                            "courseName": course.get("title", "Unknown Course"),
+                            "studentName": student['full_name'],
+                            "enrollmentDate": now,
+                            "enrolledAt": now,
+                            "progress": 0.0,
+                            "lastAccessedAt": None,
+                            "completedAt": None,
+                            "grade": None,
+                            "status": "active",
+                            "isActive": True,
+                            "enrolledBy": current_user.id,
+                            "classroomId": classroom_dict["id"],  # Track which classroom enrolled them
+                            "created_at": now,
+                            "updated_at": now
+                        }
+                        
+                        await db.enrollments.insert_one(enrollment_dict)
+                        enrollment_count += 1
+                        
+                        # Update course enrollment count
+                        await db.courses.update_one(
+                            {"id": course_id},
+                            {"$inc": {"enrolledStudents": 1}}
+                        )
+    
+    print(f"Auto-enrolled {enrollment_count} student-course combinations from classroom assignment")
+    
     # Add calculated fields for response
     classroom_dict["studentCount"] = len(classroom_data.studentIds)
     classroom_dict["courseCount"] = len(classroom_data.courseIds)
