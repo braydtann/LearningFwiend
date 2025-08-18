@@ -36,10 +36,13 @@ const CourseDetail = () => {
   const [enrollments, setEnrollments] = useState([]);
   const [loadingEnrollments, setLoadingEnrollments] = useState(true);
 
-  // Load course data from backend
+  // Load course data and enrollments from backend
   useEffect(() => {
     loadCourse();
-  }, [id]);
+    if (isLearner) {
+      loadEnrollments();
+    }
+  }, [id, isLearner]);
 
   const loadCourse = async () => {
     setLoading(true);
