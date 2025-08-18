@@ -9601,6 +9601,14 @@ class BackendTester:
         self.test_instructor_login()
         self.test_student_login()
         
+        # COURSE VISIBILITY AND DRAFT FUNCTIONALITY TESTS - NEW FEATURES (PRIORITY)
+        if self.auth_tokens:
+            print("\n🆕 COURSE VISIBILITY AND DRAFT FUNCTIONALITY TESTS (PRIORITY)")
+            print("=" * 50)
+            self.test_course_visibility_fix()
+            self.test_draft_functionality()
+            self.test_course_status_filtering()
+        
         # ISSUE-SPECIFIC TESTS FOR REVIEW REQUEST - PRIORITY FOCUS
         if self.auth_tokens:
             print("\n🔧 ISSUE-SPECIFIC TESTS FOR REVIEW REQUEST (PRIORITY)")
