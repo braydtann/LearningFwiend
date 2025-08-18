@@ -74,6 +74,24 @@ const CourseDetail = () => {
       setLoading(false);
     }
   };
+
+  const loadEnrollments = async () => {
+    setLoadingEnrollments(true);
+    try {
+      const result = await getMyEnrollments();
+      if (result.success) {
+        setEnrollments(result.enrollments);
+      } else {
+        console.error('Failed to load enrollments:', result.error);
+        setEnrollments([]);
+      }
+    } catch (error) {
+      console.error('Error loading enrollments:', error);
+      setEnrollments([]);
+    } finally {
+      setLoadingEnrollments(false);
+    }
+  };
   const enrolledCourses = isLearner ? getEnrolledCourses(user?.id) : [];
   const isEnrolled = enrolledCourses.some(c => c.id === id);
   const progress = isLearner ? getCourseProgress(user?.id, id) : 0;
