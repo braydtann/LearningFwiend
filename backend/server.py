@@ -1995,19 +1995,6 @@ class EnrollmentInDB(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
-class EnrollmentResponse(BaseModel):
-    id: str
-    courseId: str
-    studentId: str
-    courseName: str
-    studentName: str
-    enrollmentDate: datetime
-    status: str
-    progress: float
-    lastAccessedAt: Optional[datetime] = None
-    completedAt: Optional[datetime] = None
-    grade: Optional[str] = None
-    isActive: bool
     enrolledBy: str
     created_at: datetime
     updated_at: datetime
