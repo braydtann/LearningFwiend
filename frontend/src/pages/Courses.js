@@ -414,7 +414,7 @@ const Courses = () => {
                         </div>
                       </div>
                       
-                      {isOwner ? (
+                      {canEdit ? (
                         <div className="flex space-x-2">
                           <Button 
                             variant="outline" 
