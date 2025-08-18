@@ -13837,9 +13837,9 @@ class BackendTester:
         return False
 
     def run_all_tests(self):
-        """Run all backend tests with focus on Continue Learning investigation"""
+        """Run all backend tests with focus on bug fixes"""
         print("🚀 Starting Backend Testing Suite for LearningFwiend LMS")
-        print("🔍 PRIORITY FOCUS: Continue Learning Blank Page Investigation")
+        print("🔍 PRIORITY FOCUS: Bug Fix Testing - 4 Critical Issues")
         print("=" * 80)
         
         # Basic connectivity tests first
@@ -13847,114 +13847,29 @@ class BackendTester:
             print("❌ Backend health check failed - stopping tests")
             return self.generate_summary()
         
-        # Authentication system tests (needed for course tests)
+        # Authentication system tests (needed for all other tests)
         print("\n🔐 AUTHENTICATION TESTS")
         print("=" * 50)
         self.test_admin_login()
         self.test_instructor_login()
         self.test_student_login()
         
-        # CONTINUE LEARNING INVESTIGATION - HIGHEST PRIORITY
+        # BUG FIX TESTS - HIGHEST PRIORITY
         if self.auth_tokens:
-            print("\n🔍 CONTINUE LEARNING BLANK PAGE INVESTIGATION (HIGHEST PRIORITY)")
+            print("\n🔧 BUG FIX TESTS - REVIEW REQUEST (HIGHEST PRIORITY)")
             print("=" * 50)
-            self.test_continue_learning_investigation()
-        
-        # COURSE VISIBILITY AND DRAFT FUNCTIONALITY TESTS - NEW FEATURES (PRIORITY)
-        if self.auth_tokens:
-            print("\n🆕 COURSE VISIBILITY AND DRAFT FUNCTIONALITY TESTS (PRIORITY)")
-            print("=" * 50)
-            self.test_course_visibility_fix()
-            self.test_draft_functionality()
-            self.test_course_status_filtering()
-        
-        # ISSUE-SPECIFIC TESTS FOR REVIEW REQUEST - PRIORITY FOCUS
-        if self.auth_tokens:
-            print("\n🔧 ISSUE-SPECIFIC TESTS FOR REVIEW REQUEST (PRIORITY)")
-            print("=" * 50)
-            self.test_course_deletion_admin_permissions()
-            self.test_course_deletion_instructor_own_course()
-            self.test_program_deletion_admin_permissions()
-            self.test_program_deletion_instructor_own_program()
-            self.test_course_preview_validation_with_modules()
-            self.test_course_preview_validation_without_modules()
-        
-        # CLASSROOM AUTO-ENROLLMENT FUNCTIONALITY TESTS - PRIORITY FOCUS FOR THIS REVIEW
-        if self.auth_tokens:
-            print("\n🏫 CLASSROOM AUTO-ENROLLMENT FUNCTIONALITY TESTS (PRIORITY)")
-            print("=" * 50)
-            self.test_classroom_auto_enrollment_complete_workflow()  # NEW TEST FOR USER REQUEST
-            self.test_classroom_auto_enrollment_workflow()
-            self.test_classroom_auto_enrollment_with_programs()
-            self.test_classroom_auto_enrollment_mixed_courses_programs()
-            self.test_classroom_auto_enrollment_duplicate_prevention()
-        
-        # COURSE ENROLLMENT FIX TESTING - USER REQUEST (HIGHEST PRIORITY)
-        if self.auth_tokens:
-            print("\n🎯 COURSE ENROLLMENT FIX TESTING - USER REQUEST (HIGHEST PRIORITY)")
-            print("=" * 50)
-            self.test_course_enrollment_fix_comprehensive()
+            print("Testing 4 specific bug fixes:")
+            print("1. Orphaned enrollment cleanup")
+            print("2. Announcement creation with content field")
+            print("3. Department endpoints for dropdown fix")
+            print("4. Classroom permissions (instructors/admins only)")
+            print()
             
-        # CLASSROOM AUTO-ENROLLMENT INVESTIGATION - USER ISSUE (CRITICAL PRIORITY)
-        if self.auth_tokens:
-            print("\n🔍 CLASSROOM AUTO-ENROLLMENT INVESTIGATION - USER ISSUE (CRITICAL)")
-            print("=" * 50)
-            self.test_classroom_auto_enrollment_investigation()
-        
-        # CLASSROOM CREATION FIX TESTING - PRIORITY FOCUS
-        if self.auth_tokens:
-            print("\n🏫 CLASSROOM CREATION FIX TESTING (PRIORITY)")
-            print("=" * 50)
-            self.test_classroom_creation_with_valid_data()
-            self.test_classroom_creation_with_invalid_data()
-            self.test_classroom_field_mapping_fix()
-            self.test_classroom_appears_in_list()
-            self.test_error_messages_are_user_friendly()
-        
-        # MongoDB Atlas Connection Tests
-        print("\n🌐 MONGODB ATLAS CONNECTION TESTING")
-        print("=" * 50)
-        self.test_mongodb_atlas_connectivity()
-        self.test_mongodb_atlas_basic_crud()
-        self.test_mongodb_atlas_shared_database()
-        
-        # Atlas Database CRUD Operations
-        if self.auth_tokens:
-            print("\n📊 ATLAS DATABASE CRUD OPERATIONS")
-            print("=" * 50)
-            self.test_user_creation_atlas()
-            self.test_course_creation_atlas()
-            self.test_new_admin_user_verification()
-        
-        # ENROLLMENT API TESTS - CRITICAL PRIORITY FOR REVIEW REQUEST
-        if self.auth_tokens:
-            print("\n📚 ENROLLMENT API TESTS (CRITICAL PRIORITY)")
-            print("=" * 50)
-            self.test_enrollment_api_post()
-            self.test_enrollment_api_get_my_enrollments()
-            self.test_enrollment_response_model_validation()
-            self.test_enrollment_complete_workflow()
-            self.test_enrollment_duplicate_prevention()
-            self.test_enrollment_course_validation()
-            self.test_enrollment_permission_validation()
-        
-        # ORPHANED ENROLLMENT CLEANUP TESTS - CONTINUE LEARNING FIX (CRITICAL PRIORITY)
-        if self.auth_tokens:
-            print("\n🔧 ORPHANED ENROLLMENT CLEANUP TESTS - CONTINUE LEARNING FIX (CRITICAL)")
-            print("=" * 50)
-            self.test_orphaned_enrollment_cleanup_admin_only()
-            self.test_orphaned_enrollment_cleanup_functionality()
-            self.test_student_enrollments_after_cleanup()
-            self.test_continue_learning_flow_scenario()
-        
-        # Core API tests
-        print("\n🌐 CORE API TESTS")
-        print("=" * 50)
-        self.test_status_endpoint_post()
-        self.test_status_endpoint_get()
-        self.test_cors_configuration()
-        self.test_database_integration()
-        self.test_error_handling()
+            self.test_orphaned_enrollment_cleanup_endpoint()
+            self.test_announcement_creation_with_content_field()
+            self.test_departments_endpoint_for_dropdown_fix()
+            self.test_classroom_permissions_instructor_admin_only()
+            self.test_classroom_creation_permissions()
         
         return self.generate_summary()
         
