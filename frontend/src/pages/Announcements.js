@@ -89,7 +89,7 @@ const Announcements = () => {
     try {
       const announcementData = {
         title: newAnnouncement.title,
-        message: newAnnouncement.message,
+        content: newAnnouncement.message,  // Backend expects 'content' not 'message'
         courseId: newAnnouncement.courseId === 'general' ? null : newAnnouncement.courseId
       };
 
