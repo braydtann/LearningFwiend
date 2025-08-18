@@ -719,7 +719,7 @@ const CreateCourse = () => {
         description: courseData.description || "Draft course - description to be added",
         category: courseData.category || "Uncategorized",
         duration: courseData.duration || "TBD",
-        thumbnailUrl: courseData.thumbnailUrl,
+        thumbnailUrl: courseData.thumbnail,
         accessType: courseData.accessType || 'open',
         modules: courseData.modules || [],
         canvaEmbedCode: courseData.canvaEmbedCode,
