@@ -110,8 +110,11 @@ const Courses = () => {
         title: "Unenrolled successfully!",
         description: "You have been removed from the course.",
       });
-      // Reload courses to update enrollment status
+      // Reload courses and enrollments to update enrollment status
       loadCourses();
+      if (isLearner) {
+        loadEnrollments();
+      }
     } else {
       toast({
         title: "Unenroll failed",
