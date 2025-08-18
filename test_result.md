@@ -359,11 +359,11 @@ backend:
 
   - task: "Classroom Auto-Enrollment Functionality"
     implemented: true
-    working: true
+    working: false
     file: "/app/backend/server.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: "NA"
         agent: "testing"
@@ -374,6 +374,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "USER REQUEST TESTING COMPLETED SUCCESSFULLY: ✅ Course Enrollment Fix Comprehensive Testing - Successfully executed user's specific request to test course enrollment fix by: 1) Retrieved 8 available course IDs from GET /api/courses, 2) Created test student user (enrollment.test.student@learningfwiend.com / EnrollTest123!), 3) Created classroom and assigned student with 2 courses, 4) Verified student was auto-enrolled in all classroom courses, 5) Provided valid course IDs and student credentials for frontend 'Continue Learning' flow testing. ✅ Frontend Testing Credentials Provided - Student Email: enrollment.test.student@learningfwiend.com, Username: enrollment.test.student, Password: EnrollTest123!, Student ID: 1a4a1d44-3df8-4c5d-b987-11359c9f150c, ✅ Enrolled Course Details - Course 1: ID 4dc8f81f-7bf9-441f-9f31-b4c6660e0e8b (Atlas Test Course), Course 2: ID 2cf4bbf8-9396-4b0a-bece-6824b712456a (Atlas Test Course). RESULT: User can now test the 'Continue Learning' button with these credentials - student should see enrolled courses instead of enrollment options, confirming the enrollment fix is working correctly."
+      - working: false
+        agent: "user"
+        comment: "USER ISSUE PERSISTS: Despite backend auto-enrollment logic being implemented, student on dashboard still shows 'No courses enrolled yet' even when assigned to classrooms with courses. This indicates either the auto-enrollment is not working properly or the frontend enrollment detection is failing to recognize the enrollments."
 
 frontend:
   - task: "Login Form Authentication Update"
