@@ -105,8 +105,8 @@ const CourseDetail = () => {
   // Block access if classroom has expired
   const canAccessCourse = !isLearner || !userClassroomEnrollment || classroomAccess.hasAccess;
 
-  // Loading state
-  if (loading) {
+  // Loading state - wait for both course and enrollment data
+  if (loading || (isLearner && loadingEnrollments)) {
     return (
       <div className="text-center py-12">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
