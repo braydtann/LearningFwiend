@@ -10560,6 +10560,15 @@ class BackendTester:
             self.test_course_preview_validation_with_modules()
             self.test_course_preview_validation_without_modules()
         
+        # CLASSROOM AUTO-ENROLLMENT FUNCTIONALITY TESTS - PRIORITY FOCUS FOR THIS REVIEW
+        if self.auth_tokens:
+            print("\n🏫 CLASSROOM AUTO-ENROLLMENT FUNCTIONALITY TESTS (PRIORITY)")
+            print("=" * 50)
+            self.test_classroom_auto_enrollment_workflow()
+            self.test_classroom_auto_enrollment_with_programs()
+            self.test_classroom_auto_enrollment_mixed_courses_programs()
+            self.test_classroom_auto_enrollment_duplicate_prevention()
+        
         # CLASSROOM CREATION FIX TESTING - PRIORITY FOCUS
         if self.auth_tokens:
             print("\n🏫 CLASSROOM CREATION FIX TESTING (PRIORITY)")
