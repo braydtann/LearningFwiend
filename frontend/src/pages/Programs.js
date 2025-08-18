@@ -913,13 +913,24 @@ const Programs = () => {
                         View Details
                       </Button>
                       {(user?.role === 'admin' || program.instructorId === user?.id) && (
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => navigate(`/program/${program.id}/edit`)}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
+                        <>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => navigate(`/program/${program.id}/edit`)}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          {isAdmin && (
+                            <Button 
+                              size="sm" 
+                              variant="destructive"
+                              onClick={() => handleDeleteProgram(program.id, program.title)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </>
                       )}
                     </div>
                   </CardContent>
