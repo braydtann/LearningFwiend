@@ -196,6 +196,7 @@ const Classrooms = () => {
   const allUsers = realUsers.length > 0 ? realUsers : mockUsers;
   const allCourses = realCourses.length > 0 ? realCourses : mockCourses;
   const allPrograms = realPrograms.length > 0 ? realPrograms : mockPrograms;
+  const allDepartments = realDepartments.length > 0 ? realDepartments : mockDepartments;
   
   const instructors = allUsers.filter(u => u.role === 'instructor');
   const students = allUsers.filter(u => u.role === 'learner');
