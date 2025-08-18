@@ -21,6 +21,7 @@ const Courses = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [enrollments, setEnrollments] = useState([]);
+  const [loadingEnrollments, setLoadingEnrollments] = useState(true);
   
   // Preview functionality
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
