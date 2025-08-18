@@ -31,10 +31,13 @@ const Courses = () => {
   const enrolledCourses = isLearner ? enrollments.map(enrollment => enrollment.course).filter(Boolean) : [];
   const enrolledCourseIds = enrolledCourses.map(course => course.id);
 
-  // Load courses on component mount
+  // Load courses and enrollments on component mount
   useEffect(() => {
     loadCourses();
-  }, []);
+    if (isLearner) {
+      loadEnrollments();
+    }
+  }, [isLearner]);
 
   const loadCourses = async () => {
     setLoading(true);
