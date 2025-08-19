@@ -483,7 +483,8 @@ class QuizTester:
         try:
             # Test 1: POST /api/quiz-attempts - Create quiz attempt (student taking quiz)
             attempt_data = {
-                "quizId": quiz_id
+                "quizId": quiz_id,
+                "answers": ["0", "true", "POST"]  # Provide answers for all questions
             }
             
             response = requests.post(
