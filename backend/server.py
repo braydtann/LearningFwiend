@@ -3656,6 +3656,423 @@ async def get_quiz_attempt(
 
 
 # =============================================================================
+# FINAL TEST ENDPOINTS (PROGRAM-LEVEL TESTS)
+# =============================================================================
+
+@api_router.post("/final-tests", response_model=FinalTestWithQuestionsResponse)
+async def create_final_test(
+    test_data: FinalTestCreate,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Create a new final test (instructors and admins only)."""
+    if current_user.role not in ['instructor', 'admin']:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only instructors and admins can create final tests"
+        )
+    
+    # Verify program exists
+    program = await db.programs.find_one({"id": test_data.programId})
+    if not program:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Specified program not found"
+        )
+    
+    # Check if user has permission to create tests for this program
+    if (current_user.role != 'admin' and 
+        program.get('instructorId') != current_user.id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only create tests for your own programs"
+        )
+    
+    # Process questions and calculate totals
+    questions_data = []
+    total_points = 0
+    for q_data in test_data.questions:
+        question_dict = q_data.dict()
+        question_dict['id'] = str(uuid.uuid4())
+        question_dict['created_at'] = datetime.utcnow()
+        questions_data.append(QuestionInDB(**question_dict))
+        total_points += q_data.points
+    
+    # Create final test dictionary
+    test_dict = {
+        "id": str(uuid.uuid4()),
+        **test_data.dict(exclude={'questions'}),
+        "programName": program.get('title', 'Unknown Program'),
+        "questions": [q.dict() for q in questions_data],
+        "totalPoints": total_points,
+        "questionCount": len(questions_data),
+        "createdBy": current_user.id,
+        "createdByName": current_user.full_name,
+        "isActive": True,
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
+    }
+    
+    # Insert test into database
+    await db.final_tests.insert_one(test_dict)
+    
+    return FinalTestWithQuestionsResponse(**{
+        **test_dict,
+        "questions": [QuestionResponse(**q) for q in questions_data]
+    })
+
+@api_router.get("/final-tests", response_model=List[FinalTestResponse])
+async def get_all_final_tests(
+    current_user: UserResponse = Depends(get_current_user),
+    program_id: Optional[str] = None,
+    published_only: bool = True
+):
+    """Get all final tests with optional filtering."""
+    
+    # Base query
+    query = {"isActive": True}
+    
+    # Add program filter if specified
+    if program_id:
+        query["programId"] = program_id
+    
+    # Role-based filtering
+    if current_user.role == 'learner':
+        # Students can only see published tests
+        query["isPublished"] = True
+    elif current_user.role == 'instructor' and published_only:
+        # Instructors can see published tests for all programs, or all tests for their programs
+        instructor_programs = await db.programs.find({"instructorId": current_user.id}).to_list(1000)
+        instructor_program_ids = [p['id'] for p in instructor_programs]
+        
+        query = {
+            "$and": [
+                query,
+                {
+                    "$or": [
+                        {"isPublished": True},
+                        {"programId": {"$in": instructor_program_ids}}
+                    ]
+                }
+            ]
+        }
+    # Admins can see all tests regardless of published status
+    
+    tests = await db.final_tests.find(query).sort("created_at", -1).to_list(1000)
+    return [FinalTestResponse(**test) for test in tests]
+
+@api_router.get("/final-tests/my-tests", response_model=List[FinalTestResponse])
+async def get_my_final_tests(current_user: UserResponse = Depends(get_current_user)):
+    """Get final tests created by current user."""
+    if current_user.role not in ['instructor', 'admin']:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only instructors and admins can access test management"
+        )
+    
+    tests = await db.final_tests.find({
+        "createdBy": current_user.id,
+        "isActive": True
+    }).sort("created_at", -1).to_list(1000)
+    
+    return [FinalTestResponse(**test) for test in tests]
+
+@api_router.get("/final-tests/{test_id}", response_model=FinalTestWithQuestionsResponse)
+async def get_final_test(
+    test_id: str,
+    current_user: UserResponse = Depends(get_current_user),
+    include_answers: bool = False
+):
+    """Get a specific final test by ID."""
+    test = await db.final_tests.find_one({"id": test_id, "isActive": True})
+    if not test:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Final test not found"
+        )
+    
+    # Check access permissions
+    if current_user.role == 'learner' and not test.get('isPublished', False):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Test is not published"
+        )
+    
+    # Check if instructor can access (own tests or published tests)
+    if (current_user.role == 'instructor' and 
+        test['createdBy'] != current_user.id and 
+        not test.get('isPublished', False)):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only access your own tests or published tests"
+        )
+    
+    # Prepare questions (hide correct answers for students unless include_answers is True)
+    questions = []
+    for question in test['questions']:
+        q_dict = dict(question)
+        if (current_user.role == 'learner' and 
+            not include_answers and 
+            'correctAnswer' in q_dict):
+            q_dict.pop('correctAnswer', None)
+        questions.append(QuestionResponse(**q_dict))
+    
+    return FinalTestWithQuestionsResponse(**{
+        **test,
+        "questions": questions
+    })
+
+@api_router.put("/final-tests/{test_id}", response_model=FinalTestResponse)
+async def update_final_test(
+    test_id: str,
+    test_data: FinalTestUpdate,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Update a final test (only by test creator or admin)."""
+    # Find the test
+    test = await db.final_tests.find_one({"id": test_id, "isActive": True})
+    if not test:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Final test not found"
+        )
+    
+    # Check permissions
+    if current_user.role != 'admin' and test['createdBy'] != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only edit your own tests"
+        )
+    
+    # Check if test has attempts
+    attempt_count = await db.final_test_attempts.count_documents({"finalTestId": test_id, "isActive": True})
+    if attempt_count > 0 and test_data.passingScore is not None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot modify passing score - test has {attempt_count} student attempt(s)"
+        )
+    
+    # Update test
+    update_data = {k: v for k, v in test_data.dict().items() if v is not None}
+    update_data["updated_at"] = datetime.utcnow()
+    
+    result = await db.final_tests.update_one(
+        {"id": test_id},
+        {"$set": update_data}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Final test not found or no changes made"
+        )
+    
+    # Get updated test
+    updated_test = await db.final_tests.find_one({"id": test_id})
+    return FinalTestResponse(**updated_test)
+
+@api_router.delete("/final-tests/{test_id}")
+async def delete_final_test(
+    test_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Delete a final test (only by test creator or admin)."""
+    # Find the test
+    test = await db.final_tests.find_one({"id": test_id, "isActive": True})
+    if not test:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Final test not found"
+        )
+    
+    # Check permissions
+    if current_user.role != 'admin' and test['createdBy'] != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only delete your own tests"
+        )
+    
+    # Check if test has attempts
+    attempt_count = await db.final_test_attempts.count_documents({"finalTestId": test_id, "isActive": True})
+    if attempt_count > 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot delete test with {attempt_count} student attempt(s). Consider unpublishing instead."
+        )
+    
+    # Soft delete the test
+    result = await db.final_tests.update_one(
+        {"id": test_id},
+        {"$set": {"isActive": False, "updated_at": datetime.utcnow()}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Final test not found"
+        )
+    
+    return {"message": f"Final test '{test['title']}' has been successfully deleted"}
+
+@api_router.post("/final-test-attempts", response_model=FinalTestAttemptResponse)
+async def submit_final_test_attempt(
+    attempt_data: FinalTestAttemptCreate,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Submit a final test attempt (learners only)."""
+    if current_user.role != 'learner':
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only learners can submit test attempts"
+        )
+    
+    # Get test
+    test = await db.final_tests.find_one({"id": attempt_data.finalTestId, "isActive": True})
+    if not test:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Final test not found"
+        )
+    
+    if not test.get('isPublished', False):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Test is not published"
+        )
+    
+    # Check attempt limit
+    existing_attempts = await db.final_test_attempts.count_documents({
+        "finalTestId": attempt_data.finalTestId,
+        "studentId": current_user.id,
+        "isActive": True
+    })
+    
+    if existing_attempts >= test.get('maxAttempts', 2):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Maximum number of attempts ({test.get('maxAttempts', 2)}) reached"
+        )
+    
+    # Validate answers count
+    if len(attempt_data.answers) != len(test['questions']):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Expected {len(test['questions'])} answers, got {len(attempt_data.answers)}"
+        )
+    
+    # Calculate score (same logic as quiz)
+    points_earned = 0
+    total_points = test.get('totalPoints', 0)
+    
+    for i, (answer, question) in enumerate(zip(attempt_data.answers, test['questions'])):
+        if question['type'] == 'multiple_choice':
+            try:
+                answer_index = int(answer) if answer.isdigit() else -1
+                correct_index = int(question['correctAnswer']) if question['correctAnswer'].isdigit() else -1
+                
+                if answer_index >= 0 and correct_index >= 0 and answer_index == correct_index:
+                    points_earned += question.get('points', 1)
+            except (ValueError, AttributeError):
+                pass
+        elif question['type'] == 'true_false':
+            if (answer and question.get('correctAnswer') and 
+                answer.lower().strip() == question['correctAnswer'].lower().strip()):
+                points_earned += question.get('points', 1)
+        elif question['type'] in ['short_answer', 'essay']:
+            if (question['type'] == 'short_answer' and answer and question.get('correctAnswer') and
+                answer.lower().strip() == question['correctAnswer'].lower().strip()):
+                points_earned += question.get('points', 1)
+    
+    # Calculate percentage score
+    score_percentage = (points_earned / total_points * 100) if total_points > 0 else 0
+    is_passed = score_percentage >= test.get('passingScore', 75.0)
+    
+    # Get program info
+    program = await db.programs.find_one({"id": test['programId']})
+    program_name = program.get('title', 'Unknown Program') if program else 'Unknown Program'
+    
+    # Create attempt record
+    attempt_dict = {
+        "id": str(uuid.uuid4()),
+        "finalTestId": attempt_data.finalTestId,
+        "testTitle": test['title'],
+        "programId": test['programId'],
+        "programName": program_name,
+        "studentId": current_user.id,
+        "studentName": current_user.full_name,
+        "answers": attempt_data.answers,
+        "score": round(score_percentage, 2),
+        "pointsEarned": points_earned,
+        "totalPoints": total_points,
+        "isPassed": is_passed,
+        "status": "completed",
+        "startedAt": datetime.utcnow(),
+        "completedAt": datetime.utcnow(),
+        "attemptNumber": existing_attempts + 1,
+        "isActive": True,
+        "created_at": datetime.utcnow()
+    }
+    
+    # Insert attempt into database
+    await db.final_test_attempts.insert_one(attempt_dict)
+    
+    return FinalTestAttemptResponse(**attempt_dict)
+
+@api_router.get("/final-test-attempts", response_model=List[FinalTestAttemptResponse])
+async def get_final_test_attempts(
+    current_user: UserResponse = Depends(get_current_user),
+    test_id: Optional[str] = None,
+    program_id: Optional[str] = None,
+    student_id: Optional[str] = None
+):
+    """Get final test attempts with optional filtering."""
+    
+    # Base query
+    query = {"isActive": True}
+    
+    # Role-based filtering
+    if current_user.role == 'learner':
+        # Students only see their own attempts
+        query["studentId"] = current_user.id
+    elif current_user.role in ['instructor', 'admin']:
+        # Instructors and admins can filter by student
+        if student_id:
+            query["studentId"] = student_id
+    
+    # Add filters if specified
+    if test_id:
+        query["finalTestId"] = test_id
+    if program_id:
+        query["programId"] = program_id
+    
+    attempts = await db.final_test_attempts.find(query).sort("created_at", -1).to_list(1000)
+    
+    return [FinalTestAttemptResponse(**attempt) for attempt in attempts]
+
+@api_router.get("/final-test-attempts/{attempt_id}", response_model=FinalTestAttemptWithAnswersResponse)
+async def get_final_test_attempt(
+    attempt_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Get a specific final test attempt by ID."""
+    attempt = await db.final_test_attempts.find_one({"id": attempt_id, "isActive": True})
+    if not attempt:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Final test attempt not found"
+        )
+    
+    # Check permissions
+    if (current_user.role == 'learner' and 
+        attempt['studentId'] != current_user.id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only view your own test attempts"
+        )
+    
+    return FinalTestAttemptWithAnswersResponse(**attempt)
+
+
+# =============================================================================
 # ANALYTICS MODELS
 # =============================================================================
 
