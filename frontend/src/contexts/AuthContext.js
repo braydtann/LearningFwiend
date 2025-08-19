@@ -2170,6 +2170,289 @@ export const AuthProvider = ({ children }) => {
   };
 
   // =============================================================================
+  // FINAL TEST MANAGEMENT FUNCTIONS (PROGRAM-LEVEL TESTS)
+  // =============================================================================
+
+  const createFinalTest = async (testData) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/final-tests`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(testData),
+      });
+
+      if (response.ok) {
+        const newTest = await response.json();
+        return { success: true, test: newTest };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to create final test' 
+        };
+      }
+    } catch (error) {
+      console.error('Create final test error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const getAllFinalTests = async (filters = {}) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const queryParams = new URLSearchParams();
+      
+      if (filters.program_id) queryParams.append('program_id', filters.program_id);
+      if (filters.published_only !== undefined) queryParams.append('published_only', filters.published_only);
+      
+      const url = `${backendUrl}/api/final-tests${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+      
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const tests = await response.json();
+        return { success: true, tests };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to fetch final tests' 
+        };
+      }
+    } catch (error) {
+      console.error('Fetch final tests error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const getMyFinalTests = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/final-tests/my-tests`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const tests = await response.json();
+        return { success: true, tests };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to fetch your final tests' 
+        };
+      }
+    } catch (error) {
+      console.error('Fetch my final tests error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const getFinalTestById = async (testId, includeAnswers = false) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const url = `${backendUrl}/api/final-tests/${testId}${includeAnswers ? '?include_answers=true' : ''}`;
+      
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const test = await response.json();
+        return { success: true, test };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to fetch final test' 
+        };
+      }
+    } catch (error) {
+      console.error('Fetch final test error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const updateFinalTest = async (testId, testData) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/final-tests/${testId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(testData),
+      });
+
+      if (response.ok) {
+        const updatedTest = await response.json();
+        return { success: true, test: updatedTest };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to update final test' 
+        };
+      }
+    } catch (error) {
+      console.error('Update final test error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const deleteFinalTest = async (testId) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/final-tests/${testId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        return { success: true, message: result.message };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to delete final test' 
+        };
+      }
+    } catch (error) {
+      console.error('Delete final test error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const submitFinalTestAttempt = async (attemptData) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/final-test-attempts`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(attemptData),
+      });
+
+      if (response.ok) {
+        const attempt = await response.json();
+        return { success: true, attempt };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to submit final test attempt' 
+        };
+      }
+    } catch (error) {
+      console.error('Submit final test attempt error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const getFinalTestAttempts = async (filters = {}) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const queryParams = new URLSearchParams();
+      
+      if (filters.test_id) queryParams.append('test_id', filters.test_id);
+      if (filters.program_id) queryParams.append('program_id', filters.program_id);
+      if (filters.student_id) queryParams.append('student_id', filters.student_id);
+      
+      const url = `${backendUrl}/api/final-test-attempts${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+      
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const attempts = await response.json();
+        return { success: true, attempts };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to fetch final test attempts' 
+        };
+      }
+    } catch (error) {
+      console.error('Fetch final test attempts error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const getFinalTestAttemptById = async (attemptId) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/final-test-attempts/${attemptId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const attempt = await response.json();
+        return { success: true, attempt };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to fetch final test attempt' 
+        };
+      }
+    } catch (error) {
+      console.error('Fetch final test attempt error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  // =============================================================================
   // ANALYTICS MANAGEMENT FUNCTIONS  
   // =============================================================================
 
