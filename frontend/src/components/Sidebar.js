@@ -136,10 +136,17 @@ const Sidebar = () => {
       {/* Header */}
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+          <div 
+            className="w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer transition-transform hover:scale-110"
+            onClick={handleLogoClick}
+            title={logoClickCount >= 8 ? `${10 - logoClickCount} more clicks...` : ''}
+          >
             <img 
-              src="https://customer-assets.emergentagent.com/job_learn-hub-60/artifacts/w6mk6gy1_ChatGPT%20Image%20Aug%205%2C%202025%2C%2001_02_09%20PM.png"
-              alt="LearningFwiend Mascot"
+              src={logoClickCount >= 10 
+                ? "https://customer-assets.emergentagent.com/job_learnspace-15/artifacts/2zhuyubs_unicorn-pink.gif"
+                : "https://customer-assets.emergentagent.com/job_learn-hub-60/artifacts/w6mk6gy1_ChatGPT%20Image%20Aug%205%2C%202025%2C%2001_02_09%20PM.png"
+              }
+              alt={logoClickCount >= 10 ? "🦄 You found the secret unicorn!" : "LearningFwiend Mascot"}
               className="w-8 h-8 object-contain"
             />
           </div>
