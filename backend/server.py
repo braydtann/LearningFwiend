@@ -3717,7 +3717,7 @@ async def create_final_test(
     
     return FinalTestWithQuestionsResponse(**{
         **test_dict,
-        "questions": [QuestionResponse(**q) for q in questions_data]
+        "questions": [QuestionResponse(**q.dict()) for q in questions_data]
     })
 
 @api_router.get("/final-tests", response_model=List[FinalTestResponse])
