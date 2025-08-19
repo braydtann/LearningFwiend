@@ -22,7 +22,7 @@ import {
 const ProgramDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user, getProgramById, getAllCourses } = useAuth();
+  const { user, isLearner, getProgramById, getAllCourses, checkProgramAccess } = useAuth();
   
   const [program, setProgram] = useState(null);
   const [courses, setCourses] = useState([]);
