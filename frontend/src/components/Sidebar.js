@@ -38,6 +38,12 @@ const Sidebar = () => {
     setLogoClickCount(prev => {
       const newCount = prev + 1;
       
+      // Reset if already at unicorn and clicked again
+      if (prev >= 10) {
+        console.log('🔄 Easter egg reset! Back to normal LearningFwiend.');
+        return 0;
+      }
+      
       // Easter egg activation at 10 clicks
       if (newCount === 10) {
         // Optional: Add a subtle celebration effect
