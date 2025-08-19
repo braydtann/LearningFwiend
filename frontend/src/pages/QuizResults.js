@@ -11,6 +11,8 @@ import { useToast } from '../hooks/use-toast';
 import { 
   mockQuizAttempts, 
   mockQuizResults, 
+  mockUsers,
+  mockCourses,
   getInstructorQuizAnalytics 
 } from '../data/mockData';
 import { 
