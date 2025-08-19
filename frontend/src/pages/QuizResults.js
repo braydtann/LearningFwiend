@@ -7,12 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Label } from '../components/ui/label';
 import { useToast } from '../hooks/use-toast';
-// Mock data imports - kept as fallback for quiz analytics that don't have backend equivalents yet
+// Mock data imports - kept as fallback only
 import { 
-  mockQuizAttempts, 
-  mockQuizResults, 
-  mockUsers,
-  mockCourses,
   getInstructorQuizAnalytics 
 } from '../data/mockData';
 import { 
@@ -28,13 +24,23 @@ import {
 } from 'lucide-react';
 
 const QuizResults = () => {
-  const { user, isInstructor, isAdmin, getAllCourses, getAllClassrooms } = useAuth();
+  const { 
+    user, 
+    isInstructor, 
+    isAdmin, 
+    getAllCourses, 
+    getAllClassrooms, 
+    getAllQuizzes,
+    getQuizAttempts
+  } = useAuth();
   const { toast } = useToast();
   
   const [selectedCourse, setSelectedCourse] = useState('all');
   const [selectedClassroom, setSelectedClassroom] = useState('all');
   const [courses, setCourses] = useState([]);
   const [classrooms, setClassrooms] = useState([]);
+  const [quizzes, setQuizzes] = useState([]);
+  const [quizAttempts, setQuizAttempts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Load real data on component mount
@@ -82,11 +88,30 @@ const QuizResults = () => {
         console.log('Could not load classrooms:', classroomResult.error);
         setClassrooms([]);
       }
+
+      // Load quizzes from backend
+      const quizResult = await getAllQuizzes();
+      if (quizResult.success) {
+        setQuizzes(quizResult.quizzes);
+      } else {
+        console.log('Could not load quizzes:', quizResult.error);
+        setQuizzes([]);
+      }
+
+      // Load quiz attempts from backend
+      const attemptsResult = await getQuizAttempts();
+      if (attemptsResult.success) {
+        setQuizAttempts(attemptsResult.attempts);
+      } else {
+        console.log('Could not load quiz attempts:', attemptsResult.error);
+        setQuizAttempts([]);
+      }
+
     } catch (error) {
       console.error('Error loading quiz results data:', error);
       toast({
         title: "Error loading data",
-        description: "Failed to load courses and classrooms",
+        description: "Failed to load quiz data",
         variant: "destructive",
       });
     } finally {
