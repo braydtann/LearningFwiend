@@ -55,12 +55,13 @@ const Sidebar = () => {
       label: 'Classrooms', 
       roles: ['admin', 'instructor', 'learner'] 
     },
-    { 
-      path: '/create-course', 
-      icon: PlusCircle, 
-      label: 'Create Course', 
-      roles: ['admin', 'instructor'] 
-    },
+    // MOVED: Create Course button moved to Courses page header for better UI consolidation
+    // { 
+    //   path: '/create-course', 
+    //   icon: PlusCircle, 
+    //   label: 'Create Course', 
+    //   roles: ['admin', 'instructor'] 
+    // },
     { 
       path: '/quiz-results', 
       icon: ClipboardCheck, 
