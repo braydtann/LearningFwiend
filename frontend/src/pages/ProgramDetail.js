@@ -41,6 +41,17 @@ const ProgramDetail = () => {
         if (programResult.success) {
           setProgram(programResult.program);
           
+          // For learners, check access status
+          if (isLearner) {
+            const accessResult = await checkProgramAccess(id);
+            setAccessStatus(accessResult);
+            
+            // If access is denied, we can still show the program details but with restrictions
+            if (!accessResult.hasAccess) {
+              console.log('Program access denied:', accessResult.message);
+            }
+          }
+          
           // Load courses if program has courseIds
           if (programResult.program.courseIds && programResult.program.courseIds.length > 0) {
             const coursesResult = await getAllCourses();
