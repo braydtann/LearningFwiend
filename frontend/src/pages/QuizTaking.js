@@ -91,19 +91,30 @@ const QuizTaking = () => {
   useEffect(() => {
     if (!courseLoading) {
       if (!course || !lesson || !quiz) {
+        console.error('Quiz component error - missing data:', { 
+          course: !!course, 
+          lesson: !!lesson, 
+          quiz: !!quiz,
+          courseError
+        });
         setQuizState('error');
         return;
       }
 
       // Check if user can take the quiz
       if (!canTakeQuiz) {
+        console.log('Max attempts reached for quiz');
         setQuizState('max-attempts-reached');
         return;
       }
 
+      console.log('Quiz ready - all data loaded successfully');
       setQuizState('ready');
+    } else {
+      console.log('Quiz still loading course data...');
+      setQuizState('loading');
     }
-  }, [courseLoading, course, lesson, quiz, canTakeQuiz]);
+  }, [courseLoading, course, lesson, quiz, canTakeQuiz, courseError]);
 
   // Show loading state
   if (courseLoading) {
