@@ -16649,9 +16649,9 @@ class BackendTester:
         return False
 
     def run_all_tests(self):
-        """Run comprehensive backend tests with focus on final test functionality"""
+        """Run comprehensive backend tests with focus on course completion functionality"""
         print("🚀 Starting Backend Testing Suite for LearningFwiend LMS")
-        print("🔍 PRIORITY FOCUS: Final Test Functionality Testing")
+        print("🔍 PRIORITY FOCUS: Course Completion Functionality Testing")
         print("=" * 80)
         
         # Basic connectivity tests first
@@ -16666,48 +16666,22 @@ class BackendTester:
         self.test_instructor_login()
         self.test_student_login()
         
-        # PROGRAM ACCESS CONTROL TESTS - HIGHEST PRIORITY
+        # COURSE COMPLETION FUNCTIONALITY TESTS - HIGHEST PRIORITY
         if self.auth_tokens:
-            print("\n🎯 PROGRAM ACCESS CONTROL TESTS (HIGHEST PRIORITY)")
+            print("\n🎯 COURSE COMPLETION FUNCTIONALITY TESTS (HIGHEST PRIORITY)")
             print("=" * 70)
-            print("Testing program access control functionality based on classroom end dates:")
-            print("1. Admin/Instructor Access: GET /api/programs/{program_id}/access-check")
-            print("2. Student Access Control based on classroom end dates")
-            print("3. Response structure validation")
-            print("4. Error handling for non-existent programs")
+            print("Testing enhanced course completion functionality with 'Complete Course' feature:")
+            print("1. Enhanced Progress Tracking - progress tracking when reaching final lesson")
+            print("2. Complete Course Workflow - student progressing through lessons")
+            print("3. Certificate Auto-Generation - at 100% completion")
+            print("4. Test Scenarios - various completion scenarios")
+            print("5. Authentication - using test.student@learningfwiend.com / StudentPermanent123!")
             print()
             
-            # Execute comprehensive program access control testing
-            self.test_program_access_control_admin_instructor()
-            self.test_program_access_control_student_no_classroom()
-            self.test_program_access_control_student_active_classroom()
-            self.test_program_access_control_student_expired_classroom()
-            self.test_program_access_control_response_structure()
-            self.test_program_access_control_nonexistent_program()
-        
-        # FINAL TEST FUNCTIONALITY TESTS - SECONDARY PRIORITY
-        if self.auth_tokens:
-            print("\n🎯 FINAL TEST FUNCTIONALITY TESTS (SECONDARY PRIORITY)")
-            print("=" * 70)
-            print("Testing complete final test workflow as requested:")
-            print("1. Final Test Creation: POST /api/final-tests")
-            print("2. Final Test Retrieval: GET /api/final-tests, GET /api/final-tests/my-tests, GET /api/final-tests/{test_id}")
-            print("3. Final Test Update/Delete: PUT /api/final-tests/{test_id}, DELETE /api/final-tests/{test_id}")
-            print("4. Final Test Attempt Submission: POST /api/final-test-attempts")
-            print("5. Final Test Attempt Retrieval: GET /api/final-test-attempts, GET /api/final-test-attempts/{attempt_id}")
-            print("6. Final Test Attempt Limits and Validation")
-            print("7. Final Test Data Validation and Error Handling")
-            print()
-            
-            # Execute comprehensive final test testing
-            self.test_final_test_creation()
-            self.test_final_test_role_based_access()
-            self.test_final_test_retrieval_endpoints()
-            self.test_final_test_update_and_delete()
-            self.test_final_test_attempt_submission()
-            self.test_final_test_attempt_retrieval()
-            self.test_final_test_attempt_limits_validation()
-            self.test_final_test_data_validation()
+            # Execute comprehensive course completion testing
+            self.test_course_completion_workflow()
+            self.test_progress_tracking_accuracy()
+            self.test_certificate_generation_scenarios()
         
         return self.generate_summary()
         
