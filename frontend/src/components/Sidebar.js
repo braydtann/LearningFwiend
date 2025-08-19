@@ -65,7 +65,7 @@ const Sidebar = () => {
     { 
       path: '/quiz-results', 
       icon: ClipboardCheck, 
-      label: 'Quiz Results', 
+      label: 'Quiz & Test Analytics', 
       roles: ['admin', 'instructor'] 
     },
     { 
