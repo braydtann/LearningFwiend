@@ -92,38 +92,32 @@ const QuizResults = () => {
     }
   };
 
-  // Get quiz analytics
+  // Get quiz analytics - still using mock data as quiz system isn't fully implemented in backend
   const analytics = getInstructorQuizAnalytics(user?.id);
 
-  // Filter quiz results based on selected course and classroom
+  // Filter results and attempts based on selections
   let filteredResults = mockQuizResults;
+  let filteredAttempts = mockQuizAttempts;
+  
   if (selectedCourse !== 'all') {
     filteredResults = filteredResults.filter(result => result.courseId === selectedCourse);
-  }
-
-  // Filter quiz attempts based on selected course and classroom
-  let filteredAttempts = mockQuizAttempts;
-  if (selectedCourse !== 'all') {
     filteredAttempts = filteredAttempts.filter(attempt => attempt.courseId === selectedCourse);
   }
 
   // Apply classroom filter if selected
+  // Note: This is simplified since we don't have classroom enrollment backend yet
   if (selectedClassroom !== 'all') {
-    const classroomStudents = mockClassroomEnrollments
-      .filter(ce => ce.classroomId === selectedClassroom)
-      .map(ce => ce.studentId);
-    
+    // For now, this is a placeholder until classroom-student relationships are fully implemented
+    // In a real implementation, we would fetch students from the selected classroom
     filteredResults = filteredResults.filter(result => {
-      // Find attempts for this result to check if student is in classroom
-      const resultAttempts = mockQuizAttempts.filter(attempt => 
-        attempt.courseId === result.courseId && attempt.quizId === result.quizId
-      );
-      return resultAttempts.some(attempt => classroomStudents.includes(attempt.userId));
+      // This is mock logic - in real implementation would check if student is in classroom
+      return true; // Keep all results for now
     });
     
-    filteredAttempts = filteredAttempts.filter(attempt => 
-      classroomStudents.includes(attempt.userId)
-    );
+    filteredAttempts = filteredAttempts.filter(attempt => {
+      // This is mock logic - in real implementation would check if student is in classroom
+      return true; // Keep all attempts for now
+    });
   }
 
   // Calculate statistics
