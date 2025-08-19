@@ -24804,25 +24804,23 @@ class BackendTester:
 if __name__ == "__main__":
     tester = BackendTester()
     
-    # Run FINAL TEST FUNCTIONALITY TESTING based on review request
-    print("🎯 EXECUTING FINAL TEST FUNCTIONALITY TESTING SUITE")
-    print("Based on review request: Test the newly added final test functionality for the LearningFwiend LMS")
+    # Run COURSE PROGRESS TRACKING ENHANCEMENT TESTING based on review request
+    print("🎯 EXECUTING COURSE PROGRESS TRACKING ENHANCEMENT TESTING SUITE")
+    print("Based on review request: Test the newly implemented course progress tracking enhancement functionality")
     print()
     print("=" * 80)
-    print("🎯 FINAL TEST FUNCTIONALITY TESTING - CRITICAL PRIORITY")
+    print("📈 COURSE PROGRESS TRACKING ENHANCEMENT TESTING - CRITICAL PRIORITY")
     print("=" * 80)
-    print("Testing final test functionality:")
-    print("• POST /api/final-tests (create final test)")
-    print("• GET /api/final-tests (get all final tests)")
-    print("• GET /api/final-tests/my-tests (get instructor's tests)")
-    print("• GET /api/final-tests/{test_id} (get specific test)")
-    print("• PUT /api/final-tests/{test_id} (update test)")
-    print("• DELETE /api/final-tests/{test_id} (delete test)")
-    print("• POST /api/final-test-attempts (submit test attempt)")
-    print("• GET /api/final-test-attempts (get attempts with filtering)")
-    print("• GET /api/final-test-attempts/{attempt_id} (get specific attempt)")
-    print("• Role-based access control and validation")
-    print("• Attempt limits and scoring logic")
+    print("Testing course progress tracking enhancement functionality:")
+    print("• PUT /api/enrollments/{course_id}/progress - Progress update endpoint")
+    print("• Progress calculation (0-100%)")
+    print("• Module progress tracking")
+    print("• Lesson completion tracking")
+    print("• currentModuleId and currentLessonId updates")
+    print("• lastAccessedAt timestamp updates")
+    print("• Automatic course completion when progress reaches 100%")
+    print("• Authentication and enrollment validation")
+    print("• Progress validation and edge cases")
     print("=" * 80)
     print()
     
@@ -24833,29 +24831,22 @@ if __name__ == "__main__":
     tester.test_instructor_login()
     tester.test_student_login()
     
-    # Run final test functionality tests
-    final_test_tests = [
-        ("Final Test Creation", tester.test_final_test_creation),
-        ("Final Test Role-Based Access", tester.test_final_test_role_based_access),
-        ("Final Test Retrieval Endpoints", tester.test_final_test_retrieval_endpoints),
-        ("Final Test Update/Delete", tester.test_final_test_update_and_delete),
-        ("Final Test Attempt Submission", tester.test_final_test_attempt_submission),
-        ("Final Test Attempt Retrieval", tester.test_final_test_attempt_retrieval),
-        ("Final Test Attempt Limits", tester.test_final_test_attempt_limits_validation),
-        ("Final Test Data Validation", tester.test_final_test_data_validation)
+    # Run course progress tracking enhancement tests
+    progress_tracking_tests = [
+        ("Course Progress Tracking Enhancement - Comprehensive", tester.test_course_progress_tracking_comprehensive)
     ]
     
-    print(f"\n🧪 Running {len(final_test_tests)} comprehensive final test functionality tests...")
+    print(f"\n🧪 Running {len(progress_tracking_tests)} comprehensive course progress tracking tests...")
     print()
     
-    for test_name, test_func in final_test_tests:
+    for test_name, test_func in progress_tracking_tests:
         print(f"Running: {test_name}...")
         test_func()
     
     print()
     print("=" * 80)
-    print("📊 FINAL TEST FUNCTIONALITY TEST RESULTS SUMMARY")
+    print("📊 COURSE PROGRESS TRACKING ENHANCEMENT TEST RESULTS SUMMARY")
     print("=" * 80)
     summary = tester.generate_summary()
     print()
-    print("✅ FINAL TEST FUNCTIONALITY TESTING COMPLETED")
+    print("✅ COURSE PROGRESS TRACKING ENHANCEMENT TESTING COMPLETED")
