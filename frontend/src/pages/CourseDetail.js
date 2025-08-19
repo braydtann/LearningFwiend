@@ -303,12 +303,17 @@ const CourseDetail = () => {
         targetModuleProgress.completedAt = new Date().toISOString();
       }
       
-      // Calculate overall progress
+      // Calculate overall progress (including the lesson we just marked as complete)
       const totalLessons = course.modules.reduce((total, module) => 
         total + (module.lessons?.length || 0), 0);
+      
+      // Count all completed lessons including the one we just marked
       const totalCompletedLessons = moduleProgress.reduce((total, mp) => 
         total + mp.lessons.filter(l => l.completed).length, 0);
+      
       const overallProgress = totalLessons > 0 ? (totalCompletedLessons / totalLessons) * 100 : 0;
+      
+      console.log(`Progress calculation: ${totalCompletedLessons}/${totalLessons} = ${overallProgress}%`);
       
       // Update progress in backend
       const result = await updateEnrollmentProgress(id, {
