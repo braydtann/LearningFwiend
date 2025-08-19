@@ -327,9 +327,6 @@ const CourseDetail = () => {
   // For now, set basic progress - this can be enhanced later with real progress tracking
   // const progress = 0; // TODO: Implement real progress tracking
 
-  // For now, allow access to enrolled courses - classroom restrictions can be added later  
-  const canAccessCourse = !isLearner || isEnrolled;
-
   // Loading state - wait for both course and enrollment data
   if (loading || (isLearner && loadingEnrollments)) {
     return (
