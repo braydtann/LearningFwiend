@@ -276,8 +276,8 @@ const CourseDetail = () => {
 
   // Check if user is enrolled using real backend data
   const isEnrolled = isLearner && currentEnrollment;
-  // Get calculated progress
-  const progress = calculateProgress();
+  // Get calculated progress from state instead of calculating during render
+  const progress = progressValue;
 
   // Allow access to enrolled courses - classroom restrictions can be added later  
   const canAccessCourse = !isLearner || isEnrolled;
