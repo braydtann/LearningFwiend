@@ -14354,9 +14354,9 @@ class BackendTester:
         return False
 
     def run_all_tests(self):
-        """Run all backend tests with focus on bug fixes"""
+        """Run comprehensive backend tests with focus on quiz functionality"""
         print("🚀 Starting Backend Testing Suite for LearningFwiend LMS")
-        print("🔍 PRIORITY FOCUS: Bug Fix Testing - 4 Critical Issues")
+        print("🔍 PRIORITY FOCUS: Comprehensive Quiz Functionality Testing")
         print("=" * 80)
         
         # Basic connectivity tests first
@@ -14371,33 +14371,24 @@ class BackendTester:
         self.test_instructor_login()
         self.test_student_login()
         
-        # BUG FIX TESTS - HIGHEST PRIORITY
+        # COMPREHENSIVE QUIZ FUNCTIONALITY TESTS - HIGHEST PRIORITY
         if self.auth_tokens:
-            print("\n🔧 BUG FIX TESTS - REVIEW REQUEST (HIGHEST PRIORITY)")
-            print("=" * 50)
-            print("Testing 7 specific bug fixes:")
-            print("1. Orphaned enrollment cleanup")
-            print("2. Announcement creation with content field")
-            print("3. Department endpoints for dropdown fix")
-            print("4. Classroom permissions (instructors/admins only)")
-            print("5. Google Drive image URL conversion")
-            print("6. Courses API for quiz analytics")
-            print("7. Create Course button backend support")
+            print("\n🧩 COMPREHENSIVE QUIZ FUNCTIONALITY TESTS (HIGHEST PRIORITY)")
+            print("=" * 70)
+            print("Testing complete quiz workflow as requested:")
+            print("1. Quiz Creation Endpoint: POST /api/quizzes")
+            print("2. Quiz Retrieval Endpoints: GET /api/quizzes, GET /api/quizzes/{quiz_id}, GET /api/quizzes/my-quizzes")
+            print("3. Quiz Attempt Endpoints: POST /api/quiz-attempts, GET /api/quiz-attempts, GET /api/quiz-attempts/{attempt_id}")
+            print("4. Quiz Results/Analytics: Check quiz analytics endpoints and data structure")
+            print("5. Complete Quiz Workflow: creation → student attempts → results/analytics")
             print()
             
-            self.test_orphaned_enrollment_cleanup_endpoint()
-            self.test_announcement_creation_with_content_field()
-            self.test_departments_endpoint_for_dropdown_fix()
-            self.test_classroom_permissions_instructor_admin_only()
-            self.test_classroom_creation_permissions()
-            
-            # NEW BUG FIX TESTS - REVIEW REQUEST
-            print("\n🆕 ADDITIONAL BUG FIX TESTS - REVIEW REQUEST")
-            print("=" * 50)
-            self.test_google_drive_image_url_conversion()
-            self.test_courses_api_for_quiz_analytics()
-            self.test_departments_api_for_user_dropdown_fix()
-            self.test_create_course_button_backend_support()
+            # Execute comprehensive quiz testing
+            self.test_quiz_creation_endpoint()
+            self.test_quiz_retrieval_endpoints()
+            self.test_quiz_attempt_endpoints()
+            self.test_quiz_results_analytics()
+            self.test_complete_quiz_workflow()
         
         return self.generate_summary()
         
