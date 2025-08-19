@@ -364,8 +364,11 @@ const CourseDetail = () => {
     if (!nextAction || !selectedLesson) return;
     
     try {
-      // First mark current lesson as complete
+      // First mark current lesson as complete (this will update progress)
       await markLessonComplete(selectedLesson.id);
+      
+      // Wait for the state to update
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       // Handle different action types
       if (nextAction.type === 'complete') {
@@ -400,6 +403,9 @@ const CourseDetail = () => {
           title: `Moving to next ${actionType}!`,
           description: `Now starting: ${nextTitle}`,
         });
+        
+        // Refresh enrollments to ensure UI is up to date
+        await loadEnrollments();
       }
     } catch (error) {
       console.error('Error handling next action:', error);
