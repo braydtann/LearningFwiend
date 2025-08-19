@@ -687,6 +687,7 @@ const CourseDetail = () => {
               </div>
             </div>
 
+            {/* Progress Section - only for enrolled students */}
             {isEnrolled && (
               <div className="bg-blue-50 p-4 rounded-lg mb-6">
                 <div className="flex items-center justify-between mb-2">
