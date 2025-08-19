@@ -253,8 +253,7 @@ const QuizAndTestResults = () => {
         </TabsList>
 
         <TabsContent value="quizzes" className="space-y-6">
-
-      {/* Enhanced Filters */}
+          {/* Enhanced Filters */}
       <Card className="bg-gray-50">
         <CardContent className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
