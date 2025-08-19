@@ -2651,6 +2651,16 @@ export const AuthProvider = ({ children }) => {
     submitQuizAttempt,
     getQuizAttempts,
     getQuizAttemptById,
+    // Final Test management (program-level tests)
+    createFinalTest,
+    getAllFinalTests,
+    getMyFinalTests,
+    getFinalTestById,
+    updateFinalTest,
+    deleteFinalTest,
+    submitFinalTestAttempt,
+    getFinalTestAttempts,
+    getFinalTestAttemptById,
     // Analytics management
     getSystemStats,
     getCourseAnalytics,
