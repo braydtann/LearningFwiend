@@ -868,80 +868,119 @@ const Programs = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {programs.map((program) => (
-                <Card key={program.id} className="hover:shadow-lg transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="space-y-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h3 className="text-lg font-semibold text-gray-900 mb-2">{program.title}</h3>
-                          <p className="text-sm text-gray-600 leading-relaxed">{program.description}</p>
+              {programs.map((program) => {
+                const accessStatus = programAccessStatus[program.id];
+                const hasAccess = !isLearner || (accessStatus && accessStatus.hasAccess);
+                const isExpired = isLearner && accessStatus && accessStatus.reason === 'classroom_expired';
+                const notEnrolled = isLearner && accessStatus && accessStatus.reason === 'not_enrolled';
+                
+                return (
+                  <Card key={program.id} className={`hover:shadow-lg transition-shadow ${isExpired ? 'opacity-60' : ''}`}>
+                    <CardContent className="p-6">
+                      <div className="space-y-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2">{program.title}</h3>
+                            <p className="text-sm text-gray-600 leading-relaxed">{program.description}</p>
+                          </div>
+                          <div className="ml-2 space-y-1">
+                            <Badge className="block">
+                              {program.isActive ? 'Active' : 'Inactive'}
+                            </Badge>
+                            {isLearner && accessStatus && (
+                              <Badge 
+                                variant={hasAccess ? "default" : isExpired ? "destructive" : "secondary"}
+                                className="block"
+                              >
+                                {hasAccess ? (
+                                  <><CheckCircle className="w-3 h-3 mr-1" />Available</>
+                                ) : isExpired ? (
+                                  <><AlertTriangle className="w-3 h-3 mr-1" />Expired</>
+                                ) : notEnrolled ? (
+                                  <><AlertTriangle className="w-3 h-3 mr-1" />Not Enrolled</>
+                                ) : (
+                                  <><AlertTriangle className="w-3 h-3 mr-1" />No Access</>
+                                )}
+                              </Badge>
+                            )}
+                          </div>
                         </div>
-                        <Badge className="ml-2">
-                          {program.isActive ? 'Active' : 'Inactive'}
-                        </Badge>
+
+                        {/* Access Status Message for Learners */}
+                        {isLearner && accessStatus && !hasAccess && (
+                          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                            <div className="flex items-start space-x-2">
+                              <AlertTriangle className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+                              <div className="text-sm text-yellow-800">
+                                <p className="font-medium">Access Restricted</p>
+                                <p className="text-xs mt-1">{accessStatus.message}</p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center text-blue-600">
+                            <BookOpen className="w-4 h-4 mr-1" />
+                            <span>{program.courseCount || 0} courses</span>
+                          </div>
+                          <div className="flex items-center text-gray-600">
+                            <Users className="w-4 h-4 mr-1" />
+                            <span>0 students</span>
+                          </div>
+                        </div>
+
+                        {program.duration && (
+                          <div className="flex items-center text-sm text-gray-600">
+                            <Clock className="w-4 h-4 mr-1" />
+                            <span>{program.duration}</span>
+                          </div>
+                        )}
+
+                        <div className="text-sm text-gray-600">
+                          <strong>Created by:</strong> {program.instructor || 'Unknown'}
+                        </div>
+
+                        <div className="text-sm text-gray-600">
+                          <strong>Created:</strong> {new Date(program.created_at).toLocaleDateString()}
+                        </div>
                       </div>
 
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center text-blue-600">
-                          <BookOpen className="w-4 h-4 mr-1" />
-                          <span>{program.courseCount || 0} courses</span>
-                        </div>
-                        <div className="flex items-center text-gray-600">
-                          <Users className="w-4 h-4 mr-1" />
-                          <span>0 students</span>
-                        </div>
-                      </div>
-
-                      {program.duration && (
-                        <div className="flex items-center text-sm text-gray-600">
-                          <Clock className="w-4 h-4 mr-1" />
-                          <span>{program.duration}</span>
-                        </div>
-                      )}
-
-                      <div className="text-sm text-gray-600">
-                        <strong>Created by:</strong> {program.instructor || 'Unknown'}
-                      </div>
-
-                      <div className="text-sm text-gray-600">
-                        <strong>Created:</strong> {new Date(program.created_at).toLocaleDateString()}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-2 mt-4">
-                      <Button 
-                        size="sm" 
-                        className="flex-1"
-                        onClick={() => navigate(`/program/${program.id}`)}
-                      >
-                        <Eye className="w-4 h-4 mr-1" />
-                        View Details
-                      </Button>
-                      {(user?.role === 'admin' || program.instructorId === user?.id) && (
-                        <>
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => navigate(`/program/${program.id}/edit`)}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          {isAdmin && (
+                      <div className="flex items-center space-x-2 mt-4">
+                        <Button 
+                          size="sm" 
+                          className="flex-1"
+                          onClick={() => navigate(`/program/${program.id}`)}
+                          disabled={isLearner && !hasAccess}
+                        >
+                          <Eye className="w-4 h-4 mr-1" />
+                          {isLearner && !hasAccess ? 'Access Restricted' : 'View Details'}
+                        </Button>
+                        {(user?.role === 'admin' || program.instructorId === user?.id) && (
+                          <>
                             <Button 
                               size="sm" 
-                              variant="destructive"
-                              onClick={() => handleDeleteProgram(program.id, program.title)}
+                              variant="outline"
+                              onClick={() => navigate(`/program/${program.id}/edit`)}
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Edit className="w-4 h-4" />
                             </Button>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                            {isAdmin && (
+                              <Button 
+                                size="sm" 
+                                variant="destructive"
+                                onClick={() => handleDeleteProgram(program.id, program.title)}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           )}
         </CardContent>
