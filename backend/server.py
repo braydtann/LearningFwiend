@@ -1041,6 +1041,60 @@ async def update_program(
     updated_program = await db.programs.find_one({"id": program_id})
     return ProgramResponse(**updated_program)
 
+@api_router.get("/programs/{program_id}/access-check", response_model=dict)
+async def check_program_access(
+    program_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Check if the current user can access a program based on classroom end dates."""
+    if current_user.role != 'learner':
+        # Instructors and admins always have access
+        return {"hasAccess": True, "reason": "admin_access"}
+    
+    # Find all classrooms that contain this program and include the current student
+    classrooms = await db.classrooms.find({
+        "programIds": program_id,
+        "studentIds": current_user.id,
+        "isActive": True
+    }).to_list(1000)
+    
+    if not classrooms:
+        return {"hasAccess": False, "reason": "not_enrolled", "message": "You are not enrolled in any classroom that includes this program"}
+    
+    # Check if any classroom allows access (has not passed end date)
+    current_time = datetime.utcnow()
+    active_classrooms = []
+    expired_classrooms = []
+    
+    for classroom in classrooms:
+        end_date = classroom.get('endDate')
+        if not end_date:
+            # No end date means indefinite access
+            active_classrooms.append(classroom)
+        elif end_date > current_time:
+            # End date hasn't passed
+            active_classrooms.append(classroom)
+        else:
+            # End date has passed
+            expired_classrooms.append(classroom)
+    
+    if active_classrooms:
+        # Student has access through at least one active classroom
+        return {
+            "hasAccess": True, 
+            "reason": "classroom_active",
+            "activeClassrooms": len(active_classrooms),
+            "message": f"Access granted through {len(active_classrooms)} active classroom(s)"
+        }
+    else:
+        # All classrooms have expired
+        return {
+            "hasAccess": False, 
+            "reason": "classroom_expired",
+            "expiredClassrooms": len(expired_classrooms),
+            "message": f"Program access has expired in all {len(expired_classrooms)} enrolled classroom(s)"
+        }
+
 @api_router.delete("/programs/{program_id}")
 async def delete_program(
     program_id: str,
