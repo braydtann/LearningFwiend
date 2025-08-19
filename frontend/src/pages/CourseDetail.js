@@ -82,16 +82,12 @@ const CourseDetail = () => {
   };
   // Check if user is enrolled using real backend data
   const isEnrolled = isLearner && enrollments.some(enrollment => enrollment.courseId === id);
-  const progress = isLearner ? getCourseProgress(user?.id, id) : 0;
+  
+  // For now, set basic progress - this can be enhanced later with real progress tracking
+  const progress = 0; // TODO: Implement real progress tracking
 
-  // Check classroom access for enrolled students
-  const userClassroomEnrollment = isLearner ? mockClassroomEnrollments.find(e => e.studentId === user?.id) : null;
-  const classroomAccess = userClassroomEnrollment ? 
-    getUserClassroomAccess(user?.id, userClassroomEnrollment.classroomId) : 
-    { hasAccess: true, status: 'no-classroom', message: 'Not enrolled in classroom' };
-
-  // Block access if classroom has expired
-  const canAccessCourse = !isLearner || !userClassroomEnrollment || classroomAccess.hasAccess;
+  // For now, allow access to enrolled courses - classroom restrictions can be added later  
+  const canAccessCourse = !isLearner || isEnrolled;
 
   // Loading state - wait for both course and enrollment data
   if (loading || (isLearner && loadingEnrollments)) {
