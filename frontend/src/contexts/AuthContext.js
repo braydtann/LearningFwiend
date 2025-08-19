@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [requiresPasswordChange, setRequiresPasswordChange] = useState(false);
 
-  const backendUrl = 'https://time-evolution.emergent.host'; // Production URL - DO NOT CHANGE
+  const backendUrl = 'https://lms-evolution.emergent.host'; // CORRECT Production URL
   console.log('AUTH CONTEXT DEBUG - Backend URL:', backendUrl);
 
   useEffect(() => {
