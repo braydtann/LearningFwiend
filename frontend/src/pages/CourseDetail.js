@@ -577,6 +577,39 @@ const CourseDetail = () => {
                 <Progress value={progress} className="h-2" />
               </div>
             )}
+
+            {/* Next Module/Lesson Button - Below main content */}
+            {selectedLesson && nextAction && isEnrolled && (
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg mb-6 border border-blue-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-1">Ready for the next step?</h3>
+                    <p className="text-sm text-gray-600">
+                      {nextAction.type === 'module' 
+                        ? `Continue to the next module: ${nextAction.nextModuleTitle}`
+                        : `Move to the next lesson: ${nextAction.target.title}`
+                      }
+                    </p>
+                  </div>
+                  <Button 
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6"
+                    onClick={handleNextAction}
+                  >
+                    {nextAction.type === 'module' ? (
+                      <>
+                        <SkipForward className="w-4 h-4 mr-2" />
+                        Next Module
+                      </>
+                    ) : (
+                      <>
+                        <ChevronRight className="w-4 h-4 mr-2" />
+                        Next Lesson
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Course Content Tabs */}
