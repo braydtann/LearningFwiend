@@ -245,6 +245,15 @@ const CourseDetail = () => {
         targetModuleProgress.lessons.push(lessonProgress);
       }
       
+      // Skip if already completed
+      if (lessonProgress.completed) {
+        toast({
+          title: "Already completed!",
+          description: `"${lesson.title}" is already marked as complete.`,
+        });
+        return;
+      }
+      
       lessonProgress.completed = true;
       lessonProgress.completedAt = new Date().toISOString();
       
@@ -278,15 +287,34 @@ const CourseDetail = () => {
         // Update local state
         setCurrentEnrollment(result.enrollment);
         
+        // Show success message with progress update
+        const completionMessage = overallProgress >= 100 
+          ? "🎉 Congratulations! You've completed the entire course!"
+          : `Great job! Course progress: ${Math.round(overallProgress)}%`;
+        
         toast({
           title: "Lesson completed!",
-          description: `Great job! You've completed "${lesson.title}".`,
+          description: completionMessage,
+          duration: 3000,
         });
+        
+        // Force re-render by refreshing enrollments
+        await loadEnrollments();
       } else {
+        toast({
+          title: "Error",
+          description: "Failed to update progress. Please try again.",
+          variant: "destructive",
+        });
         console.error('Failed to update progress:', result.error);
       }
     } catch (error) {
       console.error('Error marking lesson complete:', error);
+      toast({
+        title: "Error",
+        description: "An error occurred while updating progress.",
+        variant: "destructive",
+      });
     }
   };
 
