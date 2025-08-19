@@ -2627,6 +2627,7 @@ export const AuthProvider = ({ children }) => {
     getProgramById,
     updateProgram,
     deleteProgram,
+    checkProgramAccess,
     // Category management
     createCategory,
     getAllCategories,
