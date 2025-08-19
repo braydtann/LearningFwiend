@@ -523,6 +523,16 @@ const CourseDetail = () => {
 
   const handleLessonClick = (lesson) => {
     if (lesson.type === 'quiz') {
+      // Check if quiz data exists
+      if (!lesson.quiz || !lesson.quiz.questions || lesson.quiz.questions.length === 0) {
+        toast({
+          title: "Quiz not available",
+          description: "This quiz hasn't been set up yet. Please contact your instructor.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       // Navigate to quiz taking page
       navigate(`/quiz/${id}/${lesson.id}`);
     } else {
