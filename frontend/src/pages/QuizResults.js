@@ -23,7 +23,7 @@ import {
   Filter
 } from 'lucide-react';
 
-const QuizResults = () => {
+const QuizAndTestResults = () => {
   const { 
     user, 
     isInstructor, 
@@ -31,7 +31,10 @@ const QuizResults = () => {
     getAllCourses, 
     getAllClassrooms, 
     getAllQuizzes,
-    getQuizAttempts
+    getQuizAttempts,
+    getAllPrograms,
+    getAllFinalTests,
+    getFinalTestAttempts
   } = useAuth();
   const { toast } = useToast();
   
