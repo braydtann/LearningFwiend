@@ -499,11 +499,17 @@ const QuizResults = () => {
               <CardContent>
                 <div className="space-y-3">
                   {courses.map(course => {
-                    const courseAttempts = filteredAttempts.filter(attempt => attempt.courseId === course.id);
-                    const courseResults = filteredResults.filter(result => result.courseId === course.id);
-                    const coursePassRate = courseResults.length > 0 
-                      ? Math.round((courseResults.filter(result => result.passed).length / courseResults.length) * 100)
+                    const courseAttempts = filteredAttempts.filter(attempt => {
+                      // Find quiz for this attempt and check if it's in the selected course
+                      const quiz = quizzes.find(q => q.id === attempt.quizId);
+                      return quiz && quiz.courseId === course.id;
+                    });
+                    const coursePassRate = courseAttempts.length > 0 
+                      ? Math.round((courseAttempts.filter(attempt => attempt.isPassed).length / courseAttempts.length) * 100)
                       : 0;
+                    
+                    // Count unique students for this course
+                    const uniqueStudents = new Set(courseAttempts.map(attempt => attempt.userId || attempt.studentId)).size;
                     
                     return (
                       <div key={course.id} className="p-3 border rounded-lg">
@@ -513,7 +519,7 @@ const QuizResults = () => {
                         </div>
                         <div className="flex items-center justify-between text-sm text-gray-600">
                           <span>{courseAttempts.length} attempts</span>
-                          <span>{courseResults.length} students</span>
+                          <span>{uniqueStudents} students</span>
                         </div>
                       </div>
                     );
