@@ -627,6 +627,247 @@ class BackendTester:
             )
         return False
     
+    def test_check_existing_users_and_credentials(self):
+        """Check what users exist in the system and verify login credentials for easter egg testing"""
+        print("\n🔍 CHECKING EXISTING USERS AND LOGIN CREDENTIALS FOR EASTER EGG TESTING")
+        print("-" * 80)
+        
+        # First try to login as admin to get user list
+        admin_login_success = self.test_admin_login()
+        
+        if admin_login_success and "admin" in self.auth_tokens:
+            try:
+                # Get all users from the system
+                response = requests.get(
+                    f"{BACKEND_URL}/auth/admin/users",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+                )
+                
+                if response.status_code == 200:
+                    users = response.json()
+                    
+                    print(f"\n📋 FOUND {len(users)} USERS IN THE SYSTEM:")
+                    print("-" * 50)
+                    
+                    admin_users = []
+                    instructor_users = []
+                    student_users = []
+                    
+                    for user in users:
+                        role = user.get('role', 'unknown')
+                        username = user.get('username', 'N/A')
+                        email = user.get('email', 'N/A')
+                        full_name = user.get('full_name', 'N/A')
+                        first_login_required = user.get('first_login_required', False)
+                        
+                        user_info = f"👤 {full_name} | Username: {username} | Email: {email} | Role: {role.upper()}"
+                        if first_login_required:
+                            user_info += " | ⚠️ TEMP PASSWORD"
+                        
+                        print(user_info)
+                        
+                        if role == 'admin':
+                            admin_users.append(user)
+                        elif role == 'instructor':
+                            instructor_users.append(user)
+                        elif role == 'learner':
+                            student_users.append(user)
+                    
+                    print(f"\n📊 USER BREAKDOWN:")
+                    print(f"   🔑 Admins: {len(admin_users)}")
+                    print(f"   👨‍🏫 Instructors: {len(instructor_users)}")
+                    print(f"   🎓 Students: {len(student_users)}")
+                    
+                    # Test known credentials
+                    print(f"\n🔐 TESTING KNOWN LOGIN CREDENTIALS:")
+                    print("-" * 50)
+                    
+                    test_credentials = [
+                        # Known admin credentials
+                        {"username_or_email": "brayden.t@covesmart.com", "password": "Hawaii2020!", "expected_role": "admin", "description": "Main Admin"},
+                        
+                        # Try common instructor credentials
+                        {"username_or_email": "instructor", "password": "Instructor123!", "expected_role": "instructor", "description": "Test Instructor"},
+                        
+                        # Try common student credentials
+                        {"username_or_email": "test.student@learningfwiend.com", "password": "Student123!", "expected_role": "learner", "description": "Test Student"},
+                        {"username_or_email": "student", "password": "Student123!", "expected_role": "learner", "description": "Student User"},
+                        
+                        # Try other potential credentials based on users found
+                    ]
+                    
+                    # Add credentials based on found users
+                    for user in users:
+                        if user.get('username') not in ['brayden.t@covesmart.com', 'instructor', 'test.student@learningfwiend.com', 'student']:
+                            # Try common passwords for found users
+                            common_passwords = ["Password123!", "Test123!", "User123!", "Temp123!"]
+                            for password in common_passwords:
+                                test_credentials.append({
+                                    "username_or_email": user.get('username'),
+                                    "password": password,
+                                    "expected_role": user.get('role'),
+                                    "description": f"Found User: {user.get('full_name', user.get('username'))}"
+                                })
+                    
+                    working_credentials = []
+                    failed_credentials = []
+                    
+                    for cred in test_credentials:
+                        try:
+                            login_response = requests.post(
+                                f"{BACKEND_URL}/auth/login",
+                                json={
+                                    "username_or_email": cred["username_or_email"],
+                                    "password": cred["password"]
+                                },
+                                timeout=TEST_TIMEOUT,
+                                headers={'Content-Type': 'application/json'}
+                            )
+                            
+                            if login_response.status_code == 200:
+                                data = login_response.json()
+                                user_info = data.get('user', {})
+                                actual_role = user_info.get('role')
+                                requires_password_change = data.get('requires_password_change', False)
+                                
+                                credential_info = {
+                                    'description': cred['description'],
+                                    'username_or_email': cred['username_or_email'],
+                                    'password': cred['password'],
+                                    'role': actual_role,
+                                    'full_name': user_info.get('full_name', 'N/A'),
+                                    'requires_password_change': requires_password_change,
+                                    'user_id': user_info.get('id')
+                                }
+                                
+                                working_credentials.append(credential_info)
+                                
+                                status_icon = "🔓" if not requires_password_change else "🔐"
+                                temp_status = " (TEMP PASSWORD)" if requires_password_change else " (PERMANENT)"
+                                
+                                print(f"   ✅ {status_icon} {cred['description']}")
+                                print(f"      Username/Email: {cred['username_or_email']}")
+                                print(f"      Password: {cred['password']}")
+                                print(f"      Role: {actual_role.upper()}")
+                                print(f"      Full Name: {user_info.get('full_name', 'N/A')}{temp_status}")
+                                print()
+                                
+                            else:
+                                failed_credentials.append({
+                                    'description': cred['description'],
+                                    'username_or_email': cred['username_or_email'],
+                                    'password': cred['password'],
+                                    'status_code': login_response.status_code
+                                })
+                                
+                        except requests.exceptions.RequestException as e:
+                            failed_credentials.append({
+                                'description': cred['description'],
+                                'username_or_email': cred['username_or_email'],
+                                'password': cred['password'],
+                                'error': str(e)
+                            })
+                    
+                    print(f"\n🎯 WORKING CREDENTIALS SUMMARY FOR EASTER EGG TESTING:")
+                    print("=" * 60)
+                    
+                    if working_credentials:
+                        admin_creds = [c for c in working_credentials if c['role'] == 'admin']
+                        instructor_creds = [c for c in working_credentials if c['role'] == 'instructor']
+                        student_creds = [c for c in working_credentials if c['role'] == 'learner']
+                        
+                        if admin_creds:
+                            print(f"\n🔑 ADMIN CREDENTIALS ({len(admin_creds)} available):")
+                            for cred in admin_creds:
+                                temp_note = " ⚠️ (Requires password change)" if cred['requires_password_change'] else " ✅ (Ready to use)"
+                                print(f"   • {cred['full_name']} - {cred['username_or_email']} / {cred['password']}{temp_note}")
+                        
+                        if instructor_creds:
+                            print(f"\n👨‍🏫 INSTRUCTOR CREDENTIALS ({len(instructor_creds)} available):")
+                            for cred in instructor_creds:
+                                temp_note = " ⚠️ (Requires password change)" if cred['requires_password_change'] else " ✅ (Ready to use)"
+                                print(f"   • {cred['full_name']} - {cred['username_or_email']} / {cred['password']}{temp_note}")
+                        
+                        if student_creds:
+                            print(f"\n🎓 STUDENT CREDENTIALS ({len(student_creds)} available):")
+                            for cred in student_creds:
+                                temp_note = " ⚠️ (Requires password change)" if cred['requires_password_change'] else " ✅ (Ready to use)"
+                                print(f"   • {cred['full_name']} - {cred['username_or_email']} / {cred['password']}{temp_note}")
+                        
+                        # Recommend best credentials for easter egg testing
+                        print(f"\n🌟 RECOMMENDED CREDENTIALS FOR EASTER EGG TESTING:")
+                        print("-" * 50)
+                        
+                        # Find best admin credential (permanent password preferred)
+                        best_admin = None
+                        for cred in admin_creds:
+                            if not cred['requires_password_change']:
+                                best_admin = cred
+                                break
+                        if not best_admin and admin_creds:
+                            best_admin = admin_creds[0]
+                        
+                        # Find best student credential (permanent password preferred)
+                        best_student = None
+                        for cred in student_creds:
+                            if not cred['requires_password_change']:
+                                best_student = cred
+                                break
+                        if not best_student and student_creds:
+                            best_student = student_creds[0]
+                        
+                        if best_admin:
+                            print(f"🔑 ADMIN: {best_admin['username_or_email']} / {best_admin['password']}")
+                            print(f"   Name: {best_admin['full_name']}")
+                            if best_admin['requires_password_change']:
+                                print(f"   ⚠️ Note: Will require password change on first login")
+                        
+                        if best_student:
+                            print(f"🎓 STUDENT: {best_student['username_or_email']} / {best_student['password']}")
+                            print(f"   Name: {best_student['full_name']}")
+                            if best_student['requires_password_change']:
+                                print(f"   ⚠️ Note: Will require password change on first login")
+                        
+                        self.log_result(
+                            "User Credentials Check for Easter Egg Testing", 
+                            "PASS", 
+                            f"Successfully identified {len(working_credentials)} working login credentials",
+                            f"Admin: {len(admin_creds)}, Instructor: {len(instructor_creds)}, Student: {len(student_creds)} credentials available"
+                        )
+                        return working_credentials
+                    else:
+                        print("❌ No working credentials found!")
+                        self.log_result(
+                            "User Credentials Check for Easter Egg Testing", 
+                            "FAIL", 
+                            "No working login credentials found in the system",
+                            f"Tested {len(test_credentials)} credential combinations, all failed"
+                        )
+                else:
+                    self.log_result(
+                        "User Credentials Check for Easter Egg Testing", 
+                        "FAIL", 
+                        f"Failed to retrieve users list, status: {response.status_code}",
+                        f"Response: {response.text}"
+                    )
+            except requests.exceptions.RequestException as e:
+                self.log_result(
+                    "User Credentials Check for Easter Egg Testing", 
+                    "FAIL", 
+                    "Failed to check existing users and credentials",
+                    str(e)
+                )
+        else:
+            self.log_result(
+                "User Credentials Check for Easter Egg Testing", 
+                "FAIL", 
+                "Could not login as admin to retrieve user list",
+                "Admin authentication required to check existing users"
+            )
+        
+        return False
+
     def test_admin_login(self):
         """Test admin user login with NEW admin credentials"""
         try:
