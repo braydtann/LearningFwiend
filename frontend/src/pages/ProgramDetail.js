@@ -77,7 +77,7 @@ const ProgramDetail = () => {
     if (id) {
       loadProgramDetails();
     }
-  }, [id, getProgramById, getAllCourses]);
+  }, [id, getProgramById, getAllCourses, checkProgramAccess, isLearner]);
 
   if (loading) {
     return (
