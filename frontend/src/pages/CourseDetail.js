@@ -384,10 +384,15 @@ const CourseDetail = () => {
         // Update local state
         setCurrentEnrollment(result.enrollment);
         
+        // Force immediate progress recalculation and UI update
+        const newProgress = calculateProgressFromEnrollment(result.enrollment);
+        console.log(`Forced progress update after lesson completion: ${newProgress}%`);
+        setProgressValue(newProgress);
+        
         // Show success message with progress update
         const completionMessage = overallProgress >= 100 
           ? "🎉 Congratulations! You've completed the entire course!"
-          : `Great job! Course progress: ${Math.round(overallProgress)}%`;
+          : `Great job! Course progress: ${Math.round(newProgress)}%`;
         
         toast({
           title: "Lesson completed!",
