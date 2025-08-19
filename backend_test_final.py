@@ -8,7 +8,7 @@ import json
 import uuid
 from datetime import datetime, timedelta
 
-BACKEND_URL = "https://edusys-migration.preview.emergentagent.com/api"
+BACKEND_URL = "https://learnspace-15.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 class FinalBackendTester:
