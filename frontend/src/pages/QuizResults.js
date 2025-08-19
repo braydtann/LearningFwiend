@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -6,13 +6,11 @@ import { Badge } from '../components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Label } from '../components/ui/label';
+import { useToast } from '../hooks/use-toast';
+// Mock data imports - kept as fallback for quiz analytics that don't have backend equivalents yet
 import { 
-  mockCourses, 
   mockQuizAttempts, 
   mockQuizResults, 
-  mockUsers,
-  mockClassrooms,
-  mockClassroomEnrollments,
   getInstructorQuizAnalytics 
 } from '../data/mockData';
 import { 
@@ -28,23 +26,71 @@ import {
 } from 'lucide-react';
 
 const QuizResults = () => {
-  const { user, isInstructor, isAdmin } = useAuth();
+  const { user, isInstructor, isAdmin, getAllCourses, getAllClassrooms } = useAuth();
+  const { toast } = useToast();
+  
   const [selectedCourse, setSelectedCourse] = useState('all');
   const [selectedClassroom, setSelectedClassroom] = useState('all');
+  const [courses, setCourses] = useState([]);
+  const [classrooms, setClassrooms] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Get courses based on user role
-  const courses = isInstructor 
-    ? mockCourses.filter(course => course.instructorId === user?.id)
-    : isAdmin 
-    ? mockCourses 
-    : [];
+  // Load real data on component mount
+  useEffect(() => {
+    loadData();
+  }, []);
 
-  // Get classrooms for filtering
-  const classrooms = isInstructor
-    ? mockClassrooms.filter(classroom => classroom.trainerId === user?.id)
-    : isAdmin
-    ? mockClassrooms
-    : [];
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      // Load courses from backend
+      const courseResult = await getAllCourses();
+      if (courseResult.success) {
+        // Filter courses based on user role
+        let filteredCourses = courseResult.courses;
+        if (isInstructor && !isAdmin) {
+          // Filter to only instructor's courses - assuming courses have instructorId or similar
+          filteredCourses = courseResult.courses.filter(course => 
+            course.instructorId === user?.id || course.instructor === user?.full_name
+          );
+        }
+        setCourses(filteredCourses);
+      } else {
+        toast({
+          title: "Error loading courses",
+          description: courseResult.error || "Failed to load courses",
+          variant: "destructive",
+        });
+      }
+
+      // Load classrooms from backend
+      const classroomResult = await getAllClassrooms();
+      if (classroomResult.success) {
+        // Filter classrooms based on user role
+        let filteredClassrooms = classroomResult.classrooms;
+        if (isInstructor && !isAdmin) {
+          // Filter to only instructor's classrooms
+          filteredClassrooms = classroomResult.classrooms.filter(classroom => 
+            classroom.trainerId === user?.id
+          );
+        }
+        setClassrooms(filteredClassrooms);
+      } else {
+        // Don't show error for classrooms as it might not be critical
+        console.log('Could not load classrooms:', classroomResult.error);
+        setClassrooms([]);
+      }
+    } catch (error) {
+      console.error('Error loading quiz results data:', error);
+      toast({
+        title: "Error loading data",
+        description: "Failed to load courses and classrooms",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Get quiz analytics
   const analytics = getInstructorQuizAnalytics(user?.id);
