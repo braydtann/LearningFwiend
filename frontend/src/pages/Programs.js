@@ -118,7 +118,7 @@ const Programs = () => {
     };
 
     loadData();
-  }, [getAllPrograms, getAllCourses, toast]);
+  }, [getAllPrograms, getAllCourses, checkProgramAccess, isLearner, toast]);
 
   const handleCreateProgram = async () => {
     if (!newProgram.title || !newProgram.description || newProgram.courseIds.length === 0) {
