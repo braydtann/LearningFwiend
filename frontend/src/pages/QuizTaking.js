@@ -132,17 +132,6 @@ const QuizTaking = () => {
       </div>
     );
   }
-      return;
-    }
-
-    // Check if user can take the quiz
-    if (!canTakeQuiz) {
-      setQuizState('max-attempts-reached');
-      return;
-    }
-
-    setQuizState('ready');
-  }, [course, lesson, quiz, canTakeQuiz]);
 
   // Timer effect
   useEffect(() => {
