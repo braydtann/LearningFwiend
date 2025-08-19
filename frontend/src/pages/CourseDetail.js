@@ -90,7 +90,36 @@ const CourseDetail = () => {
         
         // Find current enrollment for this course
         const enrollment = result.enrollments.find(e => e.courseId === id);
-        setCurrentEnrollment(enrollment || null);
+        if (enrollment) {
+          // Check if enrollment needs migration (missing moduleProgress)
+          if (!enrollment.moduleProgress || enrollment.moduleProgress.length === 0) {
+            console.log('Legacy enrollment detected - migrating to new progress system...');
+            const migrationResult = await migrateEnrollmentProgress(enrollment.id);
+            
+            if (migrationResult.success) {
+              console.log('Enrollment migration successful:', migrationResult.result);
+              toast({
+                title: "Progress tracking updated",
+                description: "Your course progress has been upgraded to the new tracking system.",
+              });
+              
+              // Reload enrollments after migration
+              const updatedResult = await getMyEnrollments();
+              if (updatedResult.success) {
+                const updatedEnrollment = updatedResult.enrollments.find(e => e.courseId === id);
+                setCurrentEnrollment(updatedEnrollment || null);
+                setEnrollments(updatedResult.enrollments);
+              }
+            } else {
+              console.error('Failed to migrate enrollment:', migrationResult.error);
+              setCurrentEnrollment(enrollment);
+            }
+          } else {
+            setCurrentEnrollment(enrollment);
+          }
+        } else {
+          setCurrentEnrollment(null);
+        }
       } else {
         console.error('Failed to load enrollments:', result.error);
         setEnrollments([]);
