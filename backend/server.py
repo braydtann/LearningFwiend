@@ -897,6 +897,91 @@ async def unenroll_from_course(
     
     return {"message": "Successfully unenrolled from course"}
 
+# Progress tracking models
+class LessonProgress(BaseModel):
+    lessonId: str
+    completed: bool = False
+    completedAt: Optional[datetime] = None
+    timeSpent: Optional[int] = 0  # in seconds
+
+class ModuleProgress(BaseModel):
+    moduleId: str
+    lessons: List[LessonProgress] = []
+    completed: bool = False
+    completedAt: Optional[datetime] = None
+
+class EnrollmentProgressUpdate(BaseModel):
+    progress: Optional[float] = None  # Overall progress percentage (0-100)
+    currentModuleId: Optional[str] = None
+    currentLessonId: Optional[str] = None
+    moduleProgress: Optional[List[ModuleProgress]] = None
+    lastAccessedAt: Optional[datetime] = None
+    timeSpent: Optional[int] = None  # Total time spent in seconds
+
+@api_router.put("/enrollments/{course_id}/progress", response_model=EnrollmentResponse)
+async def update_enrollment_progress(
+    course_id: str,
+    progress_data: EnrollmentProgressUpdate,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Update progress for a course enrollment."""
+    # Find the enrollment
+    enrollment = await db.enrollments.find_one({
+        "userId": current_user.id,
+        "courseId": course_id
+    })
+    
+    if not enrollment:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Enrollment not found"
+        )
+    
+    # Prepare update data
+    update_data = {"updated_at": datetime.utcnow()}
+    
+    if progress_data.progress is not None:
+        update_data["progress"] = min(100.0, max(0.0, progress_data.progress))
+        
+        # Mark as completed if progress reaches 100%
+        if progress_data.progress >= 100.0:
+            update_data["status"] = "completed"
+            update_data["completedAt"] = datetime.utcnow()
+    
+    if progress_data.currentModuleId is not None:
+        update_data["currentModuleId"] = progress_data.currentModuleId
+    
+    if progress_data.currentLessonId is not None:
+        update_data["currentLessonId"] = progress_data.currentLessonId
+    
+    if progress_data.moduleProgress is not None:
+        # Convert Pydantic models to dict for storage
+        update_data["moduleProgress"] = [
+            module.dict() for module in progress_data.moduleProgress
+        ]
+    
+    if progress_data.lastAccessedAt is not None:
+        update_data["lastAccessedAt"] = progress_data.lastAccessedAt
+    else:
+        update_data["lastAccessedAt"] = datetime.utcnow()
+    
+    if progress_data.timeSpent is not None:
+        update_data["timeSpent"] = progress_data.timeSpent
+    
+    # Update the enrollment
+    await db.enrollments.update_one(
+        {"userId": current_user.id, "courseId": course_id},
+        {"$set": update_data}
+    )
+    
+    # Fetch updated enrollment
+    updated_enrollment = await db.enrollments.find_one({
+        "userId": current_user.id,
+        "courseId": course_id
+    })
+    
+    return EnrollmentResponse(**updated_enrollment)
+
 @api_router.post("/enrollments/cleanup-orphaned")
 async def cleanup_orphaned_enrollments(current_user: UserResponse = Depends(get_current_user)):
     """Clean up enrollment records that reference non-existent courses (admin only)."""
