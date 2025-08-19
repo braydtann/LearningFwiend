@@ -15206,9 +15206,9 @@ class BackendTester:
         return False
 
     def run_all_tests(self):
-        """Run comprehensive backend tests with focus on quiz functionality"""
+        """Run comprehensive backend tests with focus on final test functionality"""
         print("🚀 Starting Backend Testing Suite for LearningFwiend LMS")
-        print("🔍 PRIORITY FOCUS: Comprehensive Quiz Functionality Testing")
+        print("🔍 PRIORITY FOCUS: Final Test Functionality Testing")
         print("=" * 80)
         
         # Basic connectivity tests first
@@ -15223,24 +15223,29 @@ class BackendTester:
         self.test_instructor_login()
         self.test_student_login()
         
-        # COMPREHENSIVE QUIZ FUNCTIONALITY TESTS - HIGHEST PRIORITY
+        # FINAL TEST FUNCTIONALITY TESTS - HIGHEST PRIORITY
         if self.auth_tokens:
-            print("\n🧩 COMPREHENSIVE QUIZ FUNCTIONALITY TESTS (HIGHEST PRIORITY)")
+            print("\n🎯 FINAL TEST FUNCTIONALITY TESTS (HIGHEST PRIORITY)")
             print("=" * 70)
-            print("Testing complete quiz workflow as requested:")
-            print("1. Quiz Creation Endpoint: POST /api/quizzes")
-            print("2. Quiz Retrieval Endpoints: GET /api/quizzes, GET /api/quizzes/{quiz_id}, GET /api/quizzes/my-quizzes")
-            print("3. Quiz Attempt Endpoints: POST /api/quiz-attempts, GET /api/quiz-attempts, GET /api/quiz-attempts/{attempt_id}")
-            print("4. Quiz Results/Analytics: Check quiz analytics endpoints and data structure")
-            print("5. Complete Quiz Workflow: creation → student attempts → results/analytics")
+            print("Testing complete final test workflow as requested:")
+            print("1. Final Test Creation: POST /api/final-tests")
+            print("2. Final Test Retrieval: GET /api/final-tests, GET /api/final-tests/my-tests, GET /api/final-tests/{test_id}")
+            print("3. Final Test Update/Delete: PUT /api/final-tests/{test_id}, DELETE /api/final-tests/{test_id}")
+            print("4. Final Test Attempt Submission: POST /api/final-test-attempts")
+            print("5. Final Test Attempt Retrieval: GET /api/final-test-attempts, GET /api/final-test-attempts/{attempt_id}")
+            print("6. Final Test Attempt Limits and Validation")
+            print("7. Final Test Data Validation and Error Handling")
             print()
             
-            # Execute comprehensive quiz testing
-            self.test_quiz_creation_endpoint()
-            self.test_quiz_retrieval_endpoints()
-            self.test_quiz_attempt_endpoints()
-            self.test_quiz_results_analytics()
-            self.test_complete_quiz_workflow()
+            # Execute comprehensive final test testing
+            self.test_final_test_creation()
+            self.test_final_test_role_based_access()
+            self.test_final_test_retrieval_endpoints()
+            self.test_final_test_update_and_delete()
+            self.test_final_test_attempt_submission()
+            self.test_final_test_attempt_retrieval()
+            self.test_final_test_attempt_limits_validation()
+            self.test_final_test_data_validation()
         
         return self.generate_summary()
         
