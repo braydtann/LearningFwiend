@@ -53,23 +53,11 @@ const CourseDetail = () => {
       if (result.success) {
         setCourse(result.course);
       } else {
-        // Fallback to mock data for existing courses
-        const mockCourse = mockCourses.find(c => c.id === id);
-        if (mockCourse) {
-          setCourse(mockCourse);
-        } else {
-          setError(result.error || 'Course not found');
-        }
+        setError(result.error || 'Course not found');
       }
     } catch (error) {
       console.error('Error loading course:', error);
-      // Fallback to mock data
-      const mockCourse = mockCourses.find(c => c.id === id);
-      if (mockCourse) {
-        setCourse(mockCourse);
-      } else {
-        setError('Failed to load course');
-      }
+      setError('Failed to load course');
     } finally {
       setLoading(false);
     }
