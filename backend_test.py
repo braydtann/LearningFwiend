@@ -785,7 +785,7 @@ class BackendTester:
         """Test student user login"""
         try:
             login_data = {
-                "username_or_email": "student",
+                "username_or_email": "test.student@learningfwiend.com",
                 "password": "Student123!"
             }
             
