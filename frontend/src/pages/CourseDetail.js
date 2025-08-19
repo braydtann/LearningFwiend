@@ -432,13 +432,6 @@ const CourseDetail = () => {
     }
   };
 
-  const markLessonComplete = (lessonId) => {
-    toast({
-      title: "Lesson completed!",
-      description: "Great job! Continue with the next lesson.",
-    });
-  };
-
   return (
     <div className="space-y-8">
       {/* Header */}
