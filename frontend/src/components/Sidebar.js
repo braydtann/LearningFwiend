@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from './ui/button';
@@ -24,6 +24,9 @@ const Sidebar = () => {
   const { user, logout, isAdmin, isInstructor, isLearner } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  
+  // Easter egg state - track logo clicks
+  const [logoClickCount, setLogoClickCount] = useState(0);
 
   const handleLogout = () => {
     logout();
