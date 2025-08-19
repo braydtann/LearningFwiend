@@ -93,11 +93,18 @@ const QuizTaking = () => {
     if (!courseLoading) {
       if (!course || !lesson || !quiz) {
         setQuizState('error');
-      } else {
-        setQuizState('ready');
+        return;
       }
+
+      // Check if user can take the quiz
+      if (!canTakeQuiz) {
+        setQuizState('max-attempts-reached');
+        return;
+      }
+
+      setQuizState('ready');
     }
-  }, [courseLoading, course, lesson, quiz]);
+  }, [courseLoading, course, lesson, quiz, canTakeQuiz]);
 
   // Show loading state
   if (courseLoading) {
