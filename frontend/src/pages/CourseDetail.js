@@ -126,6 +126,9 @@ const CourseDetail = () => {
       return Math.round((completedLessons / totalLessons) * 100);
     }
     
+    // For legacy enrollments without moduleProgress, initialize with 0
+    // This will be updated when user starts interacting with lessons
+    console.log('Legacy enrollment detected - moduleProgress missing. Progress will be calculated as lessons are completed.');
     return 0;
   };
 
