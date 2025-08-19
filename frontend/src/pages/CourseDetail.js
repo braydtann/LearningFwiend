@@ -68,9 +68,15 @@ const CourseDetail = () => {
     if (course && currentEnrollment) {
       const newProgress = calculateProgress();
       console.log(`Progress update triggered: ${newProgress}%`);
+      console.log('Current enrollment data:', JSON.stringify(currentEnrollment.moduleProgress, null, 2));
       setProgressValue(newProgress);
+      
+      // Also recalculate next action when progress changes
+      if (selectedLesson) {
+        calculateNextAction();
+      }
     }
-  }, [course, currentEnrollment]); // Watch for enrollment changes
+  }, [course, currentEnrollment, selectedLesson]); // Watch for enrollment AND selected lesson changes
 
   const loadCourse = async () => {
     setLoading(true);
