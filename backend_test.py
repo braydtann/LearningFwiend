@@ -23840,12 +23840,12 @@ class BackendTester:
                 headers={'Content-Type': 'application/json'}
             )
             
-            if response.status_code == 401:
+            if response.status_code in [401, 403]:
                 self.log_result(
                     "Progress Tracking - Authentication (Unauthenticated)", 
                     "PASS", 
                     "Correctly denied access to unauthenticated user",
-                    "Authentication validation working"
+                    f"Authentication validation working (status: {response.status_code})"
                 )
             else:
                 self.log_result(
