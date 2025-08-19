@@ -54,6 +54,13 @@ const CourseDetail = () => {
     }
   }, [id, isLearner]);
 
+  // Calculate next action when course, enrollment, or selected lesson changes
+  useEffect(() => {
+    if (course && currentEnrollment && selectedLesson) {
+      calculateNextAction();
+    }
+  }, [course, currentEnrollment, selectedLesson]);
+
   const loadCourse = async () => {
     setLoading(true);
     setError(null);
@@ -79,19 +86,113 @@ const CourseDetail = () => {
       const result = await getMyEnrollments();
       if (result.success) {
         setEnrollments(result.enrollments);
+        
+        // Find current enrollment for this course
+        const enrollment = result.enrollments.find(e => e.courseId === id);
+        setCurrentEnrollment(enrollment || null);
       } else {
         console.error('Failed to load enrollments:', result.error);
         setEnrollments([]);
+        setCurrentEnrollment(null);
       }
     } catch (error) {
       console.error('Error loading enrollments:', error);
       setEnrollments([]);
+      setCurrentEnrollment(null);
     } finally {
       setLoadingEnrollments(false);
     }
   };
+
+  // Calculate real progress based on enrollment data
+  const calculateProgress = () => {
+    if (!currentEnrollment || !course) return 0;
+    
+    // Use backend progress if available
+    if (currentEnrollment.progress !== undefined && currentEnrollment.progress !== null) {
+      return Math.round(currentEnrollment.progress);
+    }
+    
+    // Calculate based on module progress if available
+    if (currentEnrollment.moduleProgress && course.modules) {
+      const totalLessons = course.modules.reduce((total, module) => 
+        total + (module.lessons?.length || 0), 0);
+      
+      if (totalLessons === 0) return 0;
+      
+      const completedLessons = currentEnrollment.moduleProgress.reduce((total, moduleProgress) => 
+        total + (moduleProgress.lessons?.filter(l => l.completed).length || 0), 0);
+      
+      return Math.round((completedLessons / totalLessons) * 100);
+    }
+    
+    return 0;
+  };
+
+  // Calculate next action (next lesson or next module)
+  const calculateNextAction = () => {
+    if (!course?.modules || !selectedLesson) {
+      setNextAction(null);
+      return;
+    }
+    
+    // Find current module and lesson
+    let currentModuleIndex = -1;
+    let currentLessonIndex = -1;
+    
+    for (let mi = 0; mi < course.modules.length; mi++) {
+      const module = course.modules[mi];
+      if (module.lessons) {
+        for (let li = 0; li < module.lessons.length; li++) {
+          if (module.lessons[li].id === selectedLesson.id) {
+            currentModuleIndex = mi;
+            currentLessonIndex = li;
+            break;
+          }
+        }
+        if (currentModuleIndex !== -1) break;
+      }
+    }
+    
+    if (currentModuleIndex === -1) {
+      setNextAction(null);
+      return;
+    }
+    
+    const currentModule = course.modules[currentModuleIndex];
+    
+    // Check if there's a next lesson in current module
+    if (currentLessonIndex < currentModule.lessons.length - 1) {
+      setNextAction({
+        type: 'lesson',
+        target: currentModule.lessons[currentLessonIndex + 1],
+        moduleIndex: currentModuleIndex,
+        lessonIndex: currentLessonIndex + 1
+      });
+      return;
+    }
+    
+    // Check if there's a next module
+    if (currentModuleIndex < course.modules.length - 1) {
+      const nextModule = course.modules[currentModuleIndex + 1];
+      if (nextModule.lessons && nextModule.lessons.length > 0) {
+        setNextAction({
+          type: 'module',
+          target: nextModule.lessons[0],
+          moduleIndex: currentModuleIndex + 1,
+          lessonIndex: 0,
+          nextModuleTitle: nextModule.title
+        });
+        return;
+      }
+    }
+    
+    // No next action available
+    setNextAction(null);
+  };
+
   // Check if user is enrolled using real backend data
-  const isEnrolled = isLearner && enrollments.some(enrollment => enrollment.courseId === id);
+  const isEnrolled = isLearner && currentEnrollment;
   
   // For now, set basic progress - this can be enhanced later with real progress tracking
   const progress = 0; // TODO: Implement real progress tracking
