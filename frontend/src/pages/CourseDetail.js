@@ -243,12 +243,10 @@ const CourseDetail = () => {
           <div>
             <div className="aspect-video relative overflow-hidden rounded-lg mb-6">
               <img 
-                src={course.thumbnailUrl || course.thumbnail || '/default-course-image.png'} 
+                src={getImageUrl(course.thumbnailUrl || course.thumbnail)} 
                 alt={course.title}
                 className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.target.src = '/default-course-image.png';
-                }}
+                onError={(e) => handleImageError(e)}
               />
               {(selectedLesson?.type === 'video' || selectedLesson?.type === 'presentation') && 
                (selectedLesson.videoUrl || selectedLesson.presentationUrl || selectedLesson.embedCode) && (
