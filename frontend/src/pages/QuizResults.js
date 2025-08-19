@@ -543,4 +543,4 @@ const QuizAndTestResults = () => {
   );
 };
 
-export default QuizResults;
+export default QuizAndTestResults;
