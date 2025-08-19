@@ -1028,6 +1028,74 @@ async def update_enrollment_progress(
     
     return EnrollmentResponse(**updated_enrollment)
 
+@api_router.post("/enrollments/{enrollment_id}/migrate-progress")
+async def migrate_enrollment_progress(
+    enrollment_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Migrate existing enrollment to new progress tracking system."""
+    # Find the enrollment
+    enrollment = await db.enrollments.find_one({
+        "id": enrollment_id,
+        "userId": current_user.id
+    })
+    
+    if not enrollment:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Enrollment not found"
+        )
+    
+    # Get the course to understand structure
+    course = await db.courses.find_one({"id": enrollment["courseId"]})
+    if not course:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Course not found"
+        )
+    
+    # Initialize moduleProgress if it doesn't exist
+    if "moduleProgress" not in enrollment or not enrollment["moduleProgress"]:
+        module_progress = []
+        
+        for module in course.get("modules", []):
+            if module.get("lessons"):
+                lesson_progress = []
+                for lesson in module["lessons"]:
+                    lesson_progress.append({
+                        "lessonId": lesson["id"],
+                        "completed": False,
+                        "completedAt": None,
+                        "timeSpent": 0
+                    })
+                
+                module_progress.append({
+                    "moduleId": module["id"],
+                    "lessons": lesson_progress,
+                    "completed": False,
+                    "completedAt": None
+                })
+        
+        # Update enrollment with new progress structure
+        await db.enrollments.update_one(
+            {"id": enrollment_id},
+            {
+                "$set": {
+                    "moduleProgress": module_progress,
+                    "progress": 0.0,
+                    "updated_at": datetime.utcnow()
+                }
+            }
+        )
+        
+        return {
+            "message": "Enrollment migrated to new progress tracking system",
+            "totalLessons": sum(len(m.get("lessons", [])) for m in course.get("modules", [])),
+            "moduleCount": len(course.get("modules", []))
+        }
+    
+    return {"message": "Enrollment already has progress tracking structure"}
+
 @api_router.post("/enrollments/cleanup-orphaned")
 async def cleanup_orphaned_enrollments(current_user: UserResponse = Depends(get_current_user)):
     """Clean up enrollment records that reference non-existent courses (admin only)."""
