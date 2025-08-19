@@ -90,14 +90,14 @@ const QuizTaking = () => {
   const canTakeQuiz = !existingResults || existingResults.totalAttempts < (quiz?.maxAttempts || 3);
 
   useEffect(() => {
-    if (!loading) {
+    if (!courseLoading) {
       if (!course || !lesson || !quiz) {
         setQuizState('error');
       } else {
         setQuizState('ready');
       }
     }
-  }, [loading, course, lesson, quiz]);
+  }, [courseLoading, course, lesson, quiz]);
 
   // Show loading state
   if (loading) {
