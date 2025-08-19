@@ -402,11 +402,8 @@ const CourseDetail = () => {
     if (!nextAction || !selectedLesson) return;
     
     try {
-      // First mark current lesson as complete (this will update progress)
+      // First mark current lesson as complete (this will update progress and state)
       await markLessonComplete(selectedLesson.id);
-      
-      // Wait for the state to update
-      await new Promise(resolve => setTimeout(resolve, 500));
       
       // Handle different action types
       if (nextAction.type === 'complete') {
@@ -426,9 +423,6 @@ const CourseDetail = () => {
             description: "Congratulations! You've successfully completed the entire course. Your certificate has been generated.",
             duration: 5000,
           });
-          
-          // Refresh to update UI
-          await loadEnrollments();
         }
       } else {
         // Navigate to next lesson/module
@@ -441,9 +435,6 @@ const CourseDetail = () => {
           title: `Moving to next ${actionType}!`,
           description: `Now starting: ${nextTitle}`,
         });
-        
-        // Refresh enrollments to ensure UI is up to date
-        await loadEnrollments();
       }
     } catch (error) {
       console.error('Error handling next action:', error);
