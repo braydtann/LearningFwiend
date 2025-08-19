@@ -151,15 +151,15 @@ const CourseDetail = () => {
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Course Access Restricted</h2>
             <p className="text-gray-600 mb-6">
-              {classroomAccess.message}
+              You need to be enrolled in this course to access its content.
             </p>
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
               <div className="flex items-center justify-center">
-                <AlertTriangle className="w-5 h-5 text-red-600 mr-2" />
+                <AlertTriangle className="w-5 h-5 text-yellow-600 mr-2" />
                 <div>
-                  <p className="text-sm font-medium text-red-800">Classroom Ended</p>
-                  <p className="text-sm text-red-700">
-                    You can no longer access courses from this classroom as the enrollment period has ended.
+                  <p className="text-sm font-medium text-yellow-800">Enrollment Required</p>
+                  <p className="text-sm text-yellow-700">
+                    Please contact your instructor to get enrolled in this course.
                   </p>
                 </div>
               </div>
