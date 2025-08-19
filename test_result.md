@@ -1966,7 +1966,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Program Access Control Based on Classroom End Dates"
+    - "Course Progress Tracking Enhancement"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
