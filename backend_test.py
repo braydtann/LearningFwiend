@@ -15764,9 +15764,28 @@ class BackendTester:
         self.test_instructor_login()
         self.test_student_login()
         
-        # FINAL TEST FUNCTIONALITY TESTS - HIGHEST PRIORITY
+        # PROGRAM ACCESS CONTROL TESTS - HIGHEST PRIORITY
         if self.auth_tokens:
-            print("\n🎯 FINAL TEST FUNCTIONALITY TESTS (HIGHEST PRIORITY)")
+            print("\n🎯 PROGRAM ACCESS CONTROL TESTS (HIGHEST PRIORITY)")
+            print("=" * 70)
+            print("Testing program access control functionality based on classroom end dates:")
+            print("1. Admin/Instructor Access: GET /api/programs/{program_id}/access-check")
+            print("2. Student Access Control based on classroom end dates")
+            print("3. Response structure validation")
+            print("4. Error handling for non-existent programs")
+            print()
+            
+            # Execute comprehensive program access control testing
+            self.test_program_access_control_admin_instructor()
+            self.test_program_access_control_student_no_classroom()
+            self.test_program_access_control_student_active_classroom()
+            self.test_program_access_control_student_expired_classroom()
+            self.test_program_access_control_response_structure()
+            self.test_program_access_control_nonexistent_program()
+        
+        # FINAL TEST FUNCTIONALITY TESTS - SECONDARY PRIORITY
+        if self.auth_tokens:
+            print("\n🎯 FINAL TEST FUNCTIONALITY TESTS (SECONDARY PRIORITY)")
             print("=" * 70)
             print("Testing complete final test workflow as requested:")
             print("1. Final Test Creation: POST /api/final-tests")
