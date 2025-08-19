@@ -26,8 +26,8 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [requiresPasswordChange, setRequiresPasswordChange] = useState(false);
 
-  const backendUrl = process.env.REACT_APP_BACKEND_URL;
-  console.log('AUTH CONTEXT DEBUG - Backend URL:', backendUrl, 'Full env:', process.env.REACT_APP_BACKEND_URL);
+  const backendUrl = 'https://time-evolution.emergent.host'; // process.env.REACT_APP_BACKEND_URL;
+  console.log('AUTH CONTEXT DEBUG - Backend URL:', backendUrl);
 
   useEffect(() => {
     // Show browser compatibility warning if needed
