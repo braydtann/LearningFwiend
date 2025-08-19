@@ -41,7 +41,7 @@ export const convertToDirectImageUrl = (url) => {
     
     // Convert to direct image URL if we found a file ID
     if (fileId) {
-      // Try the thumbnail format first for better image display
+      // Use the thumbnail format for better image display
       return `https://drive.google.com/thumbnail?id=${fileId}&sz=w800`;
     }
   }
@@ -66,12 +66,26 @@ export const getImageUrl = (imageUrl, fallback = '/default-course-image.png') =>
 };
 
 /**
- * Handle image error by setting fallback source
+ * Enhanced image error handler with Google Drive fallback
  * @param {Event} event - The error event from img onError
  * @param {string} fallback - Fallback image URL
  */
 export const handleImageError = (event, fallback = '/default-course-image.png') => {
-  if (event.target.src !== fallback) {
-    event.target.src = fallback;
+  const imgElement = event.target;
+  const currentSrc = imgElement.src;
+  
+  // If it's a Google Drive thumbnail URL that failed, try the uc format as fallback
+  if (currentSrc.includes('drive.google.com/thumbnail') && !imgElement.dataset.fallbackTried) {
+    const fileIdMatch = currentSrc.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    if (fileIdMatch) {
+      imgElement.dataset.fallbackTried = 'true';
+      imgElement.src = `https://drive.google.com/uc?id=${fileIdMatch[1]}`;
+      return;
+    }
+  }
+  
+  // If already tried fallback or not a Google Drive URL, use default fallback
+  if (currentSrc !== fallback) {
+    imgElement.src = fallback;
   }
 };
