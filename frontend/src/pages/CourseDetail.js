@@ -664,7 +664,7 @@ const CourseDetail = () => {
                                     </div>
                                   </div>
                                   
-                                  {/* Action buttons */}
+                                  {/* Action buttons - only show checkmark and remove Next Lesson button from here */}
                                   <div className="flex items-center space-x-2">
                                     {isEnrolled && !completed && (
                                       <Button 
@@ -677,30 +677,6 @@ const CourseDetail = () => {
                                         title="Mark as complete"
                                       >
                                         <CheckCircle className="w-4 h-4" />
-                                      </Button>
-                                    )}
-                                    
-                                    {/* Next Module/Lesson Button */}
-                                    {isCurrentLesson && nextAction && (
-                                      <Button 
-                                        size="sm" 
-                                        className="bg-blue-600 hover:bg-blue-700 text-white"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleNextAction();
-                                        }}
-                                      >
-                                        {nextAction.type === 'module' ? (
-                                          <>
-                                            <SkipForward className="w-4 h-4 mr-1" />
-                                            Next Module
-                                          </>
-                                        ) : (
-                                          <>
-                                            <ChevronRight className="w-4 h-4 mr-1" />
-                                            Next Lesson
-                                          </>
-                                        )}
                                       </Button>
                                     )}
                                   </div>
