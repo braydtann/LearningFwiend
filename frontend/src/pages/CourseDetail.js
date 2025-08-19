@@ -753,10 +753,9 @@ const CourseDetail = () => {
 
           {/* Course Content Tabs */}
           <Tabs defaultValue="curriculum" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="curriculum">Curriculum</TabsTrigger>
               <TabsTrigger value="description">Description</TabsTrigger>
-              <TabsTrigger value="reviews">Reviews</TabsTrigger>
             </TabsList>
             
             <TabsContent value="curriculum" className="space-y-4">
