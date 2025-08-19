@@ -7,7 +7,7 @@ import { Badge } from '../components/ui/badge';
 import { Progress } from '../components/ui/progress';
 import { Textarea } from '../components/ui/textarea';
 import ScreenRecorder from '../components/ScreenRecorder';
-import { mockCourses, getQuizAttempts, getQuizResults } from '../data/mockData';
+import { getQuizAttempts, getQuizResults } from '../data/mockData';
 import { 
   Clock, 
   CheckCircle, 
@@ -21,15 +21,59 @@ import { useToast } from '../hooks/use-toast';
 const QuizTaking = () => {
   const { courseId, lessonId } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, getCourseById } = useAuth();
   const { toast } = useToast();
 
-  // Find course and lesson
-  const course = mockCourses.find(c => c.id === courseId);
-  const lesson = course?.modules
-    ?.find(m => m.lessons?.some(l => l.id === lessonId))
-    ?.lessons?.find(l => l.id === lessonId);
-  const quiz = lesson?.quiz;
+  // Course and lesson data from backend
+  const [course, setCourse] = useState(null);
+  const [lesson, setLesson] = useState(null);
+  const [quiz, setQuiz] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Load course data from backend
+  useEffect(() => {
+    const loadCourseData = async () => {
+      try {
+        setLoading(true);
+        const result = await getCourseById(courseId);
+        
+        if (result.success) {
+          const courseData = result.course;
+          setCourse(courseData);
+          
+          // Find the lesson and quiz
+          let foundLesson = null;
+          for (const module of courseData.modules || []) {
+            if (module.lessons) {
+              foundLesson = module.lessons.find(l => l.id === lessonId);
+              if (foundLesson) break;
+            }
+          }
+          
+          if (foundLesson) {
+            setLesson(foundLesson);
+            if (foundLesson.type === 'quiz' && foundLesson.quiz) {
+              setQuiz(foundLesson.quiz);
+            } else {
+              setError('This lesson is not a quiz or quiz data is missing');
+            }
+          } else {
+            setError('Lesson not found in course');
+          }
+        } else {
+          setError(result.error || 'Course not found');
+        }
+      } catch (err) {
+        console.error('Error loading course data:', err);
+        setError('Failed to load course data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCourseData();
+  }, [courseId, lessonId, getCourseById]);
 
   // Quiz state
   const [quizState, setQuizState] = useState('loading'); // loading, ready, taking, submitted, error
@@ -40,14 +84,54 @@ const QuizTaking = () => {
   const [showResults, setShowResults] = useState(false);
   const [quizResults, setQuizResults] = useState(null);
 
-  // Get existing attempts and results
-  const attempts = getQuizAttempts(user?.id, courseId, lessonId, quiz?.id);
-  const existingResults = getQuizResults(user?.id, courseId, lessonId, quiz?.id);
+  // Get existing attempts and results (using mock data for now)
+  const attempts = quiz ? getQuizAttempts(user?.id, courseId, lessonId, quiz.id) : [];
+  const existingResults = quiz ? getQuizResults(user?.id, courseId, lessonId, quiz.id) : null;
   const canTakeQuiz = !existingResults || existingResults.totalAttempts < (quiz?.maxAttempts || 3);
 
   useEffect(() => {
-    if (!course || !lesson || !quiz) {
-      setQuizState('error');
+    if (!loading) {
+      if (!course || !lesson || !quiz) {
+        setQuizState('error');
+      } else {
+        setQuizState('ready');
+      }
+    }
+  }, [loading, course, lesson, quiz]);
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="text-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">Loading quiz...</h3>
+        <p className="text-gray-600">Please wait while we fetch the quiz data.</p>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error || quizState === 'error') {
+    return (
+      <div className="text-center py-12">
+        <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">
+          Quiz Not Available
+        </h1>
+        <p className="text-gray-600 mb-6">
+          {error || 'This quiz could not be found or is not available.'}
+        </p>
+        <div className="space-x-4">
+          <Button onClick={() => navigate(`/courses/${courseId}`)}>
+            Back to Course
+          </Button>
+          <Button variant="outline" onClick={() => navigate('/courses')}>
+            All Courses
+          </Button>
+        </div>
+      </div>
+    );
+  }
       return;
     }
 
