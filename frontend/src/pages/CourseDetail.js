@@ -906,9 +906,9 @@ const CourseDetail = () => {
           </Tabs>
         </div>
 
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Enrollment Card */}
+        {/* Sidebar - Hidden as per user request */}
+        <div className="space-y-6" style={{display: 'none'}}>
+          {/* Enrollment Card - Hidden */}
           <Card>
             <CardContent className="p-6">
               <div className="text-center space-y-4">
@@ -941,7 +941,7 @@ const CourseDetail = () => {
             </CardContent>
           </Card>
 
-          {/* Instructor Info */}
+          {/* Instructor Info - Hidden */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Instructor</CardTitle>
@@ -978,7 +978,7 @@ const CourseDetail = () => {
             </CardContent>
           </Card>
 
-          {/* Course Features */}
+          {/* Course Features - Hidden */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">This course includes</CardTitle>
