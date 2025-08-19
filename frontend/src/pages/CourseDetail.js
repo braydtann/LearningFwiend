@@ -671,24 +671,43 @@ const CourseDetail = () => {
               </div>
             )}
 
-            {/* Next Module/Lesson Button - Below main content */}
+            {/* Next Module/Lesson/Complete Course Button - Below main content */}
             {selectedLesson && nextAction && isEnrolled && (
               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg mb-6 border border-blue-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">Ready for the next step?</h3>
+                    <h3 className="font-semibold text-gray-900 mb-1">
+                      {nextAction.type === 'complete' 
+                        ? 'Ready to complete the course?' 
+                        : 'Ready for the next step?'
+                      }
+                    </h3>
                     <p className="text-sm text-gray-600">
-                      {nextAction.type === 'module' 
-                        ? `Continue to the next module: ${nextAction.nextModuleTitle}`
-                        : `Move to the next lesson: ${nextAction.target.title}`
+                      {nextAction.type === 'complete' 
+                        ? nextAction.canComplete
+                          ? 'All lessons completed! Click to finish the course and get your certificate.'
+                          : `Complete ${nextAction.remainingLessons} more lesson${nextAction.remainingLessons !== 1 ? 's' : ''} to finish the course.`
+                        : nextAction.type === 'module' 
+                          ? `Continue to the next module: ${nextAction.nextModuleTitle}`
+                          : `Move to the next lesson: ${nextAction.target.title}`
                       }
                     </p>
                   </div>
                   <Button 
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-6"
+                    className={`px-6 ${
+                      nextAction.type === 'complete' && !nextAction.canComplete
+                        ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed text-white' 
+                        : 'bg-blue-600 hover:bg-blue-700 text-white'
+                    }`}
                     onClick={handleNextAction}
+                    disabled={nextAction.type === 'complete' && !nextAction.canComplete}
                   >
-                    {nextAction.type === 'module' ? (
+                    {nextAction.type === 'complete' ? (
+                      <>
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        Complete Course
+                      </>
+                    ) : nextAction.type === 'module' ? (
                       <>
                         <SkipForward className="w-4 h-4 mr-2" />
                         Next Module
