@@ -123,8 +123,8 @@ const CourseDetail = () => {
     );
   }
 
-  // Check classroom access for learners
-  if (isLearner && userClassroomEnrollment && !canAccessCourse) {
+  // Check access for learners - they need to be enrolled
+  if (isLearner && !canAccessCourse) {
     return (
       <div className="space-y-8">
         {/* Header */}
