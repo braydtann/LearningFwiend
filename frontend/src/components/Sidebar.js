@@ -35,7 +35,19 @@ const Sidebar = () => {
 
   // Easter egg function - handle logo clicks
   const handleLogoClick = () => {
-    setLogoClickCount(prev => prev + 1);
+    setLogoClickCount(prev => {
+      const newCount = prev + 1;
+      
+      // Easter egg activation at 10 clicks
+      if (newCount === 10) {
+        // Optional: Add a subtle celebration effect
+        setTimeout(() => {
+          console.log('🦄 Easter egg activated! Welcome to the magical side of LearningFwiend! 🦄');
+        }, 100);
+      }
+      
+      return newCount;
+    });
   };
 
   const menuItems = [
