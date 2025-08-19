@@ -594,7 +594,10 @@ class QuizTester:
         
         try:
             # Create a quiz attempt to have data for analytics
-            attempt_data = {"quizId": quiz_id}
+            attempt_data = {
+                "quizId": quiz_id,
+                "answers": ["0", "true", "POST"]  # Provide answers for all questions
+            }
             attempt_response = requests.post(
                 f"{BACKEND_URL}/quiz-attempts",
                 json=attempt_data,
