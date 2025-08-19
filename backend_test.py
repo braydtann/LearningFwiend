@@ -14411,6 +14411,800 @@ class BackendTester:
             )
         return False
 
+    # =============================================================================
+    # FINAL TEST FUNCTIONALITY TESTS - NEW FEATURE
+    # =============================================================================
+    
+    def test_final_test_creation(self):
+        """Test final test creation API"""
+        if "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Final Test Creation", 
+                "SKIP", 
+                "No instructor token available for final test creation",
+                "Instructor authentication required"
+            )
+            return False
+        
+        try:
+            # First create a program to associate with the test
+            program_data = {
+                "title": "Final Test Program",
+                "description": "Program for testing final test functionality",
+                "duration": "4 weeks",
+                "courseIds": [],
+                "nestedProgramIds": []
+            }
+            
+            program_response = requests.post(
+                f"{BACKEND_URL}/programs",
+                json=program_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if program_response.status_code != 200:
+                self.log_result(
+                    "Final Test Creation", 
+                    "FAIL", 
+                    "Failed to create test program",
+                    f"Program creation failed with status {program_response.status_code}"
+                )
+                return False
+            
+            program = program_response.json()
+            program_id = program.get('id')
+            
+            # Now create final test with multiple question types
+            test_data = {
+                "title": "Comprehensive Final Test",
+                "description": "Testing final test creation with multiple question types",
+                "programId": program_id,
+                "questions": [
+                    {
+                        "type": "multiple_choice",
+                        "question": "What is the capital of France?",
+                        "options": ["London", "Berlin", "Paris", "Madrid"],
+                        "correctAnswer": "2",
+                        "points": 10,
+                        "explanation": "Paris is the capital and largest city of France"
+                    },
+                    {
+                        "type": "true_false",
+                        "question": "Python is a programming language.",
+                        "options": ["True", "False"],
+                        "correctAnswer": "True",
+                        "points": 5,
+                        "explanation": "Python is indeed a popular programming language"
+                    },
+                    {
+                        "type": "short_answer",
+                        "question": "What does API stand for?",
+                        "options": [],
+                        "correctAnswer": "Application Programming Interface",
+                        "points": 15,
+                        "explanation": "API stands for Application Programming Interface"
+                    }
+                ],
+                "timeLimit": 60,
+                "maxAttempts": 2,
+                "passingScore": 70.0,
+                "shuffleQuestions": False,
+                "showResults": True,
+                "isPublished": True
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/final-tests",
+                json=test_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                created_test = response.json()
+                test_id = created_test.get('id')
+                
+                # Verify test structure
+                required_fields = ['id', 'title', 'programId', 'questions', 'totalPoints', 'questionCount']
+                if all(field in created_test for field in required_fields):
+                    expected_total_points = 10 + 5 + 15  # Sum of question points
+                    actual_total_points = created_test.get('totalPoints', 0)
+                    
+                    if actual_total_points == expected_total_points:
+                        self.log_result(
+                            "Final Test Creation", 
+                            "PASS", 
+                            f"Successfully created final test with multiple question types",
+                            f"Test ID: {test_id}, Total Points: {actual_total_points}, Questions: {len(created_test.get('questions', []))}"
+                        )
+                        return created_test
+                    else:
+                        self.log_result(
+                            "Final Test Creation", 
+                            "FAIL", 
+                            "Total points calculation incorrect",
+                            f"Expected: {expected_total_points}, Got: {actual_total_points}"
+                        )
+                else:
+                    self.log_result(
+                        "Final Test Creation", 
+                        "FAIL", 
+                        "Response missing required fields",
+                        f"Missing: {[f for f in required_fields if f not in created_test]}"
+                    )
+            else:
+                self.log_result(
+                    "Final Test Creation", 
+                    "FAIL", 
+                    f"Failed to create final test, status: {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Final Test Creation", 
+                "FAIL", 
+                "Failed to test final test creation",
+                str(e)
+            )
+        return False
+    
+    def test_final_test_role_based_access(self):
+        """Test role-based access control for final test creation"""
+        if "learner" not in self.auth_tokens:
+            self.log_result(
+                "Final Test Role-Based Access", 
+                "SKIP", 
+                "No learner token available for access control test",
+                "Learner authentication required"
+            )
+            return False
+        
+        try:
+            # Try to create final test as learner (should fail)
+            test_data = {
+                "title": "Unauthorized Test",
+                "description": "This should fail",
+                "programId": "dummy-program-id",
+                "questions": [
+                    {
+                        "type": "multiple_choice",
+                        "question": "Test question",
+                        "options": ["A", "B", "C", "D"],
+                        "correctAnswer": "0",
+                        "points": 10
+                    }
+                ],
+                "maxAttempts": 1,
+                "passingScore": 70.0,
+                "isPublished": False
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/final-tests",
+                json=test_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["learner"]}'
+                }
+            )
+            
+            if response.status_code == 403:
+                self.log_result(
+                    "Final Test Role-Based Access", 
+                    "PASS", 
+                    "Correctly denied final test creation for learners (403 Forbidden)",
+                    "Only instructors/admins can create final tests"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Final Test Role-Based Access", 
+                    "FAIL", 
+                    f"Expected 403 Forbidden, got status {response.status_code}",
+                    f"Learners should not be able to create final tests"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Final Test Role-Based Access", 
+                "FAIL", 
+                "Failed to test role-based access control",
+                str(e)
+            )
+        return False
+    
+    def test_final_test_retrieval_endpoints(self):
+        """Test final test retrieval endpoints"""
+        # First create a test
+        created_test = self.test_final_test_creation()
+        if not created_test:
+            self.log_result(
+                "Final Test Retrieval", 
+                "SKIP", 
+                "Could not create test for retrieval testing",
+                "Test creation required first"
+            )
+            return False
+        
+        test_id = created_test.get('id')
+        
+        try:
+            # Test GET /api/final-tests (get all)
+            all_tests_response = requests.get(
+                f"{BACKEND_URL}/final-tests",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["instructor"]}'}
+            )
+            
+            # Test GET /api/final-tests/my-tests (get instructor's tests)
+            my_tests_response = requests.get(
+                f"{BACKEND_URL}/final-tests/my-tests",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["instructor"]}'}
+            )
+            
+            # Test GET /api/final-tests/{test_id} (get specific test)
+            specific_test_response = requests.get(
+                f"{BACKEND_URL}/final-tests/{test_id}",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["instructor"]}'}
+            )
+            
+            success_count = 0
+            total_tests = 3
+            
+            if all_tests_response.status_code == 200:
+                all_tests = all_tests_response.json()
+                if isinstance(all_tests, list) and len(all_tests) > 0:
+                    success_count += 1
+            
+            if my_tests_response.status_code == 200:
+                my_tests = my_tests_response.json()
+                if isinstance(my_tests, list):
+                    success_count += 1
+            
+            if specific_test_response.status_code == 200:
+                specific_test = specific_test_response.json()
+                if specific_test.get('id') == test_id and 'questions' in specific_test:
+                    success_count += 1
+            
+            if success_count == total_tests:
+                self.log_result(
+                    "Final Test Retrieval", 
+                    "PASS", 
+                    f"All final test retrieval endpoints working correctly",
+                    f"✅ GET /final-tests, ✅ GET /final-tests/my-tests, ✅ GET /final-tests/{test_id}"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Final Test Retrieval", 
+                    "FAIL", 
+                    f"Only {success_count}/{total_tests} retrieval endpoints working",
+                    f"Some endpoints failed or returned unexpected data"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Final Test Retrieval", 
+                "FAIL", 
+                "Failed to test final test retrieval endpoints",
+                str(e)
+            )
+        return False
+    
+    def test_final_test_update_and_delete(self):
+        """Test final test update and delete operations"""
+        # First create a test
+        created_test = self.test_final_test_creation()
+        if not created_test:
+            self.log_result(
+                "Final Test Update/Delete", 
+                "SKIP", 
+                "Could not create test for update/delete testing",
+                "Test creation required first"
+            )
+            return False
+        
+        test_id = created_test.get('id')
+        
+        try:
+            # Test PUT /api/final-tests/{test_id} (update test)
+            update_data = {
+                "title": "Updated Final Test Title",
+                "description": "Updated description for final test",
+                "timeLimit": 90,
+                "maxAttempts": 3,
+                "passingScore": 80.0
+            }
+            
+            update_response = requests.put(
+                f"{BACKEND_URL}/final-tests/{test_id}",
+                json=update_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            update_success = False
+            if update_response.status_code == 200:
+                updated_test = update_response.json()
+                if (updated_test.get('title') == update_data['title'] and
+                    updated_test.get('timeLimit') == update_data['timeLimit']):
+                    update_success = True
+            
+            # Test DELETE /api/final-tests/{test_id} (delete test)
+            delete_response = requests.delete(
+                f"{BACKEND_URL}/final-tests/{test_id}",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["instructor"]}'}
+            )
+            
+            delete_success = delete_response.status_code == 200
+            
+            if update_success and delete_success:
+                self.log_result(
+                    "Final Test Update/Delete", 
+                    "PASS", 
+                    f"Final test update and delete operations working correctly",
+                    f"✅ PUT /final-tests/{test_id}, ✅ DELETE /final-tests/{test_id}"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Final Test Update/Delete", 
+                    "FAIL", 
+                    f"Update success: {update_success}, Delete success: {delete_success}",
+                    f"One or both operations failed"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Final Test Update/Delete", 
+                "FAIL", 
+                "Failed to test final test update/delete operations",
+                str(e)
+            )
+        return False
+    
+    def test_final_test_attempt_submission(self):
+        """Test final test attempt submission and scoring"""
+        if "learner" not in self.auth_tokens:
+            self.log_result(
+                "Final Test Attempt Submission", 
+                "SKIP", 
+                "No learner token available for attempt submission test",
+                "Learner authentication required"
+            )
+            return False
+        
+        # First create a test
+        created_test = self.test_final_test_creation()
+        if not created_test:
+            self.log_result(
+                "Final Test Attempt Submission", 
+                "SKIP", 
+                "Could not create test for attempt submission testing",
+                "Test creation required first"
+            )
+            return False
+        
+        test_id = created_test.get('id')
+        
+        try:
+            # Submit test attempt with correct answers
+            attempt_data = {
+                "finalTestId": test_id,
+                "answers": ["2", "True", "Application Programming Interface"]  # All correct answers
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/final-test-attempts",
+                json=attempt_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["learner"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                attempt = response.json()
+                
+                # Verify attempt structure and scoring
+                required_fields = ['id', 'finalTestId', 'score', 'pointsEarned', 'totalPoints', 'isPassed']
+                if all(field in attempt for field in required_fields):
+                    expected_points = 30  # 10 + 5 + 15
+                    actual_points = attempt.get('pointsEarned', 0)
+                    score = attempt.get('score', 0)
+                    is_passed = attempt.get('isPassed', False)
+                    
+                    if actual_points == expected_points and score == 100.0 and is_passed:
+                        self.log_result(
+                            "Final Test Attempt Submission", 
+                            "PASS", 
+                            f"Successfully submitted final test attempt with correct scoring",
+                            f"Score: {score}%, Points: {actual_points}/{expected_points}, Passed: {is_passed}"
+                        )
+                        return attempt
+                    else:
+                        self.log_result(
+                            "Final Test Attempt Submission", 
+                            "FAIL", 
+                            "Scoring calculation incorrect",
+                            f"Expected: 100%, {expected_points} points, Passed=True. Got: {score}%, {actual_points} points, Passed={is_passed}"
+                        )
+                else:
+                    self.log_result(
+                        "Final Test Attempt Submission", 
+                        "FAIL", 
+                        "Response missing required fields",
+                        f"Missing: {[f for f in required_fields if f not in attempt]}"
+                    )
+            else:
+                self.log_result(
+                    "Final Test Attempt Submission", 
+                    "FAIL", 
+                    f"Failed to submit final test attempt, status: {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Final Test Attempt Submission", 
+                "FAIL", 
+                "Failed to test final test attempt submission",
+                str(e)
+            )
+        return False
+    
+    def test_final_test_attempt_retrieval(self):
+        """Test final test attempt retrieval endpoints"""
+        # First submit an attempt
+        submitted_attempt = self.test_final_test_attempt_submission()
+        if not submitted_attempt:
+            self.log_result(
+                "Final Test Attempt Retrieval", 
+                "SKIP", 
+                "Could not submit attempt for retrieval testing",
+                "Attempt submission required first"
+            )
+            return False
+        
+        attempt_id = submitted_attempt.get('id')
+        test_id = submitted_attempt.get('finalTestId')
+        
+        try:
+            # Test GET /api/final-test-attempts (get attempts with filtering)
+            all_attempts_response = requests.get(
+                f"{BACKEND_URL}/final-test-attempts",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["learner"]}'}
+            )
+            
+            # Test GET /api/final-test-attempts with test_id filter
+            filtered_attempts_response = requests.get(
+                f"{BACKEND_URL}/final-test-attempts?test_id={test_id}",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["learner"]}'}
+            )
+            
+            # Test GET /api/final-test-attempts/{attempt_id} (get specific attempt)
+            specific_attempt_response = requests.get(
+                f"{BACKEND_URL}/final-test-attempts/{attempt_id}",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["learner"]}'}
+            )
+            
+            success_count = 0
+            total_tests = 3
+            
+            if all_attempts_response.status_code == 200:
+                all_attempts = all_attempts_response.json()
+                if isinstance(all_attempts, list) and len(all_attempts) > 0:
+                    success_count += 1
+            
+            if filtered_attempts_response.status_code == 200:
+                filtered_attempts = filtered_attempts_response.json()
+                if isinstance(filtered_attempts, list):
+                    success_count += 1
+            
+            if specific_attempt_response.status_code == 200:
+                specific_attempt = specific_attempt_response.json()
+                if (specific_attempt.get('id') == attempt_id and 
+                    'answers' in specific_attempt):
+                    success_count += 1
+            
+            if success_count == total_tests:
+                self.log_result(
+                    "Final Test Attempt Retrieval", 
+                    "PASS", 
+                    f"All final test attempt retrieval endpoints working correctly",
+                    f"✅ GET /final-test-attempts, ✅ GET /final-test-attempts?test_id=X, ✅ GET /final-test-attempts/{attempt_id}"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Final Test Attempt Retrieval", 
+                    "FAIL", 
+                    f"Only {success_count}/{total_tests} attempt retrieval endpoints working",
+                    f"Some endpoints failed or returned unexpected data"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Final Test Attempt Retrieval", 
+                "FAIL", 
+                "Failed to test final test attempt retrieval endpoints",
+                str(e)
+            )
+        return False
+    
+    def test_final_test_attempt_limits_validation(self):
+        """Test final test attempt limits and validation"""
+        if "learner" not in self.auth_tokens:
+            self.log_result(
+                "Final Test Attempt Limits", 
+                "SKIP", 
+                "No learner token available for attempt limits test",
+                "Learner authentication required"
+            )
+            return False
+        
+        # Create a test with maxAttempts = 1
+        if "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Final Test Attempt Limits", 
+                "SKIP", 
+                "No instructor token available for test creation",
+                "Instructor authentication required"
+            )
+            return False
+        
+        try:
+            # Create program first
+            program_data = {
+                "title": "Attempt Limits Test Program",
+                "description": "Program for testing attempt limits",
+                "duration": "2 weeks",
+                "courseIds": [],
+                "nestedProgramIds": []
+            }
+            
+            program_response = requests.post(
+                f"{BACKEND_URL}/programs",
+                json=program_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if program_response.status_code != 200:
+                self.log_result(
+                    "Final Test Attempt Limits", 
+                    "FAIL", 
+                    "Failed to create test program for attempt limits test",
+                    f"Program creation failed"
+                )
+                return False
+            
+            program = program_response.json()
+            program_id = program.get('id')
+            
+            # Create test with maxAttempts = 1
+            test_data = {
+                "title": "Single Attempt Test",
+                "description": "Test with only one attempt allowed",
+                "programId": program_id,
+                "questions": [
+                    {
+                        "type": "multiple_choice",
+                        "question": "Test question",
+                        "options": ["A", "B", "C", "D"],
+                        "correctAnswer": "0",
+                        "points": 10
+                    }
+                ],
+                "maxAttempts": 1,
+                "passingScore": 70.0,
+                "isPublished": True
+            }
+            
+            test_response = requests.post(
+                f"{BACKEND_URL}/final-tests",
+                json=test_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if test_response.status_code != 200:
+                self.log_result(
+                    "Final Test Attempt Limits", 
+                    "FAIL", 
+                    "Failed to create test for attempt limits testing",
+                    f"Test creation failed"
+                )
+                return False
+            
+            test = test_response.json()
+            test_id = test.get('id')
+            
+            # Submit first attempt
+            attempt_data = {
+                "finalTestId": test_id,
+                "answers": ["0"]  # Correct answer
+            }
+            
+            first_attempt_response = requests.post(
+                f"{BACKEND_URL}/final-test-attempts",
+                json=attempt_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["learner"]}'
+                }
+            )
+            
+            # Try to submit second attempt (should fail)
+            second_attempt_response = requests.post(
+                f"{BACKEND_URL}/final-test-attempts",
+                json=attempt_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["learner"]}'
+                }
+            )
+            
+            if (first_attempt_response.status_code == 200 and 
+                second_attempt_response.status_code == 400):
+                self.log_result(
+                    "Final Test Attempt Limits", 
+                    "PASS", 
+                    f"Attempt limits validation working correctly",
+                    f"✅ First attempt succeeded, ✅ Second attempt correctly rejected (400 Bad Request)"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Final Test Attempt Limits", 
+                    "FAIL", 
+                    f"Attempt limits validation not working correctly",
+                    f"First attempt: {first_attempt_response.status_code}, Second attempt: {second_attempt_response.status_code}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Final Test Attempt Limits", 
+                "FAIL", 
+                "Failed to test final test attempt limits",
+                str(e)
+            )
+        return False
+    
+    def test_final_test_data_validation(self):
+        """Test final test data validation and error handling"""
+        if "instructor" not in self.auth_tokens:
+            self.log_result(
+                "Final Test Data Validation", 
+                "SKIP", 
+                "No instructor token available for data validation test",
+                "Instructor authentication required"
+            )
+            return False
+        
+        try:
+            # Test invalid data scenarios
+            validation_tests = []
+            
+            # Test 1: Missing required fields
+            invalid_test_1 = {
+                "description": "Missing title and programId"
+            }
+            
+            response_1 = requests.post(
+                f"{BACKEND_URL}/final-tests",
+                json=invalid_test_1,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if response_1.status_code == 422:  # Validation error
+                validation_tests.append("✅ Missing required fields validation")
+            else:
+                validation_tests.append("❌ Missing required fields validation")
+            
+            # Test 2: Invalid programId
+            invalid_test_2 = {
+                "title": "Test with Invalid Program",
+                "programId": "non-existent-program-id",
+                "questions": [
+                    {
+                        "type": "multiple_choice",
+                        "question": "Test question",
+                        "options": ["A", "B"],
+                        "correctAnswer": "0",
+                        "points": 10
+                    }
+                ]
+            }
+            
+            response_2 = requests.post(
+                f"{BACKEND_URL}/final-tests",
+                json=invalid_test_2,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if response_2.status_code == 400:  # Bad request for non-existent program
+                validation_tests.append("✅ Invalid programId validation")
+            else:
+                validation_tests.append("❌ Invalid programId validation")
+            
+            # Test 3: Empty questions array
+            invalid_test_3 = {
+                "title": "Test with No Questions",
+                "programId": "dummy-id",
+                "questions": []
+            }
+            
+            response_3 = requests.post(
+                f"{BACKEND_URL}/final-tests",
+                json=invalid_test_3,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if response_3.status_code == 422:  # Validation error for empty questions
+                validation_tests.append("✅ Empty questions validation")
+            else:
+                validation_tests.append("❌ Empty questions validation")
+            
+            success_count = len([t for t in validation_tests if t.startswith("✅")])
+            total_tests = len(validation_tests)
+            
+            if success_count == total_tests:
+                self.log_result(
+                    "Final Test Data Validation", 
+                    "PASS", 
+                    f"All data validation tests passed ({success_count}/{total_tests})",
+                    f"{'; '.join(validation_tests)}"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Final Test Data Validation", 
+                    "FAIL", 
+                    f"Only {success_count}/{total_tests} validation tests passed",
+                    f"{'; '.join(validation_tests)}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Final Test Data Validation", 
+                "FAIL", 
+                "Failed to test final test data validation",
+                str(e)
+            )
+        return False
+
     def run_all_tests(self):
         """Run comprehensive backend tests with focus on quiz functionality"""
         print("🚀 Starting Backend Testing Suite for LearningFwiend LMS")
