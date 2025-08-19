@@ -39,12 +39,17 @@ const QuizAndTestResults = () => {
   const { toast } = useToast();
   
   const [selectedCourse, setSelectedCourse] = useState('all');
+  const [selectedProgram, setSelectedProgram] = useState('all');
   const [selectedClassroom, setSelectedClassroom] = useState('all');
   const [courses, setCourses] = useState([]);
+  const [programs, setPrograms] = useState([]);
   const [classrooms, setClassrooms] = useState([]);
   const [quizzes, setQuizzes] = useState([]);
+  const [finalTests, setFinalTests] = useState([]);
   const [quizAttempts, setQuizAttempts] = useState([]);
+  const [finalTestAttempts, setFinalTestAttempts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeView, setActiveView] = useState('quizzes'); // 'quizzes' or 'tests'
 
   // Load real data on component mount
   useEffect(() => {
