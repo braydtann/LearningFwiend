@@ -83,10 +83,10 @@ const QuizTaking = () => {
   const [showResults, setShowResults] = useState(false);
   const [quizResults, setQuizResults] = useState(null);
 
-  // Get existing attempts and results (using mock data for now)
-  const attempts = quiz ? getQuizAttempts(user?.id, courseId, lessonId, quiz.id) : [];
-  const existingResults = quiz ? getQuizResults(user?.id, courseId, lessonId, quiz.id) : null;
-  const canTakeQuiz = !existingResults || existingResults.totalAttempts < (quiz?.maxAttempts || 3);
+  // Get existing attempts and results (placeholder for now - will need backend API)
+  const attempts = []; // TODO: Replace with backend API call
+  const existingResults = null; // TODO: Replace with backend API call
+  const canTakeQuiz = !existingResults || (existingResults.totalAttempts || 0) < (quiz?.maxAttempts || 3);
 
   useEffect(() => {
     if (!courseLoading) {
