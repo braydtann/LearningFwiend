@@ -145,7 +145,6 @@ const Programs = () => {
           nestedProgramIds: [],
           duration: '',
           difficulty: 'Beginner',
-          deadline: '',
           finalTest: {
             title: '',
             description: '',
