@@ -15205,6 +15205,547 @@ class BackendTester:
             )
         return False
 
+    # =============================================================================
+    # PROGRAM ACCESS CONTROL TESTS - NEW FUNCTIONALITY
+    # =============================================================================
+    
+    def test_program_access_control_admin_instructor(self):
+        """Test that admins and instructors always have access to programs"""
+        # Create test program first
+        test_program = self.create_test_program()
+        if not test_program:
+            self.log_result(
+                "Program Access Control - Admin/Instructor Access", 
+                "SKIP", 
+                "Could not create test program for access control test",
+                "Program creation required first"
+            )
+            return False
+        
+        program_id = test_program.get('id')
+        
+        # Test admin access
+        admin_access_result = self.test_program_access_for_user("admin", program_id, "admin_access", True)
+        
+        # Test instructor access
+        instructor_access_result = self.test_program_access_for_user("instructor", program_id, "admin_access", True)
+        
+        if admin_access_result and instructor_access_result:
+            self.log_result(
+                "Program Access Control - Admin/Instructor Access", 
+                "PASS", 
+                "Both admins and instructors correctly get admin_access to programs",
+                f"Program ID: {program_id}, Admin access: ✅, Instructor access: ✅"
+            )
+            return True
+        else:
+            self.log_result(
+                "Program Access Control - Admin/Instructor Access", 
+                "FAIL", 
+                "Admin or instructor access control not working correctly",
+                f"Admin access: {'✅' if admin_access_result else '❌'}, Instructor access: {'✅' if instructor_access_result else '❌'}"
+            )
+        return False
+    
+    def test_program_access_control_student_no_classroom(self):
+        """Test that students not enrolled in any classroom with the program are denied access"""
+        # Create test program
+        test_program = self.create_test_program()
+        if not test_program:
+            self.log_result(
+                "Program Access Control - Student Not Enrolled", 
+                "SKIP", 
+                "Could not create test program for access control test",
+                "Program creation required first"
+            )
+            return False
+        
+        program_id = test_program.get('id')
+        
+        # Test student access (should be denied - not enrolled)
+        student_access_result = self.test_program_access_for_user("learner", program_id, "not_enrolled", False)
+        
+        if student_access_result:
+            self.log_result(
+                "Program Access Control - Student Not Enrolled", 
+                "PASS", 
+                "Students not enrolled in any classroom with program correctly denied access",
+                f"Program ID: {program_id}, Student access correctly denied with reason: not_enrolled"
+            )
+            return True
+        else:
+            self.log_result(
+                "Program Access Control - Student Not Enrolled", 
+                "FAIL", 
+                "Student access control not working correctly for non-enrolled students",
+                f"Program ID: {program_id}, Expected: denied access, Got: access granted"
+            )
+        return False
+    
+    def test_program_access_control_student_active_classroom(self):
+        """Test student access when enrolled in classroom with program and no end date or future end date"""
+        from datetime import datetime, timedelta
+        
+        # Create test program
+        test_program = self.create_test_program()
+        if not test_program:
+            self.log_result(
+                "Program Access Control - Student Active Classroom", 
+                "SKIP", 
+                "Could not create test program for access control test",
+                "Program creation required first"
+            )
+            return False
+        
+        program_id = test_program.get('id')
+        
+        # Create test student
+        test_student = self.create_test_student("active.classroom.student")
+        if not test_student:
+            self.log_result(
+                "Program Access Control - Student Active Classroom", 
+                "SKIP", 
+                "Could not create test student for access control test",
+                "Student creation required first"
+            )
+            return False
+        
+        student_id = test_student.get('id')
+        
+        # Test 1: Classroom with no end date (indefinite access)
+        classroom_no_end = self.create_test_classroom_with_program(
+            "Active Classroom No End Date",
+            program_id,
+            student_id,
+            end_date=None
+        )
+        
+        if classroom_no_end:
+            # Login as the test student
+            student_token = self.login_test_student("active.classroom.student")
+            if student_token:
+                access_result = self.check_program_access_with_token(program_id, student_token, "classroom_active", True)
+                if access_result:
+                    self.log_result(
+                        "Program Access Control - Student Active Classroom (No End Date)", 
+                        "PASS", 
+                        "Student correctly granted access to program through classroom with no end date",
+                        f"Program ID: {program_id}, Classroom: no end date, Access: granted with reason classroom_active"
+                    )
+                else:
+                    self.log_result(
+                        "Program Access Control - Student Active Classroom (No End Date)", 
+                        "FAIL", 
+                        "Student access control failed for classroom with no end date",
+                        f"Program ID: {program_id}, Expected: access granted, Got: access denied"
+                    )
+                    return False
+            else:
+                self.log_result(
+                    "Program Access Control - Student Active Classroom (No End Date)", 
+                    "SKIP", 
+                    "Could not login as test student",
+                    "Student authentication required"
+                )
+                return False
+        
+        # Test 2: Classroom with future end date
+        future_date = datetime.utcnow() + timedelta(days=30)
+        classroom_future_end = self.create_test_classroom_with_program(
+            "Active Classroom Future End Date",
+            program_id,
+            student_id,
+            end_date=future_date
+        )
+        
+        if classroom_future_end:
+            access_result = self.check_program_access_with_token(program_id, student_token, "classroom_active", True)
+            if access_result:
+                self.log_result(
+                    "Program Access Control - Student Active Classroom (Future End Date)", 
+                    "PASS", 
+                    "Student correctly granted access to program through classroom with future end date",
+                    f"Program ID: {program_id}, Classroom: end date in future, Access: granted with reason classroom_active"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Program Access Control - Student Active Classroom (Future End Date)", 
+                    "FAIL", 
+                    "Student access control failed for classroom with future end date",
+                    f"Program ID: {program_id}, Expected: access granted, Got: access denied"
+                )
+        
+        return False
+    
+    def test_program_access_control_student_expired_classroom(self):
+        """Test student access when enrolled in classroom with program but end date has passed"""
+        from datetime import datetime, timedelta
+        
+        # Create test program
+        test_program = self.create_test_program()
+        if not test_program:
+            self.log_result(
+                "Program Access Control - Student Expired Classroom", 
+                "SKIP", 
+                "Could not create test program for access control test",
+                "Program creation required first"
+            )
+            return False
+        
+        program_id = test_program.get('id')
+        
+        # Create test student
+        test_student = self.create_test_student("expired.classroom.student")
+        if not test_student:
+            self.log_result(
+                "Program Access Control - Student Expired Classroom", 
+                "SKIP", 
+                "Could not create test student for access control test",
+                "Student creation required first"
+            )
+            return False
+        
+        student_id = test_student.get('id')
+        
+        # Create classroom with past end date
+        past_date = datetime.utcnow() - timedelta(days=30)
+        classroom_expired = self.create_test_classroom_with_program(
+            "Expired Classroom",
+            program_id,
+            student_id,
+            end_date=past_date
+        )
+        
+        if classroom_expired:
+            # Login as the test student
+            student_token = self.login_test_student("expired.classroom.student")
+            if student_token:
+                access_result = self.check_program_access_with_token(program_id, student_token, "classroom_expired", False)
+                if access_result:
+                    self.log_result(
+                        "Program Access Control - Student Expired Classroom", 
+                        "PASS", 
+                        "Student correctly denied access to program through expired classroom",
+                        f"Program ID: {program_id}, Classroom: end date in past, Access: denied with reason classroom_expired"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Program Access Control - Student Expired Classroom", 
+                        "FAIL", 
+                        "Student access control failed for expired classroom",
+                        f"Program ID: {program_id}, Expected: access denied, Got: access granted"
+                    )
+            else:
+                self.log_result(
+                    "Program Access Control - Student Expired Classroom", 
+                    "SKIP", 
+                    "Could not login as test student",
+                    "Student authentication required"
+                )
+        else:
+            self.log_result(
+                "Program Access Control - Student Expired Classroom", 
+                "SKIP", 
+                "Could not create test classroom with expired end date",
+                "Classroom creation required first"
+            )
+        
+        return False
+    
+    def test_program_access_control_response_structure(self):
+        """Test that program access check returns correct response structure"""
+        # Create test program
+        test_program = self.create_test_program()
+        if not test_program:
+            self.log_result(
+                "Program Access Control - Response Structure", 
+                "SKIP", 
+                "Could not create test program for response structure test",
+                "Program creation required first"
+            )
+            return False
+        
+        program_id = test_program.get('id')
+        
+        # Test admin response structure
+        if "admin" in self.auth_tokens:
+            try:
+                response = requests.get(
+                    f"{BACKEND_URL}/programs/{program_id}/access-check",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+                )
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    required_fields = ['hasAccess', 'reason']
+                    optional_fields = ['message', 'activeClassrooms', 'expiredClassrooms']
+                    
+                    # Check required fields
+                    missing_required = [field for field in required_fields if field not in data]
+                    present_optional = [field for field in optional_fields if field in data]
+                    
+                    if not missing_required:
+                        self.log_result(
+                            "Program Access Control - Response Structure", 
+                            "PASS", 
+                            "Program access check returns correct response structure",
+                            f"Required fields: {required_fields}, Optional fields present: {present_optional}, Response: {data}"
+                        )
+                        return True
+                    else:
+                        self.log_result(
+                            "Program Access Control - Response Structure", 
+                            "FAIL", 
+                            "Program access check response missing required fields",
+                            f"Missing: {missing_required}, Response: {data}"
+                        )
+                else:
+                    self.log_result(
+                        "Program Access Control - Response Structure", 
+                        "FAIL", 
+                        f"Program access check failed with status {response.status_code}",
+                        f"Response: {response.text}"
+                    )
+            except requests.exceptions.RequestException as e:
+                self.log_result(
+                    "Program Access Control - Response Structure", 
+                    "FAIL", 
+                    "Failed to test program access check response structure",
+                    str(e)
+                )
+        else:
+            self.log_result(
+                "Program Access Control - Response Structure", 
+                "SKIP", 
+                "No admin token available for response structure test",
+                "Admin authentication required"
+            )
+        
+        return False
+    
+    def test_program_access_control_nonexistent_program(self):
+        """Test program access check for non-existent program"""
+        fake_program_id = "non-existent-program-id-12345"
+        
+        if "admin" in self.auth_tokens:
+            try:
+                response = requests.get(
+                    f"{BACKEND_URL}/programs/{fake_program_id}/access-check",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+                )
+                
+                if response.status_code == 404:
+                    self.log_result(
+                        "Program Access Control - Non-existent Program", 
+                        "PASS", 
+                        "Program access check correctly returns 404 for non-existent program",
+                        f"Program ID: {fake_program_id}, Status: 404 Not Found"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Program Access Control - Non-existent Program", 
+                        "FAIL", 
+                        f"Unexpected status code for non-existent program: {response.status_code}",
+                        f"Expected: 404, Got: {response.status_code}, Response: {response.text}"
+                    )
+            except requests.exceptions.RequestException as e:
+                self.log_result(
+                    "Program Access Control - Non-existent Program", 
+                    "FAIL", 
+                    "Failed to test program access check for non-existent program",
+                    str(e)
+                )
+        else:
+            self.log_result(
+                "Program Access Control - Non-existent Program", 
+                "SKIP", 
+                "No admin token available for non-existent program test",
+                "Admin authentication required"
+            )
+        
+        return False
+    
+    # Helper methods for program access control tests
+    
+    def create_test_program(self):
+        """Create a test program for access control testing"""
+        if "instructor" not in self.auth_tokens:
+            return False
+        
+        try:
+            program_data = {
+                "title": "Program Access Control Test Program",
+                "description": "Test program for access control functionality testing",
+                "departmentId": None,
+                "duration": "8 weeks",
+                "courseIds": [],
+                "nestedProgramIds": []
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/programs",
+                json=program_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["instructor"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                return response.json()
+        except requests.exceptions.RequestException:
+            pass
+        return False
+    
+    def create_test_student(self, username_suffix):
+        """Create a test student for access control testing"""
+        if "admin" not in self.auth_tokens:
+            return False
+        
+        try:
+            student_data = {
+                "email": f"{username_suffix}@learningfwiend.com",
+                "username": username_suffix,
+                "full_name": f"Test Student {username_suffix}",
+                "role": "learner",
+                "department": "Testing",
+                "temporary_password": "TestStudent123!"
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/auth/admin/create-user",
+                json=student_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                return response.json()
+        except requests.exceptions.RequestException:
+            pass
+        return False
+    
+    def create_test_classroom_with_program(self, name, program_id, student_id, end_date=None):
+        """Create a test classroom with program and student assignment"""
+        if "admin" not in self.auth_tokens or "instructor" not in self.auth_tokens:
+            return False
+        
+        try:
+            # Get instructor ID for classroom trainer
+            instructor_response = requests.get(
+                f"{BACKEND_URL}/auth/me",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["instructor"]}'}
+            )
+            
+            if instructor_response.status_code != 200:
+                return False
+            
+            instructor_data = instructor_response.json()
+            instructor_id = instructor_data.get('id')
+            
+            classroom_data = {
+                "name": name,
+                "description": f"Test classroom for program access control: {name}",
+                "trainerId": instructor_id,
+                "courseIds": [],
+                "programIds": [program_id],
+                "studentIds": [student_id],
+                "batchId": None,
+                "startDate": None,
+                "endDate": end_date.isoformat() if end_date else None,
+                "maxStudents": 50,
+                "department": "Testing"
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/classrooms",
+                json=classroom_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                return response.json()
+        except requests.exceptions.RequestException:
+            pass
+        return False
+    
+    def login_test_student(self, username):
+        """Login as a test student and return token"""
+        try:
+            login_data = {
+                "username_or_email": f"{username}@learningfwiend.com",
+                "password": "TestStudent123!"
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/auth/login",
+                json=login_data,
+                timeout=TEST_TIMEOUT,
+                headers={'Content-Type': 'application/json'}
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                return data.get('access_token')
+        except requests.exceptions.RequestException:
+            pass
+        return None
+    
+    def test_program_access_for_user(self, user_type, program_id, expected_reason, expected_access):
+        """Test program access for a specific user type"""
+        if user_type not in self.auth_tokens:
+            return False
+        
+        try:
+            response = requests.get(
+                f"{BACKEND_URL}/programs/{program_id}/access-check",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens[user_type]}'}
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                has_access = data.get('hasAccess')
+                reason = data.get('reason')
+                
+                return has_access == expected_access and reason == expected_reason
+        except requests.exceptions.RequestException:
+            pass
+        return False
+    
+    def check_program_access_with_token(self, program_id, token, expected_reason, expected_access):
+        """Check program access with a specific token"""
+        try:
+            response = requests.get(
+                f"{BACKEND_URL}/programs/{program_id}/access-check",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {token}'}
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                has_access = data.get('hasAccess')
+                reason = data.get('reason')
+                
+                return has_access == expected_access and reason == expected_reason
+        except requests.exceptions.RequestException:
+            pass
+        return False
+
     def run_all_tests(self):
         """Run comprehensive backend tests with focus on final test functionality"""
         print("🚀 Starting Backend Testing Suite for LearningFwiend LMS")
