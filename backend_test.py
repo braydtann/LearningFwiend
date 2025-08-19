@@ -13858,11 +13858,14 @@ class BackendTester:
         if self.auth_tokens:
             print("\n🔧 BUG FIX TESTS - REVIEW REQUEST (HIGHEST PRIORITY)")
             print("=" * 50)
-            print("Testing 4 specific bug fixes:")
+            print("Testing 7 specific bug fixes:")
             print("1. Orphaned enrollment cleanup")
             print("2. Announcement creation with content field")
             print("3. Department endpoints for dropdown fix")
             print("4. Classroom permissions (instructors/admins only)")
+            print("5. Google Drive image URL conversion")
+            print("6. Courses API for quiz analytics")
+            print("7. Create Course button backend support")
             print()
             
             self.test_orphaned_enrollment_cleanup_endpoint()
@@ -13870,6 +13873,14 @@ class BackendTester:
             self.test_departments_endpoint_for_dropdown_fix()
             self.test_classroom_permissions_instructor_admin_only()
             self.test_classroom_creation_permissions()
+            
+            # NEW BUG FIX TESTS - REVIEW REQUEST
+            print("\n🆕 ADDITIONAL BUG FIX TESTS - REVIEW REQUEST")
+            print("=" * 50)
+            self.test_google_drive_image_url_conversion()
+            self.test_courses_api_for_quiz_analytics()
+            self.test_departments_api_for_user_dropdown_fix()
+            self.test_create_course_button_backend_support()
         
         return self.generate_summary()
         
