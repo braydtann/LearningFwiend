@@ -3457,6 +3457,7 @@ async def submit_quiz_attempt(
         "pointsEarned": points_earned,
         "totalPoints": total_points,
         "isPassed": is_passed,
+        "startedAt": datetime.utcnow(),  # Add missing startedAt field
         "completedAt": datetime.utcnow(),
         "attemptNumber": existing_attempts + 1,
         "isActive": True,
