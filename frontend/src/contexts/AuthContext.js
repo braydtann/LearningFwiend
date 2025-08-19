@@ -27,6 +27,7 @@ export const AuthProvider = ({ children }) => {
   const [requiresPasswordChange, setRequiresPasswordChange] = useState(false);
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL;
+  console.log('AUTH CONTEXT DEBUG - Backend URL:', backendUrl, 'Full env:', process.env.REACT_APP_BACKEND_URL);
 
   useEffect(() => {
     // Show browser compatibility warning if needed
