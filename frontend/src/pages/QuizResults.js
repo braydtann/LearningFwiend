@@ -79,6 +79,24 @@ const QuizAndTestResults = () => {
         });
       }
 
+      // Load programs from backend
+      const programResult = await getAllPrograms();
+      if (programResult.success) {
+        // Filter programs based on user role
+        let filteredPrograms = programResult.programs;
+        if (isInstructor && !isAdmin) {
+          // Filter to only instructor's programs
+          filteredPrograms = programResult.programs.filter(program => 
+            program.instructorId === user?.id
+          );
+        }
+        setPrograms(filteredPrograms);
+      } else {
+        // Don't show error for programs as it might not be critical
+        console.log('Could not load programs:', programResult.error);
+        setPrograms([]);
+      }
+
       // Load classrooms from backend
       const classroomResult = await getAllClassrooms();
       if (classroomResult.success) {
@@ -106,6 +124,15 @@ const QuizAndTestResults = () => {
         setQuizzes([]);
       }
 
+      // Load final tests from backend
+      const finalTestResult = await getAllFinalTests();
+      if (finalTestResult.success) {
+        setFinalTests(finalTestResult.tests);
+      } else {
+        console.log('Could not load final tests:', finalTestResult.error);
+        setFinalTests([]);
+      }
+
       // Load quiz attempts from backend
       const attemptsResult = await getQuizAttempts();
       if (attemptsResult.success) {
@@ -115,11 +142,20 @@ const QuizAndTestResults = () => {
         setQuizAttempts([]);
       }
 
+      // Load final test attempts from backend
+      const finalTestAttemptsResult = await getFinalTestAttempts();
+      if (finalTestAttemptsResult.success) {
+        setFinalTestAttempts(finalTestAttemptsResult.attempts);
+      } else {
+        console.log('Could not load final test attempts:', finalTestAttemptsResult.error);
+        setFinalTestAttempts([]);
+      }
+
     } catch (error) {
-      console.error('Error loading quiz results data:', error);
+      console.error('Error loading quiz and test results data:', error);
       toast({
         title: "Error loading data",
-        description: "Failed to load quiz data",
+        description: "Failed to load analytics data",
         variant: "destructive",
       });
     } finally {
