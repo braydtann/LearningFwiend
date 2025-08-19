@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [requiresPasswordChange, setRequiresPasswordChange] = useState(false);
 
-  const backendUrl = 'http://localhost:8001'; // Temporary localhost testing
+  const backendUrl = 'https://time-evolution.emergent.host'; // Production URL - DO NOT CHANGE
   console.log('AUTH CONTEXT DEBUG - Backend URL:', backendUrl);
 
   useEffect(() => {
