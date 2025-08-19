@@ -7,7 +7,7 @@ import requests
 import json
 import uuid
 
-BACKEND_URL = "https://learnspace-15.preview.emergentagent.com/api"
+BACKEND_URL = "https://learningfwiend-1.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 def setup_test_users():

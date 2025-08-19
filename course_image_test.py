@@ -12,7 +12,7 @@ from datetime import datetime
 import time
 
 # Configuration
-BACKEND_URL = "https://learnspace-15.preview.emergentagent.com/api"
+BACKEND_URL = "https://learningfwiend-1.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 class CourseImageTester:
