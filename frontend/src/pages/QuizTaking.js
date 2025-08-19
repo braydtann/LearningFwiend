@@ -111,7 +111,7 @@ const QuizTaking = () => {
   }
 
   // Show error state
-  if (error || quizState === 'error') {
+  if (courseError || quizState === 'error') {
     return (
       <div className="text-center py-12">
         <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
