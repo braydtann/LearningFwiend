@@ -589,6 +589,24 @@ const QuizAndTestResults = () => {
             </Card>
           </div>
         </TabsContent>
+
+        <TabsContent value="tests" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <GraduationCap className="w-5 h-5" />
+                <span>Final Test Analytics</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8 text-gray-500">
+                <GraduationCap className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p>Final test analytics will be implemented here.</p>
+                <p className="text-sm mt-2">This section will show program final test results and performance metrics.</p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
     </div>
   );
