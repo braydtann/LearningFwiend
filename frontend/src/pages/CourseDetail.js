@@ -608,56 +608,105 @@ const CourseDetail = () => {
                         </AccordionTrigger>
                         <AccordionContent>
                           <div className="space-y-3 pt-2">
-                            {module.lessons?.map((lesson, lessonIndex) => (
-                              <div 
-                                key={lesson.id}
-                                className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${
-                                  selectedLesson?.id === lesson.id 
-                                    ? 'bg-blue-50 border-blue-200' 
-                                    : 'hover:bg-gray-50'
-                                } ${!isEnrolled && 'opacity-50 cursor-not-allowed'}`}
-                                onClick={() => isEnrolled && handleLessonClick(lesson)}
-                              >
-                                <div className="flex items-center space-x-3">
-                                  <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
-                                    {lesson.type === 'video' && <Play className="w-4 h-4" />}
-                                    {lesson.type === 'presentation' && <Presentation className="w-4 h-4" />}
-                                    {lesson.type === 'text' && <FileText className="w-4 h-4" />}
-                                    {lesson.type === 'quiz' && <CheckCircle className="w-4 h-4 text-purple-600" />}
-                                  </div>
-                                  <div>
-                                    <p className="font-medium text-gray-900">
-                                      {lessonIndex + 1}. {lesson.title}
-                                      {lesson.type === 'quiz' && (
-                                        <Badge variant="outline" className="ml-2 text-purple-600">
-                                          Quiz
-                                        </Badge>
+                            {module.lessons?.map((lesson, lessonIndex) => {
+                              const completed = isLessonCompleted(lesson.id);
+                              const isCurrentLesson = selectedLesson?.id === lesson.id;
+                              
+                              return (
+                                <div 
+                                  key={lesson.id}
+                                  className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${
+                                    isCurrentLesson
+                                      ? 'bg-blue-50 border-blue-200' 
+                                      : completed 
+                                        ? 'bg-green-50 border-green-200'
+                                        : 'hover:bg-gray-50'
+                                  } ${!isEnrolled && 'opacity-50 cursor-not-allowed'}`}
+                                  onClick={() => isEnrolled && handleLessonClick(lesson)}
+                                >
+                                  <div className="flex items-center space-x-3">
+                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                                      completed ? 'bg-green-100' : 'bg-gray-100'
+                                    }`}>
+                                      {completed ? (
+                                        <CheckCircle className="w-4 h-4 text-green-600" />
+                                      ) : (
+                                        <>
+                                          {lesson.type === 'video' && <Play className="w-4 h-4" />}
+                                          {lesson.type === 'presentation' && <Presentation className="w-4 h-4" />}
+                                          {lesson.type === 'text' && <FileText className="w-4 h-4" />}
+                                          {lesson.type === 'quiz' && <CheckCircle className="w-4 h-4 text-purple-600" />}
+                                        </>
                                       )}
-                                    </p>
-                                    {lesson.duration && (
-                                      <p className="text-sm text-gray-500">{lesson.duration}</p>
-                                    )}
-                                    {lesson.type === 'quiz' && lesson.quiz && (
-                                      <p className="text-sm text-gray-500">
-                                        {lesson.quiz.questions?.length || 0} questions • {lesson.quiz.timeLimit || 10} min
+                                    </div>
+                                    <div>
+                                      <p className={`font-medium ${completed ? 'text-green-800' : 'text-gray-900'}`}>
+                                        {lessonIndex + 1}. {lesson.title}
+                                        {completed && (
+                                          <Badge variant="outline" className="ml-2 text-green-600 border-green-600">
+                                            Completed
+                                          </Badge>
+                                        )}
+                                        {lesson.type === 'quiz' && !completed && (
+                                          <Badge variant="outline" className="ml-2 text-purple-600">
+                                            Quiz
+                                          </Badge>
+                                        )}
                                       </p>
+                                      {lesson.duration && (
+                                        <p className="text-sm text-gray-500">{lesson.duration}</p>
+                                      )}
+                                      {lesson.type === 'quiz' && lesson.quiz && (
+                                        <p className="text-sm text-gray-500">
+                                          {lesson.quiz.questions?.length || 0} questions • {lesson.quiz.timeLimit || 10} min
+                                        </p>
+                                      )}
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Action buttons */}
+                                  <div className="flex items-center space-x-2">
+                                    {isEnrolled && !completed && (
+                                      <Button 
+                                        size="sm" 
+                                        variant="outline"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          markLessonComplete(lesson.id);
+                                        }}
+                                        title="Mark as complete"
+                                      >
+                                        <CheckCircle className="w-4 h-4" />
+                                      </Button>
+                                    )}
+                                    
+                                    {/* Next Module/Lesson Button */}
+                                    {isCurrentLesson && nextAction && (
+                                      <Button 
+                                        size="sm" 
+                                        className="bg-blue-600 hover:bg-blue-700 text-white"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleNextAction();
+                                        }}
+                                      >
+                                        {nextAction.type === 'module' ? (
+                                          <>
+                                            <SkipForward className="w-4 h-4 mr-1" />
+                                            Next Module
+                                          </>
+                                        ) : (
+                                          <>
+                                            <ChevronRight className="w-4 h-4 mr-1" />
+                                            Next Lesson
+                                          </>
+                                        )}
+                                      </Button>
                                     )}
                                   </div>
                                 </div>
-                                {isEnrolled && (
-                                  <Button 
-                                    size="sm" 
-                                    variant="outline"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      markLessonComplete(lesson.id);
-                                    }}
-                                  >
-                                    <CheckCircle className="w-4 h-4" />
-                                  </Button>
-                                )}
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         </AccordionContent>
                       </AccordionItem>
