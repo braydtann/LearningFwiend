@@ -589,25 +589,220 @@ const QuizAndTestResults = () => {
             </Card>
           </div>
         </TabsContent>
-      </Tabs>
-        </TabsContent>
 
         <TabsContent value="tests" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <GraduationCap className="w-5 h-5" />
-                <span>Final Test Analytics</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-gray-500">
-                <GraduationCap className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>Final test analytics will be implemented here.</p>
-                <p className="text-sm mt-2">This section will show program final test results and performance metrics.</p>
+          {/* Enhanced Filters for Final Tests */}
+          <Card className="bg-gray-50">
+            <CardContent className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <label htmlFor="program-filter" className="text-sm font-medium text-gray-700">Filter by Program</label>
+                  <Select value={selectedProgram} onValueChange={setSelectedProgram}>
+                    <SelectTrigger id="program-filter">
+                      <SelectValue placeholder="All Programs" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Programs</SelectItem>
+                      {programs.map(program => (
+                        <SelectItem key={program.id} value={program.id}>{program.title}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="classroom-filter-tests" className="text-sm font-medium text-gray-700">Filter by Classroom</label>
+                  <Select value={selectedClassroom} onValueChange={setSelectedClassroom}>
+                    <SelectTrigger id="classroom-filter-tests">
+                      <SelectValue placeholder="All Classrooms" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Classrooms</SelectItem>
+                      {classrooms.map(classroom => (
+                        <SelectItem key={classroom.id} value={classroom.id}>
+                          {classroom.name} ({classroom.batchId})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex items-end">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setSelectedProgram('all');
+                      setSelectedClassroom('all');
+                    }}
+                    className="w-full"
+                  >
+                    <Filter className="w-4 h-4 mr-2" />
+                    Clear Filters
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
+
+          {/* Final Test Statistics */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Total Final Tests</p>
+                    <p className="text-2xl font-bold text-gray-900">{finalTests.length}</p>
+                  </div>
+                  <GraduationCap className="w-8 h-8 text-blue-600" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Total Attempts</p>
+                    <p className="text-2xl font-bold text-gray-900">{finalTestAttempts.length}</p>
+                  </div>
+                  <Users className="w-8 h-8 text-green-600" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Average Score</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {finalTestAttempts.length > 0 
+                        ? Math.round(finalTestAttempts.reduce((sum, attempt) => sum + (attempt.score || 0), 0) / finalTestAttempts.length)
+                        : 0}%
+                    </p>
+                  </div>
+                  <TrendingUp className="w-8 h-8 text-yellow-600" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Pass Rate</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {finalTestAttempts.length > 0 
+                        ? Math.round((finalTestAttempts.filter(attempt => attempt.isPassed).length / finalTestAttempts.length) * 100)
+                        : 0}%
+                    </p>
+                  </div>
+                  <CheckCircle className="w-8 h-8 text-purple-600" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Final Test Performance Overview */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Recent Final Test Attempts */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Clock className="w-5 h-5" />
+                  <span>Recent Final Test Attempts</span>
+                </CardTitle>
+                <CardDescription>Latest student submissions</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {finalTestAttempts
+                    .filter(attempt => attempt.status === 'completed')
+                    .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt))
+                    .slice(0, 5)
+                    .map(attempt => {
+                      const test = finalTests.find(t => t.id === attempt.finalTestId);
+                      const program = programs.find(p => p.id === attempt.programId);
+                      return (
+                        <div key={attempt.id} className="flex items-center justify-between py-2 border-b last:border-b-0">
+                          <div className="flex-1">
+                            <p className="font-medium text-sm">{attempt.studentName}</p>
+                            <p className="text-xs text-gray-600">{program?.title || attempt.programName}</p>
+                            <p className="text-xs text-gray-500">{test?.title || attempt.testTitle}</p>
+                          </div>
+                          <div className="text-right">
+                            <Badge variant={attempt.isPassed ? "default" : "destructive"}>
+                              {Math.round(attempt.score)}%
+                            </Badge>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {new Date(attempt.completedAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  
+                  {finalTestAttempts.filter(attempt => attempt.status === 'completed').length === 0 && (
+                    <div className="text-center py-4 text-gray-500">
+                      <p>No final test attempts yet.</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Program Performance Summary */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <BarChart3 className="w-5 h-5" />
+                  <span>Program Performance</span>
+                </CardTitle>
+                <CardDescription>Performance breakdown by program</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {programs.map(program => {
+                    const programAttempts = finalTestAttempts.filter(attempt => attempt.programId === program.id);
+                    const programTests = finalTests.filter(test => test.programId === program.id);
+                    const avgScore = programAttempts.length > 0 
+                      ? Math.round(programAttempts.reduce((sum, attempt) => sum + (attempt.score || 0), 0) / programAttempts.length)
+                      : 0;
+                    const passRate = programAttempts.length > 0 
+                      ? Math.round((programAttempts.filter(attempt => attempt.isPassed).length / programAttempts.length) * 100)
+                      : 0;
+                    
+                    return (
+                      <div key={program.id} className="border rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-medium text-sm">{program.title}</h4>
+                          <Badge variant="outline">{programTests.length} test{programTests.length !== 1 ? 's' : ''}</Badge>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <p className="text-gray-600">Attempts: {programAttempts.length}</p>
+                            <p className="text-gray-600">Avg Score: {avgScore}%</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-600">Pass Rate: {passRate}%</p>
+                            <p className="text-gray-600">
+                              Passed: {programAttempts.filter(attempt => attempt.isPassed).length}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  
+                  {programs.length === 0 && (
+                    <div className="text-center py-4 text-gray-500">
+                      <p>No programs available.</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
