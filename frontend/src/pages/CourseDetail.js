@@ -138,12 +138,7 @@ const CourseDetail = () => {
   const calculateProgress = () => {
     if (!currentEnrollment || !course) return 0;
     
-    // Use backend progress if available
-    if (currentEnrollment.progress !== undefined && currentEnrollment.progress !== null) {
-      return Math.round(currentEnrollment.progress);
-    }
-    
-    // Calculate based on module progress if available
+    // First try to calculate from moduleProgress (most accurate)
     if (currentEnrollment.moduleProgress && course.modules) {
       const totalLessons = course.modules.reduce((total, module) => 
         total + (module.lessons?.length || 0), 0);
@@ -153,11 +148,18 @@ const CourseDetail = () => {
       const completedLessons = currentEnrollment.moduleProgress.reduce((total, moduleProgress) => 
         total + (moduleProgress.lessons?.filter(l => l.completed).length || 0), 0);
       
-      return Math.round((completedLessons / totalLessons) * 100);
+      const calculatedProgress = Math.round((completedLessons / totalLessons) * 100);
+      console.log(`Progress calculation: ${completedLessons}/${totalLessons} = ${calculatedProgress}%`);
+      return calculatedProgress;
+    }
+    
+    // Fallback to backend progress if available
+    if (currentEnrollment.progress !== undefined && currentEnrollment.progress !== null) {
+      console.log(`Using backend progress: ${currentEnrollment.progress}%`);
+      return Math.round(currentEnrollment.progress);
     }
     
     // For legacy enrollments without moduleProgress, initialize with 0
-    // This will be updated when user starts interacting with lessons
     console.log('Legacy enrollment detected - moduleProgress missing. Progress will be calculated as lessons are completed.');
     return 0;
   };
