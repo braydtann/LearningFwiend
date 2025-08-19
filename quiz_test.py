@@ -284,21 +284,21 @@ class QuizTester:
                             "To waste time",
                             "None of the above"
                         ],
-                        "correctAnswer": 0,
+                        "correctAnswer": "0",  # String index for multiple choice
                         "points": 10,
                         "explanation": "This quiz is designed to test the backend quiz creation API"
                     },
                     {
                         "type": "true_false",
                         "question": "Backend API testing is important for application reliability",
-                        "correctAnswer": True,
+                        "correctAnswer": "true",  # String for true/false
                         "points": 5,
                         "explanation": "Testing APIs ensures they work correctly and reliably"
                     },
                     {
                         "type": "short_answer",
                         "question": "What HTTP method is used to create a new quiz?",
-                        "correctAnswer": "POST",
+                        "correctAnswer": "POST",  # String for short answer
                         "points": 5,
                         "explanation": "POST method is used to create new resources"
                     }
