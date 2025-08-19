@@ -1041,16 +1041,61 @@ class BackendTester:
                 data = response.json()
                 token = data.get('access_token')
                 user_info = data.get('user', {})
+                requires_password_change = data.get('requires_password_change', False)
                 
                 if token and user_info.get('role') == 'learner':
-                    self.auth_tokens['learner'] = token
-                    self.log_result(
-                        "Student Login Test", 
-                        "PASS", 
-                        f"Successfully logged in as student: {user_info.get('username')}",
-                        f"Token received, role verified: {user_info.get('role')}"
-                    )
-                    return True
+                    # If password change is required, change it to a permanent password
+                    if requires_password_change:
+                        change_password_data = {
+                            "current_password": "Student123!",
+                            "new_password": "StudentPermanent123!"
+                        }
+                        
+                        change_response = requests.post(
+                            f"{BACKEND_URL}/auth/change-password",
+                            json=change_password_data,
+                            timeout=TEST_TIMEOUT,
+                            headers={
+                                'Content-Type': 'application/json',
+                                'Authorization': f'Bearer {token}'
+                            }
+                        )
+                        
+                        if change_response.status_code == 200:
+                            # Login again with new password
+                            new_login_data = {
+                                "username_or_email": "test.student@learningfwiend.com",
+                                "password": "StudentPermanent123!"
+                            }
+                            
+                            new_response = requests.post(
+                                f"{BACKEND_URL}/auth/login",
+                                json=new_login_data,
+                                timeout=TEST_TIMEOUT,
+                                headers={'Content-Type': 'application/json'}
+                            )
+                            
+                            if new_response.status_code == 200:
+                                new_data = new_response.json()
+                                new_token = new_data.get('access_token')
+                                self.auth_tokens['learner'] = new_token
+                                
+                                self.log_result(
+                                    "Student Login Test", 
+                                    "PASS", 
+                                    f"Successfully logged in as student with permanent password: {user_info.get('username')}",
+                                    f"Token received, role verified: {user_info.get('role')}, password changed from temporary"
+                                )
+                                return True
+                    else:
+                        self.auth_tokens['learner'] = token
+                        self.log_result(
+                            "Student Login Test", 
+                            "PASS", 
+                            f"Successfully logged in as student: {user_info.get('username')}",
+                            f"Token received, role verified: {user_info.get('role')}"
+                        )
+                        return True
                 else:
                     self.log_result(
                         "Student Login Test", 
@@ -1059,63 +1104,50 @@ class BackendTester:
                         f"Token: {bool(token)}, Role: {user_info.get('role')}"
                     )
             else:
-                # Try to create a student user if login fails
+                # Try to reset password for existing student if login fails
                 if "admin" in self.auth_tokens:
                     self.log_result(
                         "Student Login Test", 
                         "INFO", 
-                        "Student login failed, attempting to create test student",
+                        "Student login failed, attempting to reset password",
                         f"Login failed with status {response.status_code}"
                     )
                     
-                    # Create a test student
-                    student_data = {
-                        "email": "test.student@learningfwiend.com",
-                        "username": "test.student",
-                        "full_name": "Test Student",
-                        "role": "learner",
-                        "department": "Testing",
-                        "temporary_password": "Student123!"
-                    }
-                    
-                    create_response = requests.post(
-                        f"{BACKEND_URL}/auth/admin/create-user",
-                        json=student_data,
+                    # Get users to find the test student ID
+                    users_response = requests.get(
+                        f"{BACKEND_URL}/auth/admin/users",
                         timeout=TEST_TIMEOUT,
-                        headers={
-                            'Content-Type': 'application/json',
-                            'Authorization': f'Bearer {self.auth_tokens["admin"]}'
-                        }
+                        headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
                     )
                     
-                    if create_response.status_code == 200:
-                        # Try login again with the created student
-                        login_data_new = {
-                            "username_or_email": "test.student@learningfwiend.com",
-                            "password": "Student123!"
-                        }
+                    if users_response.status_code == 200:
+                        users = users_response.json()
+                        test_student = None
+                        for user in users:
+                            if user.get('email') == 'test.student@learningfwiend.com':
+                                test_student = user
+                                break
                         
-                        login_response_new = requests.post(
-                            f"{BACKEND_URL}/auth/login",
-                            json=login_data_new,
-                            timeout=TEST_TIMEOUT,
-                            headers={'Content-Type': 'application/json'}
-                        )
-                        
-                        if login_response_new.status_code == 200:
-                            data = login_response_new.json()
-                            token = data.get('access_token')
-                            user_info = data.get('user', {})
+                        if test_student:
+                            # Reset password
+                            reset_data = {
+                                'user_id': test_student['id'],
+                                'new_temporary_password': 'Student123!'
+                            }
                             
-                            if token and user_info.get('role') == 'learner':
-                                self.auth_tokens['learner'] = token
-                                self.log_result(
-                                    "Student Login Test", 
-                                    "PASS", 
-                                    f"Successfully created and logged in as test student: {user_info.get('username')}",
-                                    f"Token received, role verified: {user_info.get('role')}"
-                                )
-                                return True
+                            reset_response = requests.post(
+                                f"{BACKEND_URL}/auth/admin/reset-password",
+                                json=reset_data,
+                                timeout=TEST_TIMEOUT,
+                                headers={
+                                    'Content-Type': 'application/json',
+                                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                                }
+                            )
+                            
+                            if reset_response.status_code == 200:
+                                # Try login again after password reset
+                                return self.test_student_login()
                 
                 self.log_result(
                     "Student Login Test", 
