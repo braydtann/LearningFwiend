@@ -44,7 +44,6 @@ const Programs = () => {
     nestedProgramIds: [], // For 1-level program nesting
     duration: '',
     difficulty: 'Beginner',
-    deadline: '', // Add deadline field
     finalTest: {
       title: '',
       description: '',
