@@ -354,7 +354,7 @@ const CourseDetail = () => {
     }
   };
 
-  // Handle next module/lesson navigation
+  // Handle next module/lesson navigation or course completion
   const handleNextAction = async () => {
     if (!nextAction || !selectedLesson) return;
     
@@ -362,18 +362,47 @@ const CourseDetail = () => {
       // First mark current lesson as complete
       await markLessonComplete(selectedLesson.id);
       
-      // Then navigate to next lesson
-      setSelectedLesson(nextAction.target);
-      
-      const actionType = nextAction.type === 'module' ? 'module' : 'lesson';
-      const nextTitle = nextAction.type === 'module' ? nextAction.nextModuleTitle : nextAction.target.title;
-      
-      toast({
-        title: `Moving to next ${actionType}!`,
-        description: `Now starting: ${nextTitle}`,
-      });
+      // Handle different action types
+      if (nextAction.type === 'complete') {
+        // Complete the course
+        const result = await updateEnrollmentProgress(id, {
+          progress: 100,
+          currentLessonId: selectedLesson.id,
+          currentModuleId: nextAction.moduleIndex,
+          lastAccessedAt: new Date().toISOString()
+        });
+        
+        if (result.success) {
+          setCurrentEnrollment(result.enrollment);
+          
+          toast({
+            title: "🎉 Course Completed!",
+            description: "Congratulations! You've successfully completed the entire course. Your certificate has been generated.",
+            duration: 5000,
+          });
+          
+          // Refresh to update UI
+          await loadEnrollments();
+        }
+      } else {
+        // Navigate to next lesson/module
+        setSelectedLesson(nextAction.target);
+        
+        const actionType = nextAction.type === 'module' ? 'module' : 'lesson';
+        const nextTitle = nextAction.type === 'module' ? nextAction.nextModuleTitle : nextAction.target.title;
+        
+        toast({
+          title: `Moving to next ${actionType}!`,
+          description: `Now starting: ${nextTitle}`,
+        });
+      }
     } catch (error) {
       console.error('Error handling next action:', error);
+      toast({
+        title: "Error",
+        description: "An error occurred while processing your request.",
+        variant: "destructive",
+      });
     }
   };
 
