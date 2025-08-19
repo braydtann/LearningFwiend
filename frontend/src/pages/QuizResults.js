@@ -395,34 +395,53 @@ const QuizResults = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {filteredResults.length > 0 ? (
-                  filteredResults.map((result) => {
-                    const student = mockUsers.find(u => u.id === result.userId);
-                    const course = mockCourses.find(c => c.id === result.courseId);
+                {filteredAttempts.length > 0 ? (
+                  // Group attempts by student and show their performance
+                  Object.entries(
+                    filteredAttempts.reduce((acc, attempt) => {
+                      const studentId = attempt.userId || attempt.studentId;
+                      if (!acc[studentId]) {
+                        acc[studentId] = [];
+                      }
+                      acc[studentId].push(attempt);
+                      return acc;
+                    }, {})
+                  ).map(([studentId, attempts]) => {
+                    const studentName = attempts[0]?.studentName || 'Unknown Student';
+                    const averageScore = Math.round(
+                      attempts.reduce((sum, attempt) => sum + (attempt.score || 0), 0) / attempts.length
+                    );
+                    const totalAttempts = attempts.length;
+                    const passedAttempts = attempts.filter(attempt => attempt.isPassed).length;
+                    
                     return (
                       <div 
-                        key={result.id} 
+                        key={studentId} 
                         className="flex items-center justify-between p-4 border rounded-lg"
                       >
                         <div className="flex items-center space-x-4">
-                          <img 
-                            src={student?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face'} 
-                            className="w-10 h-10 rounded-full object-cover"
-                            alt={student?.name}
-                          />
+                          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                            <Users className="w-5 h-5 text-blue-600" />
+                          </div>
                           <div>
-                            <p className="font-medium text-gray-900">{student?.name || 'Unknown Student'}</p>
-                            <p className="text-sm text-gray-600">{course?.title || 'Unknown Course'}</p>
+                            <p className="font-medium text-gray-900">{studentName}</p>
+                            <p className="text-sm text-gray-600">{totalAttempts} quiz attempts</p>
                           </div>
                         </div>
                         <div className="text-right">
                           <div className="flex items-center space-x-3">
                             <div className="text-sm">
-                              <p className="text-gray-600">Best: <span className="font-medium">{result.bestScore}%</span></p>
-                              <p className="text-gray-600">Attempts: <span className="font-medium">{result.totalAttempts}</span></p>
+                              <div className="text-gray-600">Average Score</div>
+                              <div className="font-semibold text-gray-900">{averageScore}%</div>
                             </div>
-                            <Badge variant={result.passed ? "default" : "destructive"}>
-                              {result.passed ? "Passed" : "Failed"}
+                            <div className="text-sm">
+                              <div className="text-gray-600">Pass Rate</div>
+                              <div className="font-semibold text-gray-900">
+                                {Math.round((passedAttempts / totalAttempts) * 100)}%
+                              </div>
+                            </div>
+                            <Badge variant={averageScore >= 70 ? 'default' : 'destructive'}>
+                              {averageScore >= 70 ? 'Good' : 'Needs Improvement'}
                             </Badge>
                           </div>
                         </div>
