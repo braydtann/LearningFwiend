@@ -969,7 +969,7 @@ async def update_enrollment_progress(
         update_data["timeSpent"] = progress_data.timeSpent
     
     # Update the enrollment
-    await db.enrollments.update_one(
+    result = await db.enrollments.update_one(
         {"userId": current_user.id, "courseId": course_id},
         {"$set": update_data}
     )
@@ -979,6 +979,52 @@ async def update_enrollment_progress(
         "userId": current_user.id,
         "courseId": course_id
     })
+    
+    # Auto-generate certificate when course is completed (100% progress)
+    if progress_data.progress is not None and progress_data.progress >= 100.0:
+        # Check if certificate already exists
+        existing_certificate = await db.certificates.find_one({
+            "studentId": current_user.id,
+            "courseId": course_id,
+            "isActive": True
+        })
+        
+        if not existing_certificate:
+            # Get course details for certificate
+            course = await db.courses.find_one({"id": course_id})
+            if course:
+                # Generate certificate
+                certificate_number = f"CERT-{course_id[:8].upper()}-{current_user.id[:8].upper()}-{datetime.utcnow().strftime('%Y%m%d')}"
+                verification_code = str(uuid.uuid4()).replace('-', '').upper()[:12]
+                
+                certificate_dict = {
+                    "id": str(uuid.uuid4()),
+                    "certificateNumber": certificate_number,
+                    "studentId": current_user.id,
+                    "studentName": current_user.full_name,
+                    "studentEmail": current_user.email,
+                    "courseId": course_id,
+                    "courseName": course.get("title", "Unknown Course"),
+                    "programId": None,
+                    "programName": None,
+                    "type": "completion",
+                    "template": "default",
+                    "status": "generated",
+                    "issueDate": datetime.utcnow(),
+                    "expiryDate": None,
+                    "grade": "A" if progress_data.progress >= 95 else "B" if progress_data.progress >= 85 else "C",
+                    "score": progress_data.progress,
+                    "completionDate": datetime.utcnow(),
+                    "certificateUrl": None,
+                    "issuedBy": "system",
+                    "issuedByName": "LearningFwiend System",
+                    "verificationCode": verification_code,
+                    "isActive": True,
+                    "created_at": datetime.utcnow(),
+                    "updated_at": datetime.utcnow()
+                }
+                
+                await db.certificates.insert_one(certificate_dict)
     
     return EnrollmentResponse(**updated_enrollment)
 
