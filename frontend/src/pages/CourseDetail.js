@@ -34,7 +34,8 @@ const CourseDetail = () => {
     isLearner, 
     getCourseById, 
     getMyEnrollments, 
-    updateEnrollmentProgress 
+    updateEnrollmentProgress,
+    migrateEnrollmentProgress
   } = useAuth();
   const { toast } = useToast();
   const [selectedLesson, setSelectedLesson] = useState(null);
