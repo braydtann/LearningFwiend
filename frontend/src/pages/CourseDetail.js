@@ -377,8 +377,8 @@ const CourseDetail = () => {
           duration: 3000,
         });
         
-        // Force re-render by refreshing enrollments
-        await loadEnrollments();
+        // Note: No need to call loadEnrollments() here as setCurrentEnrollment above already updates the state
+        // and calculateProgress() will use the updated enrollment data immediately
       } else {
         toast({
           title: "Error",
