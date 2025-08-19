@@ -35,7 +35,7 @@ const QuizTaking = () => {
   useEffect(() => {
     const loadCourseData = async () => {
       try {
-        setLoading(true);
+        setCourseLoading(true);
         const result = await getCourseById(courseId);
         
         if (result.success) {
@@ -56,19 +56,19 @@ const QuizTaking = () => {
             if (foundLesson.type === 'quiz' && foundLesson.quiz) {
               setQuiz(foundLesson.quiz);
             } else {
-              setError('This lesson is not a quiz or quiz data is missing');
+              setCourseError('This lesson is not a quiz or quiz data is missing');
             }
           } else {
-            setError('Lesson not found in course');
+            setCourseError('Lesson not found in course');
           }
         } else {
-          setError(result.error || 'Course not found');
+          setCourseError(result.error || 'Course not found');
         }
       } catch (err) {
         console.error('Error loading course data:', err);
-        setError('Failed to load course data');
+        setCourseError('Failed to load course data');
       } finally {
-        setLoading(false);
+        setCourseLoading(false);
       }
     };
 
