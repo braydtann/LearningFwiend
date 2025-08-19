@@ -122,6 +122,29 @@ const ProgramDetail = () => {
         </nav>
       </div>
 
+      {/* Access Status Banner for Learners */}
+      {isLearner && accessStatus && !accessStatus.hasAccess && (
+        <Card className="border-yellow-200 bg-yellow-50">
+          <CardContent className="p-6">
+            <div className="flex items-start space-x-3">
+              <Lock className="w-6 h-6 text-yellow-600 mt-1 flex-shrink-0" />
+              <div>
+                <h3 className="text-lg font-semibold text-yellow-800 mb-2">Program Access Restricted</h3>
+                <p className="text-yellow-700 mb-3">{accessStatus.message}</p>
+                <div className="text-sm text-yellow-600">
+                  {accessStatus.reason === 'classroom_expired' && (
+                    <p>Your classroom access to this program has expired. Contact your instructor for more information.</p>
+                  )}
+                  {accessStatus.reason === 'not_enrolled' && (
+                    <p>You need to be enrolled in a classroom that includes this program to access it.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Program Overview */}
       <Card>
         <CardContent className="p-8">
