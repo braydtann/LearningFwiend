@@ -239,10 +239,19 @@ const QuizAndTestResults = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Quiz Results & Analytics</h1>
-          <p className="text-gray-600">Monitor student performance and quiz analytics</p>
+          <h1 className="text-3xl font-bold text-gray-900">Quiz & Test Analytics</h1>
+          <p className="text-gray-600">Monitor student performance across quizzes and program final tests</p>
         </div>
       </div>
+
+      {/* Quiz/Test Navigation Tabs */}
+      <Tabs value={activeView} onValueChange={setActiveView} className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="quizzes">Quiz Analytics</TabsTrigger>
+          <TabsTrigger value="tests">Final Test Analytics</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="quizzes" className="space-y-6">
 
       {/* Enhanced Filters */}
       <Card className="bg-gray-50">
