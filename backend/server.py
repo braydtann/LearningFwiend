@@ -3496,7 +3496,21 @@ async def get_quiz_attempts(
         query["quizId"] = quiz_id
     
     attempts = await db.quiz_attempts.find(query).sort("created_at", -1).to_list(1000)
-    return [QuizAttemptResponse(**attempt) for attempt in attempts]
+    
+    # Handle missing fields in existing attempts for backward compatibility
+    processed_attempts = []
+    for attempt in attempts:
+        # Ensure required fields exist
+        if 'startedAt' not in attempt:
+            attempt['startedAt'] = attempt.get('created_at', datetime.utcnow())
+        if 'userId' not in attempt:
+            attempt['userId'] = attempt.get('studentId', '')
+        if 'status' not in attempt:
+            attempt['status'] = 'completed' if attempt.get('completedAt') else 'in_progress'
+        
+        processed_attempts.append(QuizAttemptResponse(**attempt))
+    
+    return processed_attempts
 
 @api_router.get("/quiz-attempts/{attempt_id}", response_model=QuizAttemptWithAnswersResponse)
 async def get_quiz_attempt(
