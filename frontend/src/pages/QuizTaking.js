@@ -7,7 +7,6 @@ import { Badge } from '../components/ui/badge';
 import { Progress } from '../components/ui/progress';
 import { Textarea } from '../components/ui/textarea';
 import ScreenRecorder from '../components/ScreenRecorder';
-import { getQuizAttempts, getQuizResults } from '../data/mockData';
 import { 
   Clock, 
   CheckCircle, 
