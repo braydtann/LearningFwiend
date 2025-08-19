@@ -314,6 +314,36 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const checkProgramAccess = async (programId) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/programs/${programId}/access-check`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const accessInfo = await response.json();
+        return { success: true, ...accessInfo };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          hasAccess: false,
+          error: errorData.detail || 'Failed to check program access' 
+        };
+      }
+    } catch (error) {
+      console.error('Check program access error:', error);
+      return { 
+        success: false, 
+        hasAccess: false,
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
   // =============================================================================
   // COURSE MANAGEMENT FUNCTIONS
   // =============================================================================
