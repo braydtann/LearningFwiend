@@ -20,7 +20,8 @@ import {
   TrendingUp,
   FileText,
   Award,
-  Filter
+  Filter,
+  GraduationCap
 } from 'lucide-react';
 
 const QuizAndTestResults = () => {
