@@ -233,12 +233,13 @@ const Courses = () => {
             Discover and manage all available courses
           </p>
         </div>
-        {user?.role === 'instructor' && (
+        {(isInstructor || isAdmin) && (
           <Button 
             onClick={() => navigate('/create-course')}
             className="bg-blue-600 hover:bg-blue-700"
           >
-            Create New Course
+            <Plus className="w-4 h-4 mr-2" />
+            Create Course
           </Button>
         )}
       </div>
