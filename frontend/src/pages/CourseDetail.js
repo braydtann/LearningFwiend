@@ -63,6 +63,15 @@ const CourseDetail = () => {
     }
   }, [course, currentEnrollment, selectedLesson]);
 
+  // Update progress when enrollment changes - THIS IS THE KEY FIX
+  useEffect(() => {
+    if (course && currentEnrollment) {
+      const newProgress = calculateProgress();
+      console.log(`Progress update triggered: ${newProgress}%`);
+      setProgressValue(newProgress);
+    }
+  }, [course, currentEnrollment]); // Watch for enrollment changes
+
   const loadCourse = async () => {
     setLoading(true);
     setError(null);
