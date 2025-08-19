@@ -8,7 +8,6 @@ import { Progress } from '../components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../components/ui/accordion';
 import { getImageUrl, handleImageError } from '../utils/imageUtils';
-import { mockCourses, getEnrolledCourses, getCourseProgress, getUserClassroomAccess, mockClassroomEnrollments } from '../data/mockData';
 import { 
   BookOpen, 
   Clock, 
