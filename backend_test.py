@@ -627,7 +627,247 @@ class BackendTester:
             )
         return False
     
-    def test_check_existing_users_and_credentials(self):
+    def test_urgent_admin_authentication_troubleshooting(self):
+        """URGENT: Comprehensive admin authentication troubleshooting as requested in review"""
+        print("\n🚨 URGENT ADMIN AUTHENTICATION TROUBLESHOOTING")
+        print("=" * 80)
+        print("Testing admin credentials: brayden.t@covesmart.com / Hawaii2020!")
+        print("These credentials were working before deployment issues")
+        print("=" * 80)
+        
+        # Test 1: Direct admin authentication
+        admin_auth_success = self.test_admin_login()
+        
+        # Test 2: Check if admin user exists in database
+        admin_exists = self.test_admin_user_exists_in_database()
+        
+        # Test 3: Test alternative admin credentials
+        alternative_admin_success = self.test_alternative_admin_credentials()
+        
+        # Test 4: Test admin access to protected endpoints
+        admin_access_success = False
+        if admin_auth_success:
+            admin_access_success = self.test_admin_access_endpoints()
+        
+        # Summary of troubleshooting results
+        print(f"\n📊 ADMIN AUTHENTICATION TROUBLESHOOTING SUMMARY:")
+        print("=" * 60)
+        print(f"✅ Primary Admin Login (brayden.t@covesmart.com): {'SUCCESS' if admin_auth_success else '❌ FAILED'}")
+        print(f"✅ Admin User Exists in Database: {'SUCCESS' if admin_exists else '❌ FAILED'}")
+        print(f"✅ Alternative Admin Credentials: {'SUCCESS' if alternative_admin_success else '❌ FAILED'}")
+        print(f"✅ Admin Access to Protected Endpoints: {'SUCCESS' if admin_access_success else '❌ FAILED'}")
+        
+        if admin_auth_success:
+            self.log_result(
+                "🚨 URGENT: Admin Authentication Troubleshooting", 
+                "PASS", 
+                "✅ ADMIN AUTHENTICATION RESOLVED: Primary admin credentials are working correctly",
+                f"brayden.t@covesmart.com / Hawaii2020! - Authentication successful, admin access confirmed"
+            )
+            return True
+        else:
+            failure_reasons = []
+            if not admin_exists:
+                failure_reasons.append("Admin user not found in database")
+            if not alternative_admin_success:
+                failure_reasons.append("No alternative admin credentials work")
+            
+            self.log_result(
+                "🚨 URGENT: Admin Authentication Troubleshooting", 
+                "FAIL", 
+                "❌ CRITICAL: Admin authentication is failing - immediate attention required",
+                f"Primary credentials failed. Issues: {'; '.join(failure_reasons) if failure_reasons else 'Authentication endpoint not responding'}"
+            )
+            return False
+    
+    def test_admin_user_exists_in_database(self):
+        """Check if the admin user brayden.t@covesmart.com exists in the database"""
+        try:
+            # First try to get admin token if we don't have one
+            if "admin" not in self.auth_tokens:
+                # Try to login as admin first
+                admin_login_success = self.test_admin_login()
+                if not admin_login_success:
+                    # If admin login fails, we can't check the database
+                    self.log_result(
+                        "Admin User Database Check", 
+                        "FAIL", 
+                        "Cannot check database - admin authentication failed",
+                        "Need admin access to query user database"
+                    )
+                    return False
+            
+            # Get all users to check if admin exists
+            response = requests.get(
+                f"{BACKEND_URL}/auth/admin/users",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            if response.status_code == 200:
+                users = response.json()
+                admin_user = None
+                
+                for user in users:
+                    if user.get('email') == 'brayden.t@covesmart.com':
+                        admin_user = user
+                        break
+                
+                if admin_user:
+                    user_details = {
+                        'id': admin_user.get('id'),
+                        'email': admin_user.get('email'),
+                        'username': admin_user.get('username'),
+                        'full_name': admin_user.get('full_name'),
+                        'role': admin_user.get('role'),
+                        'is_active': admin_user.get('is_active'),
+                        'first_login_required': admin_user.get('first_login_required')
+                    }
+                    
+                    self.log_result(
+                        "Admin User Database Check", 
+                        "PASS", 
+                        f"✅ Admin user EXISTS in database: {admin_user.get('email')}",
+                        f"User details: {user_details}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Admin User Database Check", 
+                        "FAIL", 
+                        "❌ CRITICAL: Admin user brayden.t@covesmart.com NOT FOUND in database",
+                        f"Searched {len(users)} users, admin user missing - this explains authentication failure"
+                    )
+                    return False
+            else:
+                self.log_result(
+                    "Admin User Database Check", 
+                    "FAIL", 
+                    f"Failed to retrieve users from database, status: {response.status_code}",
+                    f"Response: {response.text}"
+                )
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Admin User Database Check", 
+                "FAIL", 
+                "Failed to check admin user in database",
+                str(e)
+            )
+        return False
+    
+    def test_alternative_admin_credentials(self):
+        """Test alternative admin credentials like admin@example.com"""
+        alternative_credentials = [
+            {"username_or_email": "admin@example.com", "password": "admin", "description": "Default Admin"},
+            {"username_or_email": "admin", "password": "admin", "description": "Simple Admin"},
+            {"username_or_email": "admin", "password": "Admin123!", "description": "Old Admin"},
+            {"username_or_email": "administrator", "password": "admin", "description": "Administrator"},
+            {"username_or_email": "root", "password": "admin", "description": "Root User"},
+        ]
+        
+        working_alternatives = []
+        
+        for cred in alternative_credentials:
+            try:
+                login_data = {
+                    "username_or_email": cred["username_or_email"],
+                    "password": cred["password"]
+                }
+                
+                response = requests.post(
+                    f"{BACKEND_URL}/auth/login",
+                    json=login_data,
+                    timeout=TEST_TIMEOUT,
+                    headers={'Content-Type': 'application/json'}
+                )
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    user_info = data.get('user', {})
+                    
+                    if user_info.get('role') == 'admin':
+                        working_alternatives.append({
+                            'description': cred['description'],
+                            'username_or_email': cred['username_or_email'],
+                            'password': cred['password'],
+                            'user_info': user_info
+                        })
+                        
+                        print(f"   ✅ WORKING ALTERNATIVE: {cred['description']} - {cred['username_or_email']} / {cred['password']}")
+                        
+            except requests.exceptions.RequestException:
+                continue
+        
+        if working_alternatives:
+            self.log_result(
+                "Alternative Admin Credentials Test", 
+                "PASS", 
+                f"✅ Found {len(working_alternatives)} working alternative admin credentials",
+                f"Working alternatives: {[alt['description'] for alt in working_alternatives]}"
+            )
+            return True
+        else:
+            self.log_result(
+                "Alternative Admin Credentials Test", 
+                "FAIL", 
+                "❌ No alternative admin credentials found working",
+                f"Tested {len(alternative_credentials)} alternative credential combinations, none worked"
+            )
+            return False
+    
+    def test_admin_access_endpoints(self):
+        """Test that admin can access admin-only endpoints"""
+        if "admin" not in self.auth_tokens:
+            self.log_result(
+                "Admin Access Endpoints Test", 
+                "SKIP", 
+                "No admin token available for endpoint access test",
+                "Admin authentication required"
+            )
+            return False
+        
+        admin_endpoints = [
+            ("/auth/admin/users", "GET", "Get all users"),
+            ("/departments", "GET", "Get departments"),
+            ("/categories", "GET", "Get categories")
+        ]
+        
+        successful_endpoints = []
+        failed_endpoints = []
+        
+        for endpoint, method, description in admin_endpoints:
+            try:
+                if method == "GET":
+                    response = requests.get(
+                        f"{BACKEND_URL}{endpoint}",
+                        timeout=TEST_TIMEOUT,
+                        headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+                    )
+                
+                if response.status_code in [200, 201]:
+                    successful_endpoints.append(f"✅ {method} {endpoint} ({description})")
+                else:
+                    failed_endpoints.append(f"❌ {method} {endpoint} - Status: {response.status_code}")
+                    
+            except requests.exceptions.RequestException as e:
+                failed_endpoints.append(f"❌ {method} {endpoint} - Error: {str(e)}")
+        
+        if len(successful_endpoints) >= 2 and len(failed_endpoints) == 0:
+            self.log_result(
+                "Admin Access Endpoints Test", 
+                "PASS", 
+                f"✅ Admin successfully accessed {len(successful_endpoints)} admin-only endpoints",
+                f"Successful: {'; '.join(successful_endpoints)}"
+            )
+            return True
+        else:
+            self.log_result(
+                "Admin Access Endpoints Test", 
+                "FAIL", 
+                f"❌ Admin failed to access some admin-only endpoints",
+                f"Successful: {'; '.join(successful_endpoints)}; Failed: {'; '.join(failed_endpoints)}"
+            )
+        return False
         """Check what users exist in the system and verify login credentials for easter egg testing"""
         print("\n🔍 CHECKING EXISTING USERS AND LOGIN CREDENTIALS FOR EASTER EGG TESTING")
         print("-" * 80)
