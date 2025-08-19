@@ -900,52 +900,8 @@ const CourseDetail = () => {
               </Card>
             </TabsContent>
             
-            <TabsContent value="reviews">
-              <Card>
-                <CardContent className="p-6">
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-semibold">Student Reviews</h3>
-                      <div className="flex items-center space-x-2">
-                        <div className="flex items-center">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <Star key={star} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                          ))}
-                        </div>
-                        <span className="text-sm text-gray-600">4.8 out of 5 (245 reviews)</span>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-4">
-                      {[1, 2, 3].map((review) => (
-                        <div key={review} className="border-b border-gray-200 pb-4">
-                          <div className="flex items-start justify-between mb-2">
-                            <div className="flex items-center space-x-3">
-                              <img 
-                                src={`https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face`} 
-                                className="w-10 h-10 rounded-full object-cover"
-                                alt="Reviewer"
-                              />
-                              <div>
-                                <p className="font-medium">John Doe</p>
-                                <div className="flex items-center">
-                                  {[1, 2, 3, 4, 5].map((star) => (
-                                    <Star key={star} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                            <span className="text-sm text-gray-500">2 days ago</span>
-                          </div>
-                          <p className="text-gray-600">
-                            Excellent course! The instructor explains everything clearly and the projects are very practical.
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+            <TabsContent value="reviews" style={{display: 'none'}}>
+              {/* Hidden reviews section */}
             </TabsContent>
           </Tabs>
         </div>
