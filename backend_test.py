@@ -869,9 +869,9 @@ class BackendTester:
         return False
 
     def test_admin_login(self):
-        """Test admin user login with NEW admin credentials"""
+        """Test admin user login with SPECIFIC admin credentials from review request"""
         try:
-            # Test NEW admin credentials: brayden.t@covesmart.com / Hawaii2020!
+            # Test SPECIFIC admin credentials from review request: brayden.t@covesmart.com / Hawaii2020!
             login_data = {
                 "username_or_email": "brayden.t@covesmart.com",
                 "password": "Hawaii2020!"
@@ -893,31 +893,39 @@ class BackendTester:
                 if token and user_info.get('role') == 'admin':
                     self.auth_tokens['admin'] = token
                     self.log_result(
-                        "NEW Admin Login Test", 
+                        "URGENT: Admin Authentication Test (brayden.t@covesmart.com)", 
                         "PASS", 
-                        f"Successfully logged in as NEW admin: {user_info.get('email')} ({user_info.get('full_name')})",
+                        f"✅ ADMIN CREDENTIALS WORKING: {user_info.get('email')} ({user_info.get('full_name')})",
                         f"Token received, role verified: {user_info.get('role')}, requires_password_change: {requires_password_change}, permanent login: {not requires_password_change}"
                     )
                     return True
                 else:
                     self.log_result(
-                        "NEW Admin Login Test", 
+                        "URGENT: Admin Authentication Test (brayden.t@covesmart.com)", 
                         "FAIL", 
-                        "Login successful but missing token or wrong role",
+                        "🚨 CRITICAL: Login successful but missing token or wrong role",
                         f"Token: {bool(token)}, Role: {user_info.get('role')}, Expected: admin"
                     )
             else:
+                # Get detailed error information
+                error_detail = "Unknown error"
+                try:
+                    error_data = response.json()
+                    error_detail = error_data.get('detail', 'No error detail provided')
+                except:
+                    error_detail = response.text
+                
                 self.log_result(
-                    "NEW Admin Login Test", 
+                    "URGENT: Admin Authentication Test (brayden.t@covesmart.com)", 
                     "FAIL", 
-                    f"NEW admin login failed with status {response.status_code}",
-                    f"Response: {response.text}"
+                    f"🚨 CRITICAL: Admin credentials FAILED with status {response.status_code}",
+                    f"Error: {error_detail}"
                 )
         except requests.exceptions.RequestException as e:
             self.log_result(
-                "NEW Admin Login Test", 
+                "URGENT: Admin Authentication Test (brayden.t@covesmart.com)", 
                 "FAIL", 
-                "Failed to test NEW admin login",
+                "🚨 CRITICAL: Failed to connect to authentication endpoint",
                 str(e)
             )
         return False
