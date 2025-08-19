@@ -17581,7 +17581,84 @@ class BackendTester:
             )
         return False
 
-    def run_all_tests(self):
+    def run_urgent_admin_authentication_tests(self):
+        """Run urgent admin authentication troubleshooting tests as requested in review"""
+        print(f"\n🚨 URGENT ADMIN AUTHENTICATION TROUBLESHOOTING")
+        print(f"Backend URL: {BACKEND_URL}")
+        print(f"Testing admin credentials that were working before deployment issues")
+        print("=" * 80)
+        
+        # Priority tests for admin authentication issue
+        priority_tests = [
+            ("Backend Health Check", self.test_backend_health),
+            ("🚨 URGENT: Admin Authentication Troubleshooting", self.test_urgent_admin_authentication_troubleshooting),
+            ("Admin User Database Verification", self.test_new_admin_user_verification),
+            ("Admin User Management Capabilities", self.test_admin_user_management_capabilities),
+        ]
+        
+        print(f"\n🔍 Running {len(priority_tests)} priority tests for admin authentication...")
+        
+        for test_name, test_func in priority_tests:
+            print(f"\n▶️  Running: {test_name}")
+            try:
+                test_func()
+            except Exception as e:
+                self.log_result(test_name, "ERROR", f"Test failed with exception: {str(e)}", "")
+        
+        # Additional diagnostic tests if admin auth fails
+        if "admin" not in self.auth_tokens:
+            print(f"\n🔍 Running additional diagnostic tests...")
+            diagnostic_tests = [
+                ("MongoDB Atlas Connectivity", self.test_mongodb_atlas_connectivity),
+                ("Database Integration", self.test_database_integration),
+                ("User Credentials Check", self.test_check_existing_users_and_credentials),
+            ]
+            
+            for test_name, test_func in diagnostic_tests:
+                print(f"\n▶️  Running: {test_name}")
+                try:
+                    test_func()
+                except Exception as e:
+                    self.log_result(test_name, "ERROR", f"Test failed with exception: {str(e)}", "")
+        
+        return self.generate_urgent_admin_report()
+    
+    def generate_urgent_admin_report(self):
+        """Generate urgent report for admin authentication issue"""
+        print(f"\n" + "=" * 80)
+        print(f"🚨 URGENT ADMIN AUTHENTICATION TROUBLESHOOTING REPORT")
+        print(f"=" * 80)
+        
+        admin_working = "admin" in self.auth_tokens
+        
+        if admin_working:
+            print(f"✅ RESOLUTION: Admin credentials are working correctly!")
+            print(f"   Email: brayden.t@covesmart.com")
+            print(f"   Password: Hawaii2020!")
+            print(f"   Status: Authentication successful")
+            print(f"   Admin access: Confirmed")
+        else:
+            print(f"❌ CRITICAL ISSUE: Admin credentials are NOT working")
+            print(f"   Email: brayden.t@covesmart.com")
+            print(f"   Password: Hawaii2020!")
+            print(f"   Status: Authentication failed")
+            print(f"   Immediate action required!")
+        
+        print(f"\n📊 Test Results Summary:")
+        print(f"   Total Tests: {self.passed + self.failed}")
+        print(f"   ✅ Passed: {self.passed}")
+        print(f"   ❌ Failed: {self.failed}")
+        print(f"   Success Rate: {(self.passed / (self.passed + self.failed) * 100):.1f}%" if (self.passed + self.failed) > 0 else "0.0%")
+        
+        # Show critical failures
+        critical_failures = [r for r in self.results if r['status'] == 'FAIL' and 'URGENT' in r['test']]
+        if critical_failures:
+            print(f"\n🚨 CRITICAL FAILURES:")
+            for failure in critical_failures:
+                print(f"   ❌ {failure['test']}: {failure['message']}")
+        
+        print(f"\n" + "=" * 80)
+        return admin_working
         """Run comprehensive backend tests with focus on course completion functionality"""
         print("🚀 Starting Backend Testing Suite for LearningFwiend LMS")
         print("🔍 PRIORITY FOCUS: Course Completion Functionality Testing")
