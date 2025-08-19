@@ -30,12 +30,19 @@ export const convertToDirectImageUrl = (url) => {
     // Format 3: Already direct URL https://drive.google.com/uc?id=FILE_ID
     const ucMatch = url.match(/\/uc\?id=([a-zA-Z0-9_-]+)/);
     if (ucMatch) {
-      return url; // Already in correct format
+      fileId = ucMatch[1];
+    }
+    
+    // Format 4: https://drive.google.com/thumbnail?id=FILE_ID
+    const thumbnailMatch = url.match(/\/thumbnail\?id=([a-zA-Z0-9_-]+)/);
+    if (thumbnailMatch) {
+      return url; // Already in thumbnail format
     }
     
     // Convert to direct image URL if we found a file ID
     if (fileId) {
-      return `https://drive.google.com/uc?id=${fileId}`;
+      // Try the thumbnail format first for better image display
+      return `https://drive.google.com/thumbnail?id=${fileId}&sz=w800`;
     }
   }
   
