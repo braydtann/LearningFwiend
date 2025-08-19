@@ -196,7 +196,7 @@ const CourseDetail = () => {
   // Get calculated progress
   const progress = calculateProgress();
 
-  // For now, allow access to enrolled courses - classroom restrictions can be added later  
+  // Allow access to enrolled courses - classroom restrictions can be added later  
   const canAccessCourse = !isLearner || isEnrolled;
 
   // Mark lesson as complete and update progress
