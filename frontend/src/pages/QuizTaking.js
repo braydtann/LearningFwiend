@@ -24,12 +24,12 @@ const QuizTaking = () => {
   const { user, getCourseById } = useAuth();
   const { toast } = useToast();
 
-  // Course and lesson data from backend
+  // Course and lesson loading states
   const [course, setCourse] = useState(null);
   const [lesson, setLesson] = useState(null);
   const [quiz, setQuiz] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [courseLoading, setCourseLoading] = useState(true);
+  const [courseError, setCourseError] = useState(null);
 
   // Load course data from backend
   useEffect(() => {
