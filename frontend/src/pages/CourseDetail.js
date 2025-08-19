@@ -175,16 +175,18 @@ const CourseDetail = () => {
           total + mp.lessons.filter(l => l.completed).length, 0);
       }
       
+      console.log(`Complete Course DEBUG: Total lessons: ${totalLessons}, Already completed: ${completedLessons}`);
+      
       // Check if current lesson is completed
       const currentLessonCompleted = isLessonCompleted(selectedLesson.id);
-      if (currentLessonCompleted) {
-        completedLessons += 0; // Already counted
-      } else {
-        // If we complete this lesson, how many total would be completed?
-        completedLessons += 1;
-      }
+      console.log(`Current lesson "${selectedLesson.title}" completed: ${currentLessonCompleted}`);
       
-      const allLessonsWillBeCompleted = completedLessons >= totalLessons;
+      // If we complete this current lesson, how many total would be completed?
+      const potentialCompletedCount = currentLessonCompleted ? completedLessons : completedLessons + 1;
+      const allLessonsWillBeCompleted = potentialCompletedCount >= totalLessons;
+      const remainingLessons = Math.max(0, totalLessons - potentialCompletedCount);
+      
+      console.log(`Potential completed count: ${potentialCompletedCount}, Can complete: ${allLessonsWillBeCompleted}, Remaining: ${remainingLessons}`);
       
       setNextAction({
         type: 'complete',
@@ -192,7 +194,7 @@ const CourseDetail = () => {
         moduleIndex: currentModuleIndex,
         lessonIndex: currentLessonIndex,
         canComplete: allLessonsWillBeCompleted,
-        remainingLessons: totalLessons - completedLessons + (currentLessonCompleted ? 0 : 1)
+        remainingLessons: remainingLessons
       });
       return;
     }
