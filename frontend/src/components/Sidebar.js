@@ -33,6 +33,11 @@ const Sidebar = () => {
     navigate('/login');
   };
 
+  // Easter egg function - handle logo clicks
+  const handleLogoClick = () => {
+    setLogoClickCount(prev => prev + 1);
+  };
+
   const menuItems = [
     { 
       path: '/dashboard', 
