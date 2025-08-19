@@ -149,9 +149,17 @@ const Sidebar = () => {
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center space-x-3">
           <div 
-            className="w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer transition-transform hover:scale-110"
+            className={`w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer transition-all duration-200 ${
+              logoClickCount >= 8 ? 'hover:scale-125 animate-pulse' : 'hover:scale-110'
+            } ${logoClickCount >= 10 ? 'animate-bounce' : ''}`}
             onClick={handleLogoClick}
-            title={logoClickCount >= 8 ? `${10 - logoClickCount} more clicks...` : ''}
+            title={
+              logoClickCount >= 10 
+                ? "🦄 You found the secret unicorn! Click to reset." 
+                : logoClickCount >= 8 
+                ? `✨ ${10 - logoClickCount} more clicks for a surprise...` 
+                : ''
+            }
           >
             <img 
               src={logoClickCount >= 10 
@@ -162,7 +170,10 @@ const Sidebar = () => {
               className="w-8 h-8 object-contain"
             />
           </div>
-          <h1 className="text-xl font-bold text-gray-900">LearningFwiend</h1>
+          <h1 className="text-xl font-bold text-gray-900">
+            LearningFwiend
+            {logoClickCount >= 10 && <span className="ml-1 text-pink-500">🦄</span>}
+          </h1>
         </div>
       </div>
 
