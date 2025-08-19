@@ -23148,19 +23148,25 @@ class BackendTester:
 if __name__ == "__main__":
     tester = BackendTester()
     
-    # Run ENROLLMENT API TESTING based on review request
-    print("📚 EXECUTING ENROLLMENT API TESTING SUITE")
-    print("Based on review request: Test enrollment functionality to verify fixes work")
+    # Run FINAL TEST FUNCTIONALITY TESTING based on review request
+    print("🎯 EXECUTING FINAL TEST FUNCTIONALITY TESTING SUITE")
+    print("Based on review request: Test the newly added final test functionality for the LearningFwiend LMS")
     print()
     print("=" * 80)
-    print("📚 ENROLLMENT API TESTING - CRITICAL PRIORITY")
+    print("🎯 FINAL TEST FUNCTIONALITY TESTING - CRITICAL PRIORITY")
     print("=" * 80)
-    print("Testing enrollment functionality fixes:")
-    print("• POST /api/enrollments endpoint for student self-enrollment")
-    print("• GET /api/enrollments endpoint for students to view enrollments")
-    print("• Response models working correctly without Pydantic validation errors")
-    print("• Complete enrollment workflow: login → enroll → view enrollments")
-    print("• Model mismatch issues resolved (userId/enrolledAt vs studentId/enrollmentDate)")
+    print("Testing final test functionality:")
+    print("• POST /api/final-tests (create final test)")
+    print("• GET /api/final-tests (get all final tests)")
+    print("• GET /api/final-tests/my-tests (get instructor's tests)")
+    print("• GET /api/final-tests/{test_id} (get specific test)")
+    print("• PUT /api/final-tests/{test_id} (update test)")
+    print("• DELETE /api/final-tests/{test_id} (delete test)")
+    print("• POST /api/final-test-attempts (submit test attempt)")
+    print("• GET /api/final-test-attempts (get attempts with filtering)")
+    print("• GET /api/final-test-attempts/{attempt_id} (get specific attempt)")
+    print("• Role-based access control and validation")
+    print("• Attempt limits and scoring logic")
     print("=" * 80)
     print()
     
@@ -23171,28 +23177,29 @@ if __name__ == "__main__":
     tester.test_instructor_login()
     tester.test_student_login()
     
-    # Run enrollment API tests
-    enrollment_tests = [
-        ("Enrollment API - POST /api/enrollments", tester.test_enrollment_api_post),
-        ("Enrollment API - GET /api/enrollments", tester.test_enrollment_api_get_my_enrollments),
-        ("Enrollment Response Model Validation", tester.test_enrollment_response_model_validation),
-        ("Enrollment Complete Workflow", tester.test_enrollment_complete_workflow),
-        ("Enrollment Duplicate Prevention", tester.test_enrollment_duplicate_prevention),
-        ("Enrollment Course Validation", tester.test_enrollment_course_validation),
-        ("Enrollment Permission Validation", tester.test_enrollment_permission_validation)
+    # Run final test functionality tests
+    final_test_tests = [
+        ("Final Test Creation", tester.test_final_test_creation),
+        ("Final Test Role-Based Access", tester.test_final_test_role_based_access),
+        ("Final Test Retrieval Endpoints", tester.test_final_test_retrieval_endpoints),
+        ("Final Test Update/Delete", tester.test_final_test_update_and_delete),
+        ("Final Test Attempt Submission", tester.test_final_test_attempt_submission),
+        ("Final Test Attempt Retrieval", tester.test_final_test_attempt_retrieval),
+        ("Final Test Attempt Limits", tester.test_final_test_attempt_limits_validation),
+        ("Final Test Data Validation", tester.test_final_test_data_validation)
     ]
     
-    print(f"\n🧪 Running {len(enrollment_tests)} comprehensive enrollment API tests...")
+    print(f"\n🧪 Running {len(final_test_tests)} comprehensive final test functionality tests...")
     print()
     
-    for test_name, test_func in enrollment_tests:
+    for test_name, test_func in final_test_tests:
         print(f"Running: {test_name}...")
         test_func()
     
     print()
     print("=" * 80)
-    print("📊 ENROLLMENT API TEST RESULTS SUMMARY")
+    print("📊 FINAL TEST FUNCTIONALITY TEST RESULTS SUMMARY")
     print("=" * 80)
     summary = tester.generate_summary()
     print()
-    print("✅ ENROLLMENT API TESTING COMPLETED")
+    print("✅ FINAL TEST FUNCTIONALITY TESTING COMPLETED")
