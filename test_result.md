@@ -410,6 +410,21 @@ backend:
       - working: true
         agent: "testing"
         comment: "COMPREHENSIVE COURSE MANAGEMENT API TESTING COMPLETED SUCCESSFULLY: ✅ Course Creation API (POST /api/courses) working perfectly with proper authentication and UUID generation, ✅ Get All Courses API (GET /api/courses) successfully retrieving published courses, ✅ Get Course by ID API (GET /api/courses/{course_id}) CRITICAL functionality working correctly - this fixes the CourseDetail 'no course found' issue, ✅ Get My Courses API (GET /api/courses/my-courses) working for instructors, ✅ Complete workflow tested: create course → verify in course list → retrieve by ID - all steps successful, ✅ Course data structure consistent between creation and retrieval with proper UUIDs, ✅ Authentication requirements properly enforced on all endpoints, ✅ Error handling working correctly (404 for non-existent courses), ✅ Data consistency verified between course creation and retrieval. The CourseDetail page backend integration is now fully functional and will resolve the 'no course found' issue."
+      - working: false
+        agent: "user"
+        comment: "USER REPORTED: Progress tracking is not working correctly. Need to implement real progress tracking and add 'Next Module/Next Lesson' button that automatically marks current module as completed and moves to next module. When module ends and there's another lesson, button should turn into 'Next Lesson'."
+
+  - task: "Course Progress Tracking Enhancement"
+    implemented: false
+    working: false
+    file: "/app/frontend/src/pages/CourseDetail.js, /app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "TASK STARTED: Implementing real course progress tracking and Next Module/Next Lesson button functionality based on user requirements."
 
   - task: "Course Visibility Bug Fix"
     implemented: true
