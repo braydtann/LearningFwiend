@@ -3098,6 +3098,125 @@ class QuizAttemptWithAnswersResponse(QuizAttemptResponse):
 
 
 # =============================================================================
+# FINAL TEST MODELS (PROGRAM-LEVEL TESTS)
+# =============================================================================
+
+class FinalTestCreate(BaseModel):
+    title: str = Field(..., min_length=1, max_length=200, description="Final test title")
+    description: Optional[str] = Field(None, max_length=1000)
+    programId: str = Field(..., description="Program ID this test belongs to")
+    questions: List[QuestionCreate] = Field(..., min_items=1, description="Test must have at least one question")
+    timeLimit: Optional[int] = Field(None, ge=1, le=480, description="Time limit in minutes (1-480)")
+    maxAttempts: int = Field(2, ge=1, le=5, description="Maximum attempts allowed (1-5)")
+    passingScore: float = Field(75.0, ge=0.0, le=100.0, description="Passing score percentage")
+    shuffleQuestions: bool = False
+    showResults: bool = True
+    isPublished: bool = False
+
+class FinalTestInDB(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    title: str
+    description: Optional[str] = None
+    programId: str
+    programName: Optional[str] = None  # Denormalized
+    questions: List[QuestionInDB]
+    timeLimit: Optional[int] = None
+    maxAttempts: int
+    passingScore: float
+    shuffleQuestions: bool
+    showResults: bool
+    isPublished: bool
+    totalPoints: int = 0  # Calculated field
+    questionCount: int = 0  # Calculated field
+    createdBy: str
+    createdByName: str  # Denormalized
+    isActive: bool = True
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class FinalTestResponse(BaseModel):
+    id: str
+    title: str
+    description: Optional[str] = None
+    programId: str
+    programName: Optional[str] = None
+    timeLimit: Optional[int] = None
+    maxAttempts: int
+    passingScore: float
+    shuffleQuestions: bool
+    showResults: bool
+    isPublished: bool
+    totalPoints: int
+    questionCount: int
+    createdBy: str
+    createdByName: str
+    isActive: bool
+    created_at: datetime
+    updated_at: datetime
+
+class FinalTestWithQuestionsResponse(FinalTestResponse):
+    questions: List[QuestionResponse]
+
+class FinalTestUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    timeLimit: Optional[int] = None
+    maxAttempts: Optional[int] = None
+    passingScore: Optional[float] = None
+    shuffleQuestions: Optional[bool] = None
+    showResults: Optional[bool] = None
+    isPublished: Optional[bool] = None
+
+class FinalTestAttemptCreate(BaseModel):
+    finalTestId: str
+    answers: List[str]  # Student's answers in order
+
+class FinalTestAttemptInDB(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    finalTestId: str
+    testTitle: str  # Denormalized
+    programId: str  # Denormalized
+    programName: str  # Denormalized
+    studentId: str
+    studentName: str  # Denormalized
+    answers: List[str]
+    score: float = 0.0  # Percentage
+    pointsEarned: int = 0
+    totalPoints: int = 0
+    isPassed: bool = False
+    timeSpent: Optional[int] = None  # Minutes
+    startedAt: datetime = Field(default_factory=datetime.utcnow)
+    completedAt: Optional[datetime] = None
+    attemptNumber: int = 1
+    status: str = "completed"  # in_progress, completed, timed_out
+    isActive: bool = True
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class FinalTestAttemptResponse(BaseModel):
+    id: str
+    finalTestId: str
+    testTitle: str
+    programId: str
+    programName: str
+    studentId: str
+    studentName: str
+    score: float
+    pointsEarned: int
+    totalPoints: int
+    isPassed: bool
+    timeSpent: Optional[int] = None
+    startedAt: datetime
+    completedAt: Optional[datetime] = None
+    attemptNumber: int
+    status: str
+    isActive: bool
+    created_at: datetime
+
+class FinalTestAttemptWithAnswersResponse(FinalTestAttemptResponse):
+    answers: List[str]
+
+
+# =============================================================================
 # QUIZ/ASSESSMENT ENDPOINTS
 # =============================================================================
 
