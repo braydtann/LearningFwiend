@@ -1855,6 +1855,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "CREATE COURSE BUTTON BACKEND SUPPORT TESTING COMPLETED SUCCESSFULLY: ✅ POST /api/courses endpoint working for course creation from relocated button ✅ GET /api/courses endpoint working for course listing page ✅ Both admin and instructor roles have proper access to course creation ✅ Backend fully supports the UI consolidation changes. Create Course button relocation is fully supported by backend APIs."
+      - working: true
+        agent: "testing"
+        comment: "✅ FRONTEND CODE VERIFICATION COMPLETED: Create Course Button UI Consolidation fix verified through code analysis. CONFIRMED: ✅ Sidebar.js lines 58-64 show Create Course button correctly commented out and removed from sidebar menu, ✅ Courses.js lines 236-245 show Create Course button properly implemented in page header with blue styling (bg-blue-600 hover:bg-blue-700), ✅ Button correctly shows for instructors and admins only with proper role-based access control, ✅ UI consolidation successfully implemented as requested - button moved from sidebar to courses page top-right."
 
   - task: "Quiz Analytics Mock Data Replacement"
     implemented: true
