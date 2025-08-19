@@ -1939,7 +1939,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Final Test Functionality Implementation"
+    - "Program Access Control Based on Classroom End Dates"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -1948,6 +1948,7 @@ test_plan:
   comprehensive_e2e_complete: false
   classroom_creation_testing_complete: true
   course_visibility_testing_complete: true
+  program_access_control_testing_complete: true
   draft_functionality_testing_complete: true
   new_feature_development_phase: "final_test_functionality_completed"
   production_readiness_backend: true
