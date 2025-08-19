@@ -16679,6 +16679,7 @@ class BackendTester:
             print()
             
             # Execute comprehensive course completion testing
+            self.test_course_progress_tracking_comprehensive()
             self.test_course_completion_workflow()
             self.test_progress_tracking_accuracy()
             self.test_certificate_generation_scenarios()
