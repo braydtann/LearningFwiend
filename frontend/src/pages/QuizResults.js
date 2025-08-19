@@ -163,18 +163,20 @@ const QuizResults = () => {
     inProgressAttempts: filteredAttempts.filter(attempt => attempt.status === 'in_progress' || !attempt.status).length
   };
 
-  // Get recent quiz attempts with user details
+  // Get recent quiz attempts with enhanced details from real backend data
   const recentAttempts = filteredAttempts
     .filter(attempt => attempt.status === 'completed')
     .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt))
     .slice(0, 10)
     .map(attempt => {
-      const student = mockUsers.find(u => u.id === attempt.userId);
-      const course = mockCourses.find(c => c.id === attempt.courseId);
+      // Find corresponding quiz and course for this attempt
+      const quiz = quizzes.find(q => q.id === attempt.quizId);
+      const course = courses.find(c => c.id === quiz?.courseId);
       return {
         ...attempt,
-        studentName: student?.name || 'Unknown',
-        courseName: course?.title || 'Unknown Course'
+        studentName: attempt.studentName || 'Unknown Student',
+        courseName: course?.title || 'Unknown Course',
+        quizTitle: quiz?.title || attempt.quizTitle || 'Unknown Quiz'
       };
     });
 
