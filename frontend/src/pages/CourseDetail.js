@@ -281,12 +281,14 @@ const CourseDetail = () => {
         targetModuleProgress.lessons.push(lessonProgress);
       }
       
-      // Skip if already completed
+      // Check if current lesson is already completed before marking it
       if (lessonProgress.completed) {
         toast({
           title: "Already completed!",
           description: `"${lesson.title}" is already marked as complete.`,
         });
+        // Even if already completed, refresh state to ensure UI is consistent
+        await loadEnrollments();
         return;
       }
       
@@ -313,7 +315,8 @@ const CourseDetail = () => {
       
       const overallProgress = totalLessons > 0 ? (totalCompletedLessons / totalLessons) * 100 : 0;
       
-      console.log(`Progress calculation: ${totalCompletedLessons}/${totalLessons} = ${overallProgress}%`);
+      console.log(`Progress DEBUG: Total lessons: ${totalLessons}, Completed: ${totalCompletedLessons}, Progress: ${overallProgress}%`);
+      console.log('Module progress data:', JSON.stringify(moduleProgress, null, 2));
       
       // Update progress in backend
       const result = await updateEnrollmentProgress(id, {
