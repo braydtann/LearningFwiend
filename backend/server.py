@@ -3452,11 +3452,13 @@ async def submit_quiz_attempt(
         "quizTitle": quiz['title'],
         "studentId": current_user.id,
         "studentName": current_user.full_name,
+        "userId": current_user.id,  # Add userId field for analytics
         "answers": attempt_data.answers,
         "score": round(score_percentage, 2),
         "pointsEarned": points_earned,
         "totalPoints": total_points,
         "isPassed": is_passed,
+        "status": "completed",  # Add status field for analytics
         "startedAt": datetime.utcnow(),  # Add missing startedAt field
         "completedAt": datetime.utcnow(),
         "attemptNumber": existing_attempts + 1,
