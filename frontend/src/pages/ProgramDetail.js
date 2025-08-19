@@ -305,9 +305,19 @@ const ProgramDetail = () => {
                             size="sm"
                             onClick={() => navigate(`/course/${course.id}`)}
                             className="flex items-center space-x-2"
+                            disabled={isLearner && accessStatus && !accessStatus.hasAccess}
                           >
-                            <Play className="w-4 h-4" />
-                            <span>Start Course</span>
+                            {isLearner && accessStatus && !accessStatus.hasAccess ? (
+                              <>
+                                <Lock className="w-4 h-4" />
+                                <span>Access Restricted</span>
+                              </>
+                            ) : (
+                              <>
+                                <Play className="w-4 h-4" />
+                                <span>Start Course</span>
+                              </>
+                            )}
                           </Button>
                         </div>
                       </div>
