@@ -589,6 +589,8 @@ const QuizAndTestResults = () => {
             </Card>
           </div>
         </TabsContent>
+      </Tabs>
+        </TabsContent>
 
         <TabsContent value="tests" className="space-y-6">
           <Card>
