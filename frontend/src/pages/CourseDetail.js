@@ -20,14 +20,22 @@ import {
   Download,
   Presentation,
   AlertTriangle,
-  Lock
+  Lock,
+  ChevronRight,
+  SkipForward
 } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 
 const CourseDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user, isLearner, getCourseById, getMyEnrollments } = useAuth();
+  const { 
+    user, 
+    isLearner, 
+    getCourseById, 
+    getMyEnrollments, 
+    updateEnrollmentProgress 
+  } = useAuth();
   const { toast } = useToast();
   const [selectedLesson, setSelectedLesson] = useState(null);
   const [course, setCourse] = useState(null);
@@ -35,6 +43,8 @@ const CourseDetail = () => {
   const [error, setError] = useState(null);
   const [enrollments, setEnrollments] = useState([]);
   const [loadingEnrollments, setLoadingEnrollments] = useState(true);
+  const [currentEnrollment, setCurrentEnrollment] = useState(null);
+  const [nextAction, setNextAction] = useState(null); // { type: 'module'|'lesson', target: {...} }
 
   // Load course data and enrollments from backend
   useEffect(() => {
