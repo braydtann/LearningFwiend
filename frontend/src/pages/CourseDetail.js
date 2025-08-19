@@ -46,7 +46,7 @@ const CourseDetail = () => {
   const [loadingEnrollments, setLoadingEnrollments] = useState(true);
   const [currentEnrollment, setCurrentEnrollment] = useState(null);
   const [nextAction, setNextAction] = useState(null); // { type: 'module'|'lesson', target: {...} }
-  const [progress, setProgress] = useState(0); // Add explicit progress state
+  const [progressValue, setProgressValue] = useState(0); // Explicit progress state for UI updates
 
   // Load course data and enrollments from backend
   useEffect(() => {
