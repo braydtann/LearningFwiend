@@ -55,6 +55,7 @@ const Programs = () => {
   });
 
   const [programs, setPrograms] = useState([]);
+  const [programAccessStatus, setProgramAccessStatus] = useState({}); // Store access status for each program
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
 
