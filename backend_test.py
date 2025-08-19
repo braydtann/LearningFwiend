@@ -26448,51 +26448,28 @@ class BackendTester:
 
 
 if __name__ == "__main__":
+    print("🚨 URGENT ADMIN AUTHENTICATION TROUBLESHOOTING")
+    print("=" * 80)
+    print("User reported: Admin credentials not working after redeployment")
+    print("Admin email: brayden.t@covesmart.com")
+    print("Admin password: Hawaii2020!")
+    print("These credentials were working before deployment issues")
+    print("=" * 80)
+    
     tester = BackendTester()
     
-    # Run COURSE PROGRESS TRACKING ENHANCEMENT TESTING based on review request
-    print("🎯 EXECUTING COURSE PROGRESS TRACKING ENHANCEMENT TESTING SUITE")
-    print("Based on review request: Test the newly implemented course progress tracking enhancement functionality")
-    print()
-    print("=" * 80)
-    print("📈 COURSE PROGRESS TRACKING ENHANCEMENT TESTING - CRITICAL PRIORITY")
-    print("=" * 80)
-    print("Testing course progress tracking enhancement functionality:")
-    print("• PUT /api/enrollments/{course_id}/progress - Progress update endpoint")
-    print("• Progress calculation (0-100%)")
-    print("• Module progress tracking")
-    print("• Lesson completion tracking")
-    print("• currentModuleId and currentLessonId updates")
-    print("• lastAccessedAt timestamp updates")
-    print("• Automatic course completion when progress reaches 100%")
-    print("• Authentication and enrollment validation")
-    print("• Progress validation and edge cases")
-    print("=" * 80)
-    print()
+    # Run urgent admin authentication troubleshooting
+    admin_working = tester.run_urgent_admin_authentication_tests()
     
-    # Run authentication first
-    print("🔐 AUTHENTICATION SETUP")
-    print("=" * 50)
-    tester.test_admin_login()
-    tester.test_instructor_login()
-    tester.test_student_login()
+    if admin_working:
+        print(f"\n🎉 SUCCESS: Admin authentication issue has been resolved!")
+        print(f"The user can now login with: brayden.t@covesmart.com / Hawaii2020!")
+    else:
+        print(f"\n🚨 CRITICAL: Admin authentication is still failing!")
+        print(f"Immediate investigation and fix required.")
+        print(f"Check the detailed test results above for root cause analysis.")
     
-    # Run course progress tracking enhancement tests
-    progress_tracking_tests = [
-        ("Course Progress Tracking Enhancement - Comprehensive", tester.test_course_progress_tracking_comprehensive)
-    ]
+    print(f"\nTest completed at: {datetime.now().isoformat()}")
     
-    print(f"\n🧪 Running {len(progress_tracking_tests)} comprehensive course progress tracking tests...")
-    print()
-    
-    for test_name, test_func in progress_tracking_tests:
-        print(f"Running: {test_name}...")
-        test_func()
-    
-    print()
-    print("=" * 80)
-    print("📊 COURSE PROGRESS TRACKING ENHANCEMENT TEST RESULTS SUMMARY")
-    print("=" * 80)
-    summary = tester.generate_summary()
-    print()
-    print("✅ COURSE PROGRESS TRACKING ENHANCEMENT TESTING COMPLETED")
+    # Exit with appropriate code
+    sys.exit(0 if admin_working else 1)
