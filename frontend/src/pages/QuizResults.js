@@ -119,46 +119,48 @@ const QuizResults = () => {
     }
   };
 
-  // Get quiz analytics - still using mock data as quiz system isn't fully implemented in backend
-  const analytics = getInstructorQuizAnalytics(user?.id);
+  // Get quiz analytics - now using real backend data
+  const analytics = {
+    totalQuizzes: quizzes.length,
+    totalCourses: courses.length,
+    totalStudents: 0, // This would need a separate API call to count students
+    averageScore: 0
+  };
 
-  // Filter results and attempts based on selections
-  let filteredResults = mockQuizResults;
-  let filteredAttempts = mockQuizAttempts;
+  // Filter results and attempts based on selections using REAL data
+  let filteredQuizzes = quizzes;
+  let filteredAttempts = quizAttempts;
   
   if (selectedCourse !== 'all') {
-    filteredResults = filteredResults.filter(result => result.courseId === selectedCourse);
-    filteredAttempts = filteredAttempts.filter(attempt => attempt.courseId === selectedCourse);
+    filteredQuizzes = quizzes.filter(quiz => quiz.courseId === selectedCourse);
+    filteredAttempts = quizAttempts.filter(attempt => {
+      // Find quiz for this attempt and check if it's in the selected course
+      const quiz = quizzes.find(q => q.id === attempt.quizId);
+      return quiz && quiz.courseId === selectedCourse;
+    });
   }
 
   // Apply classroom filter if selected
-  // Note: This is simplified since we don't have classroom enrollment backend yet
+  // Note: This would need classroom-student relationship data from backend
   if (selectedClassroom !== 'all') {
     // For now, this is a placeholder until classroom-student relationships are fully implemented
     // In a real implementation, we would fetch students from the selected classroom
-    filteredResults = filteredResults.filter(result => {
-      // This is mock logic - in real implementation would check if student is in classroom
-      return true; // Keep all results for now
-    });
-    
-    filteredAttempts = filteredAttempts.filter(attempt => {
-      // This is mock logic - in real implementation would check if student is in classroom
-      return true; // Keep all attempts for now
-    });
+    // and filter attempts by those student IDs
+    console.log('Classroom filtering not yet implemented - would need student roster data');
   }
 
-  // Calculate statistics
+  // Calculate real statistics from backend data
   const stats = {
-    totalQuizzes: analytics.totalQuizzes,
+    totalQuizzes: filteredQuizzes.length,
     totalAttempts: filteredAttempts.length,
-    averageScore: filteredResults.length > 0 
-      ? Math.round(filteredResults.reduce((sum, result) => sum + result.averageScore, 0) / filteredResults.length)
+    averageScore: filteredAttempts.length > 0 
+      ? Math.round(filteredAttempts.reduce((sum, attempt) => sum + (attempt.score || 0), 0) / filteredAttempts.length)
       : 0,
-    passRate: filteredResults.length > 0 
-      ? Math.round((filteredResults.filter(result => result.passed).length / filteredResults.length) * 100)
+    passRate: filteredAttempts.length > 0 
+      ? Math.round((filteredAttempts.filter(attempt => attempt.isPassed).length / filteredAttempts.length) * 100)
       : 0,
     completedAttempts: filteredAttempts.filter(attempt => attempt.status === 'completed').length,
-    inProgressAttempts: filteredAttempts.filter(attempt => attempt.status === 'in-progress').length
+    inProgressAttempts: filteredAttempts.filter(attempt => attempt.status === 'in_progress' || !attempt.status).length
   };
 
   // Get recent quiz attempts with user details
