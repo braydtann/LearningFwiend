@@ -152,16 +152,21 @@ const CourseDetail = () => {
 
   // Calculate real progress based on enrollment data
   const calculateProgress = () => {
-    if (!currentEnrollment || !course) return 0;
+    return calculateProgressFromEnrollment(currentEnrollment);
+  };
+
+  // Helper function to calculate progress from any enrollment object
+  const calculateProgressFromEnrollment = (enrollment) => {
+    if (!enrollment || !course) return 0;
     
     // First try to calculate from moduleProgress (most accurate)
-    if (currentEnrollment.moduleProgress && course.modules) {
+    if (enrollment.moduleProgress && course.modules) {
       const totalLessons = course.modules.reduce((total, module) => 
         total + (module.lessons?.length || 0), 0);
       
       if (totalLessons === 0) return 0;
       
-      const completedLessons = currentEnrollment.moduleProgress.reduce((total, moduleProgress) => 
+      const completedLessons = enrollment.moduleProgress.reduce((total, moduleProgress) => 
         total + (moduleProgress.lessons?.filter(l => l.completed).length || 0), 0);
       
       const calculatedProgress = Math.round((completedLessons / totalLessons) * 100);
@@ -170,9 +175,9 @@ const CourseDetail = () => {
     }
     
     // Fallback to backend progress if available
-    if (currentEnrollment.progress !== undefined && currentEnrollment.progress !== null) {
-      console.log(`Using backend progress: ${currentEnrollment.progress}%`);
-      return Math.round(currentEnrollment.progress);
+    if (enrollment.progress !== undefined && enrollment.progress !== null) {
+      console.log(`Using backend progress: ${enrollment.progress}%`);
+      return Math.round(enrollment.progress);
     }
     
     // For legacy enrollments without moduleProgress, initialize with 0
