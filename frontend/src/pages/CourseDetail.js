@@ -129,7 +129,7 @@ const CourseDetail = () => {
     return 0;
   };
 
-  // Calculate next action (next lesson or next module)
+  // Calculate next action (next lesson, next module, or complete course)
   const calculateNextAction = () => {
     if (!course?.modules || !selectedLesson) {
       setNextAction(null);
@@ -160,6 +160,42 @@ const CourseDetail = () => {
     }
     
     const currentModule = course.modules[currentModuleIndex];
+    const isLastModule = currentModuleIndex === course.modules.length - 1;
+    const isLastLessonInModule = currentLessonIndex === currentModule.lessons.length - 1;
+    
+    // Check if this is the very last lesson in the course
+    if (isLastModule && isLastLessonInModule) {
+      // Calculate how many lessons are still incomplete
+      const totalLessons = course.modules.reduce((total, module) => 
+        total + (module.lessons?.length || 0), 0);
+      
+      let completedLessons = 0;
+      if (currentEnrollment?.moduleProgress) {
+        completedLessons = currentEnrollment.moduleProgress.reduce((total, mp) => 
+          total + mp.lessons.filter(l => l.completed).length, 0);
+      }
+      
+      // Check if current lesson is completed
+      const currentLessonCompleted = isLessonCompleted(selectedLesson.id);
+      if (currentLessonCompleted) {
+        completedLessons += 0; // Already counted
+      } else {
+        // If we complete this lesson, how many total would be completed?
+        completedLessons += 1;
+      }
+      
+      const allLessonsWillBeCompleted = completedLessons >= totalLessons;
+      
+      setNextAction({
+        type: 'complete',
+        target: null,
+        moduleIndex: currentModuleIndex,
+        lessonIndex: currentLessonIndex,
+        canComplete: allLessonsWillBeCompleted,
+        remainingLessons: totalLessons - completedLessons + (currentLessonCompleted ? 0 : 1)
+      });
+      return;
+    }
     
     // Check if there's a next lesson in current module
     if (currentLessonIndex < currentModule.lessons.length - 1) {
