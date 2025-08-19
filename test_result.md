@@ -58,7 +58,7 @@
 ##
 ## agent_communication:
 ##     -agent: "main"  # or "testing" or "user"
-##     -message: "ALL 4 NEW BUGS SUCCESSFULLY FIXED: 1) Student classroom editing permissions removed - only instructors/admins can edit, 2) LoginPal visibility hidden on login page and admin dashboard, 3) Announcement 'Post' button white screen fixed by correcting field mapping (content vs message), 4) User department dropdown now loads from real backend departments API instead of extracting from users. All fixes tested and working correctly."
+##     -message: "3 ADDITIONAL BUGS REPORTED: User identified more issues to fix: 1) Google Drive image URLs with 'anyone with link can view' permissions not displaying as thumbnails for courses/quizzes, 2) Move 'Create Course' button from sidebar to top-right of courses page for better UI consolidation, 3) Quiz Analytics page filter and course breakdown still using mock data instead of real backend courses. Starting systematic fixes for these UI/UX and data integration issues."
 
 # Protocol Guidelines for Main agent
 #
