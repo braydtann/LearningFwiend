@@ -701,6 +701,36 @@ const CourseDetail = () => {
               </div>
             )}
 
+            {/* Start Course Button - When no lesson is selected */}
+            {!selectedLesson && isEnrolled && course?.modules?.length > 0 && (
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-lg mb-6 border border-green-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">Ready to start learning?</h3>
+                    <p className="text-gray-600">
+                      Begin your journey with the first lesson: {course.modules[0]?.lessons?.[0]?.title || 'First lesson'}
+                    </p>
+                  </div>
+                  <Button 
+                    className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg"
+                    onClick={() => {
+                      const firstLesson = course.modules[0]?.lessons?.[0];
+                      if (firstLesson) {
+                        setSelectedLesson(firstLesson);
+                        toast({
+                          title: "Course started!",
+                          description: `Welcome to ${course.title}. Let's begin your learning journey!`,
+                        });
+                      }
+                    }}
+                  >
+                    <Play className="w-5 h-5 mr-2" />
+                    Start Course
+                  </Button>
+                </div>
+              </div>
+            )}
+
             {/* Next Module/Lesson/Complete Course Button - Below main content */}
             {selectedLesson && nextAction && isEnrolled && (
               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg mb-6 border border-blue-200">
