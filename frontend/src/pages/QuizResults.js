@@ -254,50 +254,50 @@ const QuizAndTestResults = () => {
 
         <TabsContent value="quizzes" className="space-y-6">
           {/* Enhanced Filters */}
-      <Card className="bg-gray-50">
-        <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="course-filter">Filter by Course</Label>
-              <Select value={selectedCourse} onValueChange={setSelectedCourse}>
-                <SelectTrigger id="course-filter">
-                  <SelectValue placeholder="All Courses" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Courses</SelectItem>
-                  {courses.map(course => (
-                    <SelectItem key={course.id} value={course.id}>{course.title}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <Card className="bg-gray-50">
+            <CardContent className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="course-filter">Filter by Course</Label>
+                  <Select value={selectedCourse} onValueChange={setSelectedCourse}>
+                    <SelectTrigger id="course-filter">
+                      <SelectValue placeholder="All Courses" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Courses</SelectItem>
+                      {courses.map(course => (
+                        <SelectItem key={course.id} value={course.id}>{course.title}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="classroom-filter">Filter by Classroom</Label>
-              <Select value={selectedClassroom} onValueChange={setSelectedClassroom}>
-                <SelectTrigger id="classroom-filter">
-                  <SelectValue placeholder="All Classrooms" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Classrooms</SelectItem>
-                  {classrooms.map(classroom => (
-                    <SelectItem key={classroom.id} value={classroom.id}>
-                      {classroom.name} ({classroom.batchId})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="classroom-filter">Filter by Classroom</Label>
+                  <Select value={selectedClassroom} onValueChange={setSelectedClassroom}>
+                    <SelectTrigger id="classroom-filter">
+                      <SelectValue placeholder="All Classrooms" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Classrooms</SelectItem>
+                      {classrooms.map(classroom => (
+                        <SelectItem key={classroom.id} value={classroom.id}>
+                          {classroom.name} ({classroom.batchId})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <div className="flex items-end">
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  setSelectedCourse('all');
-                  setSelectedClassroom('all');
-                }}
-                className="w-full"
-              >
+                <div className="flex items-end">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setSelectedCourse('all');
+                      setSelectedClassroom('all');
+                    }}
+                    className="w-full"
+                  >
                 <Filter className="w-4 h-4 mr-2" />
                 Clear Filters
               </Button>
