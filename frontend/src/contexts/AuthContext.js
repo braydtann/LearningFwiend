@@ -1463,6 +1463,37 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateEnrollmentProgress = async (courseId, progressData) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/enrollments/${courseId}/progress`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(progressData),
+      });
+
+      if (response.ok) {
+        const updatedEnrollment = await response.json();
+        return { success: true, enrollment: updatedEnrollment };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to update enrollment progress' 
+        };
+      }
+    } catch (error) {
+      console.error('Update enrollment progress error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
   const deleteEnrollment = async (enrollmentId) => {
     try {
       const token = localStorage.getItem('auth_token');
