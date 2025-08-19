@@ -193,9 +193,139 @@ const CourseDetail = () => {
 
   // Check if user is enrolled using real backend data
   const isEnrolled = isLearner && currentEnrollment;
-  
+  // Get calculated progress
+  const progress = calculateProgress();
+
+  // For now, allow access to enrolled courses - classroom restrictions can be added later  
+  const canAccessCourse = !isLearner || isEnrolled;
+
+  // Mark lesson as complete and update progress
+  const markLessonComplete = async (lessonId) => {
+    if (!currentEnrollment || !course) return;
+    
+    try {
+      // Find the lesson and module
+      let moduleId = null;
+      let lesson = null;
+      
+      for (const module of course.modules || []) {
+        const foundLesson = module.lessons?.find(l => l.id === lessonId);
+        if (foundLesson) {
+          lesson = foundLesson;
+          moduleId = module.id;
+          break;
+        }
+      }
+      
+      if (!lesson || !moduleId) return;
+      
+      // Update enrollment progress
+      const moduleProgress = currentEnrollment.moduleProgress || [];
+      let targetModuleProgress = moduleProgress.find(m => m.moduleId === moduleId);
+      
+      if (!targetModuleProgress) {
+        targetModuleProgress = {
+          moduleId: moduleId,
+          lessons: [],
+          completed: false,
+          completedAt: null
+        };
+        moduleProgress.push(targetModuleProgress);
+      }
+      
+      // Update lesson progress
+      let lessonProgress = targetModuleProgress.lessons.find(l => l.lessonId === lessonId);
+      if (!lessonProgress) {
+        lessonProgress = {
+          lessonId: lessonId,
+          completed: false,
+          completedAt: null,
+          timeSpent: 0
+        };
+        targetModuleProgress.lessons.push(lessonProgress);
+      }
+      
+      lessonProgress.completed = true;
+      lessonProgress.completedAt = new Date().toISOString();
+      
+      // Check if module is complete
+      const moduleFromCourse = course.modules.find(m => m.id === moduleId);
+      const moduleLessons = moduleFromCourse?.lessons || [];
+      const completedLessonsInModule = targetModuleProgress.lessons.filter(l => l.completed);
+      
+      if (completedLessonsInModule.length === moduleLessons.length) {
+        targetModuleProgress.completed = true;
+        targetModuleProgress.completedAt = new Date().toISOString();
+      }
+      
+      // Calculate overall progress
+      const totalLessons = course.modules.reduce((total, module) => 
+        total + (module.lessons?.length || 0), 0);
+      const totalCompletedLessons = moduleProgress.reduce((total, mp) => 
+        total + mp.lessons.filter(l => l.completed).length, 0);
+      const overallProgress = totalLessons > 0 ? (totalCompletedLessons / totalLessons) * 100 : 0;
+      
+      // Update progress in backend
+      const result = await updateEnrollmentProgress(id, {
+        progress: overallProgress,
+        currentLessonId: lessonId,
+        currentModuleId: moduleId,
+        moduleProgress: moduleProgress,
+        lastAccessedAt: new Date().toISOString()
+      });
+      
+      if (result.success) {
+        // Update local state
+        setCurrentEnrollment(result.enrollment);
+        
+        toast({
+          title: "Lesson completed!",
+          description: `Great job! You've completed "${lesson.title}".`,
+        });
+      } else {
+        console.error('Failed to update progress:', result.error);
+      }
+    } catch (error) {
+      console.error('Error marking lesson complete:', error);
+    }
+  };
+
+  // Handle next module/lesson navigation
+  const handleNextAction = async () => {
+    if (!nextAction || !selectedLesson) return;
+    
+    try {
+      // First mark current lesson as complete
+      await markLessonComplete(selectedLesson.id);
+      
+      // Then navigate to next lesson
+      setSelectedLesson(nextAction.target);
+      
+      const actionType = nextAction.type === 'module' ? 'module' : 'lesson';
+      const nextTitle = nextAction.type === 'module' ? nextAction.nextModuleTitle : nextAction.target.title;
+      
+      toast({
+        title: `Moving to next ${actionType}!`,
+        description: `Now starting: ${nextTitle}`,
+      });
+    } catch (error) {
+      console.error('Error handling next action:', error);
+    }
+  };
+
+  // Check if lesson is completed
+  const isLessonCompleted = (lessonId) => {
+    if (!currentEnrollment?.moduleProgress) return false;
+    
+    for (const moduleProgress of currentEnrollment.moduleProgress) {
+      const lessonProgress = moduleProgress.lessons?.find(l => l.lessonId === lessonId);
+      if (lessonProgress?.completed) return true;
+    }
+    return false;
+  };
+
   // For now, set basic progress - this can be enhanced later with real progress tracking
-  const progress = 0; // TODO: Implement real progress tracking
+  // const progress = 0; // TODO: Implement real progress tracking
 
   // For now, allow access to enrolled courses - classroom restrictions can be added later  
   const canAccessCourse = !isLearner || isEnrolled;
