@@ -11,8 +11,8 @@ import sys
 from datetime import datetime
 import time
 
-# Configuration - Using External URL from frontend/.env
-BACKEND_URL = "https://edusys-migration.preview.emergentagent.com/api"
+# Configuration - Using Local Backend URL
+BACKEND_URL = "http://localhost:8001/api"
 TEST_TIMEOUT = 15
 
 class BackendTester:
