@@ -68,6 +68,24 @@ const Programs = () => {
         const programsResult = await getAllPrograms();
         if (programsResult.success) {
           setPrograms(programsResult.programs);
+          
+          // For learners, check access status for each program
+          if (isLearner && programsResult.programs.length > 0) {
+            const accessStatusPromises = programsResult.programs.map(async (program) => {
+              const accessResult = await checkProgramAccess(program.id);
+              return {
+                programId: program.id,
+                ...accessResult
+              };
+            });
+            
+            const accessResults = await Promise.all(accessStatusPromises);
+            const statusMap = {};
+            accessResults.forEach(result => {
+              statusMap[result.programId] = result;
+            });
+            setProgramAccessStatus(statusMap);
+          }
         } else {
           toast({
             title: "Error loading programs",
