@@ -1494,6 +1494,36 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const migrateEnrollmentProgress = async (enrollmentId) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/enrollments/${enrollmentId}/migrate-progress`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        return { success: true, result };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to migrate enrollment progress' 
+        };
+      }
+    } catch (error) {
+      console.error('Migrate enrollment progress error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
   const deleteEnrollment = async (enrollmentId) => {
     try {
       const token = localStorage.getItem('auth_token');
