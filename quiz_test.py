@@ -274,6 +274,7 @@ class QuizTester:
                 "courseId": course_id,
                 "timeLimit": 30,
                 "passingScore": 70,
+                "isPublished": True,  # Make sure quiz is published so students can attempt it
                 "questions": [
                     {
                         "type": "multiple_choice",
