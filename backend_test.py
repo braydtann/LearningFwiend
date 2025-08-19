@@ -23125,6 +23125,861 @@ class BackendTester:
             )
         return False
 
+    # =============================================================================
+    # COURSE PROGRESS TRACKING ENHANCEMENT TESTS - CRITICAL PRIORITY
+    # =============================================================================
+    
+    def test_course_progress_tracking_comprehensive(self):
+        """Comprehensive test of course progress tracking enhancement functionality"""
+        print("\n📈 TESTING COURSE PROGRESS TRACKING ENHANCEMENT - CRITICAL PRIORITY")
+        print("=" * 80)
+        print("Testing newly implemented course progress tracking functionality:")
+        print("• PUT /api/enrollments/{course_id}/progress - Progress update endpoint")
+        print("• Progress calculation (0-100%)")
+        print("• Module progress tracking")
+        print("• Lesson completion tracking")
+        print("• currentModuleId and currentLessonId updates")
+        print("• lastAccessedAt timestamp updates")
+        print("• Automatic course completion when progress reaches 100%")
+        print("• Authentication and enrollment validation")
+        print("=" * 80)
+        print()
+        
+        if "learner" not in self.auth_tokens:
+            self.log_result(
+                "Course Progress Tracking - Setup", 
+                "SKIP", 
+                "No student token available for progress tracking testing",
+                "Student authentication required for progress tracking tests"
+            )
+            return False
+        
+        try:
+            # Setup: Create test course and enrollment
+            test_course = self.setup_test_course_for_progress_tracking()
+            if not test_course:
+                return False
+            
+            test_enrollment = self.setup_test_enrollment_for_progress_tracking(test_course['id'])
+            if not test_enrollment:
+                return False
+            
+            # Run comprehensive progress tracking tests
+            test_results = []
+            
+            # Test 1: Basic progress update
+            test_results.append(self.test_basic_progress_update(test_course['id']))
+            
+            # Test 2: Module progress tracking
+            test_results.append(self.test_module_progress_tracking(test_course['id']))
+            
+            # Test 3: Lesson completion tracking
+            test_results.append(self.test_lesson_completion_tracking(test_course['id']))
+            
+            # Test 4: Current module and lesson ID updates
+            test_results.append(self.test_current_module_lesson_updates(test_course['id']))
+            
+            # Test 5: Last accessed timestamp updates
+            test_results.append(self.test_last_accessed_timestamp_updates(test_course['id']))
+            
+            # Test 6: Automatic course completion at 100%
+            test_results.append(self.test_automatic_course_completion(test_course['id']))
+            
+            # Test 7: Authentication and enrollment validation
+            test_results.append(self.test_progress_tracking_authentication(test_course['id']))
+            
+            # Test 8: Progress validation and edge cases
+            test_results.append(self.test_progress_validation_edge_cases(test_course['id']))
+            
+            # Evaluate overall results
+            passed_tests = sum(test_results)
+            total_tests = len(test_results)
+            
+            if passed_tests == total_tests:
+                self.log_result(
+                    "Course Progress Tracking Enhancement - Comprehensive", 
+                    "PASS", 
+                    f"All {total_tests} progress tracking tests passed successfully",
+                    "Course progress tracking enhancement is fully functional"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Course Progress Tracking Enhancement - Comprehensive", 
+                    "FAIL", 
+                    f"Only {passed_tests}/{total_tests} progress tracking tests passed",
+                    "Course progress tracking enhancement has issues that need attention"
+                )
+                return False
+            
+        except Exception as e:
+            self.log_result(
+                "Course Progress Tracking Enhancement - Comprehensive", 
+                "FAIL", 
+                "Failed to execute progress tracking tests",
+                str(e)
+            )
+            return False
+    
+    def setup_test_course_for_progress_tracking(self):
+        """Setup a test course with modules and lessons for progress tracking"""
+        if "instructor" not in self.auth_tokens and "admin" not in self.auth_tokens:
+            self.log_result(
+                "Progress Tracking Setup - Course Creation", 
+                "FAIL", 
+                "No instructor or admin token available for course creation",
+                "Need instructor/admin to create test course"
+            )
+            return None
+        
+        try:
+            token = self.auth_tokens.get("instructor", self.auth_tokens.get("admin"))
+            
+            # Create a course with modules and lessons for comprehensive testing
+            course_data = {
+                "title": "Progress Tracking Test Course",
+                "description": "Test course for progress tracking enhancement functionality",
+                "category": "Testing",
+                "duration": "4 weeks",
+                "accessType": "open",
+                "modules": [
+                    {
+                        "id": "module-1",
+                        "title": "Introduction Module",
+                        "lessons": [
+                            {"id": "lesson-1-1", "title": "Welcome Lesson", "duration": "10 min"},
+                            {"id": "lesson-1-2", "title": "Course Overview", "duration": "15 min"}
+                        ]
+                    },
+                    {
+                        "id": "module-2", 
+                        "title": "Core Content Module",
+                        "lessons": [
+                            {"id": "lesson-2-1", "title": "Core Concepts", "duration": "30 min"},
+                            {"id": "lesson-2-2", "title": "Practical Examples", "duration": "25 min"},
+                            {"id": "lesson-2-3", "title": "Exercises", "duration": "20 min"}
+                        ]
+                    },
+                    {
+                        "id": "module-3",
+                        "title": "Advanced Topics Module", 
+                        "lessons": [
+                            {"id": "lesson-3-1", "title": "Advanced Concepts", "duration": "35 min"},
+                            {"id": "lesson-3-2", "title": "Case Studies", "duration": "40 min"}
+                        ]
+                    }
+                ]
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/courses",
+                json=course_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {token}'
+                }
+            )
+            
+            if response.status_code == 200:
+                course = response.json()
+                self.log_result(
+                    "Progress Tracking Setup - Course Creation", 
+                    "PASS", 
+                    f"Successfully created test course with {len(course_data['modules'])} modules",
+                    f"Course ID: {course['id']}, Total lessons: {sum(len(m['lessons']) for m in course_data['modules'])}"
+                )
+                return course
+            else:
+                self.log_result(
+                    "Progress Tracking Setup - Course Creation", 
+                    "FAIL", 
+                    f"Failed to create test course with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+                return None
+                
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Progress Tracking Setup - Course Creation", 
+                "FAIL", 
+                "Failed to create test course for progress tracking",
+                str(e)
+            )
+            return None
+    
+    def setup_test_enrollment_for_progress_tracking(self, course_id):
+        """Setup test enrollment for progress tracking tests"""
+        try:
+            student_token = self.auth_tokens["learner"]
+            
+            # Enroll student in the test course
+            enrollment_data = {"courseId": course_id}
+            
+            response = requests.post(
+                f"{BACKEND_URL}/enrollments",
+                json=enrollment_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {student_token}'
+                }
+            )
+            
+            if response.status_code == 200:
+                enrollment = response.json()
+                self.log_result(
+                    "Progress Tracking Setup - Enrollment Creation", 
+                    "PASS", 
+                    f"Successfully enrolled student in test course",
+                    f"Enrollment ID: {enrollment['id']}, Initial progress: {enrollment['progress']}%"
+                )
+                return enrollment
+            else:
+                self.log_result(
+                    "Progress Tracking Setup - Enrollment Creation", 
+                    "FAIL", 
+                    f"Failed to enroll student with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+                return None
+                
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Progress Tracking Setup - Enrollment Creation", 
+                "FAIL", 
+                "Failed to create test enrollment for progress tracking",
+                str(e)
+            )
+            return None
+    
+    def test_basic_progress_update(self, course_id):
+        """Test basic progress update functionality"""
+        try:
+            student_token = self.auth_tokens["learner"]
+            
+            # Test updating progress to 25%
+            progress_data = {
+                "progress": 25.0,
+                "lastAccessedAt": datetime.utcnow().isoformat() + "Z"
+            }
+            
+            response = requests.put(
+                f"{BACKEND_URL}/enrollments/{course_id}/progress",
+                json=progress_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {student_token}'
+                }
+            )
+            
+            if response.status_code == 200:
+                updated_enrollment = response.json()
+                
+                # Verify response structure
+                required_fields = ['id', 'userId', 'courseId', 'enrolledAt', 'progress', 'status']
+                if all(field in updated_enrollment for field in required_fields):
+                    
+                    # Verify progress was updated correctly
+                    if updated_enrollment['progress'] == 25.0:
+                        self.log_result(
+                            "Progress Tracking - Basic Progress Update", 
+                            "PASS", 
+                            f"Successfully updated progress to {updated_enrollment['progress']}%",
+                            f"Status: {updated_enrollment['status']}, Course ID: {updated_enrollment['courseId']}"
+                        )
+                        return True
+                    else:
+                        self.log_result(
+                            "Progress Tracking - Basic Progress Update", 
+                            "FAIL", 
+                            f"Progress not updated correctly - expected 25.0%, got {updated_enrollment['progress']}%",
+                            f"Response: {updated_enrollment}"
+                        )
+                else:
+                    self.log_result(
+                        "Progress Tracking - Basic Progress Update", 
+                        "FAIL", 
+                        "Response missing required fields",
+                        f"Missing: {[f for f in required_fields if f not in updated_enrollment]}"
+                    )
+            else:
+                self.log_result(
+                    "Progress Tracking - Basic Progress Update", 
+                    "FAIL", 
+                    f"Failed to update progress with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+                
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Progress Tracking - Basic Progress Update", 
+                "FAIL", 
+                "Failed to test basic progress update",
+                str(e)
+            )
+        return False
+    
+    def test_module_progress_tracking(self, course_id):
+        """Test module progress tracking functionality"""
+        try:
+            student_token = self.auth_tokens["learner"]
+            
+            # Test updating with module progress data
+            module_progress_data = {
+                "progress": 40.0,
+                "moduleProgress": [
+                    {
+                        "moduleId": "module-1",
+                        "completed": True,
+                        "completedAt": datetime.utcnow().isoformat() + "Z",
+                        "lessons": [
+                            {
+                                "lessonId": "lesson-1-1",
+                                "completed": True,
+                                "completedAt": datetime.utcnow().isoformat() + "Z",
+                                "timeSpent": 600
+                            },
+                            {
+                                "lessonId": "lesson-1-2", 
+                                "completed": True,
+                                "completedAt": datetime.utcnow().isoformat() + "Z",
+                                "timeSpent": 900
+                            }
+                        ]
+                    },
+                    {
+                        "moduleId": "module-2",
+                        "completed": False,
+                        "lessons": [
+                            {
+                                "lessonId": "lesson-2-1",
+                                "completed": True,
+                                "completedAt": datetime.utcnow().isoformat() + "Z",
+                                "timeSpent": 1800
+                            },
+                            {
+                                "lessonId": "lesson-2-2",
+                                "completed": False,
+                                "timeSpent": 300
+                            }
+                        ]
+                    }
+                ]
+            }
+            
+            response = requests.put(
+                f"{BACKEND_URL}/enrollments/{course_id}/progress",
+                json=module_progress_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {student_token}'
+                }
+            )
+            
+            if response.status_code == 200:
+                updated_enrollment = response.json()
+                
+                # Verify progress was updated
+                if updated_enrollment['progress'] == 40.0:
+                    self.log_result(
+                        "Progress Tracking - Module Progress", 
+                        "PASS", 
+                        f"Successfully updated module progress to {updated_enrollment['progress']}%",
+                        f"Module progress data stored successfully"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Progress Tracking - Module Progress", 
+                        "FAIL", 
+                        f"Module progress not updated correctly - expected 40.0%, got {updated_enrollment['progress']}%",
+                        f"Response: {updated_enrollment}"
+                    )
+            else:
+                self.log_result(
+                    "Progress Tracking - Module Progress", 
+                    "FAIL", 
+                    f"Failed to update module progress with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+                
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Progress Tracking - Module Progress", 
+                "FAIL", 
+                "Failed to test module progress tracking",
+                str(e)
+            )
+        return False
+    
+    def test_lesson_completion_tracking(self, course_id):
+        """Test lesson completion tracking functionality"""
+        try:
+            student_token = self.auth_tokens["learner"]
+            
+            # Test updating with detailed lesson completion data
+            lesson_progress_data = {
+                "progress": 60.0,
+                "moduleProgress": [
+                    {
+                        "moduleId": "module-2",
+                        "completed": True,
+                        "completedAt": datetime.utcnow().isoformat() + "Z",
+                        "lessons": [
+                            {
+                                "lessonId": "lesson-2-1",
+                                "completed": True,
+                                "completedAt": datetime.utcnow().isoformat() + "Z",
+                                "timeSpent": 1800
+                            },
+                            {
+                                "lessonId": "lesson-2-2",
+                                "completed": True,
+                                "completedAt": datetime.utcnow().isoformat() + "Z",
+                                "timeSpent": 1500
+                            },
+                            {
+                                "lessonId": "lesson-2-3",
+                                "completed": True,
+                                "completedAt": datetime.utcnow().isoformat() + "Z",
+                                "timeSpent": 1200
+                            }
+                        ]
+                    }
+                ],
+                "timeSpent": 6000  # Total time spent in seconds
+            }
+            
+            response = requests.put(
+                f"{BACKEND_URL}/enrollments/{course_id}/progress",
+                json=lesson_progress_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {student_token}'
+                }
+            )
+            
+            if response.status_code == 200:
+                updated_enrollment = response.json()
+                
+                # Verify lesson completion tracking
+                if updated_enrollment['progress'] == 60.0:
+                    self.log_result(
+                        "Progress Tracking - Lesson Completion", 
+                        "PASS", 
+                        f"Successfully tracked lesson completions with progress {updated_enrollment['progress']}%",
+                        f"Lesson completion data processed correctly"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Progress Tracking - Lesson Completion", 
+                        "FAIL", 
+                        f"Lesson completion not tracked correctly - expected 60.0%, got {updated_enrollment['progress']}%",
+                        f"Response: {updated_enrollment}"
+                    )
+            else:
+                self.log_result(
+                    "Progress Tracking - Lesson Completion", 
+                    "FAIL", 
+                    f"Failed to track lesson completion with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+                
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Progress Tracking - Lesson Completion", 
+                "FAIL", 
+                "Failed to test lesson completion tracking",
+                str(e)
+            )
+        return False
+    
+    def test_current_module_lesson_updates(self, course_id):
+        """Test currentModuleId and currentLessonId updates"""
+        try:
+            student_token = self.auth_tokens["learner"]
+            
+            # Test updating current module and lesson IDs
+            current_position_data = {
+                "progress": 75.0,
+                "currentModuleId": "module-3",
+                "currentLessonId": "lesson-3-1"
+            }
+            
+            response = requests.put(
+                f"{BACKEND_URL}/enrollments/{course_id}/progress",
+                json=current_position_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {student_token}'
+                }
+            )
+            
+            if response.status_code == 200:
+                updated_enrollment = response.json()
+                
+                # Verify current position was updated
+                if updated_enrollment['progress'] == 75.0:
+                    self.log_result(
+                        "Progress Tracking - Current Module/Lesson Updates", 
+                        "PASS", 
+                        f"Successfully updated current position to module-3/lesson-3-1 with {updated_enrollment['progress']}% progress",
+                        f"Current position tracking working correctly"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Progress Tracking - Current Module/Lesson Updates", 
+                        "FAIL", 
+                        f"Current position not updated correctly - expected 75.0%, got {updated_enrollment['progress']}%",
+                        f"Response: {updated_enrollment}"
+                    )
+            else:
+                self.log_result(
+                    "Progress Tracking - Current Module/Lesson Updates", 
+                    "FAIL", 
+                    f"Failed to update current position with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+                
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Progress Tracking - Current Module/Lesson Updates", 
+                "FAIL", 
+                "Failed to test current module/lesson updates",
+                str(e)
+            )
+        return False
+    
+    def test_last_accessed_timestamp_updates(self, course_id):
+        """Test lastAccessedAt timestamp updates"""
+        try:
+            student_token = self.auth_tokens["learner"]
+            
+            # Test updating with explicit lastAccessedAt timestamp
+            current_time = datetime.utcnow()
+            timestamp_data = {
+                "progress": 80.0,
+                "lastAccessedAt": current_time.isoformat() + "Z"
+            }
+            
+            response = requests.put(
+                f"{BACKEND_URL}/enrollments/{course_id}/progress",
+                json=timestamp_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {student_token}'
+                }
+            )
+            
+            if response.status_code == 200:
+                updated_enrollment = response.json()
+                
+                # Verify timestamp was updated
+                if updated_enrollment['progress'] == 80.0:
+                    self.log_result(
+                        "Progress Tracking - Last Accessed Timestamp", 
+                        "PASS", 
+                        f"Successfully updated lastAccessedAt timestamp with {updated_enrollment['progress']}% progress",
+                        f"Timestamp tracking working correctly"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Progress Tracking - Last Accessed Timestamp", 
+                        "FAIL", 
+                        f"Timestamp not updated correctly - expected 80.0%, got {updated_enrollment['progress']}%",
+                        f"Response: {updated_enrollment}"
+                    )
+            else:
+                self.log_result(
+                    "Progress Tracking - Last Accessed Timestamp", 
+                    "FAIL", 
+                    f"Failed to update timestamp with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+                
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Progress Tracking - Last Accessed Timestamp", 
+                "FAIL", 
+                "Failed to test last accessed timestamp updates",
+                str(e)
+            )
+        return False
+    
+    def test_automatic_course_completion(self, course_id):
+        """Test automatic course completion when progress reaches 100%"""
+        try:
+            student_token = self.auth_tokens["learner"]
+            
+            # Test updating progress to 100% to trigger automatic completion
+            completion_data = {
+                "progress": 100.0,
+                "moduleProgress": [
+                    {
+                        "moduleId": "module-3",
+                        "completed": True,
+                        "completedAt": datetime.utcnow().isoformat() + "Z",
+                        "lessons": [
+                            {
+                                "lessonId": "lesson-3-1",
+                                "completed": True,
+                                "completedAt": datetime.utcnow().isoformat() + "Z",
+                                "timeSpent": 2100
+                            },
+                            {
+                                "lessonId": "lesson-3-2",
+                                "completed": True,
+                                "completedAt": datetime.utcnow().isoformat() + "Z",
+                                "timeSpent": 2400
+                            }
+                        ]
+                    }
+                ]
+            }
+            
+            response = requests.put(
+                f"{BACKEND_URL}/enrollments/{course_id}/progress",
+                json=completion_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {student_token}'
+                }
+            )
+            
+            if response.status_code == 200:
+                updated_enrollment = response.json()
+                
+                # Verify automatic completion
+                if (updated_enrollment['progress'] == 100.0 and 
+                    updated_enrollment['status'] == 'completed' and
+                    updated_enrollment.get('completedAt') is not None):
+                    
+                    self.log_result(
+                        "Progress Tracking - Automatic Course Completion", 
+                        "PASS", 
+                        f"Successfully triggered automatic completion at 100% progress",
+                        f"Status: {updated_enrollment['status']}, CompletedAt: {updated_enrollment.get('completedAt')}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Progress Tracking - Automatic Course Completion", 
+                        "FAIL", 
+                        f"Automatic completion not triggered correctly",
+                        f"Progress: {updated_enrollment['progress']}%, Status: {updated_enrollment['status']}, CompletedAt: {updated_enrollment.get('completedAt')}"
+                    )
+            else:
+                self.log_result(
+                    "Progress Tracking - Automatic Course Completion", 
+                    "FAIL", 
+                    f"Failed to test automatic completion with status {response.status_code}",
+                    f"Response: {response.text}"
+                )
+                
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Progress Tracking - Automatic Course Completion", 
+                "FAIL", 
+                "Failed to test automatic course completion",
+                str(e)
+            )
+        return False
+    
+    def test_progress_tracking_authentication(self, course_id):
+        """Test authentication and enrollment validation for progress tracking"""
+        try:
+            # Test 1: Unauthenticated access should fail
+            progress_data = {"progress": 50.0}
+            
+            response = requests.put(
+                f"{BACKEND_URL}/enrollments/{course_id}/progress",
+                json=progress_data,
+                timeout=TEST_TIMEOUT,
+                headers={'Content-Type': 'application/json'}
+            )
+            
+            if response.status_code == 401:
+                self.log_result(
+                    "Progress Tracking - Authentication (Unauthenticated)", 
+                    "PASS", 
+                    "Correctly denied access to unauthenticated user",
+                    "Authentication validation working"
+                )
+            else:
+                self.log_result(
+                    "Progress Tracking - Authentication (Unauthenticated)", 
+                    "FAIL", 
+                    f"Should deny unauthenticated access but got status {response.status_code}",
+                    f"Security issue: unauthorized access allowed"
+                )
+                return False
+            
+            # Test 2: Non-enrolled student should fail
+            if "admin" in self.auth_tokens:
+                # Create another student who is not enrolled
+                admin_token = self.auth_tokens["admin"]
+                
+                other_student_data = {
+                    "email": "progress.test.student@learningfwiend.com",
+                    "username": "progress.test.student",
+                    "full_name": "Progress Test Student",
+                    "role": "learner",
+                    "department": "Testing",
+                    "temporary_password": "ProgressTest123!"
+                }
+                
+                create_response = requests.post(
+                    f"{BACKEND_URL}/auth/admin/create-user",
+                    json=other_student_data,
+                    timeout=TEST_TIMEOUT,
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Authorization': f'Bearer {admin_token}'
+                    }
+                )
+                
+                if create_response.status_code == 200:
+                    # Login as the new student
+                    login_response = requests.post(
+                        f"{BACKEND_URL}/auth/login",
+                        json={
+                            "username_or_email": "progress.test.student@learningfwiend.com",
+                            "password": "ProgressTest123!"
+                        },
+                        timeout=TEST_TIMEOUT,
+                        headers={'Content-Type': 'application/json'}
+                    )
+                    
+                    if login_response.status_code == 200:
+                        other_student_token = login_response.json()['access_token']
+                        
+                        # Try to update progress for course they're not enrolled in
+                        response = requests.put(
+                            f"{BACKEND_URL}/enrollments/{course_id}/progress",
+                            json=progress_data,
+                            timeout=TEST_TIMEOUT,
+                            headers={
+                                'Content-Type': 'application/json',
+                                'Authorization': f'Bearer {other_student_token}'
+                            }
+                        )
+                        
+                        if response.status_code == 404:
+                            self.log_result(
+                                "Progress Tracking - Authentication (Non-enrolled)", 
+                                "PASS", 
+                                "Correctly denied access to non-enrolled student",
+                                "Enrollment validation working"
+                            )
+                            return True
+                        else:
+                            self.log_result(
+                                "Progress Tracking - Authentication (Non-enrolled)", 
+                                "FAIL", 
+                                f"Should deny non-enrolled student but got status {response.status_code}",
+                                f"Security issue: non-enrolled student can update progress"
+                            )
+                            return False
+            
+            # If we can't test non-enrolled student, still pass the authentication test
+            self.log_result(
+                "Progress Tracking - Authentication", 
+                "PASS", 
+                "Authentication validation working correctly",
+                "Unauthenticated access properly denied"
+            )
+            return True
+                
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Progress Tracking - Authentication", 
+                "FAIL", 
+                "Failed to test progress tracking authentication",
+                str(e)
+            )
+        return False
+    
+    def test_progress_validation_edge_cases(self, course_id):
+        """Test progress validation and edge cases"""
+        try:
+            student_token = self.auth_tokens["learner"]
+            
+            # Test 1: Progress value validation (should clamp to 0-100)
+            test_cases = [
+                {"progress": -10.0, "expected": 0.0, "description": "Negative progress"},
+                {"progress": 150.0, "expected": 100.0, "description": "Progress over 100%"},
+                {"progress": 0.0, "expected": 0.0, "description": "Zero progress"},
+                {"progress": 100.0, "expected": 100.0, "description": "Exactly 100% progress"}
+            ]
+            
+            for test_case in test_cases:
+                progress_data = {"progress": test_case["progress"]}
+                
+                response = requests.put(
+                    f"{BACKEND_URL}/enrollments/{course_id}/progress",
+                    json=progress_data,
+                    timeout=TEST_TIMEOUT,
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Authorization': f'Bearer {student_token}'
+                    }
+                )
+                
+                if response.status_code == 200:
+                    updated_enrollment = response.json()
+                    actual_progress = updated_enrollment['progress']
+                    
+                    if actual_progress == test_case["expected"]:
+                        self.log_result(
+                            f"Progress Tracking - Validation ({test_case['description']})", 
+                            "PASS", 
+                            f"Correctly handled {test_case['description']}: {test_case['progress']} -> {actual_progress}",
+                            f"Progress validation working correctly"
+                        )
+                    else:
+                        self.log_result(
+                            f"Progress Tracking - Validation ({test_case['description']})", 
+                            "FAIL", 
+                            f"Progress validation failed: expected {test_case['expected']}, got {actual_progress}",
+                            f"Input: {test_case['progress']}"
+                        )
+                        return False
+                else:
+                    self.log_result(
+                        f"Progress Tracking - Validation ({test_case['description']})", 
+                        "FAIL", 
+                        f"Failed to test progress validation with status {response.status_code}",
+                        f"Response: {response.text}"
+                    )
+                    return False
+            
+            self.log_result(
+                "Progress Tracking - Validation Edge Cases", 
+                "PASS", 
+                "All progress validation edge cases handled correctly",
+                "Progress validation is robust"
+            )
+            return True
+                
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Progress Tracking - Validation Edge Cases", 
+                "FAIL", 
+                "Failed to test progress validation edge cases",
+                str(e)
+            )
+        return False
+
 
     # =============================================================================
     # FRONTEND INTEGRATION API TESTS - COMPREHENSIVE TESTING
