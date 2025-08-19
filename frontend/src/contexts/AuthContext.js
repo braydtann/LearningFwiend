@@ -2717,6 +2717,7 @@ export const AuthProvider = ({ children }) => {
     getStudentEnrollments,
     updateEnrollment,
     updateEnrollmentProgress,
+    migrateEnrollmentProgress,
     deleteEnrollment,
     // Announcement management
     createAnnouncement,
