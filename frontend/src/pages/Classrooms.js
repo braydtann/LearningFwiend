@@ -119,14 +119,14 @@ const Classrooms = () => {
           setRealCourses(result.courses);
         } else {
           console.error('Failed to load courses:', result.error);
-          setRealCourses(mockCourses);
+          setRealCourses([]);
         }
       } else {
-        setRealCourses(mockCourses);
+        setRealCourses([]);
       }
     } catch (error) {
       console.error('Error loading courses:', error);
-      setRealCourses(mockCourses);
+      setRealCourses([]);
     } finally {
       setLoadingCourses(false);
     }
