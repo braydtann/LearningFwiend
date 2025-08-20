@@ -492,6 +492,12 @@ const CourseDetail = () => {
         const actionType = nextAction.type === 'module' ? 'module' : 'lesson';
         const nextTitle = nextAction.type === 'module' ? nextAction.nextModuleTitle : nextAction.target.title;
         
+        // Recalculate next action for the new lesson
+        setTimeout(() => {
+          console.log('Recalculating next action after navigation...');
+          calculateNextAction();
+        }, 100);
+        
         toast({
           title: `Moving to next ${actionType}!`,
           description: `Now starting: ${nextTitle}`,
