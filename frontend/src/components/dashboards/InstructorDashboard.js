@@ -7,13 +7,42 @@ import { Badge } from '../ui/badge';
 import { BookOpen, Users, TrendingUp, PlusCircle, Eye, Edit, ClipboardCheck } from 'lucide-react';
 
 const InstructorDashboard = () => {
-  const { user } = useAuth();
+  const { user, getAllCourses } = useAuth();
   const navigate = useNavigate();
-  
-  const myCourses = mockCourses.filter(course => course.instructorId === user?.id);
-  const totalStudents = myCourses.reduce((sum, course) => sum + course.enrolledStudents, 0);
-  const publishedCourses = myCourses.filter(course => course.status === 'published').length;
-  const quizAnalytics = getInstructorQuizAnalytics(user?.id);
+  const [myCourses, setMyCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Load instructor courses
+  useEffect(() => {
+    const loadCourses = async () => {
+      try {
+        const result = await getAllCourses();
+        if (result.success) {
+          // Filter courses by instructor
+          const instructorCourses = result.courses.filter(course => 
+            course.instructorId === user?.id || course.instructor === user?.email
+          );
+          setMyCourses(instructorCourses);
+        } else {
+          setMyCourses([]);
+        }
+      } catch (error) {
+        console.error('Error loading courses:', error);
+        setMyCourses([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user) {
+      loadCourses();
+    }
+  }, [user, getAllCourses]);
+
+  // TODO: Replace with backend analytics when available
+  const quizAnalytics = []; // getInstructorQuizAnalytics(user?.id);
+  const totalStudents = 0; // Calculate from enrollments when backend available
+  const activeEnrollments = 0; // Calculate from enrollments when backend available
   
   const stats = {
     courses: myCourses.length,
