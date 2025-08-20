@@ -2735,6 +2735,7 @@ export const AuthProvider = ({ children }) => {
     getAllClassrooms,
     getMyClassrooms,
     getClassroomById,
+    getClassroomStudents,
     updateClassroom,
     deleteClassroom,
     // Enrollment management
