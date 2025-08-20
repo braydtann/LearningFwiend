@@ -12,12 +12,7 @@ import {
   Settings,
   Filter
 } from 'lucide-react';
-import { 
-  getUserNotifications, 
-  getUnreadNotifications, 
-  markNotificationAsRead, 
-  markAllNotificationsAsRead 
-} from '../data/mockData';
+// TODO: Replace with backend notification APIs when available
 import { useNavigate } from 'react-router-dom';
 
 const Notifications = () => {
