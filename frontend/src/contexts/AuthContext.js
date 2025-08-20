@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [requiresPasswordChange, setRequiresPasswordChange] = useState(false);
 
-  const backendUrl = 'https://lms-evolution.emergent.host'; // CORRECT Production URL
+  const backendUrl = process.env.REACT_APP_BACKEND_URL || 'https://learning-journey-3.preview.emergentagent.com';
   console.log('AUTH CONTEXT DEBUG - Backend URL:', backendUrl);
 
   useEffect(() => {
