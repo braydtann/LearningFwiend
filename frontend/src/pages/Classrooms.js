@@ -97,14 +97,14 @@ const Classrooms = () => {
           setRealUsers(result.users);
         } else {
           console.error('Failed to load users:', result.error);
-          setRealUsers(mockUsers);
+          setRealUsers([]);
         }
       } else {
-        setRealUsers(mockUsers);
+        setRealUsers([]);
       }
     } catch (error) {
       console.error('Error loading users:', error);
-      setRealUsers(mockUsers);
+      setRealUsers([]);
     } finally {
       setLoadingUsers(false);
     }
