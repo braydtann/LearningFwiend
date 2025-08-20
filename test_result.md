@@ -2050,6 +2050,8 @@ test_plan:
   comprehensive_e2e_complete: true
   classroom_creation_testing_complete: true
   course_visibility_testing_complete: true
+  comprehensive_backend_api_testing_complete: true
+  post_mockdata_cleanup_testing_complete: true
   program_access_control_testing_complete: true
   draft_functionality_testing_complete: true
   new_feature_development_phase: "final_test_functionality_completed"
