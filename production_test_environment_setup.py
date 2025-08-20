@@ -415,7 +415,7 @@ class ProductionTestEnvironmentSetup:
         
         # Step 3: Ensure Student 2 exists
         student2 = self.create_student_if_needed(
-            "brayden.student@learningfwiend.com",  # Using full email format
+            "brayden.student@covesmart.com",  # Using existing email
             "brayden.student",
             "Brayden Student", 
             "StudentTest123!"
