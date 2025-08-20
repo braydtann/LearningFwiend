@@ -247,7 +247,7 @@ class ComprehensiveCourseClassroomTester:
                 created_student = create_response.json()
                 self.created_resources['student2_id'] = created_student.get('id')
                 
-                # Reset password to permanent password
+                # Reset password to permanent password and clear first_login_required
                 reset_data = {
                     "user_id": created_student.get('id'),
                     "new_temporary_password": "StudentTest123!"
@@ -256,6 +256,21 @@ class ComprehensiveCourseClassroomTester:
                 reset_response = requests.post(
                     f"{BACKEND_URL}/auth/admin/reset-password",
                     json=reset_data,
+                    timeout=TEST_TIMEOUT,
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                    }
+                )
+                
+                # Also update user to clear first_login_required
+                update_data = {
+                    "is_active": True
+                }
+                
+                update_response = requests.put(
+                    f"{BACKEND_URL}/auth/admin/users/{created_student.get('id')}",
+                    json=update_data,
                     timeout=TEST_TIMEOUT,
                     headers={
                         'Content-Type': 'application/json',
