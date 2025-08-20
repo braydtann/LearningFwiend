@@ -10,7 +10,7 @@ import time
 from datetime import datetime
 
 # Configuration
-BACKEND_URL = "https://learning-journey-3.preview.emergentagent.com/api"
+BACKEND_URL = "https://learningfwiend-fix.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 class EdgeCourseLoadingTester:
