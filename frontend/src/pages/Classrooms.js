@@ -163,14 +163,14 @@ const Classrooms = () => {
           setRealDepartments(result.departments);
         } else {
           console.error('Failed to load departments:', result.error);
-          setRealDepartments(mockDepartments);
+          setRealDepartments([]);
         }
       } else {
-        setRealDepartments(mockDepartments);
+        setRealDepartments([]);
       }
     } catch (error) {
       console.error('Error loading departments:', error);
-      setRealDepartments(mockDepartments);
+      setRealDepartments([]);
     } finally {
       setLoadingDepartments(false);
     }
