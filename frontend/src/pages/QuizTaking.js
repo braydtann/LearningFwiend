@@ -327,7 +327,7 @@ const QuizTaking = () => {
               </p>
             </div>
           )}
-          <Button onClick={() => navigate(`/course/${courseId}`)}>
+          <Button onClick={() => navigate(`/courses/${courseId}`)}>
             Back to Course
           </Button>
         </div>
