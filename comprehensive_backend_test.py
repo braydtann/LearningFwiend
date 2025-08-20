@@ -181,7 +181,7 @@ class ComprehensiveBackendTester:
                     # If password change is required, change it to a permanent password
                     if requires_password_change:
                         change_password_data = {
-                            "current_password": "Student123!",
+                            "current_password": "ComprehensiveTest123!",
                             "new_password": "StudentPermanent123!"
                         }
                         
