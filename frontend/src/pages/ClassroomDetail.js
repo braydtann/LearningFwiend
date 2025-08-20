@@ -82,28 +82,21 @@ const ClassroomDetail = () => {
         setClassroom(result.classroom);
         setEditData(result.classroom);
       } else {
-        // Fallback to mock data
-        const mockClassroom = mockClassrooms.find(c => c.id === id);
-        if (mockClassroom) {
-          setClassroom(mockClassroom);
-          setEditData(mockClassroom);
-        } else {
-          toast({
-            title: "Classroom not found",
-            description: "The requested classroom could not be found.",
-            variant: "destructive",
-          });
-          navigate('/classrooms');
-        }
+        console.error('Failed to load classroom:', result.error);
+        toast({
+          title: "Classroom not found",
+          description: "The requested classroom could not be found.",
+          variant: "destructive",
+        });
+        navigate('/classrooms');
       }
     } catch (error) {
       console.error('Error loading classroom:', error);
-      // Fallback to mock data
-      const mockClassroom = mockClassrooms.find(c => c.id === id);
-      if (mockClassroom) {
-        setClassroom(mockClassroom);
-        setEditData(mockClassroom);
-      }
+      toast({
+        title: "Error loading classroom",
+        description: "An error occurred while loading the classroom.",
+        variant: "destructive",
+      });
     } finally {
       setLoadingClassroom(false);
     }
