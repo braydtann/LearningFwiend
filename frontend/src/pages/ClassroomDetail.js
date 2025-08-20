@@ -34,7 +34,7 @@ const ClassroomDetail = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const isEditMode = searchParams.get('mode') === 'edit';
-  const { user, isLearner, getAllCourses, getClassroomById, updateClassroom, getAllUsers, getAllPrograms } = useAuth();
+  const { user, isLearner, getAllCourses, getClassroomById, getClassroomStudents, updateClassroom, getAllUsers, getAllPrograms } = useAuth();
   const { toast } = useToast();
   
   const [classroom, setClassroom] = useState(null);
