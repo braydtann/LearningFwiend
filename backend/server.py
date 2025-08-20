@@ -2008,6 +2008,60 @@ class ClassroomUpdate(BaseModel):
 # CLASSROOM ENDPOINTS
 # =============================================================================
 
+@api_router.get("/classrooms/{classroom_id}/students")
+async def get_classroom_students(
+    classroom_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Get students enrolled in a specific classroom."""
+    try:
+        # Get the classroom
+        classroom = await db.classrooms.find_one({"id": classroom_id})
+        if not classroom:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Classroom not found"
+            )
+        
+        # Check if user has access to view this classroom
+        # Instructors can view their own classrooms, admins can view all
+        if current_user.role not in ['admin'] and classroom.get('trainerId') != current_user.id:
+            # Allow students to view classrooms they're enrolled in
+            if current_user.role == 'learner' and current_user.id not in classroom.get('studentIds', []):
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Access denied to this classroom"
+                )
+        
+        # Get student details
+        students = []
+        if classroom.get('studentIds'):
+            for student_id in classroom['studentIds']:
+                student = await db.users.find_one({"id": student_id})
+                if student:
+                    # Return safe student info (no password, etc.)
+                    student_info = {
+                        "id": student["id"],
+                        "username": student["username"],
+                        "email": student["email"],
+                        "full_name": student["full_name"],
+                        "role": student["role"],
+                        "department": student.get("department", ""),
+                        "created_at": student.get("created_at")
+                    }
+                    students.append(student_info)
+        
+        return students
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting classroom students: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error"
+        )
+
 @api_router.post("/classrooms", response_model=ClassroomResponse)
 async def create_classroom(
     classroom_data: ClassroomCreate,
