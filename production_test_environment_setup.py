@@ -28,6 +28,10 @@ import sys
 from datetime import datetime
 import time
 import uuid
+import urllib3
+
+# Suppress SSL warnings for production testing
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # Configuration - PRODUCTION Backend URL
 BACKEND_URL = "https://lms-evolution.emergent.host/api"
