@@ -127,29 +127,25 @@ const ClassroomDetail = () => {
     }
   };
 
-  // Load classroom students from backend without requiring admin permissions
+  // Load classroom students using the proper API endpoint
   const loadClassroomStudents = async () => {
-    if (!classroom || !classroom.studentIds || classroom.studentIds.length === 0) {
-      console.log('No student IDs found in classroom data');
+    if (!classroom || !classroom.id) {
+      console.log('No classroom data available');
       setStudents([]);
       return;
     }
     
     try {
-      // Instead of getting all users (admin required), we'll create student objects from IDs
-      // This is a temporary solution until we have a proper students endpoint
-      console.log('Classroom has studentIds:', classroom.studentIds);
+      console.log('Loading students for classroom:', classroom.id);
+      const result = await getClassroomStudents(classroom.id);
       
-      // For now, show student IDs as placeholder until we have proper student data
-      const studentPlaceholders = classroom.studentIds.map(studentId => ({
-        id: studentId,
-        full_name: `Student (${studentId.slice(0, 8)}...)`, // Show first 8 chars of ID
-        email: 'Loading...',
-        role: 'learner'
-      }));
-      
-      setStudents(studentPlaceholders);
-      
+      if (result.success) {
+        console.log('Successfully loaded students:', result.students);
+        setStudents(result.students);
+      } else {
+        console.error('Failed to load classroom students:', result.error);
+        setStudents([]);
+      }
     } catch (error) {
       console.error('Error loading classroom students:', error);
       setStudents([]);
