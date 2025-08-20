@@ -117,28 +117,10 @@ const CreateCourse = () => {
           ]
         });
       } else {
-        // Fallback to mock data
-        const mockCourse = mockCourses.find(c => c.id === id);
-        if (mockCourse) {
-          setCourseData({
-            title: mockCourse.title || '',
-            description: mockCourse.description || '',
-            category: mockCourse.category || '',
-            duration: mockCourse.duration || '',
-            thumbnail: mockCourse.thumbnail || '',
-            isPublic: mockCourse.isPublic || true,
-            enrollmentType: mockCourse.enrollmentType || 'open',
-            modules: mockCourse.modules || [
-              {
-                id: 'm1',
-                title: '',
-                lessons: [
-                  { id: 'l1', title: '', type: 'video', duration: '', videoUrl: '', presentationUrl: '', content: '', quiz: null }
-                ]
-              }
-            ]
-          });
-        }
+        // Fallback if backend fails
+        console.error('Failed to load course from backend:', result.error);
+        navigate('/courses');
+        return;
       }
     } catch (error) {
       console.error('Error loading course:', error);
