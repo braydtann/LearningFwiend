@@ -680,6 +680,521 @@ class BackendTester:
             )
             return False
     
+    def test_student_white_screen_investigation(self):
+        """INVESTIGATE STUDENT LOGIN AND COURSE ACCESS FOR WHITE SCREEN ISSUE"""
+        print("\n🔍 INVESTIGATING STUDENT LOGIN AND COURSE ACCESS FOR WHITE SCREEN ISSUE")
+        print("=" * 80)
+        print("User reports white screen when students try to access courses after creating:")
+        print("1. New course that's just a quiz with 1 question")
+        print("2. New classroom 'qc1' with student assigned")
+        print("3. Student shows up correctly in classroom now (previous fix worked)")
+        print("4. But student still gets white screen when accessing course")
+        print("=" * 80)
+        
+        # Step 1: Test admin login to check system state
+        print("\n🔑 STEP 1: Admin Login to Check System State")
+        print("-" * 50)
+        admin_success = self.test_admin_login()
+        
+        if not admin_success:
+            self.log_result(
+                "Student White Screen Investigation", 
+                "FAIL", 
+                "Cannot proceed - admin authentication failed",
+                "Need admin access to check system state"
+            )
+            return False
+        
+        # Step 2: Check for student karlo.student@alder.com or students in qc1 classroom
+        print("\n👤 STEP 2: Finding Student Credentials")
+        print("-" * 50)
+        target_student = self.find_target_student()
+        
+        if not target_student:
+            self.log_result(
+                "Student White Screen Investigation", 
+                "FAIL", 
+                "Cannot find target student (karlo.student@alder.com or students in qc1 classroom)",
+                "Need to identify the specific student experiencing white screen issue"
+            )
+            return False
+        
+        # Step 3: Test student login
+        print(f"\n🎓 STEP 3: Testing Student Login - {target_student['email']}")
+        print("-" * 50)
+        student_login_success = self.test_specific_student_login(target_student)
+        
+        if not student_login_success:
+            print(f"⚠️ Student login failed, attempting password reset...")
+            reset_success = self.reset_student_password(target_student)
+            if reset_success:
+                student_login_success = self.test_specific_student_login(target_student, use_reset_password=True)
+        
+        # Step 4: Check student enrollments
+        print(f"\n📚 STEP 4: Checking Student Enrollments")
+        print("-" * 50)
+        enrollments = None
+        if student_login_success:
+            enrollments = self.check_student_enrollments(target_student)
+            print(f"Found {len(enrollments) if enrollments else 0} enrollments for student")
+        
+        # Step 5: Check courses endpoint for student
+        print(f"\n📖 STEP 5: Testing GET /api/courses for Student Access")
+        print("-" * 50)
+        courses = None
+        if student_login_success:
+            courses = self.test_student_courses_access(target_student)
+            print(f"Student can see {len(courses) if courses else 0} courses")
+        
+        # Step 6: Check qc1 classroom and its courses
+        print(f"\n🏫 STEP 6: Checking QC1 Classroom and Course Assignment")
+        print("-" * 50)
+        qc1_info = self.check_qc1_classroom()
+        
+        # Step 7: Test specific course access (quiz course)
+        print(f"\n🎯 STEP 7: Testing Specific Course Access (Quiz Course)")
+        print("-" * 50)
+        course_access_results = None
+        if student_login_success and qc1_info:
+            course_access_results = self.test_quiz_course_access(target_student, qc1_info)
+        
+        # Step 8: Identify white screen root cause
+        print(f"\n🔍 STEP 8: White Screen Root Cause Analysis")
+        print("-" * 50)
+        issues_found = self.analyze_white_screen_cause(target_student, student_login_success, enrollments, qc1_info)
+        
+        return len(issues_found) == 0
+    
+    def find_target_student(self):
+        """Find the target student (karlo.student@alder.com or students in qc1 classroom)"""
+        if "admin" not in self.auth_tokens:
+            return None
+        
+        try:
+            # Get all users
+            response = requests.get(
+                f"{BACKEND_URL}/auth/admin/users",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            if response.status_code == 200:
+                users = response.json()
+                
+                # First, look for karlo.student@alder.com
+                for user in users:
+                    if user.get('email') == 'karlo.student@alder.com':
+                        print(f"✅ Found target student: {user.get('email')} ({user.get('full_name')})")
+                        return user
+                
+                # If not found, look for students in qc1 classroom
+                classrooms_response = requests.get(
+                    f"{BACKEND_URL}/classrooms",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+                )
+                
+                if classrooms_response.status_code == 200:
+                    classrooms = classrooms_response.json()
+                    qc1_classroom = None
+                    
+                    for classroom in classrooms:
+                        if classroom.get('name', '').lower() == 'qc1':
+                            qc1_classroom = classroom
+                            break
+                    
+                    if qc1_classroom and qc1_classroom.get('studentIds'):
+                        # Find first student in qc1 classroom
+                        for student_id in qc1_classroom['studentIds']:
+                            for user in users:
+                                if user.get('id') == student_id and user.get('role') == 'learner':
+                                    print(f"✅ Found student in QC1 classroom: {user.get('email')} ({user.get('full_name')})")
+                                    return user
+                
+                # If still not found, use any student
+                for user in users:
+                    if user.get('role') == 'learner':
+                        print(f"⚠️ Using available student: {user.get('email')} ({user.get('full_name')})")
+                        return user
+                
+                print("❌ No students found in the system")
+                return None
+            else:
+                print(f"❌ Failed to get users list: {response.status_code}")
+                return None
+        except Exception as e:
+            print(f"❌ Error finding target student: {str(e)}")
+            return None
+    
+    def test_specific_student_login(self, student, use_reset_password=False):
+        """Test login for specific student"""
+        try:
+            # Try common passwords first
+            passwords_to_try = [
+                "StudentPermanent123!",
+                "Student123!",
+                "Password123!",
+                "Temp123!",
+                "ResetPassword123!" if use_reset_password else None
+            ]
+            
+            passwords_to_try = [p for p in passwords_to_try if p is not None]
+            
+            for password in passwords_to_try:
+                login_data = {
+                    "username_or_email": student.get('email'),
+                    "password": password
+                }
+                
+                response = requests.post(
+                    f"{BACKEND_URL}/auth/login",
+                    json=login_data,
+                    timeout=TEST_TIMEOUT,
+                    headers={'Content-Type': 'application/json'}
+                )
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    token = data.get('access_token')
+                    requires_password_change = data.get('requires_password_change', False)
+                    
+                    if token:
+                        self.auth_tokens['target_student'] = token
+                        print(f"✅ Student login successful with password: {password}")
+                        if requires_password_change:
+                            print(f"⚠️ Password change required")
+                        return True
+                else:
+                    print(f"❌ Login failed with password {password}: {response.status_code}")
+            
+            print(f"❌ All password attempts failed for {student.get('email')}")
+            return False
+            
+        except Exception as e:
+            print(f"❌ Error testing student login: {str(e)}")
+            return False
+    
+    def reset_student_password(self, student):
+        """Reset student password using admin privileges"""
+        if "admin" not in self.auth_tokens:
+            return False
+        
+        try:
+            reset_data = {
+                "user_id": student.get('id'),
+                "new_temporary_password": "ResetPassword123!"
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/auth/admin/reset-password",
+                json=reset_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if response.status_code == 200:
+                print(f"✅ Password reset successful for {student.get('email')}")
+                return True
+            else:
+                print(f"❌ Password reset failed: {response.status_code}")
+                return False
+        except Exception as e:
+            print(f"❌ Error resetting password: {str(e)}")
+            return False
+    
+    def check_student_enrollments(self, student):
+        """Check student's course enrollments"""
+        if "target_student" not in self.auth_tokens:
+            return None
+        
+        try:
+            response = requests.get(
+                f"{BACKEND_URL}/enrollments",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["target_student"]}'}
+            )
+            
+            if response.status_code == 200:
+                enrollments = response.json()
+                print(f"✅ Retrieved {len(enrollments)} enrollments for student")
+                
+                for enrollment in enrollments:
+                    print(f"   📚 Course ID: {enrollment.get('courseId')}")
+                    print(f"       Progress: {enrollment.get('progress', 0)}%")
+                    print(f"       Status: {enrollment.get('status', 'unknown')}")
+                    print(f"       Enrolled: {enrollment.get('enrolledAt', 'unknown')}")
+                
+                return enrollments
+            else:
+                print(f"❌ Failed to get enrollments: {response.status_code}")
+                return None
+        except Exception as e:
+            print(f"❌ Error checking enrollments: {str(e)}")
+            return None
+    
+    def test_student_courses_access(self, student):
+        """Test student access to courses endpoint"""
+        if "target_student" not in self.auth_tokens:
+            return None
+        
+        try:
+            response = requests.get(
+                f"{BACKEND_URL}/courses",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["target_student"]}'}
+            )
+            
+            if response.status_code == 200:
+                courses = response.json()
+                print(f"✅ Student can access courses endpoint - {len(courses)} courses available")
+                
+                for course in courses[:3]:  # Show first 3 courses
+                    print(f"   📖 {course.get('title', 'Unknown Title')}")
+                    print(f"       ID: {course.get('id')}")
+                    print(f"       Category: {course.get('category', 'Unknown')}")
+                    print(f"       Modules: {len(course.get('modules', []))}")
+                
+                return courses
+            else:
+                print(f"❌ Student cannot access courses: {response.status_code}")
+                return None
+        except Exception as e:
+            print(f"❌ Error testing courses access: {str(e)}")
+            return None
+    
+    def check_qc1_classroom(self):
+        """Check QC1 classroom details"""
+        if "admin" not in self.auth_tokens:
+            return None
+        
+        try:
+            response = requests.get(
+                f"{BACKEND_URL}/classrooms",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            if response.status_code == 200:
+                classrooms = response.json()
+                qc1_classroom = None
+                
+                for classroom in classrooms:
+                    if classroom.get('name', '').lower() == 'qc1':
+                        qc1_classroom = classroom
+                        break
+                
+                if qc1_classroom:
+                    print(f"✅ Found QC1 classroom:")
+                    print(f"   ID: {qc1_classroom.get('id')}")
+                    print(f"   Name: {qc1_classroom.get('name')}")
+                    print(f"   Students: {len(qc1_classroom.get('studentIds', []))}")
+                    print(f"   Courses: {len(qc1_classroom.get('courseIds', []))}")
+                    print(f"   Programs: {len(qc1_classroom.get('programIds', []))}")
+                    
+                    return qc1_classroom
+                else:
+                    print("❌ QC1 classroom not found")
+                    return None
+            else:
+                print(f"❌ Failed to get classrooms: {response.status_code}")
+                return None
+        except Exception as e:
+            print(f"❌ Error checking QC1 classroom: {str(e)}")
+            return None
+    
+    def test_quiz_course_access(self, student, qc1_info):
+        """Test access to specific quiz courses"""
+        if "target_student" not in self.auth_tokens:
+            return None
+        
+        results = []
+        course_ids_to_test = []
+        
+        # Get course IDs from QC1 classroom
+        if qc1_info:
+            course_ids_to_test.extend(qc1_info.get('courseIds', []))
+        
+        # Also test any courses the student is enrolled in
+        enrollments = self.check_student_enrollments(student)
+        if enrollments:
+            for enrollment in enrollments:
+                course_id = enrollment.get('courseId')
+                if course_id and course_id not in course_ids_to_test:
+                    course_ids_to_test.append(course_id)
+        
+        print(f"Testing access to {len(course_ids_to_test)} courses...")
+        
+        for course_id in course_ids_to_test:
+            try:
+                response = requests.get(
+                    f"{BACKEND_URL}/courses/{course_id}",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {self.auth_tokens["target_student"]}'}
+                )
+                
+                if response.status_code == 200:
+                    course = response.json()
+                    print(f"✅ Course access successful: {course.get('title', 'Unknown')}")
+                    print(f"   ID: {course_id}")
+                    print(f"   Modules: {len(course.get('modules', []))}")
+                    print(f"   Category: {course.get('category', 'Unknown')}")
+                    
+                    # Check if this is a quiz-only course
+                    modules = course.get('modules', [])
+                    quiz_lessons = 0
+                    total_lessons = 0
+                    
+                    for module in modules:
+                        lessons = module.get('lessons', [])
+                        total_lessons += len(lessons)
+                        for lesson in lessons:
+                            if 'quiz' in lesson.get('type', '').lower() or 'quiz' in lesson.get('title', '').lower():
+                                quiz_lessons += 1
+                    
+                    if total_lessons > 0 and quiz_lessons == total_lessons:
+                        print(f"   🎯 This is a QUIZ-ONLY course ({quiz_lessons} quiz lessons)")
+                    elif quiz_lessons > 0:
+                        print(f"   📝 Mixed course with {quiz_lessons} quiz lessons out of {total_lessons}")
+                    else:
+                        print(f"   📚 Regular course with {total_lessons} lessons")
+                    
+                    results.append({
+                        'course_id': course_id,
+                        'title': course.get('title'),
+                        'accessible': True,
+                        'modules': len(modules),
+                        'total_lessons': total_lessons,
+                        'quiz_lessons': quiz_lessons,
+                        'is_quiz_only': total_lessons > 0 and quiz_lessons == total_lessons
+                    })
+                    
+                elif response.status_code == 404:
+                    print(f"❌ Course not found: {course_id}")
+                    results.append({
+                        'course_id': course_id,
+                        'accessible': False,
+                        'error': 'Course not found (404)'
+                    })
+                else:
+                    print(f"❌ Course access failed: {course_id} - Status: {response.status_code}")
+                    results.append({
+                        'course_id': course_id,
+                        'accessible': False,
+                        'error': f'HTTP {response.status_code}'
+                    })
+                    
+            except Exception as e:
+                print(f"❌ Error accessing course {course_id}: {str(e)}")
+                results.append({
+                    'course_id': course_id,
+                    'accessible': False,
+                    'error': str(e)
+                })
+        
+        return results
+    
+    def analyze_white_screen_cause(self, student, login_success, enrollments, qc1_info):
+        """Analyze potential causes of white screen issue"""
+        print("\n🔍 WHITE SCREEN ROOT CAUSE ANALYSIS")
+        print("=" * 50)
+        
+        issues_found = []
+        
+        # Check 1: Student login
+        if not login_success:
+            issues_found.append("❌ CRITICAL: Student cannot login - this would cause white screen")
+        else:
+            print("✅ Student login working")
+        
+        # Check 2: Student enrollments
+        if not enrollments or len(enrollments) == 0:
+            issues_found.append("❌ ISSUE: Student has no course enrollments - may show empty dashboard")
+        else:
+            print(f"✅ Student has {len(enrollments)} enrollments")
+            
+            # Check for orphaned enrollments
+            orphaned_count = 0
+            for enrollment in enrollments:
+                course_id = enrollment.get('courseId')
+                if course_id:
+                    # Test if course exists
+                    try:
+                        course_response = requests.get(
+                            f"{BACKEND_URL}/courses/{course_id}",
+                            timeout=TEST_TIMEOUT,
+                            headers={'Authorization': f'Bearer {self.auth_tokens["target_student"]}'}
+                        )
+                        if course_response.status_code == 404:
+                            orphaned_count += 1
+                    except:
+                        pass
+            
+            if orphaned_count > 0:
+                issues_found.append(f"❌ CRITICAL: {orphaned_count} orphaned enrollments (courses don't exist) - causes white screen when accessing non-existent courses")
+        
+        # Check 3: QC1 classroom
+        if not qc1_info:
+            issues_found.append("⚠️ WARNING: QC1 classroom not found - may not be the root cause but mentioned in issue")
+        else:
+            print(f"✅ QC1 classroom found with {len(qc1_info.get('courseIds', []))} courses")
+        
+        # Check 4: Course structure issues
+        if enrollments:
+            empty_courses = 0
+            for enrollment in enrollments:
+                course_id = enrollment.get('courseId')
+                try:
+                    course_response = requests.get(
+                        f"{BACKEND_URL}/courses/{course_id}",
+                        timeout=TEST_TIMEOUT,
+                        headers={'Authorization': f'Bearer {self.auth_tokens["target_student"]}'}
+                    )
+                    if course_response.status_code == 200:
+                        course = course_response.json()
+                        modules = course.get('modules', [])
+                        if len(modules) == 0:
+                            empty_courses += 1
+                except:
+                    pass
+            
+            if empty_courses > 0:
+                issues_found.append(f"⚠️ WARNING: {empty_courses} courses have no modules - may cause display issues")
+        
+        # Summary
+        print(f"\n📊 ANALYSIS SUMMARY:")
+        print("-" * 30)
+        
+        if len(issues_found) == 0:
+            print("✅ NO CRITICAL ISSUES FOUND - Backend APIs working correctly")
+            print("   White screen issue may be frontend-related:")
+            print("   - React component rendering issues")
+            print("   - JavaScript errors in browser console")
+            print("   - State management problems")
+            print("   - Browser caching issues")
+            
+            self.log_result(
+                "Student White Screen Investigation", 
+                "PASS", 
+                "Backend APIs working correctly - white screen likely frontend issue",
+                f"Student login: ✅, Enrollments: {len(enrollments) if enrollments else 0}, QC1 classroom: {'✅' if qc1_info else '❌'}"
+            )
+        else:
+            print("❌ ISSUES FOUND:")
+            for issue in issues_found:
+                print(f"   {issue}")
+            
+            self.log_result(
+                "Student White Screen Investigation", 
+                "FAIL", 
+                f"Found {len(issues_found)} issues that could cause white screen",
+                "; ".join(issues_found)
+            )
+        
+        return issues_found
+    
     def test_admin_user_exists_in_database(self):
         """Check if the admin user brayden.t@covesmart.com exists in the database"""
         try:
