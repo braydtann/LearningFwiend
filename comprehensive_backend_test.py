@@ -198,7 +198,7 @@ class ComprehensiveBackendTester:
                         if change_response.status_code == 200:
                             # Login again with new password
                             new_login_data = {
-                                "username_or_email": "test.student@learningfwiend.com",
+                                "username_or_email": "comprehensive.test.student",
                                 "password": "StudentPermanent123!"
                             }
                             
