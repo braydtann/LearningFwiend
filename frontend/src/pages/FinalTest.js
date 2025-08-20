@@ -29,10 +29,10 @@ const FinalTest = () => {
   // Determine if this is a program or course final test
   const isProgram = programId !== undefined;
   
-  // Find course and final test
-  const course = !isProgram ? mockCourses.find(c => c.id === courseId) : null;
-  const program = isProgram ? mockPrograms.find(p => p.id === programId) : null;
-  const finalTest = isProgram ? program?.finalTest : course?.finalTest;
+  // TODO: Replace with backend API calls when final tests are implemented
+  const course = null; // !isProgram ? mockCourses.find(c => c.id === courseId) : null;
+  const program = null; // isProgram ? mockPrograms.find(p => p.id === programId) : null;
+  const finalTest = null; // isProgram ? program?.finalTest : course?.finalTest;
 
   // Quiz state
   const [testState, setTestState] = useState('loading'); // loading, ready, taking, submitted, error
