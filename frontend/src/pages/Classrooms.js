@@ -141,14 +141,14 @@ const Classrooms = () => {
           setRealPrograms(result.programs);
         } else {
           console.error('Failed to load programs:', result.error);
-          setRealPrograms(mockPrograms);
+          setRealPrograms([]);
         }
       } else {
-        setRealPrograms(mockPrograms);
+        setRealPrograms([]);
       }
     } catch (error) {
       console.error('Error loading programs:', error);
-      setRealPrograms(mockPrograms);
+      setRealPrograms([]);
     } finally {
       setLoadingPrograms(false);
     }
