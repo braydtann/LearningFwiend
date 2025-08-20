@@ -64,9 +64,8 @@ const StudentDashboard = () => {
           setEnrolledCourses(enrolledCourseData);
         }
       } else {
-        // Fallback to mock data if no backend enrollments
-        const mockEnrolledCourses = getEnrolledCourses(user?.id);
-        setEnrolledCourses(mockEnrolledCourses);
+        // No backend enrollments found
+        setEnrolledCourses([]);
       }
     } catch (error) {
       console.error('Error loading enrollments:', error);
