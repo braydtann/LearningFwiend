@@ -444,10 +444,7 @@ class ProductionTestEnvironmentSetup:
         
         # Step 6: Verify Student Enrollments
         student1_enrolled = self.verify_student_enrollments(STUDENT1_CREDENTIALS, "Karlo Student")
-        student2_enrolled = self.verify_student_enrollments(
-            {"username_or_email": "brayden.student@learningfwiend.com", "password": "StudentTest123!"},
-            "Brayden Student"
-        )
+        student2_enrolled = self.verify_student_enrollments(STUDENT2_CREDENTIALS, "Brayden Student")
         
         # Final Summary
         print("\n" + "=" * 80)
