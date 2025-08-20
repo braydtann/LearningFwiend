@@ -13,7 +13,7 @@ import time
 from datetime import datetime
 
 # Configuration
-BACKEND_URL = "https://7f22516b-b4fd-41a8-9d44-9b7f0f3a6147.preview.emergentagent.com/api"
+BACKEND_URL = "https://learning-journey-3.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 class ProgressTrackingTester:
