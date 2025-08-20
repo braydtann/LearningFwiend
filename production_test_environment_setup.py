@@ -139,6 +139,10 @@ class ProductionTestEnvironmentSetup:
                           f"Student {email} already exists with ID: {user.get('id')}")
             return user
         
+        print(f"🔍 DEBUG: Student {email} login failed. Status: {response.status_code if response else 'No response'}")
+        if response:
+            print(f"🔍 DEBUG: Response: {response.text}")
+        
         # User doesn't exist or password is wrong, try to create
         user_data = {
             "email": email,
@@ -149,8 +153,13 @@ class ProductionTestEnvironmentSetup:
             "temporary_password": password
         }
         
+        print(f"🔍 DEBUG: Attempting to create user with data: {user_data}")
         response = self.make_request('POST', '/auth/admin/create-user', user_data, 
                                    auth_token=self.auth_tokens.get('admin'))
+        
+        print(f"🔍 DEBUG: Create user response status: {response.status_code if response else 'No response'}")
+        if response:
+            print(f"🔍 DEBUG: Create user response: {response.text}")
         
         if response and response.status_code == 200:
             user = response.json()
