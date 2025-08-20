@@ -302,7 +302,7 @@ const QuizTaking = () => {
         <AlertCircle className="w-16 h-16 text-red-600 mx-auto mb-4" />
         <h1 className="text-2xl font-bold text-gray-900 mb-4">Quiz not found</h1>
         <p className="text-gray-600 mb-6">The quiz you're looking for doesn't exist or has been removed.</p>
-        <Button onClick={() => navigate(`/course/${courseId}`)}>
+        <Button onClick={() => navigate(`/courses/${courseId}`)}>
           Back to Course
         </Button>
       </div>
