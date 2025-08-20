@@ -342,7 +342,7 @@ const QuizTaking = () => {
         <Button 
           variant="outline" 
           size="sm"
-          onClick={() => navigate(`/course/${courseId}`)}
+          onClick={() => navigate(`/courses/${courseId}`)}
           disabled={quizState === 'taking'}
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
