@@ -49,7 +49,7 @@ STUDENT1_CREDENTIALS = {
 }
 
 STUDENT2_CREDENTIALS = {
-    "username_or_email": "brayden.student",
+    "username_or_email": "brayden.student@covesmart.com",
     "password": "StudentTest123!"
 }
 
