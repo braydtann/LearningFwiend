@@ -134,7 +134,37 @@ const ClassroomDetail = () => {
     }
   };
 
-  const students = classroom ? getClassroomStudents(classroom.id) : [];
+  // Load classroom students from backend
+  const loadClassroomStudents = async () => {
+    if (!classroom || !classroom.studentIds) {
+      setStudents([]);
+      return;
+    }
+    
+    try {
+      // Get all users and filter for students in this classroom
+      const usersResult = await getAllUsers();
+      if (usersResult.success) {
+        const classroomStudents = usersResult.users.filter(user => 
+          classroom.studentIds.includes(user.id)
+        );
+        setStudents(classroomStudents);
+      } else {
+        console.error('Failed to load students:', usersResult.error);
+        setStudents([]);
+      }
+    } catch (error) {
+      console.error('Error loading classroom students:', error);
+      setStudents([]);
+    }
+  };
+
+  // Load students when classroom data changes
+  useEffect(() => {
+    if (classroom) {
+      loadClassroomStudents();
+    }
+  }, [classroom]);
 
   const loadCourses = async () => {
     setLoadingCourses(true);
