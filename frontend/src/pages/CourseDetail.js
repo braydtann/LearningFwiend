@@ -389,13 +389,23 @@ const CourseDetail = () => {
       });
       
       if (result.success) {
-        // Update local state
-        setCurrentEnrollment(result.enrollment);
+        // Update local state with immediate effect
+        const updatedEnrollment = result.enrollment;
+        setCurrentEnrollment(updatedEnrollment);
         
         // Force immediate progress recalculation and UI update
-        const newProgress = calculateProgressFromEnrollment(result.enrollment);
+        const newProgress = calculateProgressFromEnrollment(updatedEnrollment);
         console.log(`Forced progress update after lesson completion: ${newProgress}%`);
         setProgressValue(newProgress);
+        
+        // Force a state refresh to trigger all dependent useEffect hooks
+        setTimeout(() => {
+          const recomputedProgress = calculateProgressFromEnrollment(updatedEnrollment);
+          if (recomputedProgress !== newProgress) {
+            console.log(`Secondary progress verification: ${recomputedProgress}%`);
+            setProgressValue(recomputedProgress);
+          }
+        }, 100);
         
         // Show success message with progress update
         const completionMessage = overallProgress >= 100 
