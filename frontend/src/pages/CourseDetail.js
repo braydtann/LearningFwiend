@@ -99,13 +99,16 @@ const CourseDetail = () => {
 
   const loadEnrollments = async () => {
     setLoadingEnrollments(true);
+    console.log('🔄 Starting enrollment loading for course:', id);
     try {
       const result = await getMyEnrollments();
+      console.log('📊 Enrollment API result:', result);
       if (result.success) {
         setEnrollments(result.enrollments);
         
         // Find current enrollment for this course
         const enrollment = result.enrollments.find(e => e.courseId === id);
+        console.log('🎯 Found enrollment for course:', enrollment ? 'Yes' : 'No', enrollment?.id);
         if (enrollment) {
           // Check if enrollment needs migration (missing moduleProgress)
           if (!enrollment.moduleProgress || enrollment.moduleProgress.length === 0) {
