@@ -107,6 +107,7 @@ class ProductionTestEnvironmentSetup:
             
             return response
         except requests.exceptions.RequestException as e:
+            print(f"🔍 DEBUG: Request exception for {method} {url}: {str(e)}")
             return None
     
     def authenticate_user(self, credentials, user_type):
