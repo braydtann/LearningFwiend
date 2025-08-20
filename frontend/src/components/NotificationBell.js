@@ -47,8 +47,8 @@ const NotificationBell = () => {
   }
 
   const handleNotificationClick = (notification) => {
-    // Mark as read
-    markNotificationAsRead(notification.id);
+    // TODO: Replace with backend API when available
+    // markNotificationAsRead(notification.id);
     
     // Update local state
     setNotifications(prev => 
@@ -65,7 +65,8 @@ const NotificationBell = () => {
   };
 
   const handleMarkAllAsRead = () => {
-    markAllNotificationsAsRead(user.id);
+    // TODO: Replace with backend API when available
+    // markAllNotificationsAsRead(user.id);
     
     // Update local state
     setNotifications(prev => 
