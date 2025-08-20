@@ -463,7 +463,7 @@ class ProductionTestEnvironmentSetup:
             print(f"   📚 Course: Progress Testing Course (ID: {self.created_resources['course_id']})")
             print(f"   🏫 Classroom: Progress Test Classroom (ID: {self.created_resources['classroom_id']})")
             print(f"   👨‍🎓 Student 1: karlo.student@alder.com / StudentPermanent123!")
-            print(f"   👨‍🎓 Student 2: brayden.student@learningfwiend.com / StudentTest123!")
+            print(f"   👨‍🎓 Student 2: brayden.student@covesmart.com / StudentTest123!")
             print(f"   👨‍💼 Admin: brayden.t@covesmart.com / Hawaii2020!")
             
             print(f"\n🌐 PRODUCTION SITE: https://lms-evolution.emergent.host/")
