@@ -38,6 +38,7 @@ const ClassroomDetail = () => {
   const { toast } = useToast();
   
   const [classroom, setClassroom] = useState(null);
+  const [students, setStudents] = useState([]); // Add explicit students state
   const [courses, setCourses] = useState([]);
   const [loadingClassroom, setLoadingClassroom] = useState(true);
   const [loadingCourses, setLoadingCourses] = useState(true);
