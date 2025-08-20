@@ -702,7 +702,7 @@ const ClassroomDetail = () => {
                     </div>
                     <div className="text-center p-3 bg-orange-50 rounded-lg">
                       <div className="text-lg font-bold text-orange-700">
-                        {(classroom.metrics?.totalStudents || classroom.totalStudents || 0) - (classroom.metrics?.completedStudents || classroom.completedStudents || 0)}
+                        {students.length - (classroom.metrics?.completedStudents || 0)}
                       </div>
                       <div className="text-sm text-orange-600">In Progress</div>
                     </div>
