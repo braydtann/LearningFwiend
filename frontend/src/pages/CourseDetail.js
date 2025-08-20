@@ -398,8 +398,12 @@ const CourseDetail = () => {
         console.log(`Forced progress update after lesson completion: ${newProgress}%`);
         setProgressValue(newProgress);
         
-        // Force a state refresh to trigger all dependent useEffect hooks
+        // Force recalculation of next action with updated enrollment
         setTimeout(() => {
+          console.log('Recalculating next action after lesson completion...');
+          calculateNextAction();
+          
+          // Double-check progress calculation
           const recomputedProgress = calculateProgressFromEnrollment(updatedEnrollment);
           if (recomputedProgress !== newProgress) {
             console.log(`Secondary progress verification: ${recomputedProgress}%`);
