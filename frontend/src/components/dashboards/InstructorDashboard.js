@@ -47,8 +47,8 @@ const InstructorDashboard = () => {
   const stats = {
     courses: myCourses.length,
     students: totalStudents,
-    published: publishedCourses,
-    quizzes: quizAnalytics.totalQuizzes,
+    published: myCourses.filter(course => course.status === 'published').length,
+    quizzes: 0, // TODO: Calculate from backend when available
     avgRating: 4.7 // Mock average rating
   };
 
