@@ -625,19 +625,69 @@ class ComprehensiveCourseClassroomTester:
                 )
                 return False
             
-            # Get admin user ID for trainerId (admin can act as trainer)
+            # Get instructor user ID for trainerId (need instructor role)
+            instructor_user_id = None
             admin_user_id = None
-            for user in users:
-                if user.get('email') == 'brayden.t@covesmart.com':
-                    admin_user_id = user.get('id')
-                    break
             
-            if not admin_user_id:
+            for user in users:
+                if user.get('role') == 'instructor':
+                    instructor_user_id = user.get('id')
+                    print(f"   ✅ Found Instructor: {user.get('full_name')} ({user.get('email')})")
+                    break
+                elif user.get('email') == 'brayden.t@covesmart.com':
+                    admin_user_id = user.get('id')
+            
+            # If no instructor found, create one or use admin as instructor
+            if not instructor_user_id:
+                if admin_user_id:
+                    # Temporarily change admin role to instructor for classroom creation
+                    update_data = {"role": "instructor"}
+                    
+                    update_response = requests.put(
+                        f"{BACKEND_URL}/auth/admin/users/{admin_user_id}",
+                        json=update_data,
+                        timeout=TEST_TIMEOUT,
+                        headers={
+                            'Content-Type': 'application/json',
+                            'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                        }
+                    )
+                    
+                    if update_response.status_code == 200:
+                        instructor_user_id = admin_user_id
+                        print(f"   ✅ Temporarily changed admin to instructor role")
+                    else:
+                        # Create a new instructor user
+                        instructor_data = {
+                            "email": "test.instructor@learningfwiend.com",
+                            "username": "test.instructor",
+                            "full_name": "Test Instructor",
+                            "role": "instructor",
+                            "department": "Testing",
+                            "temporary_password": "InstructorTest123!"
+                        }
+                        
+                        create_response = requests.post(
+                            f"{BACKEND_URL}/auth/admin/create-user",
+                            json=instructor_data,
+                            timeout=TEST_TIMEOUT,
+                            headers={
+                                'Content-Type': 'application/json',
+                                'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                            }
+                        )
+                        
+                        if create_response.status_code == 200:
+                            created_instructor = create_response.json()
+                            instructor_user_id = created_instructor.get('id')
+                            print(f"   ✅ Created new instructor: {created_instructor.get('full_name')}")
+            
+            if not instructor_user_id:
                 self.log_result(
                     "Create Progress Test Classroom", 
                     "FAIL", 
-                    "Could not find admin user ID for trainerId",
-                    "Admin user required as trainer for classroom"
+                    "Could not find or create instructor user for trainerId",
+                    "Instructor user required as trainer for classroom"
                 )
                 return False
             
@@ -645,7 +695,7 @@ class ComprehensiveCourseClassroomTester:
             classroom_data = {
                 "name": "Progress Test Classroom",
                 "description": "Classroom for testing progress tracking functionality with multiple students and comprehensive course content. Students should be auto-enrolled in the Progress Testing Course and able to track progress through 25% → 50% → 75% → 100% as they complete modules.",
-                "trainerId": admin_user_id,  # Required field
+                "trainerId": instructor_user_id,  # Required field - must be instructor
                 "courseIds": [self.created_resources['course_id']],
                 "studentIds": student_ids,
                 "programIds": [],
