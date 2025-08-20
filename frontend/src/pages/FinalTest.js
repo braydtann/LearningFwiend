@@ -7,7 +7,7 @@ import { Badge } from '../components/ui/badge';
 import { Progress } from '../components/ui/progress';
 import { Textarea } from '../components/ui/textarea';
 import ScreenRecorder from '../components/ScreenRecorder';
-import { mockCourses, mockPrograms } from '../data/mockData';
+// TODO: Replace with backend data when final tests are implemented
 import { 
   Clock, 
   CheckCircle, 
