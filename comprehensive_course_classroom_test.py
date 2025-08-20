@@ -717,6 +717,20 @@ class ComprehensiveCourseClassroomTester:
                 created_classroom = response.json()
                 self.created_resources['classroom_id'] = created_classroom.get('id')
                 
+                # Restore admin role if we temporarily changed it
+                if instructor_user_id == admin_user_id:
+                    restore_data = {"role": "admin"}
+                    requests.put(
+                        f"{BACKEND_URL}/auth/admin/users/{admin_user_id}",
+                        json=restore_data,
+                        timeout=TEST_TIMEOUT,
+                        headers={
+                            'Content-Type': 'application/json',
+                            'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                        }
+                    )
+                    print(f"   ✅ Restored admin role")
+                
                 self.log_result(
                     "Create Progress Test Classroom", 
                     "PASS", 
@@ -725,6 +739,19 @@ class ComprehensiveCourseClassroomTester:
                 )
                 return True
             else:
+                # Restore admin role if we temporarily changed it
+                if instructor_user_id == admin_user_id:
+                    restore_data = {"role": "admin"}
+                    requests.put(
+                        f"{BACKEND_URL}/auth/admin/users/{admin_user_id}",
+                        json=restore_data,
+                        timeout=TEST_TIMEOUT,
+                        headers={
+                            'Content-Type': 'application/json',
+                            'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                        }
+                    )
+                
                 self.log_result(
                     "Create Progress Test Classroom", 
                     "FAIL", 
