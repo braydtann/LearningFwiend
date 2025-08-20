@@ -69,9 +69,8 @@ const StudentDashboard = () => {
       }
     } catch (error) {
       console.error('Error loading enrollments:', error);
-      // Fallback to mock data on error
-      const mockEnrolledCourses = getEnrolledCourses(user?.id);
-      setEnrolledCourses(mockEnrolledCourses);
+      // Set empty array on error
+      setEnrolledCourses([]);
     } finally {
       setLoading(false);
     }
