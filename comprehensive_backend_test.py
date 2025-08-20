@@ -160,8 +160,8 @@ class ComprehensiveBackendTester:
         """Test student user login"""
         try:
             login_data = {
-                "username_or_email": "test.student@learningfwiend.com",
-                "password": "Student123!"
+                "username_or_email": "comprehensive.test.student",
+                "password": "ComprehensiveTest123!"
             }
             
             response = requests.post(
