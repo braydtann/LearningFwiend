@@ -41,8 +41,9 @@ const Notifications = () => {
 
   useEffect(() => {
     if (user?.id) {
-      const userNotifications = getUserNotifications(user.id);
-      const unreadNotifications = getUnreadNotifications(user.id);
+      // TODO: Replace with backend API calls when available
+      const userNotifications = []; // getUserNotifications(user.id);
+      const unreadNotifications = []; // getUnreadNotifications(user.id);
       
       setNotifications(userNotifications);
       setUnreadCount(unreadNotifications.length);
@@ -50,7 +51,8 @@ const Notifications = () => {
   }, [user?.id]);
 
   const handleMarkAsRead = (notificationId) => {
-    markNotificationAsRead(notificationId);
+    // TODO: Replace with backend API when available
+    // markNotificationAsRead(notificationId);
     
     // Update local state
     setNotifications(prev => 
@@ -60,7 +62,8 @@ const Notifications = () => {
   };
 
   const handleMarkAllAsRead = () => {
-    markAllNotificationsAsRead(user.id);
+    // TODO: Replace with backend API when available
+    // markAllNotificationsAsRead(user.id);
     
     // Update local state
     setNotifications(prev => 
