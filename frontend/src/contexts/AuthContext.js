@@ -1227,6 +1227,34 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const getClassroomStudents = async (classroomId) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/classrooms/${classroomId}/students`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const students = await response.json();
+        return { success: true, students };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to fetch classroom students' 
+        };
+      }
+    } catch (error) {
+      console.error('Fetch classroom students error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
   const deleteClassroom = async (classroomId) => {
     try {
       const token = localStorage.getItem('auth_token');
