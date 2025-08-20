@@ -215,10 +215,27 @@ class ComprehensiveCourseClassroomTester:
                 
                 if existing_student:
                     self.created_resources['student2_id'] = existing_student.get('id')
+                    
+                    # Reset password for existing student to ensure we can login
+                    reset_data = {
+                        "user_id": existing_student.get('id'),
+                        "new_temporary_password": "StudentTest123!"
+                    }
+                    
+                    reset_response = requests.post(
+                        f"{BACKEND_URL}/auth/admin/reset-password",
+                        json=reset_data,
+                        timeout=TEST_TIMEOUT,
+                        headers={
+                            'Content-Type': 'application/json',
+                            'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                        }
+                    )
+                    
                     self.log_result(
                         "Create Student 2", 
                         "PASS", 
-                        f"Student 2 already exists: {existing_student.get('full_name')}",
+                        f"Student 2 already exists: {existing_student.get('full_name')} (password reset)",
                         f"Student ID: {existing_student.get('id')}, Username: {existing_student.get('username')}, Email: {existing_student.get('email')}"
                     )
                     return True
