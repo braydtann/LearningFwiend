@@ -1293,7 +1293,7 @@ def main():
     success_rate = tester.run_comprehensive_tests()
     
     # Exit with appropriate code
-    if success_rate >= 90:
+    if success_rate and success_rate >= 90:
         sys.exit(0)  # Success
     else:
         sys.exit(1)  # Some issues detected
