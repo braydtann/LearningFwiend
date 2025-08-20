@@ -26447,29 +26447,431 @@ class BackendTester:
         return False
 
 
+    def test_classroom_creation_student_assignment_bug_reproduction(self):
+        """
+        REPRODUCTION SCENARIO: Test classroom creation with student assignment to reproduce the potential bug 
+        where students aren't properly assigned during classroom creation.
+        
+        This test specifically reproduces the scenario mentioned in the review request:
+        1. Create a new classroom with student assignment: `brayden.student` 
+        2. Course assignment: "test last" course
+        3. Verify the classroom creation process includes student enrollment
+        4. Check classroom details after creation
+        5. Test classroom enrollment endpoints
+        6. Test student-classroom relationship
+        7. Debug classroom creation workflow
+        """
+        print("\n🔍 CLASSROOM CREATION STUDENT ASSIGNMENT BUG REPRODUCTION")
+        print("=" * 80)
+        print("Testing scenario: Create classroom with student 'brayden.student' and 'test last' course")
+        print("Goal: Reproduce issue where students don't appear in classroom after assignment")
+        print("=" * 80)
+        
+        # Ensure we have admin authentication
+        if "admin" not in self.auth_tokens:
+            admin_success = self.test_admin_login()
+            if not admin_success:
+                self.log_result(
+                    "Classroom Student Assignment Bug Reproduction", 
+                    "SKIP", 
+                    "Cannot test classroom creation - admin authentication failed",
+                    "Admin credentials required: brayden.t@covesmart.com / Hawaii2020!"
+                )
+                return False
+        
+        try:
+            import uuid
+            
+            # Step 1: Create or find the test student 'brayden.student'
+            print("\n📋 Step 1: Creating/Finding test student 'brayden.student'")
+            
+            # First check if student already exists
+            users_response = requests.get(
+                f"{BACKEND_URL}/auth/admin/users",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            brayden_student = None
+            if users_response.status_code == 200:
+                users = users_response.json()
+                for user in users:
+                    if user.get('username') == 'brayden.student' or user.get('email') == 'brayden.student@learningfwiend.com':
+                        brayden_student = user
+                        print(f"   ✅ Found existing student: {user.get('full_name')} ({user.get('email')})")
+                        break
+            
+            # Create student if not found
+            if not brayden_student:
+                student_data = {
+                    "email": "brayden.student@learningfwiend.com",
+                    "username": "brayden.student",
+                    "full_name": "Brayden Student",
+                    "role": "learner",
+                    "department": "Testing",
+                    "temporary_password": "BraydenStudent123!"
+                }
+                
+                create_response = requests.post(
+                    f"{BACKEND_URL}/auth/admin/create-user",
+                    json=student_data,
+                    timeout=TEST_TIMEOUT,
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                    }
+                )
+                
+                if create_response.status_code == 200:
+                    brayden_student = create_response.json()
+                    print(f"   ✅ Created new student: {brayden_student.get('full_name')} ({brayden_student.get('email')})")
+                else:
+                    self.log_result(
+                        "Classroom Student Assignment Bug Reproduction", 
+                        "FAIL", 
+                        "Failed to create test student 'brayden.student'",
+                        f"Student creation failed: {create_response.text}"
+                    )
+                    return False
+            
+            # Step 2: Create or find the "test last" course
+            print("\n📚 Step 2: Creating/Finding 'test last' course")
+            
+            # Check if course already exists
+            courses_response = requests.get(
+                f"{BACKEND_URL}/courses",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            test_last_course = None
+            if courses_response.status_code == 200:
+                courses = courses_response.json()
+                for course in courses:
+                    if course.get('title').lower() == 'test last':
+                        test_last_course = course
+                        print(f"   ✅ Found existing course: {course.get('title')} (ID: {course.get('id')})")
+                        break
+            
+            # Create course if not found
+            if not test_last_course:
+                course_data = {
+                    "title": "test last",
+                    "description": "Test course for classroom student assignment bug reproduction",
+                    "category": "Testing",
+                    "duration": "1 week",
+                    "accessType": "open",
+                    "modules": [
+                        {
+                            "title": "Test Module 1",
+                            "lessons": [
+                                {"id": str(uuid.uuid4()), "title": "Test Lesson 1", "type": "video"},
+                                {"id": str(uuid.uuid4()), "title": "Test Lesson 2", "type": "quiz"}
+                            ]
+                        }
+                    ]
+                }
+                
+                create_course_response = requests.post(
+                    f"{BACKEND_URL}/courses",
+                    json=course_data,
+                    timeout=TEST_TIMEOUT,
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                    }
+                )
+                
+                if create_course_response.status_code == 200:
+                    test_last_course = create_course_response.json()
+                    print(f"   ✅ Created new course: {test_last_course.get('title')} (ID: {test_last_course.get('id')})")
+                else:
+                    self.log_result(
+                        "Classroom Student Assignment Bug Reproduction", 
+                        "FAIL", 
+                        "Failed to create 'test last' course",
+                        f"Course creation failed: {create_course_response.text}"
+                    )
+                    return False
+            
+            # Step 3: Get instructor for classroom creation
+            print("\n👨‍🏫 Step 3: Finding instructor for classroom trainer")
+            
+            instructor_user = None
+            if users_response.status_code == 200:
+                users = users_response.json()
+                for user in users:
+                    if user.get('role') == 'instructor':
+                        instructor_user = user
+                        print(f"   ✅ Found instructor: {user.get('full_name')} ({user.get('email')})")
+                        break
+            
+            if not instructor_user:
+                # Create instructor if none found
+                instructor_data = {
+                    "email": "test.instructor@learningfwiend.com",
+                    "username": "test.instructor",
+                    "full_name": "Test Instructor",
+                    "role": "instructor",
+                    "department": "Testing",
+                    "temporary_password": "TestInstructor123!"
+                }
+                
+                create_instructor_response = requests.post(
+                    f"{BACKEND_URL}/auth/admin/create-user",
+                    json=instructor_data,
+                    timeout=TEST_TIMEOUT,
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                    }
+                )
+                
+                if create_instructor_response.status_code == 200:
+                    instructor_user = create_instructor_response.json()
+                    print(f"   ✅ Created instructor: {instructor_user.get('full_name')} ({instructor_user.get('email')})")
+                else:
+                    self.log_result(
+                        "Classroom Student Assignment Bug Reproduction", 
+                        "FAIL", 
+                        "Failed to create instructor for classroom",
+                        f"Instructor creation failed: {create_instructor_response.text}"
+                    )
+                    return False
+            
+            # Step 4: Create classroom with student assignment and course assignment
+            print("\n🏫 Step 4: Creating classroom with student and course assignment")
+            
+            classroom_data = {
+                "name": "Bug Reproduction Classroom",
+                "description": "Testing classroom creation with brayden.student and test last course",
+                "trainerId": instructor_user.get('id'),
+                "courseIds": [test_last_course.get('id')],
+                "programIds": [],
+                "studentIds": [brayden_student.get('id')],
+                "department": "Testing",
+                "maxStudents": 50
+            }
+            
+            print(f"   📝 Classroom data:")
+            print(f"      Name: {classroom_data['name']}")
+            print(f"      Trainer: {instructor_user.get('full_name')} (ID: {instructor_user.get('id')})")
+            print(f"      Course: {test_last_course.get('title')} (ID: {test_last_course.get('id')})")
+            print(f"      Student: {brayden_student.get('full_name')} (ID: {brayden_student.get('id')})")
+            
+            classroom_response = requests.post(
+                f"{BACKEND_URL}/classrooms",
+                json=classroom_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            if classroom_response.status_code != 200:
+                self.log_result(
+                    "Classroom Student Assignment Bug Reproduction", 
+                    "FAIL", 
+                    f"Failed to create classroom with student assignment (status: {classroom_response.status_code})",
+                    f"Classroom creation failed: {classroom_response.text}"
+                )
+                return False
+            
+            created_classroom = classroom_response.json()
+            print(f"   ✅ Created classroom: {created_classroom.get('name')} (ID: {created_classroom.get('id')})")
+            
+            # Step 5: Verify classroom details after creation - CHECK FOR BUG
+            print("\n🔍 Step 5: Checking classroom details after creation (BUG CHECK)")
+            
+            classroom_detail_response = requests.get(
+                f"{BACKEND_URL}/classrooms/{created_classroom.get('id')}",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            student_in_classroom = False
+            course_in_classroom = False
+            enrolled_in_test_course = False
+            
+            if classroom_detail_response.status_code == 200:
+                classroom_details = classroom_detail_response.json()
+                
+                # Check if student appears in classroom
+                student_ids_in_classroom = classroom_details.get('studentIds', [])
+                student_count = classroom_details.get('studentCount', 0)
+                course_ids_in_classroom = classroom_details.get('courseIds', [])
+                
+                print(f"   📊 Classroom Details:")
+                print(f"      Student IDs: {student_ids_in_classroom}")
+                print(f"      Student Count: {student_count}")
+                print(f"      Course IDs: {course_ids_in_classroom}")
+                print(f"      Expected Student ID: {brayden_student.get('id')}")
+                print(f"      Expected Course ID: {test_last_course.get('id')}")
+                
+                # BUG CHECK: Verify if student appears in classroom
+                student_in_classroom = brayden_student.get('id') in student_ids_in_classroom
+                course_in_classroom = test_last_course.get('id') in course_ids_in_classroom
+                
+                if not student_in_classroom:
+                    print(f"   🚨 BUG DETECTED: Student 'brayden.student' NOT found in classroom studentIds!")
+                    print(f"      Expected: {brayden_student.get('id')}")
+                    print(f"      Found: {student_ids_in_classroom}")
+                else:
+                    print(f"   ✅ Student 'brayden.student' correctly appears in classroom")
+                
+                if not course_in_classroom:
+                    print(f"   🚨 BUG DETECTED: Course 'test last' NOT found in classroom courseIds!")
+                    print(f"      Expected: {test_last_course.get('id')}")
+                    print(f"      Found: {course_ids_in_classroom}")
+                else:
+                    print(f"   ✅ Course 'test last' correctly appears in classroom")
+            else:
+                self.log_result(
+                    "Classroom Student Assignment Bug Reproduction", 
+                    "FAIL", 
+                    f"Failed to retrieve classroom details (status: {classroom_detail_response.status_code})",
+                    f"Classroom detail retrieval failed: {classroom_detail_response.text}"
+                )
+                return False
+            
+            # Step 6: Check student enrollment in course (auto-enrollment check)
+            print("\n📚 Step 6: Checking student auto-enrollment in course")
+            
+            # Login as the student to check their enrollments
+            student_login_data = {
+                "username_or_email": "brayden.student@learningfwiend.com",
+                "password": "BraydenStudent123!"
+            }
+            
+            student_login_response = requests.post(
+                f"{BACKEND_URL}/auth/login",
+                json=student_login_data,
+                timeout=TEST_TIMEOUT,
+                headers={'Content-Type': 'application/json'}
+            )
+            
+            if student_login_response.status_code == 200:
+                student_auth_data = student_login_response.json()
+                student_token = student_auth_data.get('access_token')
+                
+                # Get student's enrollments
+                enrollments_response = requests.get(
+                    f"{BACKEND_URL}/enrollments",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {student_token}'}
+                )
+                
+                if enrollments_response.status_code == 200:
+                    enrollments = enrollments_response.json()
+                    
+                    print(f"   📊 Student Enrollments:")
+                    print(f"      Total enrollments: {len(enrollments)}")
+                    
+                    # Check if student is enrolled in the "test last" course
+                    for enrollment in enrollments:
+                        print(f"      - Course ID: {enrollment.get('courseId')}, Status: {enrollment.get('status')}")
+                        if enrollment.get('courseId') == test_last_course.get('id'):
+                            enrolled_in_test_course = True
+                            print(f"        ✅ Found enrollment in 'test last' course!")
+                    
+                    if not enrolled_in_test_course:
+                        print(f"   🚨 BUG DETECTED: Student NOT auto-enrolled in 'test last' course!")
+                        print(f"      Expected course ID: {test_last_course.get('id')}")
+                        print(f"      Student enrollments: {[e.get('courseId') for e in enrollments]}")
+                    else:
+                        print(f"   ✅ Student correctly auto-enrolled in 'test last' course")
+                else:
+                    print(f"   ❌ Failed to retrieve student enrollments (status: {enrollments_response.status_code})")
+            else:
+                print(f"   ❌ Failed to login as student (status: {student_login_response.status_code})")
+            
+            # Step 7: Summary and bug assessment
+            print("\n📋 Step 7: Bug Reproduction Summary")
+            print("=" * 60)
+            
+            bug_issues = []
+            success_points = []
+            
+            # Assess each check point
+            if student_in_classroom:
+                success_points.append("✅ Student appears in classroom studentIds")
+            else:
+                bug_issues.append("🚨 Student missing from classroom studentIds")
+            
+            if course_in_classroom:
+                success_points.append("✅ Course appears in classroom courseIds")
+            else:
+                bug_issues.append("🚨 Course missing from classroom courseIds")
+            
+            if enrolled_in_test_course:
+                success_points.append("✅ Student auto-enrolled in classroom course")
+            else:
+                bug_issues.append("🚨 Student NOT auto-enrolled in classroom course")
+            
+            print(f"\n🎯 REPRODUCTION RESULTS:")
+            for success in success_points:
+                print(f"   {success}")
+            for issue in bug_issues:
+                print(f"   {issue}")
+            
+            if len(bug_issues) == 0:
+                self.log_result(
+                    "Classroom Student Assignment Bug Reproduction", 
+                    "PASS", 
+                    "✅ NO BUG DETECTED: Classroom creation with student assignment working correctly",
+                    f"Successfully created classroom with brayden.student and 'test last' course. Student properly assigned and auto-enrolled. All {len(success_points)} checks passed."
+                )
+                return True
+            else:
+                self.log_result(
+                    "Classroom Student Assignment Bug Reproduction", 
+                    "FAIL", 
+                    f"🚨 BUG REPRODUCED: {len(bug_issues)} issues found with classroom student assignment",
+                    f"Issues: {'; '.join(bug_issues)}. This explains why students don't appear in classroom after assignment and can't access courses."
+                )
+                return False
+                
+        except requests.exceptions.RequestException as e:
+            self.log_result(
+                "Classroom Student Assignment Bug Reproduction", 
+                "FAIL", 
+                "Failed to complete classroom student assignment bug reproduction test",
+                str(e)
+            )
+            return False
+        except Exception as e:
+            self.log_result(
+                "Classroom Student Assignment Bug Reproduction", 
+                "FAIL", 
+                "Unexpected error during classroom student assignment bug reproduction",
+                str(e)
+            )
+            return False
+
+
 if __name__ == "__main__":
-    print("🚨 URGENT ADMIN AUTHENTICATION TROUBLESHOOTING")
+    print("🔍 CLASSROOM CREATION STUDENT ASSIGNMENT BUG REPRODUCTION")
     print("=" * 80)
-    print("User reported: Admin credentials not working after redeployment")
-    print("Admin email: brayden.t@covesmart.com")
-    print("Admin password: Hawaii2020!")
-    print("These credentials were working before deployment issues")
+    print("Testing scenario: Create classroom with student 'brayden.student' and 'test last' course")
+    print("Goal: Reproduce issue where students don't appear in classroom after assignment")
+    print("Authentication: Using admin credentials brayden.t@covesmart.com / Hawaii2020!")
     print("=" * 80)
     
     tester = BackendTester()
     
-    # Run urgent admin authentication troubleshooting
-    admin_working = tester.run_urgent_admin_authentication_tests()
+    # Run the classroom creation bug reproduction test
+    bug_reproduced = tester.test_classroom_creation_student_assignment_bug_reproduction()
     
-    if admin_working:
-        print(f"\n🎉 SUCCESS: Admin authentication issue has been resolved!")
-        print(f"The user can now login with: brayden.t@covesmart.com / Hawaii2020!")
+    if not bug_reproduced:
+        print(f"\n🚨 BUG REPRODUCED: Classroom student assignment issues detected!")
+        print(f"Students don't appear in classroom after being assigned during creation.")
+        print(f"This explains why students can't access courses through classroom assignment.")
     else:
-        print(f"\n🚨 CRITICAL: Admin authentication is still failing!")
-        print(f"Immediate investigation and fix required.")
-        print(f"Check the detailed test results above for root cause analysis.")
+        print(f"\n✅ NO BUG DETECTED: Classroom creation with student assignment working correctly!")
+        print(f"Students are properly assigned and auto-enrolled in classroom courses.")
     
     print(f"\nTest completed at: {datetime.now().isoformat()}")
     
     # Exit with appropriate code
-    sys.exit(0 if admin_working else 1)
+    sys.exit(1 if not bug_reproduced else 0)
