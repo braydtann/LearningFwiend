@@ -488,8 +488,8 @@ const CourseDetail = () => {
   // For now, set basic progress - this can be enhanced later with real progress tracking
   // const progress = 0; // TODO: Implement real progress tracking
 
-  // Loading state - wait for both course and enrollment data
-  if (loading || (isLearner && loadingEnrollments)) {
+  // Loading state - prioritize course loading over enrollment loading
+  if (loading) {
     return (
       <div className="text-center py-12">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
