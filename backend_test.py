@@ -1,7 +1,14 @@
 #!/usr/bin/env python3
 """
-Backend Testing Suite for LearningFwiend LMS Application
-Tests FastAPI backend service, API endpoints, and database connectivity
+COMPREHENSIVE BACKEND TESTING SUITE - POST 404 ERROR RESOLUTION
+LearningFwiend LMS Application Backend API Testing
+
+TESTING SCOPE:
+✅ AUTHENTICATION TESTING with provided credentials
+✅ CORE API ENDPOINTS (User, Course, Enrollment, Classroom, Program, etc.)
+✅ CRITICAL FUNCTIONALITIES (Course creation, Auto-enrollment, Progress tracking, etc.)
+
+TARGET SUCCESS RATE: 90%+ on all critical functionality tests
 """
 
 import requests
@@ -10,10 +17,22 @@ import os
 import sys
 from datetime import datetime
 import time
+import uuid
 
 # Configuration - Using Production Backend URL from frontend/.env
 BACKEND_URL = "https://learningfwiend-fix.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
+
+# Test credentials from review request
+ADMIN_CREDENTIALS = {
+    "username_or_email": "brayden.t@covesmart.com",
+    "password": "Hawaii2020!"
+}
+
+STUDENT_CREDENTIALS = {
+    "username_or_email": "karlo.student@alder.com", 
+    "password": "StudentPermanent123!"
+}
 
 class BackendTester:
     def __init__(self):
