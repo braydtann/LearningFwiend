@@ -42,7 +42,7 @@ const StudentDashboard = () => {
             return {
               id: enrollment.courseId,
               title: course?.title || enrollment.courseName || 'Unknown Course',
-              thumbnail: course?.thumbnailUrl || course?.thumbnail || '/default-course-image.jpg',
+              thumbnail: course?.thumbnailUrl || course?.thumbnail || 'https://via.placeholder.com/300x200?text=Course+Image',
               instructor: course?.instructor || 'Unknown',
               duration: course?.duration || '1 week',
               progress: enrollment.progress || 0,
