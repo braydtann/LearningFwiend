@@ -593,16 +593,32 @@ class ComprehensiveCourseClassroomTester:
                 )
                 return False
             
+            # Get admin user ID for trainerId (admin can act as trainer)
+            admin_user_id = None
+            for user in users:
+                if user.get('email') == 'brayden.t@covesmart.com':
+                    admin_user_id = user.get('id')
+                    break
+            
+            if not admin_user_id:
+                self.log_result(
+                    "Create Progress Test Classroom", 
+                    "FAIL", 
+                    "Could not find admin user ID for trainerId",
+                    "Admin user required as trainer for classroom"
+                )
+                return False
+            
             # Create classroom data
             classroom_data = {
                 "name": "Progress Test Classroom",
                 "description": "Classroom for testing progress tracking functionality with multiple students and comprehensive course content. Students should be auto-enrolled in the Progress Testing Course and able to track progress through 25% → 50% → 75% → 100% as they complete modules.",
+                "trainerId": admin_user_id,  # Required field
                 "courseIds": [self.created_resources['course_id']],
                 "studentIds": student_ids,
                 "programIds": [],
                 "startDate": datetime.now().isoformat(),
                 "endDate": None,  # No end date for unlimited access
-                "isActive": True
             }
             
             response = requests.post(
