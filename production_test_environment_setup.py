@@ -133,22 +133,40 @@ class ProductionTestEnvironmentSetup:
     
     def create_student_if_needed(self, email, username, full_name, password):
         """Create student user if they don't exist"""
-        # Try to authenticate first to see if user exists
-        test_credentials = {"username_or_email": email, "password": password}
-        response = self.make_request('POST', '/auth/login', test_credentials)
+        # First check if user exists by getting all users
+        response = self.make_request('GET', '/auth/admin/users', auth_token=self.auth_tokens.get('admin'))
         
         if response and response.status_code == 200:
-            data = response.json()
-            user = data.get('user', {})
-            self.log_result(f"Student Check - {email}", 'PASS', 
-                          f"Student {email} already exists with ID: {user.get('id')}")
-            return user
+            users = response.json()
+            existing_user = next((user for user in users if user.get('email') == email), None)
+            
+            if existing_user:
+                self.log_result(f"Student Check - {email}", 'PASS', 
+                              f"Student {email} already exists with ID: {existing_user.get('id')}")
+                
+                # Try to authenticate to verify password
+                test_credentials = {"username_or_email": email, "password": password}
+                auth_response = self.make_request('POST', '/auth/login', test_credentials)
+                
+                if auth_response and auth_response.status_code == 200:
+                    self.log_result(f"Student Authentication - {email}", 'PASS', 
+                                  f"Student {email} authentication successful")
+                else:
+                    # Password might be wrong, reset it
+                    reset_data = {
+                        "user_id": existing_user.get('id'),
+                        "new_temporary_password": password
+                    }
+                    reset_response = self.make_request('POST', '/auth/admin/reset-password', reset_data,
+                                                     auth_token=self.auth_tokens.get('admin'))
+                    
+                    if reset_response and reset_response.status_code == 200:
+                        self.log_result(f"Student Password Reset - {email}", 'PASS', 
+                                      f"Password reset successful for {email}")
+                    
+                return existing_user
         
-        print(f"🔍 DEBUG: Student {email} login failed. Status: {response.status_code if response else 'No response'}")
-        if response:
-            print(f"🔍 DEBUG: Response: {response.text}")
-        
-        # User doesn't exist or password is wrong, try to create
+        # User doesn't exist, try to create
         user_data = {
             "email": email,
             "username": username,
@@ -158,13 +176,8 @@ class ProductionTestEnvironmentSetup:
             "temporary_password": password
         }
         
-        print(f"🔍 DEBUG: Attempting to create user with data: {user_data}")
         response = self.make_request('POST', '/auth/admin/create-user', user_data, 
                                    auth_token=self.auth_tokens.get('admin'))
-        
-        print(f"🔍 DEBUG: Create user response status: {response.status_code if response else 'No response'}")
-        if response:
-            print(f"🔍 DEBUG: Create user response: {response.text}")
         
         if response and response.status_code == 200:
             user = response.json()
@@ -180,11 +193,6 @@ class ProductionTestEnvironmentSetup:
                                              auth_token=self.auth_tokens.get('admin'))
             
             if reset_response and reset_response.status_code == 200:
-                # Update user to remove first_login_required
-                update_data = {"is_active": True}
-                update_response = self.make_request('PUT', f'/auth/admin/users/{user.get("id")}', 
-                                                  update_data, auth_token=self.auth_tokens.get('admin'))
-                
                 self.log_result(f"Student Password Setup - {email}", 'PASS', 
                               f"Password setup completed for {email}")
             
