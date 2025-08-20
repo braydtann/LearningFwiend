@@ -191,9 +191,13 @@ const CourseDetail = () => {
   // Calculate next action (next lesson, next module, or complete course)
   const calculateNextAction = () => {
     if (!course?.modules || !selectedLesson) {
+      console.log('calculateNextAction: Missing course modules or selectedLesson');
       setNextAction(null);
       return;
     }
+    
+    console.log(`calculateNextAction: Course has ${course.modules.length} modules`);
+    console.log(`calculateNextAction: Selected lesson: ${selectedLesson.title} (ID: ${selectedLesson.id})`);
     
     // Find current module and lesson
     let currentModuleIndex = -1;
@@ -201,11 +205,13 @@ const CourseDetail = () => {
     
     for (let mi = 0; mi < course.modules.length; mi++) {
       const module = course.modules[mi];
+      console.log(`calculateNextAction: Checking module ${mi}: ${module.title} (${module.lessons?.length || 0} lessons)`);
       if (module.lessons) {
         for (let li = 0; li < module.lessons.length; li++) {
           if (module.lessons[li].id === selectedLesson.id) {
             currentModuleIndex = mi;
             currentLessonIndex = li;
+            console.log(`calculateNextAction: Found current lesson at module ${mi}, lesson ${li}`);
             break;
           }
         }
@@ -214,6 +220,7 @@ const CourseDetail = () => {
     }
     
     if (currentModuleIndex === -1) {
+      console.log('calculateNextAction: Could not find current lesson in any module');
       setNextAction(null);
       return;
     }
@@ -221,6 +228,10 @@ const CourseDetail = () => {
     const currentModule = course.modules[currentModuleIndex];
     const isLastModule = currentModuleIndex === course.modules.length - 1;
     const isLastLessonInModule = currentLessonIndex === currentModule.lessons.length - 1;
+    
+    console.log(`calculateNextAction: Current module: ${currentModule.title} (${currentModuleIndex}/${course.modules.length - 1})`);
+    console.log(`calculateNextAction: Current lesson: ${currentLessonIndex}/${currentModule.lessons.length - 1} in module`);
+    console.log(`calculateNextAction: Is last module: ${isLastModule}, Is last lesson in module: ${isLastLessonInModule}`);
     
     // Check if this is the very last lesson in the course
     if (isLastModule && isLastLessonInModule) {
@@ -260,9 +271,11 @@ const CourseDetail = () => {
     
     // Check if there's a next lesson in current module
     if (currentLessonIndex < currentModule.lessons.length - 1) {
+      const nextLesson = currentModule.lessons[currentLessonIndex + 1];
+      console.log(`calculateNextAction: Next lesson in current module: ${nextLesson.title}`);
       setNextAction({
         type: 'lesson',
-        target: currentModule.lessons[currentLessonIndex + 1],
+        target: nextLesson,
         moduleIndex: currentModuleIndex,
         lessonIndex: currentLessonIndex + 1
       });
@@ -272,7 +285,9 @@ const CourseDetail = () => {
     // Check if there's a next module
     if (currentModuleIndex < course.modules.length - 1) {
       const nextModule = course.modules[currentModuleIndex + 1];
+      console.log(`calculateNextAction: Checking next module: ${nextModule.title} (${nextModule.lessons?.length || 0} lessons)`);
       if (nextModule.lessons && nextModule.lessons.length > 0) {
+        console.log(`calculateNextAction: Moving to next module: ${nextModule.title}, first lesson: ${nextModule.lessons[0].title}`);
         setNextAction({
           type: 'module',
           target: nextModule.lessons[0],
@@ -285,6 +300,7 @@ const CourseDetail = () => {
     }
     
     // No next action available
+    console.log('calculateNextAction: No next action available');
     setNextAction(null);
   };
 
