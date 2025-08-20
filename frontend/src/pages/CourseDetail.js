@@ -767,6 +767,79 @@ const CourseDetail = () => {
               </div>
             )}
 
+            {/* Quick Quiz Access - only for enrolled students */}
+            {isEnrolled && course?.modules && (
+              (() => {
+                // Find all quiz lessons across all modules
+                const quizLessons = [];
+                course.modules.forEach((module, moduleIndex) => {
+                  if (module.lessons) {
+                    module.lessons.forEach((lesson, lessonIndex) => {
+                      if (lesson.type === 'quiz') {
+                        quizLessons.push({
+                          ...lesson,
+                          moduleTitle: module.title,
+                          moduleIndex,
+                          lessonIndex
+                        });
+                      }
+                    });
+                  }
+                });
+
+                if (quizLessons.length > 0) {
+                  return (
+                    <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-6 rounded-lg mb-6 border border-purple-200">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                            <ClipboardCheck className="w-6 h-6 inline mr-2 text-purple-600" />
+                            Available Quizzes
+                          </h3>
+                          <p className="text-gray-600 mb-3">
+                            Test your knowledge with {quizLessons.length} quiz{quizLessons.length > 1 ? 'es' : ''} in this course
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {quizLessons.slice(0, 3).map((quiz) => (
+                              <Button
+                                key={quiz.id}
+                                variant="outline"
+                                size="sm"
+                                className="bg-white border-purple-300 text-purple-700 hover:bg-purple-50"
+                                onClick={() => {
+                                  navigate(`/quiz/${quiz.id}?courseId=${id}`);
+                                }}
+                              >
+                                <ClipboardCheck className="w-4 h-4 mr-1" />
+                                {quiz.title}
+                              </Button>
+                            ))}
+                            {quizLessons.length > 3 && (
+                              <span className="text-sm text-gray-500 self-center">
+                                +{quizLessons.length - 3} more quiz{quizLessons.length - 3 > 1 ? 'es' : ''}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        {quizLessons.length === 1 && (
+                          <Button 
+                            className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 text-lg"
+                            onClick={() => {
+                              navigate(`/quiz/${quizLessons[0].id}?courseId=${id}`);
+                            }}
+                          >
+                            <ClipboardCheck className="w-5 h-5 mr-2" />
+                            Start Quiz
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              })()
+            )}
+
             {/* Start Course Button - When no lesson is selected */}
             {!selectedLesson && isEnrolled && course?.modules?.length > 0 && (
               <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-lg mb-6 border border-green-200">
