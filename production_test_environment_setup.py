@@ -95,13 +95,13 @@ class ProductionTestEnvironmentSetup:
         
         try:
             if method.upper() == 'GET':
-                response = requests.get(url, headers=request_headers, timeout=TEST_TIMEOUT)
+                response = requests.get(url, headers=request_headers, timeout=TEST_TIMEOUT, verify=False)
             elif method.upper() == 'POST':
-                response = requests.post(url, json=data, headers=request_headers, timeout=TEST_TIMEOUT)
+                response = requests.post(url, json=data, headers=request_headers, timeout=TEST_TIMEOUT, verify=False)
             elif method.upper() == 'PUT':
-                response = requests.put(url, json=data, headers=request_headers, timeout=TEST_TIMEOUT)
+                response = requests.put(url, json=data, headers=request_headers, timeout=TEST_TIMEOUT, verify=False)
             elif method.upper() == 'DELETE':
-                response = requests.delete(url, headers=request_headers, timeout=TEST_TIMEOUT)
+                response = requests.delete(url, headers=request_headers, timeout=TEST_TIMEOUT, verify=False)
             else:
                 raise ValueError(f"Unsupported HTTP method: {method}")
             
