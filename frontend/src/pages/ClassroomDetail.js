@@ -177,12 +177,9 @@ const ClassroomDetail = () => {
         console.warn('Failed to load courses from backend:', result.error);
       }
     } catch (error) {
-      // Fallback to mock courses
+      // Set empty courses array on error
       console.error('Error loading courses:', error);
-      const fallbackCourses = classroom?.courseIds?.map(courseId => 
-        mockCourses.find(course => course.id === courseId)
-      ).filter(Boolean) || [];
-      setCourses(fallbackCourses);
+      setCourses([]);
       setCoursesError('Network error loading courses');
     } finally {
       setLoadingCourses(false);
