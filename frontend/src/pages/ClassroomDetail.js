@@ -467,7 +467,11 @@ const ClassroomDetail = () => {
                   <div>
                     <p className="text-sm text-gray-500">Duration</p>
                     <p className="font-medium">
-                      {new Date(classroom.startDate).toLocaleDateString()} - {new Date(classroom.endDate).toLocaleDateString()}
+                      {classroom.startDate && classroom.endDate ? (
+                        `${new Date(classroom.startDate).toLocaleDateString()} - ${new Date(classroom.endDate).toLocaleDateString()}`
+                      ) : (
+                        'Dates not set'
+                      )}
                     </p>
                   </div>
                 </div>
