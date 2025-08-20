@@ -16,8 +16,9 @@ const NotificationBell = () => {
 
   useEffect(() => {
     if (user?.id && isLearner) {
-      const userNotifications = getUserNotifications(user.id);
-      const unreadNotifications = getUnreadNotifications(user.id);
+      // TODO: Replace with backend API calls when available
+      const userNotifications = []; // getUserNotifications(user.id);
+      const unreadNotifications = []; // getUnreadNotifications(user.id);
       
       setNotifications(userNotifications);
       setUnreadCount(unreadNotifications.length);
