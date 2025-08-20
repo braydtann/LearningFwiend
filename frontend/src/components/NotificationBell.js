@@ -4,12 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { 
-  getUserNotifications, 
-  getUnreadNotifications, 
-  markNotificationAsRead, 
-  markAllNotificationsAsRead 
-} from '../data/mockData';
+// TODO: Replace with backend notification APIs when available
 
 const NotificationBell = () => {
   const { user, isLearner } = useAuth();
