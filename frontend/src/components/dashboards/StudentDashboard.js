@@ -15,10 +15,10 @@ const StudentDashboard = () => {
   const [enrolledCourses, setEnrolledCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // Get other data from mock (these don't have backend equivalents yet)
-  const certificates = getUserCertificates(user?.id);
-  const studentClassrooms = getStudentClassrooms(user?.id);
-  const quizResults = getUserQuizResults(user?.id);
+  // TODO: Replace with backend APIs when available
+  const certificates = []; // getUserCertificates(user?.id);
+  const studentClassrooms = []; // getStudentClassrooms(user?.id);
+  const quizResults = []; // getUserQuizResults(user?.id);
 
   // Load real enrollment data from backend
   useEffect(() => {
