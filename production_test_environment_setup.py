@@ -333,16 +333,33 @@ class ProductionTestEnvironmentSetup:
     
     def create_test_classroom(self, course_id, student1_id, student2_id):
         """Create Progress Test Classroom and assign course and students"""
+        # First get an available instructor
+        response = self.make_request('GET', '/auth/admin/users', auth_token=self.auth_tokens.get('admin'))
+        
+        instructor_id = None
+        if response and response.status_code == 200:
+            users = response.json()
+            instructors = [user for user in users if user.get('role') == 'instructor']
+            if instructors:
+                instructor_id = instructors[0]['id']  # Use first available instructor
+                self.log_result("Instructor Selection", 'PASS', 
+                              f"Selected instructor: {instructors[0]['full_name']} (ID: {instructor_id})")
+        
+        if not instructor_id:
+            self.log_result("Instructor Selection", 'FAIL', "No instructors available")
+            return None
+        
         classroom_data = {
             "name": "Progress Test Classroom",
             "description": "Test classroom for validating progress tracking functionality with multiple students and course assignments.",
-            "trainerId": self.auth_tokens.get('admin_user_id', ''),  # Will be set after admin auth
+            "trainerId": instructor_id,
             "courseIds": [course_id],
             "studentIds": [student1_id, student2_id],
             "programIds": [],
             "startDate": datetime.now().isoformat(),
             "endDate": None,  # No end date for testing
-            "isActive": True
+            "maxStudents": 50,
+            "department": "Testing"
         }
         
         response = self.make_request('POST', '/classrooms', classroom_data,
