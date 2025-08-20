@@ -538,7 +538,7 @@ const CourseDetail = () => {
           </Button>
           <div className="h-6 border-l border-gray-300"></div>
           <nav className="text-sm text-gray-500">
-            <span>Courses</span> / <span className="text-gray-900">{course.title}</span>
+            <span>Courses</span> / <span className="text-gray-900">{course?.title || 'Loading...'}</span>
           </nav>
         </div>
 
