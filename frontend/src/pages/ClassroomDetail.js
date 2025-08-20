@@ -171,12 +171,9 @@ const ClassroomDetail = () => {
         );
         setCourses(classroomCourses);
       } else {
-        // Fallback to mock courses if backend fails
-        const fallbackCourses = classroom?.courseIds?.map(courseId => 
-          mockCourses.find(course => course.id === courseId)
-        ).filter(Boolean) || [];
-        setCourses(fallbackCourses);
-        setCoursesError('Failed to load courses from backend, using cached data');
+        // Set empty courses array if backend fails
+        setCourses([]);
+        setCoursesError('Failed to load courses from backend');
         console.warn('Failed to load courses from backend:', result.error);
       }
     } catch (error) {
