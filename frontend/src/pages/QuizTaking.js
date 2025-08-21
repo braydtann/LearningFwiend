@@ -228,7 +228,13 @@ const QuizTaking = () => {
     }
   };
 
-  const handleSubmitQuiz = () => {
+  const handleSubmitQuiz = useCallback(() => {
+    if (!quiz || !quiz.questions) {
+      console.error('Cannot submit quiz - quiz data is missing');
+      setQuizState('error');
+      return;
+    }
+    
     const endTime = Date.now();
     const timeSpent = Math.floor((endTime - startTime) / 1000);
     
