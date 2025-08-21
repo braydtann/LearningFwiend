@@ -22,6 +22,7 @@ const QuizTaking = () => {
   const navigate = useNavigate();
   const { user, getCourseById } = useAuth();
   const { toast } = useToast();
+  const isMounted = useRef(true);
 
   // Course and lesson loading states
   const [course, setCourse] = useState(null);
