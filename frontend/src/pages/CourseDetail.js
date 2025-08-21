@@ -733,7 +733,46 @@ const CourseDetail = () => {
                       }
                     }
                     
-                    // Handle YouTube and Vimeo (existing logic)
+                    // Handle YouTube URLs - convert to embeddable format
+                    if (url.includes('youtube.com/watch') || url.includes('youtu.be/')) {
+                      let videoId = '';
+                      
+                      if (url.includes('youtube.com/watch')) {
+                        const urlParams = new URLSearchParams(url.split('?')[1]);
+                        videoId = urlParams.get('v');
+                      } else if (url.includes('youtu.be/')) {
+                        videoId = url.split('youtu.be/')[1].split('?')[0];
+                      }
+                      
+                      if (videoId) {
+                        return (
+                          <iframe
+                            src={`https://www.youtube.com/embed/${videoId}`}
+                            className="w-full h-full"
+                            allowFullScreen
+                            title={selectedLesson.title}
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          />
+                        );
+                      }
+                    }
+                    
+                    // Handle Vimeo URLs
+                    if (url.includes('vimeo.com/')) {
+                      const videoId = url.split('vimeo.com/')[1].split('?')[0];
+                      if (videoId) {
+                        return (
+                          <iframe
+                            src={`https://player.vimeo.com/video/${videoId}`}
+                            className="w-full h-full"
+                            allowFullScreen
+                            title={selectedLesson.title}
+                          />
+                        );
+                      }
+                    }
+                    
+                    // Fallback for other video URLs
                     return (
                       <iframe
                         src={url}
