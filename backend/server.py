@@ -239,6 +239,19 @@ class ProgramResponse(BaseModel):
 class EnrollmentCreate(BaseModel):
     courseId: str
 
+# Progress tracking models
+class LessonProgress(BaseModel):
+    lessonId: str
+    completed: bool = False
+    completedAt: Optional[datetime] = None
+    timeSpent: Optional[int] = 0  # in seconds
+
+class ModuleProgress(BaseModel):
+    moduleId: str
+    lessons: List[LessonProgress] = []
+    completed: bool = False
+    completedAt: Optional[datetime] = None
+
 class EnrollmentResponse(BaseModel):
     id: str
     userId: str
