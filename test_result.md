@@ -2235,10 +2235,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Course Progress Tracking Enhancement"
+    - "URGENT: Quiz White Screen and Routing Fixes"
   stuck_tasks: []
   test_all: false
-  test_priority: "high_first"
+  test_priority: "critical_first"
   backend_testing_complete: true
   frontend_testing_complete: true
   comprehensive_e2e_complete: true
