@@ -116,6 +116,18 @@ const QuizTaking = () => {
 
   useEffect(() => {
     if (!courseLoading) {
+      console.log('QuizTaking: Validation check - courseLoading false');
+      console.log('QuizTaking: Data availability:', { 
+        course: !!course, 
+        lesson: !!lesson, 
+        quiz: !!quiz,
+        courseError,
+        courseTitle: course?.title,
+        lessonTitle: lesson?.title,
+        lessonType: lesson?.type,
+        quizQuestions: quiz?.questions?.length
+      });
+      
       if (!course || !lesson || !quiz) {
         console.error('Quiz component error - missing data:', { 
           course: !!course, 
