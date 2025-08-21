@@ -67,6 +67,37 @@ const Classrooms = () => {
     loadClassrooms();
   }, []);
 
+  const handleDeleteClassroom = async (classroomId, classroomName) => {
+    if (!confirm(`Are you sure you want to delete the classroom "${classroomName}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const result = await deleteClassroom(classroomId);
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: `Classroom "${classroomName}" has been deleted successfully.`,
+        });
+        // Refresh the classrooms list
+        loadClassrooms();
+      } else {
+        toast({
+          title: "Error",
+          description: result.error || "Failed to delete classroom. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error deleting classroom:', error);
+      toast({
+        title: "Error",
+        description: "An error occurred while deleting the classroom.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const loadClassrooms = async () => {
     setLoadingClassrooms(true);
     try {
