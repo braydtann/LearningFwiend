@@ -294,6 +294,15 @@ class StudentCourseAccessTester:
             )
             return False
         
+        if "student" not in self.auth_tokens:
+            self.log_result(
+                "Course Structure Analysis", 
+                "SKIP", 
+                "No student token available",
+                "Student authentication required"
+            )
+            return False
+        
         try:
             # Get course details as student (this is what frontend would do)
             response = requests.get(
