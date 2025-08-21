@@ -195,16 +195,11 @@ const QuizTaking = () => {
         setTimeLeft(timeLeft - 1);
       }, 1000);
       return () => clearTimeout(timer);
-    } else if (quizState === 'taking' && timeLeft === 0) {
-      // Ensure handleSubmitQuiz exists and quiz data is available
-      if (typeof handleSubmitQuiz === 'function' && quiz) {
-        handleSubmitQuiz();
-      } else {
-        console.error('Cannot submit quiz - missing handler or quiz data');
-        setQuizState('error');
-      }
+    } else if (quizState === 'taking' && timeLeft === 0 && quiz) {
+      // Auto-submit when time runs out
+      handleSubmitQuiz();
     }
-  }, [quizState, timeLeft, quiz]);
+  }, [quizState, timeLeft]);
 
   const startQuiz = () => {
     setQuizState('taking');
