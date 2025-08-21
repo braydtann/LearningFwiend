@@ -22,7 +22,8 @@ import {
   AlertTriangle,
   Lock,
   ChevronRight,
-  SkipForward
+  SkipForward,
+  ClipboardCheck
 } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 
