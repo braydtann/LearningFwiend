@@ -158,9 +158,15 @@ const QuizTaking = () => {
       }, 1000);
       return () => clearTimeout(timer);
     } else if (quizState === 'taking' && timeLeft === 0) {
-      handleSubmitQuiz();
+      // Ensure handleSubmitQuiz exists and quiz data is available
+      if (typeof handleSubmitQuiz === 'function' && quiz) {
+        handleSubmitQuiz();
+      } else {
+        console.error('Cannot submit quiz - missing handler or quiz data');
+        setQuizState('error');
+      }
     }
-  }, [quizState, timeLeft]);
+  }, [quizState, timeLeft, quiz]);
 
   const startQuiz = () => {
     setQuizState('taking');
