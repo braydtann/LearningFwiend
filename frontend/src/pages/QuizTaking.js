@@ -922,7 +922,7 @@ const QuizTaking = () => {
               </div>
 
               <div className="flex items-center justify-center pt-6">
-                <Button onClick={() => navigate(`/courses/${courseId}`)}>
+                <Button onClick={() => navigate(`/course/${courseId}`)}>
                   Back to Course
                 </Button>
               </div>
