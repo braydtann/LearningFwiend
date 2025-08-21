@@ -848,7 +848,7 @@ const CourseDetail = () => {
                           <Button 
                             className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 text-lg"
                             onClick={() => {
-                              navigate(`/quiz/${quizLessons[0].id}?courseId=${id}`);
+                              navigate(`/quiz/${id}/${quizLessons[0].id}`);
                             }}
                           >
                             <ClipboardCheck className="w-5 h-5 mr-2" />
