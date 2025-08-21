@@ -318,7 +318,7 @@ const QuizTaking = () => {
         : `You scored ${score}%. The passing score is ${quiz.passingScore || 70}%.`,
       variant: passed ? "default" : "destructive"
     });
-  };
+  }, [quiz, startTime, answers, toast]);
 
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
