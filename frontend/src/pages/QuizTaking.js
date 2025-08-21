@@ -139,7 +139,7 @@ const QuizTaking = () => {
           {courseError || 'This quiz could not be found or is not available.'}
         </p>
         <div className="space-x-4">
-          <Button onClick={() => navigate(`/courses/${courseId}`)}>
+          <Button onClick={() => navigate(`/course/${courseId}`)}>
             Back to Course
           </Button>
           <Button variant="outline" onClick={() => navigate('/courses')}>
