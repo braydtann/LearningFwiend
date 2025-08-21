@@ -939,7 +939,7 @@ const QuizTaking = () => {
             <p className="text-gray-600 mb-6">
               Your quiz has been submitted successfully. Results will be available once graded.
             </p>
-            <Button onClick={() => navigate(`/courses/${courseId}`)}>
+            <Button onClick={() => navigate(`/course/${courseId}`)}>
               Back to Course
             </Button>
           </CardContent>
