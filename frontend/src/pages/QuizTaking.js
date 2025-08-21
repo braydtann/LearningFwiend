@@ -34,38 +34,64 @@ const QuizTaking = () => {
   useEffect(() => {
     const loadCourseData = async () => {
       try {
+        console.log(`QuizTaking: Loading course ${courseId}, lesson ${lessonId}`);
         setCourseLoading(true);
         const result = await getCourseById(courseId);
         
         if (result.success) {
           const courseData = result.course;
+          console.log('QuizTaking: Course loaded successfully:', courseData.title);
+          console.log('QuizTaking: Course has', courseData.modules?.length || 0, 'modules');
           setCourse(courseData);
           
           // Find the lesson and quiz
           let foundLesson = null;
+          let moduleFound = null;
+          
           for (const module of courseData.modules || []) {
+            console.log(`QuizTaking: Checking module "${module.title}" with ${module.lessons?.length || 0} lessons`);
             if (module.lessons) {
               foundLesson = module.lessons.find(l => l.id === lessonId);
-              if (foundLesson) break;
+              if (foundLesson) {
+                moduleFound = module;
+                console.log(`QuizTaking: Found lesson "${foundLesson.title}" of type "${foundLesson.type}" in module "${module.title}"`);
+                break;
+              }
             }
           }
           
           if (foundLesson) {
             setLesson(foundLesson);
+            console.log('QuizTaking: Lesson data:', {
+              title: foundLesson.title,
+              type: foundLesson.type,
+              hasQuiz: !!foundLesson.quiz,
+              quizQuestions: foundLesson.quiz?.questions?.length || 0
+            });
+            
             if (foundLesson.type === 'quiz' && foundLesson.quiz) {
               setQuiz(foundLesson.quiz);
+              console.log('QuizTaking: Quiz data loaded successfully with', foundLesson.quiz.questions?.length || 0, 'questions');
             } else {
-              setCourseError('This lesson is not a quiz or quiz data is missing');
+              const errorMsg = foundLesson.type !== 'quiz' 
+                ? `This lesson is type "${foundLesson.type}", not a quiz`
+                : 'Quiz data is missing from lesson';
+              console.error('QuizTaking:', errorMsg);
+              setCourseError(errorMsg);
             }
           } else {
-            setCourseError('Lesson not found in course');
+            const errorMsg = `Lesson ${lessonId} not found in course`;
+            console.error('QuizTaking:', errorMsg);
+            setCourseError(errorMsg);
           }
         } else {
-          setCourseError(result.error || 'Course not found');
+          const errorMsg = result.error || 'Course not found';
+          console.error('QuizTaking: Failed to load course:', errorMsg);
+          setCourseError(errorMsg);
         }
       } catch (err) {
-        console.error('Error loading course data:', err);
-        setCourseError('Failed to load course data');
+        console.error('QuizTaking: Error loading course data:', err);
+        setCourseError('Failed to load course data: ' + err.message);
       } finally {
         setCourseLoading(false);
       }
