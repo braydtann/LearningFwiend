@@ -656,11 +656,21 @@ class FreshEnvironmentTester:
         print(f"Assigning course: {course.get('title')}")
         print(f"Assigning user: {test_user.get('email')}")
         
-        # Get instructor for classroom (use admin as instructor)
+        # First, create an instructor user for the classroom
+        instructor_user_data = {
+            "email": "progress.instructor@learningfwiend.com",
+            "username": "progress.instructor",
+            "full_name": "Progress Test Instructor",
+            "role": "instructor",
+            "department": "Testing",
+            "temporary_password": "InstructorTest123!"
+        }
+        
         instructor_id = None
         instructor_name = None
         
         try:
+            # Check if instructor already exists
             users_response = requests.get(
                 f"{BACKEND_URL}/auth/admin/users",
                 timeout=TEST_TIMEOUT,
@@ -669,16 +679,47 @@ class FreshEnvironmentTester:
             
             if users_response.status_code == 200:
                 users = users_response.json()
+                existing_instructor = None
+                
                 for user in users:
-                    if user.get('role') in ['instructor', 'admin']:
-                        instructor_id = user.get('id')
-                        instructor_name = user.get('full_name', user.get('username'))
+                    if user.get('email') == instructor_user_data['email']:
+                        existing_instructor = user
                         break
+                
+                if existing_instructor:
+                    print(f"⚠️ Instructor already exists, using existing one...")
+                    instructor_id = existing_instructor.get('id')
+                    instructor_name = existing_instructor.get('full_name')
+                else:
+                    # Create new instructor
+                    create_response = requests.post(
+                        f"{BACKEND_URL}/auth/admin/create-user",
+                        json=instructor_user_data,
+                        timeout=TEST_TIMEOUT,
+                        headers={
+                            'Content-Type': 'application/json',
+                            'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                        }
+                    )
+                    
+                    if create_response.status_code == 200:
+                        created_instructor = create_response.json()
+                        instructor_id = created_instructor.get('id')
+                        instructor_name = created_instructor.get('full_name')
+                        self.created_entities['users'].append(instructor_id)
+                        print(f"✅ Created instructor: {instructor_user_data['email']}")
+                    else:
+                        print(f"❌ Failed to create instructor: {create_response.status_code}")
+                        return False
+            else:
+                print(f"❌ Failed to get users list: {users_response.status_code}")
+                return False
         except Exception as e:
-            print(f"⚠️ Could not find instructor, using admin: {str(e)}")
+            print(f"❌ Error creating instructor: {str(e)}")
+            return False
         
         if not instructor_id:
-            print("❌ No instructor found for classroom")
+            print("❌ No instructor available for classroom")
             return False
         
         # Create classroom data
