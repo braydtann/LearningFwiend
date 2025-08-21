@@ -713,7 +713,7 @@ class FreshEnvironmentTester:
                 
                 print(f"✅ Created classroom: {created_classroom.get('name')}")
                 print(f"   Classroom ID: {classroom_id}")
-                print(f"   Instructor: {created_classroom.get('instructor')}")
+                print(f"   Trainer: {created_classroom.get('trainerName', instructor_name)}")
                 print(f"   Assigned courses: {len(created_classroom.get('courseIds', []))}")
                 print(f"   Assigned students: {len(created_classroom.get('studentIds', []))}")
                 
