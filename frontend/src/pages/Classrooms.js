@@ -769,13 +769,25 @@ const Classrooms = () => {
                               {isLearner && isExpired ? 'Access Expired' : 'View Details'}
                             </Button>
                             {(isAdmin || (isInstructor && classroom.trainerId === user.id)) && (
-                              <Button 
-                                size="sm" 
-                                variant="outline"
-                                onClick={() => navigate(`/classroom/${classroom.id}?mode=edit`)}
-                              >
-                                <Edit className="w-4 h-4" />
-                              </Button>
+                              <>
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  onClick={() => navigate(`/classroom/${classroom.id}?mode=edit`)}
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </Button>
+                                {isAdmin && (
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline"
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                    onClick={() => handleDeleteClassroom(classroom.id, classroom.name)}
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                )}
+                              </>
                             )}
                           </>
                         );
