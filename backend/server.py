@@ -260,6 +260,11 @@ class EnrollmentResponse(BaseModel):
     progress: float = 0.0
     completedAt: Optional[datetime] = None
     status: str = "active"  # active, completed, dropped
+    currentModuleId: Optional[str] = None
+    currentLessonId: Optional[str] = None
+    moduleProgress: Optional[List[ModuleProgress]] = None
+    lastAccessedAt: Optional[datetime] = None
+    timeSpent: Optional[int] = None
 
 class AdminPasswordResetResponse(BaseModel):
     message: str
