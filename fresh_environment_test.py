@@ -685,14 +685,14 @@ class FreshEnvironmentTester:
         classroom_data = {
             "name": "Progress Test Classroom - Final",
             "description": "Final test classroom for progress tracking validation before deployment",
-            "instructorId": instructor_id,
-            "instructor": instructor_name,
+            "trainerId": instructor_id,  # Use trainerId instead of instructorId
             "courseIds": [course.get('id')],
             "studentIds": [test_user.get('id')],
             "programIds": [],
             "startDate": datetime.utcnow().isoformat(),
             "endDate": None,  # No end date for unlimited access
-            "isActive": True
+            "maxStudents": 50,
+            "department": "Testing"
         }
         
         try:
