@@ -158,7 +158,24 @@ const CreateCourse = () => {
           ? {
               ...module,
               lessons: module.lessons.map((lesson, lIdx) =>
-                lIdx === lessonIndex ? { ...lesson, [field]: value } : lesson
+                lIdx === lessonIndex ? { 
+                  ...lesson, 
+                  [field]: value,
+                  // Initialize quiz data when type changes to 'quiz'
+                  ...(field === 'type' && value === 'quiz' && !lesson.quiz ? {
+                    quiz: {
+                      id: `quiz${Date.now()}`,
+                      title: (lesson.title || 'Untitled Lesson') + ' Quiz',
+                      description: '',
+                      timeLimit: 10,
+                      maxAttempts: 3,
+                      passingScore: 70,
+                      showResults: true,
+                      shuffleQuestions: false,
+                      questions: []
+                    }
+                  } : {})
+                } : lesson
               )
             }
           : module
