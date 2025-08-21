@@ -189,18 +189,27 @@ const QuizTaking = () => {
     );
   }
 
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
   // Timer effect
   useEffect(() => {
     if (quizState === 'taking' && timeLeft > 0) {
       const timer = setTimeout(() => {
-        setTimeLeft(timeLeft - 1);
+        if (isMounted.current) {
+          setTimeLeft(timeLeft - 1);
+        }
       }, 1000);
       return () => clearTimeout(timer);
-    } else if (quizState === 'taking' && timeLeft === 0 && quiz) {
-      // Auto-submit when time runs out
+    } else if (quizState === 'taking' && timeLeft === 0 && quiz && isMounted.current) {
+      // Auto-submit when time runs out (only if component is still mounted)
       handleSubmitQuiz();
     }
-  }, [quizState, timeLeft]);
+  }, [quizState, timeLeft, quiz, handleSubmitQuiz]);
 
   const startQuiz = () => {
     setQuizState('taking');
