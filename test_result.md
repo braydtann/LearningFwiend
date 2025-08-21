@@ -2262,7 +2262,8 @@ test_plan:
   post_mockdata_cleanup_testing_complete: true
   program_access_control_testing_complete: true
   draft_functionality_testing_complete: true
-  new_feature_development_phase: "final_test_functionality_completed"
+  quiz_backend_testing_complete: true
+  new_feature_development_phase: "quiz_functionality_backend_verified"
   production_readiness_backend: true
   authentication_system_phase: "completed"
   frontend_integration_testing_phase: "progress_tracking_verified"
