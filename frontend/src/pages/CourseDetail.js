@@ -830,7 +830,7 @@ const CourseDetail = () => {
                                 size="sm"
                                 className="bg-white border-purple-300 text-purple-700 hover:bg-purple-50"
                                 onClick={() => {
-                                  navigate(`/quiz/${quiz.id}?courseId=${id}`);
+                                  navigate(`/quiz/${id}/${quiz.id}`);
                                 }}
                               >
                                 <ClipboardCheck className="w-4 h-4 mr-1" />
