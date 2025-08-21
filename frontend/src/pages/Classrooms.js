@@ -18,6 +18,7 @@ import {
   Plus, 
   Eye, 
   Edit, 
+  Trash2,
   TrendingUp,
   Clock,
   Award,
