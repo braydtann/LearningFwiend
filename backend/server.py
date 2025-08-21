@@ -915,19 +915,6 @@ async def unenroll_from_course(
     
     return {"message": "Successfully unenrolled from course"}
 
-# Progress tracking models
-class LessonProgress(BaseModel):
-    lessonId: str
-    completed: bool = False
-    completedAt: Optional[datetime] = None
-    timeSpent: Optional[int] = 0  # in seconds
-
-class ModuleProgress(BaseModel):
-    moduleId: str
-    lessons: List[LessonProgress] = []
-    completed: bool = False
-    completedAt: Optional[datetime] = None
-
 class EnrollmentProgressUpdate(BaseModel):
     progress: Optional[float] = None  # Overall progress percentage (0-100)
     currentModuleId: Optional[str] = None
