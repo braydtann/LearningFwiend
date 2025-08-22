@@ -20,6 +20,7 @@ const PasswordChangeModal = ({ isOpen, onClose, onSuccess, currentUser }) => {
     confirm: false
   });
   const [loading, setLoading] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState({
     hasMinLength: false,
     hasNumber: false,
