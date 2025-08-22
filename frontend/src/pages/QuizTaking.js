@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Badge } from '../components/ui/badge';
-import { Progress } from '../components/ui/progress';
-import { Textarea } from '../components/ui/textarea';
+import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card.jsx';
+import { Button } from '../components/ui/button.jsx';
+import { Badge } from '../components/ui/badge.jsx';
+import { Progress } from '../components/ui/progress.jsx';
+import { Textarea } from '../components/ui/textarea.jsx';
 import ScreenRecorder from '../components/ScreenRecorder';
 import { 
   Clock, 
