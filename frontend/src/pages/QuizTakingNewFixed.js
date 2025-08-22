@@ -289,16 +289,16 @@ const QuizTakingNewFixed = () => {
 
   // Navigate between questions
   const handlePreviousQuestion = useCallback(() => {
-    if (!isMountedRef.current) return;
+    if (!isMountedRef.current || !quiz?.questions) return;
     if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(prev => prev - 1);
+      setCurrentQuestionIndex(prev => Math.max(0, prev - 1));
     }
-  }, [currentQuestionIndex]);
+  }, [currentQuestionIndex, quiz]);
 
   const handleNextQuestion = useCallback(() => {
     if (!isMountedRef.current || !quiz?.questions) return;
     if (currentQuestionIndex < quiz.questions.length - 1) {
-      setCurrentQuestionIndex(prev => prev + 1);
+      setCurrentQuestionIndex(prev => Math.min(quiz.questions.length - 1, prev + 1));
     }
   }, [currentQuestionIndex, quiz]);
 
