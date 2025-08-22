@@ -515,7 +515,7 @@ const QuizTakingNewFixed = () => {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-600">
-              Question {currentQuestionIndex + 1} of {quiz.questions.length}
+              Question {safeCurrentQuestionIndex + 1} of {quiz.questions.length}
             </span>
             <span className="text-sm text-gray-600">
               {Math.round(progress)}% Complete
@@ -528,46 +528,55 @@ const QuizTakingNewFixed = () => {
         <Card className="mb-6">
           <CardHeader>
             <CardTitle className="text-lg">
-              {currentQuestion.question}
+              {currentQuestion?.question || 'Question not available'}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Multiple Choice Questions */}
-            {currentQuestion.type === 'multiple-choice' && (
+            {currentQuestion?.type === 'multiple-choice' && currentQuestion?.options && (
               <div className="space-y-3">
-                {currentQuestion.options?.map((option, index) => (
+                {currentQuestion.options.map((option, index) => (
                   <label
-                    key={index}
+                    key={`option-${index}`}
                     className="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
                   >
                     <input
                       type="radio"
-                      name={`question-${currentQuestion.id}`}
+                      name={`question-${currentQuestion.id || 'unknown'}`}
                       value={index}
                       checked={answers[currentQuestion.id] === index}
-                      onChange={(e) => handleAnswerChange(currentQuestion.id, parseInt(e.target.value))}
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value);
+                        if (currentQuestion.id) {
+                          handleAnswerChange(currentQuestion.id, value);
+                        }
+                      }}
                       className="w-4 h-4 text-blue-600"
                     />
-                    <span className="flex-1">{option}</span>
+                    <span className="flex-1">{option || `Option ${index + 1}`}</span>
                   </label>
                 ))}
               </div>
             )}
 
             {/* True/False Questions */}
-            {currentQuestion.type === 'true-false' && (
+            {currentQuestion?.type === 'true-false' && (
               <div className="space-y-3">
                 {[true, false].map((value) => (
                   <label
-                    key={value.toString()}
+                    key={`tf-${value.toString()}`}
                     className="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
                   >
                     <input
                       type="radio"
-                      name={`question-${currentQuestion.id}`}
+                      name={`question-${currentQuestion.id || 'unknown'}`}
                       value={value.toString()}
                       checked={answers[currentQuestion.id] === value}
-                      onChange={(e) => handleAnswerChange(currentQuestion.id, e.target.value === 'true')}
+                      onChange={(e) => {
+                        if (currentQuestion.id) {
+                          handleAnswerChange(currentQuestion.id, e.target.value === 'true');
+                        }
+                      }}
                       className="w-4 h-4 text-blue-600"
                     />
                     <span className="flex-1">{value ? 'True' : 'False'}</span>
@@ -577,13 +586,26 @@ const QuizTakingNewFixed = () => {
             )}
 
             {/* Short Answer Questions */}
-            {currentQuestion.type === 'short-answer' && (
+            {currentQuestion?.type === 'short-answer' && (
               <Textarea
                 placeholder="Enter your answer here..."
                 value={answers[currentQuestion.id] || ''}
-                onChange={(e) => handleAnswerChange(currentQuestion.id, e.target.value)}
+                onChange={(e) => {
+                  if (currentQuestion.id) {
+                    handleAnswerChange(currentQuestion.id, e.target.value);
+                  }
+                }}
                 className="min-h-[100px]"
               />
+            )}
+
+            {/* Fallback for unknown question types */}
+            {currentQuestion && !['multiple-choice', 'true-false', 'short-answer'].includes(currentQuestion.type) && (
+              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-yellow-800">
+                  Unsupported question type: {currentQuestion.type}
+                </p>
+              </div>
             )}
           </CardContent>
         </Card>
