@@ -131,6 +131,84 @@ const QuizTakingNewFixed = () => {
     }
   }, [courseId, lessonId, getCourseById]);
 
+  // Submit quiz - MOVED UP to prevent temporal dead zone
+  const handleSubmitQuiz = useCallback(async () => {
+    if (!isMountedRef.current || submitting || quizCompleted) return;
+
+    try {
+      setSubmitting(true);
+      console.log('Submitting quiz with answers:', answers);
+
+      // Calculate score
+      let correctAnswers = 0;
+      const totalQuestions = quiz?.questions?.length || 0;
+
+      // Safely iterate through questions
+      if (quiz?.questions && Array.isArray(quiz.questions)) {
+        for (let i = 0; i < quiz.questions.length; i++) {
+          const question = quiz.questions[i];
+          if (question && question.id) {
+            const userAnswer = answers[question.id];
+            if (question.type === 'multiple-choice' && userAnswer === question.correctAnswer) {
+              correctAnswers++;
+            } else if (question.type === 'true-false' && userAnswer === question.correctAnswer) {
+              correctAnswers++;
+            }
+          }
+        }
+      }
+
+      const score = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
+      const passed = score >= (quiz?.passingScore || 70);
+
+      // Update progress
+      if (updateEnrollmentProgress && typeof updateEnrollmentProgress === 'function') {
+        const progressResult = await updateEnrollmentProgress(courseId, lessonId, {
+          completed: passed,
+          score: score,
+          timeSpent: quiz?.timeLimit ? (quiz.timeLimit * 60 - (timeLeft || 0)) : null
+        });
+
+        if (progressResult.success) {
+          if (isMountedRef.current) {
+            setQuizCompleted(true);
+            
+            toast({
+              title: passed ? "🎉 Quiz Passed!" : "📝 Quiz Completed",
+              description: `Your score: ${score}% ${passed ? '(Passed)' : '(Below passing score)'}`,
+              duration: 3000,
+            });
+
+            // Navigate to course after delay
+            setTimeout(() => {
+              if (isMountedRef.current) {
+                navigate(`/course/${courseId}`);
+              }
+            }, 2000);
+          }
+        } else {
+          throw new Error('Failed to update progress');
+        }
+      } else {
+        throw new Error('updateEnrollmentProgress function not available');
+      }
+
+    } catch (err) {
+      console.error('Error submitting quiz:', err);
+      if (isMountedRef.current) {
+        toast({
+          title: "Error submitting quiz",
+          description: "Please try again or contact support if the problem persists.",
+          variant: "destructive",
+        });
+      }
+    } finally {
+      if (isMountedRef.current) {
+        setSubmitting(false);
+      }
+    }
+  }, [answers, quiz, courseId, lessonId, timeLeft, submitting, quizCompleted, updateEnrollmentProgress, toast, navigate]);
+
   // Initialize quiz on mount
   useEffect(() => {
     initializeQuiz();
@@ -173,7 +251,7 @@ const QuizTakingNewFixed = () => {
       console.log('Time up - auto-submitting quiz');
       handleSubmitQuiz();
     }
-  }, [timeLeft, quizStarted, quizCompleted, submitting]);
+  }, [timeLeft, quizStarted, quizCompleted, submitting, handleSubmitQuiz]);
 
   // Cleanup on unmount
   useEffect(() => {
