@@ -63,11 +63,13 @@ const QuizTakingNew = () => {
         let foundLesson = null;
         let foundQuiz = null;
 
-        // Safely iterate through modules
+        // Safely iterate through modules using traditional for loops
         if (courseData.modules && Array.isArray(courseData.modules)) {
-          for (const module of courseData.modules) {
-            if (module.lessons && Array.isArray(module.lessons)) {
-              for (const moduleLesson of module.lessons) {
+          for (let i = 0; i < courseData.modules.length; i++) {
+            const module = courseData.modules[i];
+            if (module && module.lessons && Array.isArray(module.lessons)) {
+              for (let j = 0; j < module.lessons.length; j++) {
+                const moduleLesson = module.lessons[j];
                 if (moduleLesson && moduleLesson.id === lessonId) {
                   foundLesson = moduleLesson;
                   if (moduleLesson.type === 'quiz' && moduleLesson.quiz) {
