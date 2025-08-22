@@ -111,6 +111,23 @@ const PasswordChangeModal = ({ isOpen, onClose, onSuccess, currentUser }) => {
     }));
   };
 
+  const handleLogout = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const confirmLogout = () => {
+    logout();
+    toast({
+      title: "Logged out successfully",
+      description: "You can now request a password reset from your administrator if needed.",
+    });
+    setShowLogoutConfirm(false);
+  };
+
+  const cancelLogout = () => {
+    setShowLogoutConfirm(false);
+  };
+
   if (!isOpen) return null;
 
   return (
