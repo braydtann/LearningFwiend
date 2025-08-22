@@ -96,6 +96,35 @@ class DeletionTester:
             self.log_result(f"Create Test Student {email_suffix}", False, f"Error: {str(e)}")
             return None
     
+    def create_test_instructor(self):
+        """Create a test instructor for classroom testing"""
+        try:
+            # Use timestamp to ensure uniqueness
+            timestamp = str(int(datetime.now().timestamp()))
+            instructor_data = {
+                "email": f"test.instructor.{timestamp}@testdomain.com",
+                "username": f"testinstructor{timestamp}",
+                "full_name": f"Test Instructor {timestamp}",
+                "role": "instructor",
+                "department": "Testing",
+                "temporary_password": "TestPass123!"
+            }
+            
+            response = requests.post(f"{BACKEND_URL}/auth/admin/create-user", 
+                                   json=instructor_data, headers=self.get_headers())
+            
+            if response.status_code == 200:
+                instructor = response.json()
+                self.created_resources['students'].append(instructor['id'])  # Track for cleanup
+                self.log_result(f"Create Test Instructor", True, f"Created instructor: {instructor['id']}")
+                return instructor
+            else:
+                self.log_result(f"Create Test Instructor", False, f"Failed: {response.status_code} - {response.text}")
+                return None
+        except Exception as e:
+            self.log_result(f"Create Test Instructor", False, f"Error: {str(e)}")
+            return None
+    
     def create_test_course(self, title_suffix):
         """Create a test course"""
         try:
