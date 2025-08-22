@@ -482,9 +482,14 @@ const CourseDetail = () => {
           
           toast({
             title: "🎉 Course Completed!",
-            description: "Congratulations! You've successfully completed the entire course. Your certificate has been generated.",
-            duration: 5000,
+            description: "Congratulations! You've successfully completed the entire course. Redirecting to your certificates...",
+            duration: 3000,
           });
+
+          // Navigate to certificates page after a short delay
+          setTimeout(() => {
+            navigate('/certificates');
+          }, 2000);
         }
       } else {
         // Navigate to next lesson/module
