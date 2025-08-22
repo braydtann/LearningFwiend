@@ -106,7 +106,7 @@ const QuizTakingNew = () => {
     };
 
     initializeQuiz();
-  }, [courseId, lessonId, getCourse]);
+  }, [courseId, lessonId, getCourseById]);
 
   // Timer effect
   useEffect(() => {
