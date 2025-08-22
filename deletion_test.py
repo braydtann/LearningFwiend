@@ -136,9 +136,14 @@ class DeletionTester:
     def create_test_classroom(self, name_suffix, course_ids=None, student_ids=None):
         """Create a test classroom"""
         try:
+            # Get current user info to use as trainer
+            user_response = requests.get(f"{BACKEND_URL}/auth/me", headers=self.get_headers())
+            trainer_id = user_response.json()['id'] if user_response.status_code == 200 else "admin-id"
+            
             classroom_data = {
                 "name": f"Test Classroom for Deletion {name_suffix}",
                 "description": f"Test classroom created for deletion testing - {name_suffix}",
+                "trainerId": trainer_id,
                 "courseIds": course_ids or [],
                 "studentIds": student_ids or [],
                 "programIds": [],
