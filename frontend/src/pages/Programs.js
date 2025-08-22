@@ -43,7 +43,6 @@ const Programs = () => {
     courseOrder: [],
     nestedProgramIds: [], // For 1-level program nesting
     duration: '',
-    difficulty: 'Beginner',
     finalTest: {
       title: '',
       description: '',
