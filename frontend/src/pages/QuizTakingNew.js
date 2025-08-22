@@ -147,7 +147,7 @@ const QuizTakingNew = () => {
         clearInterval(timerInterval);
       }
     };
-  }, [quizStarted, timeLeft, quizCompleted]);
+  }, [quizStarted, timeLeft, quizCompleted, handleSubmitQuiz]);
 
   // Format time display
   const formatTime = (seconds) => {
