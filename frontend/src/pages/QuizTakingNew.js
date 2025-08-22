@@ -233,9 +233,9 @@ const QuizTakingNew = () => {
       const passed = score >= (quiz.passingScore || 70);
 
       // Update progress
-      const progressResult = await updateEnrollmentProgress(courseId, lessonId, {
-        completed: passed,
-        score: score,
+      const progressResult = await updateEnrollmentProgress(courseId, {
+        progress: passed ? 100 : 0, // Set progress to 100% if passed, 0% if failed
+        currentLessonId: lessonId,
         timeSpent: quiz.timeLimit ? (quiz.timeLimit * 60 - (timeLeft !== null ? timeLeft : 0)) : null
       });
 
