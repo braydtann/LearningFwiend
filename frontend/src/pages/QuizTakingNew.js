@@ -23,7 +23,8 @@ const QuizTakingNew = () => {
   const courseId = params?.courseId;
   const lessonId = params?.lessonId;
   const navigate = useNavigate();
-  const { user, getCourseById, updateEnrollmentProgress } = useAuth();
+  const auth = useAuth();
+  const { user, getCourseById, updateEnrollmentProgress } = auth || {};
   const toastHook = useToast();
   const toast = toastHook?.toast || (() => console.log('Toast not available'));
 
