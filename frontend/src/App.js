@@ -49,8 +49,9 @@ const AuthRoute = ({ children }) => {
 function App() {
   return (
     <div className="App">
-      <AuthProvider>
-        <BrowserRouter>
+      <ErrorBoundary>
+        <AuthProvider>
+          <BrowserRouter>
           <Routes>
             {/* Auth Routes */}
             <Route path="/login" element={
