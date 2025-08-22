@@ -163,10 +163,11 @@ const QuizTakingNewFixed = () => {
 
       // Update progress
       if (updateEnrollmentProgress && typeof updateEnrollmentProgress === 'function') {
-        const progressResult = await updateEnrollmentProgress(courseId, lessonId, {
+        const progressResult = await updateEnrollmentProgress(courseId, {
           completed: passed,
           score: score,
-          timeSpent: quiz?.timeLimit ? (quiz.timeLimit * 60 - (timeLeft || 0)) : null
+          timeSpent: quiz?.timeLimit ? (quiz.timeLimit * 60 - (timeLeft || 0)) : null,
+          currentLessonId: lessonId
         });
 
         if (progressResult.success) {
