@@ -3171,6 +3171,63 @@ async def get_certificate(
     
     return CertificateResponse(**certificate)
 
+@api_router.get("/certificates/{certificate_id}/download")
+async def download_certificate(
+    certificate_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Download certificate as PDF."""
+    from fastapi.responses import Response
+    import json
+    
+    certificate = await db.certificates.find_one({"id": certificate_id, "isActive": True})
+    if not certificate:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Certificate not found"
+        )
+    
+    # Check permissions
+    if (current_user.role == 'learner' and 
+        certificate['studentId'] != current_user.id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only download your own certificates"
+        )
+    
+    # For now, generate a simple text-based certificate
+    # In production, this would generate a proper PDF using libraries like reportlab
+    certificate_content = f"""
+CERTIFICATE OF COMPLETION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+This is to certify that
+
+{certificate.get('studentName', 'Student Name')}
+
+has successfully completed the program
+
+{certificate.get('programName', certificate.get('courseName', 'Course/Program'))}
+
+Awarded on: {certificate.get('issuedAt', certificate.get('issued_at', 'Date'))}
+Certificate ID: {certificate.get('id', certificate_id)}
+Verification Code: {certificate.get('verificationCode', 'N/A')}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+LearningFwiend - Learning Management System
+"""
+    
+    # Return as downloadable text file (in production, this would be a PDF)
+    filename = f"certificate_{certificate.get('programName', 'achievement').replace(' ', '_')}.txt"
+    
+    return Response(
+        content=certificate_content.encode('utf-8'),
+        media_type='text/plain',
+        headers={
+            "Content-Disposition": f"attachment; filename={filename}"
+        }
+    )
+
 @api_router.get("/certificates/verify/{verification_code}", response_model=CertificateVerificationResponse)
 async def verify_certificate(verification_code: str):
     """Verify a certificate using its verification code (public endpoint)."""
