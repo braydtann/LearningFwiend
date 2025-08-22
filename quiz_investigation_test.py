@@ -203,14 +203,36 @@ class QuizInvestigationTester:
                     )
                     return target_course
                 else:
-                    # List all courses with 'quiz' in the title for debugging
+                    # List all courses for debugging
+                    all_course_titles = [c.get('title', 'Untitled') for c in courses]
                     quiz_courses = [c for c in courses if 'quiz' in c.get('title', '').lower()]
+                    option_courses = [c for c in courses if 'option' in c.get('title', '').lower()]
+                    
+                    print(f"\n📋 ALL AVAILABLE COURSES ({len(courses)} total):")
+                    for i, course in enumerate(courses[:20]):  # Show first 20 courses
+                        print(f"   {i+1}. {course.get('title', 'Untitled')} (ID: {course.get('id', 'N/A')[:8]}...)")
+                    
+                    if len(courses) > 20:
+                        print(f"   ... and {len(courses) - 20} more courses")
+                    
+                    # Look for courses that might be the target
+                    potential_matches = []
+                    for course in courses:
+                        title = course.get('title', '').lower()
+                        if any(word in title for word in ['quiz', 'option', 'all', 'question']):
+                            potential_matches.append(course)
+                    
                     self.log_result(
                         "Find 'All quizzes as options' Course", 
                         "FAIL", 
                         f"Course 'All quizzes as options' not found among {len(courses)} courses",
-                        f"Found {len(quiz_courses)} courses with 'quiz' in title: {[c.get('title') for c in quiz_courses[:5]]}"
+                        f"Quiz courses: {[c.get('title') for c in quiz_courses]}; Option courses: {[c.get('title') for c in option_courses]}; Potential matches: {[c.get('title') for c in potential_matches[:5]]}"
                     )
+                    
+                    # Return the first potential match for analysis
+                    if potential_matches:
+                        print(f"\n🎯 Using potential match for analysis: {potential_matches[0].get('title')}")
+                        return potential_matches[0]
             else:
                 self.log_result(
                     "Find 'All quizzes as options' Course", 
