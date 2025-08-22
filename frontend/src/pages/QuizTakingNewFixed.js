@@ -444,8 +444,49 @@ const QuizTakingNewFixed = () => {
   }
 
   // Main quiz taking interface
-  const currentQuestion = quiz.questions[currentQuestionIndex];
-  const progress = ((currentQuestionIndex + 1) / quiz.questions.length) * 100;
+  // Add comprehensive null checks to prevent React Error #31
+  if (!quiz || !quiz.questions || !Array.isArray(quiz.questions) || quiz.questions.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Quiz Error</h3>
+            <p className="text-gray-600 mb-4">Quiz data is invalid or missing questions</p>
+            <Button onClick={() => navigate(`/course/${courseId}`)}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Course
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Ensure currentQuestionIndex is within bounds
+  const safeCurrentQuestionIndex = Math.max(0, Math.min(currentQuestionIndex, quiz.questions.length - 1));
+  const currentQuestion = quiz.questions[safeCurrentQuestionIndex];
+  
+  // Additional safety check for currentQuestion
+  if (!currentQuestion) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Question Error</h3>
+            <p className="text-gray-600 mb-4">Current question could not be loaded</p>
+            <Button onClick={() => navigate(`/course/${courseId}`)}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Course
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const progress = ((safeCurrentQuestionIndex + 1) / quiz.questions.length) * 100;
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
