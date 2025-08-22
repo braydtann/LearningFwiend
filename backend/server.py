@@ -2434,6 +2434,19 @@ async def delete_classroom(
             detail="You can only delete classrooms you created"
         )
     
+    # Delete all enrollments for courses in this classroom
+    # First get all course IDs in this classroom
+    course_ids_in_classroom = classroom.get('courseIds', [])
+    enrollment_delete_count = 0
+    
+    if course_ids_in_classroom:
+        # Delete enrollments for all courses in this classroom
+        enrollment_delete_result = await db.enrollments.delete_many({
+            "courseId": {"$in": course_ids_in_classroom}
+        })
+        enrollment_delete_count = enrollment_delete_result.deleted_count
+        print(f"Deleted {enrollment_delete_count} enrollments for classroom {classroom_id}")
+    
     # Soft delete the classroom (set isActive to False)
     result = await db.classrooms.update_one(
         {"id": classroom_id},
@@ -2446,7 +2459,9 @@ async def delete_classroom(
             detail="Classroom not found"
         )
     
-    return {"message": f"Classroom '{classroom['name']}' has been successfully deleted"}
+    return {
+        "message": f"Classroom '{classroom['name']}' and {enrollment_delete_count} associated course enrollments have been successfully deleted"
+    }
 
 
 # =============================================================================
