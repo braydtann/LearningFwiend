@@ -196,20 +196,28 @@ const QuizTaking = () => {
     };
   }, []);
 
-  // Timer effect
+  // Timer effect - Fixed to prevent React Error #310
   useEffect(() => {
     if (quizState === 'taking' && timeLeft > 0) {
       const timer = setTimeout(() => {
         if (isMounted.current) {
-          setTimeLeft(timeLeft - 1);
+          setTimeLeft(prev => prev - 1);
         }
       }, 1000);
       return () => clearTimeout(timer);
     } else if (quizState === 'taking' && timeLeft === 0 && quiz && isMounted.current) {
       // Auto-submit when time runs out (only if component is still mounted)
-      handleSubmitQuiz();
+      // Call handleSubmitQuiz safely without dependency issues
+      const submitQuizSafely = () => {
+        if (isMounted.current && quiz && quiz.questions) {
+          handleSubmitQuiz();
+        }
+      };
+      // Use setTimeout to avoid direct call in effect
+      const submitTimer = setTimeout(submitQuizSafely, 0);
+      return () => clearTimeout(submitTimer);
     }
-  }, [quizState, timeLeft, quiz, handleSubmitQuiz]);
+  }, [quizState, timeLeft, quiz]); // Removed handleSubmitQuiz from dependencies
 
   const startQuiz = () => {
     setQuizState('taking');
