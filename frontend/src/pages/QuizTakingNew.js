@@ -63,17 +63,22 @@ const QuizTakingNew = () => {
         let foundLesson = null;
         let foundQuiz = null;
 
-        for (const module of courseData.modules || []) {
-          for (const moduleLesson of module.lessons || []) {
-            if (moduleLesson.id === lessonId) {
-              foundLesson = moduleLesson;
-              if (moduleLesson.type === 'quiz' && moduleLesson.quiz) {
-                foundQuiz = moduleLesson.quiz;
+        // Safely iterate through modules
+        if (courseData.modules && Array.isArray(courseData.modules)) {
+          for (const module of courseData.modules) {
+            if (module.lessons && Array.isArray(module.lessons)) {
+              for (const moduleLesson of module.lessons) {
+                if (moduleLesson && moduleLesson.id === lessonId) {
+                  foundLesson = moduleLesson;
+                  if (moduleLesson.type === 'quiz' && moduleLesson.quiz) {
+                    foundQuiz = moduleLesson.quiz;
+                  }
+                  break;
+                }
               }
-              break;
             }
+            if (foundLesson) break;
           }
-          if (foundLesson) break;
         }
 
         if (!foundLesson) {
