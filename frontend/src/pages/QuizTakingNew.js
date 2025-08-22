@@ -146,13 +146,19 @@ const QuizTakingNew = () => {
     };
   }, [quizStarted, timeLeft, quizCompleted]);
 
+  // Use ref to avoid circular dependencies with handleSubmitQuiz
+  const submitQuizRef = useRef();
+  submitQuizRef.current = handleSubmitQuiz;
+
   // Auto-submit when time runs out
   useEffect(() => {
     if (quizStarted && timeLeft === 0 && !quizCompleted && !submitting) {
       console.log('Time up - auto-submitting quiz');
-      handleSubmitQuiz();
+      if (submitQuizRef.current) {
+        submitQuizRef.current();
+      }
     }
-  }, [timeLeft, quizStarted, quizCompleted, submitting, handleSubmitQuiz]);
+  }, [timeLeft, quizStarted, quizCompleted, submitting]);
 
   // Format time display
   const formatTime = (seconds) => {
