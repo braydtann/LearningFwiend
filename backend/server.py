@@ -3218,7 +3218,8 @@ LearningFwiend - Learning Management System
 """
     
     # Return as downloadable text file (in production, this would be a PDF)
-    filename = f"certificate_{certificate.get('programName', 'achievement').replace(' ', '_')}.txt"
+    program_name = certificate.get('programName') or certificate.get('courseName') or 'achievement'
+    filename = f"certificate_{program_name.replace(' ', '_')}.txt"
     
     return Response(
         content=certificate_content.encode('utf-8'),
