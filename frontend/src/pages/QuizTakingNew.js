@@ -53,6 +53,10 @@ const QuizTakingNew = () => {
           throw new Error('Missing course ID or lesson ID');
         }
 
+        if (!getCourseById || typeof getCourseById !== 'function') {
+          throw new Error('getCourseById function not available');
+        }
+
         console.log('Loading course:', courseId);
         const courseResult = await getCourseById(courseId);
         
