@@ -2332,8 +2332,11 @@ metadata:
 
 test_plan:
   current_focus:
-    - "URGENT: Quiz White Screen and Routing Fixes"
-  stuck_tasks: []
+    - "Course Completion Certificate Navigation Fix"
+    - "Text-based Content Display Fix"
+    - "Student Enrolled Courses Thumbnail Images Fix"
+  stuck_tasks:
+    - "Student login access issue preventing completion of testing"
   test_all: false
   test_priority: "critical_first"
   backend_testing_complete: true
