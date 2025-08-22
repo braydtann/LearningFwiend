@@ -3197,19 +3197,38 @@ async def download_certificate(
     
     # For now, generate a simple text-based certificate
     # In production, this would generate a proper PDF using libraries like reportlab
+    
+    # Get certificate details with proper fallbacks
+    student_name = certificate.get('studentName') or 'Student Name'
+    program_name = certificate.get('programName') or certificate.get('courseName') or 'Course/Program'
+    issued_date = certificate.get('issuedAt') or certificate.get('issued_at') or certificate.get('completionDate')
+    
+    # Format date if it's a datetime object
+    if issued_date and hasattr(issued_date, 'strftime'):
+        issued_date = issued_date.strftime('%B %d, %Y')
+    elif issued_date and isinstance(issued_date, str):
+        try:
+            from datetime import datetime
+            parsed_date = datetime.fromisoformat(issued_date.replace('Z', '+00:00'))
+            issued_date = parsed_date.strftime('%B %d, %Y')
+        except:
+            pass
+    else:
+        issued_date = 'Date Not Available'
+    
     certificate_content = f"""
 CERTIFICATE OF COMPLETION
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 This is to certify that
 
-{certificate.get('studentName', 'Student Name')}
+{student_name}
 
 has successfully completed the program
 
-{certificate.get('programName', certificate.get('courseName', 'Course/Program'))}
+{program_name}
 
-Awarded on: {certificate.get('issuedAt', certificate.get('issued_at', 'Date'))}
+Awarded on: {issued_date}
 Certificate ID: {certificate.get('id', certificate_id)}
 Verification Code: {certificate.get('verificationCode', 'N/A')}
 
