@@ -614,7 +614,7 @@ const QuizTakingNewFixed = () => {
         <div className="flex items-center justify-between">
           <Button
             onClick={handlePreviousQuestion}
-            disabled={currentQuestionIndex === 0}
+            disabled={safeCurrentQuestionIndex === 0}
             variant="outline"
           >
             <ChevronLeft className="w-4 h-4 mr-2" />
@@ -622,7 +622,7 @@ const QuizTakingNewFixed = () => {
           </Button>
 
           <div className="flex space-x-3">
-            {currentQuestionIndex < quiz.questions.length - 1 ? (
+            {safeCurrentQuestionIndex < quiz.questions.length - 1 ? (
               <Button onClick={handleNextQuestion}>
                 Next
                 <ChevronRight className="w-4 h-4 ml-2" />
