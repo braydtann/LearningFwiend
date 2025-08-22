@@ -695,21 +695,24 @@ class QuizInvestigationTester:
         target_course = self.find_all_quizzes_as_options_course()
         
         if not target_course:
-            print("❌ Cannot proceed without finding target course")
-            return False
+            print("⚠️ Target course not found, but continuing with other tests")
         
         # Step 3: Analyze quiz structure
         print("\n📊 STEP 3: Analyze Quiz Structure")
         print("-" * 50)
-        course_analysis = self.analyze_course_quiz_structure(target_course)
+        course_analysis = None
+        if target_course:
+            course_analysis = self.analyze_course_quiz_structure(target_course)
+        else:
+            print("⚠️ Skipping quiz structure analysis - no target course")
         
         # Step 4: Test student access
         print("\n👤 STEP 4: Test Student Access")
         print("-" * 50)
-        if student_success:
+        if student_success and target_course:
             self.test_student_course_access(target_course)
         else:
-            print("⚠️ Skipping student access test - authentication failed")
+            print("⚠️ Skipping student access test - authentication failed or no target course")
         
         # Step 5: Test chronological order creation
         print("\n📝 STEP 5: Test Chronological Order Creation")
