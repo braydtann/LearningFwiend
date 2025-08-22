@@ -150,7 +150,11 @@ const QuizTakingNew = () => {
 
   // Use ref to avoid circular dependencies with handleSubmitQuiz
   const submitQuizRef = useRef();
-  submitQuizRef.current = handleSubmitQuiz;
+  
+  // Update ref when handleSubmitQuiz changes
+  useEffect(() => {
+    submitQuizRef.current = handleSubmitQuiz;
+  }, [handleSubmitQuiz]);
 
   // Auto-submit when time runs out
   useEffect(() => {
