@@ -70,10 +70,12 @@ class DeletionTester:
     def create_test_student(self, email_suffix):
         """Create a test student for enrollment testing"""
         try:
+            # Use timestamp to ensure uniqueness
+            timestamp = str(int(datetime.now().timestamp()))
             student_data = {
-                "email": f"test.student.{email_suffix}@testdomain.com",
-                "username": f"teststudent{email_suffix}",
-                "full_name": f"Test Student {email_suffix}",
+                "email": f"test.student.{email_suffix}.{timestamp}@testdomain.com",
+                "username": f"teststudent{email_suffix}{timestamp}",
+                "full_name": f"Test Student {email_suffix} {timestamp}",
                 "role": "learner",
                 "department": "Testing",
                 "temporary_password": "TestPass123!"
