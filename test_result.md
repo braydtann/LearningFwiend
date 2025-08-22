@@ -2501,12 +2501,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Course Completion Certificate Navigation Fix"
-    - "Text-based Content Display Fix" 
-    - "Student Enrolled Courses Thumbnail Images Fix"
-    - "Password Change Modal Logout Functionality Testing"
+    - "Chronological Quiz Questions Comma Field Fix"
+    - "Quiz Rendering and Question Types Display"
   stuck_tasks:
-    - "Student login access issue preventing completion of testing"
+    - "Chronological Quiz Questions Comma Field Fix"
   test_all: false
   test_priority: "critical_first"
   backend_testing_complete: true
