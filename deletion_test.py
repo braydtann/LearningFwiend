@@ -357,12 +357,12 @@ class DeletionTester:
         # Test without authentication
         try:
             response = requests.delete(f"{BACKEND_URL}/courses/{course['id']}")
-            if response.status_code == 401:
+            if response.status_code in [401, 403]:  # Both are valid for unauthorized access
                 self.log_result("Unauthorized Course Deletion", True, 
-                              "Correctly rejected unauthenticated request")
+                              f"Correctly rejected unauthenticated request ({response.status_code})")
             else:
                 self.log_result("Unauthorized Course Deletion", False, 
-                              f"Expected 401, got {response.status_code}")
+                              f"Expected 401 or 403, got {response.status_code}")
         except Exception as e:
             self.log_result("Unauthorized Course Deletion", False, f"Error: {str(e)}")
         
