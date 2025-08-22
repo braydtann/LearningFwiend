@@ -7,7 +7,7 @@ import requests
 import json
 import sys
 
-BACKEND_URL = "https://lms-stabilizer.preview.emergentagent.com/api"
+BACKEND_URL = "https://learningfriend.preview.emergentagent.com/api"
 TEST_TIMEOUT = 10
 
 def test_quiz_creation():
