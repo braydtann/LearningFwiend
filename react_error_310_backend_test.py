@@ -37,7 +37,7 @@ STUDENT_CREDENTIALS_1 = {
 }
 
 STUDENT_CREDENTIALS_2 = {
-    "username_or_email": "test.student@cleanenv.com",
+    "username_or_email": "enrollment.test.student@learningfwiend.com",
     "password": "CleanEnv123!"
 }
 
