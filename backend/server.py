@@ -788,6 +788,10 @@ async def delete_course(
             detail="You can only delete your own courses"
         )
     
+    # Delete all enrollments for this course first
+    enrollment_delete_result = await db.enrollments.delete_many({"courseId": course_id})
+    print(f"Deleted {enrollment_delete_result.deleted_count} enrollments for course {course_id}")
+    
     # Delete the course
     result = await db.courses.delete_one({"id": course_id})
     
@@ -797,7 +801,9 @@ async def delete_course(
             detail="Course not found"
         )
     
-    return {"message": f"Course '{course['title']}' has been successfully deleted"}
+    return {
+        "message": f"Course '{course['title']}' and {enrollment_delete_result.deleted_count} associated enrollments have been successfully deleted"
+    }
 
 
 # =============================================================================
