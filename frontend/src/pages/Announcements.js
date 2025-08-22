@@ -329,11 +329,11 @@ const Announcements = () => {
                         <div className="mt-4 pt-4 border-t border-gray-200">
                           <div className="flex items-center space-x-3">
                             <img 
-                              src={course.thumbnailUrl || course.thumbnail || '/api/placeholder/40/40'} 
+                              src={course.thumbnailUrl || course.thumbnail || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=40&h=40&fit=crop&crop=center'} 
                               alt={course.title}
                               className="w-10 h-10 rounded-lg object-cover"
                               onError={(e) => {
-                                e.target.src = '/api/placeholder/40/40';
+                                e.target.src = 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=40&h=40&fit=crop&crop=center';
                               }}
                             />
                             <div>
