@@ -18,6 +18,7 @@ import ClassroomDetail from './pages/ClassroomDetail';
 import CreateCourse from './pages/CreateCourse';
 import QuizTaking from './pages/QuizTaking';
 import QuizTakingNew from './pages/QuizTakingNew';
+import QuizTakingNewFixed from './pages/QuizTakingNewFixed';
 import QuizResults from './pages/QuizResults';
 import FinalTest from './pages/FinalTest';
 import Users from './pages/Users';
