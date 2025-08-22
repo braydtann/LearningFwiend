@@ -19,9 +19,9 @@ import {
 import { useToast } from '../hooks/use-toast';
 
 const QuizTakingNew = () => {
-  const params = useParams();
-  const courseId = params?.courseId;
-  const lessonId = params?.lessonId;
+  const params = useParams() || {};
+  const courseId = params.courseId;
+  const lessonId = params.lessonId;
   const navigate = useNavigate();
   const auth = useAuth();
   const { user, getCourseById, updateEnrollmentProgress } = auth || {};
