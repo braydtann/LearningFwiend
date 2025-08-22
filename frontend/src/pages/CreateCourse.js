@@ -1693,10 +1693,30 @@ const CreateCourse = () => {
                                             </p>
                                             <Input
                                               placeholder="e.g., 2,1,4,3 (comma-separated position numbers)"
-                                              value={question.correctOrder ? question.correctOrder.map(i => i + 1).join(',') : ''}
+                                              value={question.correctOrder ? question.correctOrder.map(i => i + 1).join(', ') : ''}
                                               onChange={(e) => {
-                                                const order = e.target.value.split(',').map(num => parseInt(num.trim()) - 1).filter(num => !isNaN(num));
-                                                handleQuestionChange(moduleIndex, lessonIndex, questionIndex, 'correctOrder', order);
+                                                // Enhanced comma parsing with better error handling
+                                                const inputValue = e.target.value.trim();
+                                                if (!inputValue) {
+                                                  handleQuestionChange(moduleIndex, lessonIndex, questionIndex, 'correctOrder', []);
+                                                  return;
+                                                }
+                                                
+                                                try {
+                                                  // Split by comma and handle spaces properly
+                                                  const order = inputValue
+                                                    .split(/,\s*/) // Split by comma with optional whitespace
+                                                    .map(num => {
+                                                      const parsed = parseInt(num.trim());
+                                                      return isNaN(parsed) ? null : parsed - 1;
+                                                    })
+                                                    .filter(num => num !== null && num >= 0);
+                                                  
+                                                  handleQuestionChange(moduleIndex, lessonIndex, questionIndex, 'correctOrder', order);
+                                                } catch (error) {
+                                                  console.error('Error parsing chronological order:', error);
+                                                  // Don't update if parsing fails
+                                                }
                                               }}
                                             />
                                           </div>
