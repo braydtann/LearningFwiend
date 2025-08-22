@@ -1,0 +1,43 @@
+{
+  "timestamp": "2025-08-22T23:01:28.477865",
+  "success": true,
+  "passed": 4,
+  "failed": 1,
+  "results": [
+    {
+      "test": "Basic API Health Check",
+      "status": "PASS",
+      "message": "Backend API responding correctly on localhost:8001",
+      "timestamp": "2025-08-22T23:01:26.694265",
+      "details": "Response: {'message': 'Hello World'}"
+    },
+    {
+      "test": "Admin Authentication",
+      "status": "PASS",
+      "message": "Admin login successful: brayden.t@covesmart.com",
+      "timestamp": "2025-08-22T23:01:27.440910",
+      "details": "Role: admin, Token received"
+    },
+    {
+      "test": "Student Authentication",
+      "status": "PASS",
+      "message": "Student login successful: karlo.student@alder.com",
+      "timestamp": "2025-08-22T23:01:27.739395",
+      "details": "Role: learner, Token received"
+    },
+    {
+      "test": "Quiz Data Endpoints",
+      "status": "PASS",
+      "message": "Successfully retrieved 3 courses with quiz content",
+      "timestamp": "2025-08-22T23:01:28.477472",
+      "details": "Quiz courses found: ['Progress Testing Course', 'Progress Testing Course', 'Progress Testing Course']"
+    },
+    {
+      "test": "Question Type Support",
+      "status": "FAIL",
+      "message": "Question type support issues found",
+      "timestamp": "2025-08-22T23:01:28.477692",
+      "details": "Issues: Missing types: ['chronological-order', 'select-all-that-apply', 'long-form-answer', 'multiple-choice']"
+    }
+  ]
+}
