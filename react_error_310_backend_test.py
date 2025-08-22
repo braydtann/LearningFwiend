@@ -169,7 +169,7 @@ class ReactError310BackendTester:
         return False
     
     def test_student_authentication_2(self):
-        """Test student login with test.student@cleanenv.com / CleanEnv123!"""
+        """Test student login with enrollment.test.student@learningfwiend.com / CleanEnv123!"""
         try:
             response = requests.post(
                 f"{BACKEND_URL}/auth/login",
