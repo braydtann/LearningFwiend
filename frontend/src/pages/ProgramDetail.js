@@ -266,7 +266,7 @@ const ProgramDetail = () => {
                         
                         {/* Course Thumbnail */}
                         <img 
-                          src={course.thumbnail || 'https://via.placeholder.com/80'} 
+                          src={course.thumbnailUrl || course.thumbnail || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=80&h=80&fit=crop&crop=center'} 
                           alt={course.title}
                           className="w-20 h-20 rounded-lg object-cover flex-shrink-0"
                         />
