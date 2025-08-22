@@ -199,13 +199,9 @@ class DeletionTester:
             self.log_result(f"Create Test Classroom {name_suffix}", False, f"Error: {str(e)}")
             return None
     
-    def manually_enroll_student(self, student_id, course_id):
+    def manually_enroll_student(self, student_id, course_id, student_username):
         """Manually enroll a student in a course"""
         try:
-            # Get the student's username from the created resources
-            student_suffix = student_id[-8:]  # Use last 8 chars of ID
-            student_username = f"teststudent{student_suffix}"
-            
             # First login as the student to enroll them
             student_login_response = requests.post(f"{BACKEND_URL}/auth/login", json={
                 "username_or_email": student_username,
