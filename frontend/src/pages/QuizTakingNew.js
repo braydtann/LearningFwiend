@@ -260,7 +260,7 @@ const QuizTakingNew = () => {
     } finally {
       setSubmitting(false);
     }
-  }, [answers, quiz, courseId, lessonId, updateEnrollmentProgress]);
+  }, [answers, quiz, courseId, lessonId, submitting, quizCompleted, updateEnrollmentProgress, toast, navigate]);
 
   // Loading state
   if (loading) {
