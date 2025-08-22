@@ -508,22 +508,6 @@ const Programs = () => {
                   />
                 </div>
                 
-                <div className="space-y-2">
-                  <Label htmlFor="difficulty">Difficulty Level</Label>
-                  <Select 
-                    value={newProgram.difficulty} 
-                    onValueChange={(value) => setNewProgram(prev => ({ ...prev, difficulty: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Beginner">Beginner</SelectItem>
-                      <SelectItem value="Intermediate">Intermediate</SelectItem>
-                      <SelectItem value="Advanced">Advanced</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
               </div>
 
               <div className="space-y-2">
