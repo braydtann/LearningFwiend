@@ -643,11 +643,11 @@ const ClassroomDetail = () => {
                       <CardContent className="p-4">
                         <div className="flex items-start space-x-4">
                           <img 
-                            src={course.thumbnailUrl || course.thumbnail || '/api/placeholder/64/64'} 
+                            src={course.thumbnailUrl || course.thumbnail || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=64&h=64&fit=crop&crop=center'} 
                             alt={course.title}
                             className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
                             onError={(e) => {
-                              e.target.src = '/api/placeholder/64/64';
+                              e.target.src = 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=64&h=64&fit=crop&crop=center';
                             }}
                           />
                           <div className="flex-1">
