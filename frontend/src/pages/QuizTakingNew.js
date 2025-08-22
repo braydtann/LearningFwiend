@@ -230,7 +230,7 @@ const QuizTakingNew = () => {
       const progressResult = await updateEnrollmentProgress(courseId, lessonId, {
         completed: passed,
         score: score,
-        timeSpent: timeLeft !== null ? (quiz.timeLimit * 60 - timeLeft) : null
+        timeSpent: quiz.timeLimit ? (quiz.timeLimit * 60 - (timeLeft !== null ? timeLeft : 0)) : null
       });
 
       if (progressResult.success) {
