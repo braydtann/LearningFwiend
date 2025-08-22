@@ -2351,7 +2351,6 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Password Change Modal Logout Functionality Testing"
     - "Course Completion Certificate Navigation Fix"
     - "Text-based Content Display Fix"
     - "Student Enrolled Courses Thumbnail Images Fix"
