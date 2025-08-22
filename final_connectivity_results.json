@@ -1,0 +1,36 @@
+{
+  "timestamp": "2025-08-22T23:04:07.588060",
+  "success": true,
+  "passed": 4,
+  "failed": 0,
+  "results": [
+    {
+      "test": "No Connection Reset Errors",
+      "status": "PASS",
+      "message": "All 5 endpoints accessible without connection reset errors",
+      "timestamp": "2025-08-22T23:04:05.136946",
+      "details": "Tested: Basic Health Check, Authentication Endpoint, Courses Endpoint, Categories Endpoint, Departments Endpoint"
+    },
+    {
+      "test": "Quiz Data Loading",
+      "status": "PASS",
+      "message": "Quiz data loading correctly - 1 valid quiz courses found",
+      "timestamp": "2025-08-22T23:04:06.999941",
+      "details": "Total quiz courses: 6, Valid data: 1"
+    },
+    {
+      "test": "Question Types Formatting",
+      "status": "PASS",
+      "message": "All 4 question types properly formatted",
+      "timestamp": "2025-08-22T23:04:07.160804",
+      "details": "Validated: ['multiple-choice', 'long-form-answer', 'chronological-order', 'select-all-that-apply']"
+    },
+    {
+      "test": "API Responses Complete and Valid",
+      "status": "PASS",
+      "message": "All 3 API responses are complete and valid",
+      "timestamp": "2025-08-22T23:04:07.587554",
+      "details": "Tests: \u2705 Login response complete; \u2705 Courses response complete; \u2705 Profile response complete"
+    }
+  ]
+}
