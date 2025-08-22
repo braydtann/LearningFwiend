@@ -90,7 +90,14 @@ class CertificateDownloadTester:
         """Get user's certificates"""
         try:
             headers = {"Authorization": f"Bearer {token}"}
-            response = requests.get(f"{BACKEND_URL}/certificates/my-certificates", headers=headers)
+            
+            # Use different endpoints based on user type
+            if user_type == "Admin":
+                # Admin uses general certificates endpoint
+                response = requests.get(f"{BACKEND_URL}/certificates", headers=headers)
+            else:
+                # Students use my-certificates endpoint
+                response = requests.get(f"{BACKEND_URL}/certificates/my-certificates", headers=headers)
             
             if response.status_code == 200:
                 certificates = response.json()
