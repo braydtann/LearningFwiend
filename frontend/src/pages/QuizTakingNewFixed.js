@@ -149,10 +149,41 @@ const QuizTakingNewFixed = () => {
           const question = quiz.questions[i];
           if (question && question.id) {
             const userAnswer = answers[question.id];
+            
+            // Handle different question types
             if (question.type === 'multiple-choice' && userAnswer === question.correctAnswer) {
               correctAnswers++;
             } else if (question.type === 'true-false' && userAnswer === question.correctAnswer) {
               correctAnswers++;
+            } else if (question.type === 'select-all-that-apply') {
+              // For select-all-that-apply, check if arrays match
+              const correctAnswers_question = question.correctAnswers || [];
+              const userAnswers_array = userAnswer || [];
+              if (Array.isArray(userAnswers_array) && Array.isArray(correctAnswers_question)) {
+                // Sort both arrays for comparison
+                const sortedCorrect = [...correctAnswers_question].sort((a, b) => a - b);
+                const sortedUser = [...userAnswers_array].sort((a, b) => a - b);
+                if (JSON.stringify(sortedCorrect) === JSON.stringify(sortedUser)) {
+                  correctAnswers++;
+                }
+              }
+            } else if (question.type === 'short-answer' || question.type === 'long-form-answer') {
+              // For text answers, basic string comparison (case-insensitive)
+              const correctAnswer = question.correctAnswer || '';
+              const userAnswerText = (userAnswer || '').toString().trim().toLowerCase();
+              const correctAnswerText = correctAnswer.toString().trim().toLowerCase();
+              if (userAnswerText === correctAnswerText) {
+                correctAnswers++;
+              }
+            } else if (question.type === 'chronological-order') {
+              // For chronological order, check if the order matches the correct sequence
+              const correctOrder = question.correctOrder || [];
+              const userOrder = userAnswer || [];
+              if (Array.isArray(userOrder) && Array.isArray(correctOrder)) {
+                if (JSON.stringify(correctOrder) === JSON.stringify(userOrder)) {
+                  correctAnswers++;
+                }
+              }
             }
           }
         }
