@@ -247,9 +247,30 @@ const QuizTaking = () => {
   };
 
   const handleSubmitQuiz = useCallback(() => {
-    if (!quiz || !quiz.questions) {
-      console.error('Cannot submit quiz - quiz data is missing');
-      setQuizState('error');
+    // Enhanced defensive programming to prevent React Error #310
+    if (!isMounted.current) {
+      console.log('Component unmounted, skipping quiz submission');
+      return;
+    }
+
+    if (!quiz || !quiz.questions || !Array.isArray(quiz.questions)) {
+      console.error('Cannot submit quiz - quiz data is missing or invalid:', { 
+        hasQuiz: !!quiz, 
+        hasQuestions: !!(quiz?.questions),
+        questionsType: typeof quiz?.questions,
+        questionsLength: quiz?.questions?.length 
+      });
+      if (isMounted.current) {
+        setQuizState('error');
+      }
+      return;
+    }
+
+    if (!startTime || typeof startTime !== 'number') {
+      console.error('Cannot submit quiz - invalid start time:', startTime);
+      if (isMounted.current) {
+        setQuizState('error');
+      }
       return;
     }
     
