@@ -262,12 +262,57 @@ const PasswordChangeModal = ({ isOpen, onClose, onSuccess, currentUser }) => {
 
             <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
               <p className="text-xs text-yellow-700">
-                <strong>Note:</strong> You cannot access the system until you change your temporary password.
+                <strong>Note:</strong> You cannot access the system until you change your temporary password. 
+                If you're having trouble, click "Logout" to exit and contact your administrator for assistance.
               </p>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Logout Confirmation Dialog */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-60">
+          <div className="w-full max-w-sm">
+            <Card className="shadow-xl border-red-200">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center space-x-2 text-red-600">
+                  <AlertTriangle className="w-5 h-5" />
+                  <span>Confirm Logout</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="text-sm text-gray-700">
+                    <p className="mb-2">Are you sure you want to logout?</p>
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                      <p className="text-xs text-red-700">
+                        <strong>Warning:</strong> You'll need to contact your administrator 
+                        to reset your password before you can log back in.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex space-x-3">
+                    <Button
+                      onClick={cancelLogout}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={confirmLogout}
+                      className="flex-1 bg-red-600 hover:bg-red-700"
+                    >
+                      Yes, Logout
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
