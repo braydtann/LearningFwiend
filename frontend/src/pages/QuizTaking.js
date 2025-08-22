@@ -116,6 +116,12 @@ const QuizTaking = () => {
   const canTakeQuiz = !existingResults || (existingResults.totalAttempts || 0) < (quiz?.maxAttempts || 3);
 
   useEffect(() => {
+    // Enhanced validation with defensive programming
+    if (!isMounted.current) {
+      console.log('Component unmounted during validation, skipping...');
+      return;
+    }
+
     if (!courseLoading) {
       console.log('QuizTaking: Validation check - courseLoading false');
       console.log('QuizTaking: Data availability:', { 
@@ -129,6 +135,7 @@ const QuizTaking = () => {
         quizQuestions: quiz?.questions?.length
       });
       
+      // Enhanced data validation
       if (!course || !lesson || !quiz) {
         console.error('Quiz component error - missing data:', { 
           course: !!course, 
@@ -136,22 +143,43 @@ const QuizTaking = () => {
           quiz: !!quiz,
           courseError
         });
-        setQuizState('error');
+        if (isMounted.current) {
+          setQuizState('error');
+        }
+        return;
+      }
+
+      // Validate quiz structure more thoroughly
+      if (!quiz.questions || !Array.isArray(quiz.questions) || quiz.questions.length === 0) {
+        console.error('Quiz component error - invalid quiz questions:', {
+          hasQuestions: !!quiz.questions,
+          questionsType: typeof quiz.questions,
+          questionsLength: quiz.questions?.length
+        });
+        if (isMounted.current) {
+          setQuizState('error');
+        }
         return;
       }
 
       // Check if user can take the quiz
       if (!canTakeQuiz) {
         console.log('Max attempts reached for quiz');
-        setQuizState('max-attempts-reached');
+        if (isMounted.current) {
+          setQuizState('max-attempts-reached');
+        }
         return;
       }
 
       console.log('Quiz ready - all data loaded successfully');
-      setQuizState('ready');
+      if (isMounted.current) {
+        setQuizState('ready');
+      }
     } else {
       console.log('Quiz still loading course data...');
-      setQuizState('loading');
+      if (isMounted.current) {
+        setQuizState('loading');
+      }
     }
   }, [courseLoading, course, lesson, quiz, canTakeQuiz, courseError]);
 
