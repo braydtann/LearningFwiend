@@ -50,7 +50,7 @@ const QuizTakingNew = () => {
         }
 
         console.log('Loading course:', courseId);
-        const courseResult = await getCourse(courseId);
+        const courseResult = await getCourseById(courseId);
         
         if (!courseResult.success) {
           throw new Error('Failed to load course');
