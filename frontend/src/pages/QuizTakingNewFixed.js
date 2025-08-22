@@ -164,10 +164,9 @@ const QuizTakingNewFixed = () => {
       // Update progress
       if (updateEnrollmentProgress && typeof updateEnrollmentProgress === 'function') {
         const progressResult = await updateEnrollmentProgress(courseId, {
-          completed: passed,
-          score: score,
-          timeSpent: quiz?.timeLimit ? (quiz.timeLimit * 60 - (timeLeft || 0)) : null,
-          currentLessonId: lessonId
+          progress: passed ? 100 : 0, // Set progress to 100% if passed, 0% if failed
+          currentLessonId: lessonId,
+          timeSpent: quiz?.timeLimit ? (quiz.timeLimit * 60 - (timeLeft || 0)) : null
         });
 
         if (progressResult.success) {
