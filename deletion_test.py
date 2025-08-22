@@ -11,7 +11,7 @@ from datetime import datetime
 import uuid
 
 # Configuration
-BACKEND_URL = "https://lms-stabilizer.preview.emergentagent.com/api"
+BACKEND_URL = "http://localhost:8001/api"
 
 # Test credentials
 ADMIN_EMAIL = "brayden.t@covesmart.com"
