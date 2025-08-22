@@ -188,9 +188,10 @@ const QuizTakingNew = () => {
       let correctAnswers = 0;
       const totalQuestions = quiz.questions.length;
 
-      // Safely iterate through questions
+      // Safely iterate through questions using traditional for loop
       if (quiz.questions && Array.isArray(quiz.questions)) {
-        quiz.questions.forEach((question, index) => {
+        for (let i = 0; i < quiz.questions.length; i++) {
+          const question = quiz.questions[i];
           if (question && question.id) {
             const userAnswer = answers[question.id];
             if (question.type === 'multiple-choice' && userAnswer === question.correctAnswer) {
@@ -200,7 +201,7 @@ const QuizTakingNew = () => {
             }
             // Add more question types as needed
           }
-        });
+        }
       }
 
       const score = Math.round((correctAnswers / totalQuestions) * 100);
