@@ -789,6 +789,32 @@ const CourseDetail = () => {
                   })()}
                 </div>
               )}
+              
+              {/* Text-based content display */}
+              {selectedLesson?.type === 'text' && selectedLesson.content && (
+                <div className="absolute inset-0 bg-white overflow-y-auto">
+                  <div className="p-8">
+                    <div className="max-w-4xl mx-auto">
+                      <div className="mb-6">
+                        <Badge variant="outline" className="mb-2">
+                          Text Lesson
+                        </Badge>
+                        <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                          {selectedLesson.title}
+                        </h2>
+                      </div>
+                      <div className="prose prose-lg prose-gray max-w-none">
+                        <div 
+                          className="text-gray-700 leading-relaxed whitespace-pre-wrap"
+                          dangerouslySetInnerHTML={{ 
+                            __html: selectedLesson.content.replace(/\n/g, '<br/>') 
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex items-start justify-between mb-4">
