@@ -559,6 +559,37 @@ const QuizTakingNewFixed = () => {
               </div>
             )}
 
+            {/* Select All That Apply Questions */}
+            {currentQuestion?.type === 'select-all-that-apply' && currentQuestion?.options && (
+              <div className="space-y-3">
+                <p className="text-sm text-gray-600 mb-3">Select all correct answers:</p>
+                {currentQuestion.options.map((option, index) => (
+                  <label
+                    key={`select-${index}`}
+                    className="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                  >
+                    <input
+                      type="checkbox"
+                      value={index}
+                      checked={(answers[currentQuestion.id] || []).includes(index)}
+                      onChange={(e) => {
+                        if (currentQuestion.id) {
+                          const currentAnswers = answers[currentQuestion.id] || [];
+                          const value = parseInt(e.target.value);
+                          const newAnswers = e.target.checked
+                            ? [...currentAnswers, value]
+                            : currentAnswers.filter(v => v !== value);
+                          handleAnswerChange(currentQuestion.id, newAnswers);
+                        }
+                      }}
+                      className="w-4 h-4 text-blue-600"
+                    />
+                    <span className="flex-1">{option || `Option ${index + 1}`}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+
             {/* True/False Questions */}
             {currentQuestion?.type === 'true-false' && (
               <div className="space-y-3">
@@ -599,8 +630,58 @@ const QuizTakingNewFixed = () => {
               />
             )}
 
+            {/* Long Form Answer Questions */}
+            {currentQuestion?.type === 'long-form-answer' && (
+              <Textarea
+                placeholder="Enter your detailed answer here..."
+                value={answers[currentQuestion.id] || ''}
+                onChange={(e) => {
+                  if (currentQuestion.id) {
+                    handleAnswerChange(currentQuestion.id, e.target.value);
+                  }
+                }}
+                className="min-h-[200px]"
+              />
+            )}
+
+            {/* Chronological Order Questions */}
+            {currentQuestion?.type === 'chronological-order' && currentQuestion?.items && (
+              <div className="space-y-3">
+                <p className="text-sm text-gray-600 mb-3">Drag and drop to arrange in chronological order:</p>
+                <div className="space-y-2">
+                  {currentQuestion.items.map((item, index) => (
+                    <div
+                      key={`chrono-${index}`}
+                      className="flex items-center space-x-3 p-3 border rounded-lg bg-gray-50"
+                    >
+                      <span className="text-sm font-medium text-gray-500 min-w-[60px]">
+                        Position:
+                      </span>
+                      <select
+                        value={answers[currentQuestion.id]?.[index] || index + 1}
+                        onChange={(e) => {
+                          if (currentQuestion.id) {
+                            const currentOrder = answers[currentQuestion.id] || currentQuestion.items.map((_, i) => i + 1);
+                            const newOrder = [...currentOrder];
+                            newOrder[index] = parseInt(e.target.value);
+                            handleAnswerChange(currentQuestion.id, newOrder);
+                          }
+                        }}
+                        className="border rounded px-2 py-1 text-sm"
+                      >
+                        {currentQuestion.items.map((_, i) => (
+                          <option key={i} value={i + 1}>{i + 1}</option>
+                        ))}
+                      </select>
+                      <span className="flex-1">{item || `Item ${index + 1}`}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Fallback for unknown question types */}
-            {currentQuestion && !['multiple-choice', 'true-false', 'short-answer'].includes(currentQuestion.type) && (
+            {currentQuestion && !['multiple-choice', 'select-all-that-apply', 'true-false', 'short-answer', 'long-form-answer', 'chronological-order'].includes(currentQuestion.type) && (
               <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <p className="text-yellow-800">
                   Unsupported question type: {currentQuestion.type}
