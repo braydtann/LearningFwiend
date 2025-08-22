@@ -162,7 +162,6 @@ const Programs = () => {
           courseOrder: [],
           nestedProgramIds: [],
           duration: '',
-          difficulty: 'Beginner',
           finalTest: {
             title: '',
             description: '',
