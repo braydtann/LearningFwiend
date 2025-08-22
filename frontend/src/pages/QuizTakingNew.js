@@ -197,21 +197,7 @@ const QuizTakingNew = () => {
 
   // Submit quiz
   const handleSubmitQuiz = useCallback(async () => {
-    // Use functional updates to get current state values
-    let currentSubmitting = false;
-    let currentCompleted = false;
-    
-    setSubmitting(prev => {
-      currentSubmitting = prev;
-      return prev;
-    });
-    
-    setQuizCompleted(prev => {
-      currentCompleted = prev;
-      return prev;
-    });
-    
-    if (currentSubmitting || currentCompleted) return;
+    if (submitting || quizCompleted) return;
 
     try {
       setSubmitting(true);
