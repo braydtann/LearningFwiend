@@ -451,7 +451,7 @@ class DeletionTester:
         # Authenticate
         if not self.authenticate_admin():
             print("❌ Cannot proceed without admin authentication")
-            return
+            return 0, 1
         
         # Run all test scenarios
         self.test_course_deletion_with_enrollment_cleanup()
