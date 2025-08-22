@@ -922,7 +922,7 @@ import time
 from datetime import datetime
 
 # Configuration
-BACKEND_URL = "https://lms-evolution-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://lms-stabilizer.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 class ProgressTrackingTester:
