@@ -186,15 +186,20 @@ const QuizTakingNew = () => {
       let correctAnswers = 0;
       const totalQuestions = quiz.questions.length;
 
-      quiz.questions.forEach(question => {
-        const userAnswer = answers[question.id];
-        if (question.type === 'multiple-choice' && userAnswer === question.correctAnswer) {
-          correctAnswers++;
-        } else if (question.type === 'true-false' && userAnswer === question.correctAnswer) {
-          correctAnswers++;
-        }
-        // Add more question types as needed
-      });
+      // Safely iterate through questions
+      if (quiz.questions && Array.isArray(quiz.questions)) {
+        quiz.questions.forEach((question, index) => {
+          if (question && question.id) {
+            const userAnswer = answers[question.id];
+            if (question.type === 'multiple-choice' && userAnswer === question.correctAnswer) {
+              correctAnswers++;
+            } else if (question.type === 'true-false' && userAnswer === question.correctAnswer) {
+              correctAnswers++;
+            }
+            // Add more question types as needed
+          }
+        });
+      }
 
       const score = Math.round((correctAnswers / totalQuestions) * 100);
       const passed = score >= (quiz.passingScore || 70);
