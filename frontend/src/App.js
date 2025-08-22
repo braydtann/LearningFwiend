@@ -95,7 +95,7 @@ function App() {
             
             <Route path="/quiz/:courseId/:lessonId" element={
               <ProtectedRoute>
-                <QuizTakingNew />
+                <QuizTakingNewFixed />
               </ProtectedRoute>
             } />
             
