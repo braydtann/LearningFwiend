@@ -131,10 +131,7 @@ const QuizTakingNew = () => {
       timerInterval = setInterval(() => {
         setTimeLeft(prev => {
           if (prev <= 1) {
-            // Time's up - submit quiz
-            if (typeof handleSubmitQuiz === 'function') {
-              handleSubmitQuiz();
-            }
+            // Time's up - will trigger auto-submit via separate effect
             return 0;
           }
           return prev - 1;
