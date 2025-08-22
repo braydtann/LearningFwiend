@@ -205,6 +205,7 @@ function App() {
           <Toaster />
         </BrowserRouter>
       </AuthProvider>
+      </ErrorBoundary>
     </div>
   );
 }
