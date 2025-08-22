@@ -234,11 +234,11 @@ const StudentDashboard = () => {
                 <Card key={course.id} className="hover:shadow-lg transition-shadow">
                   <div className="aspect-video relative overflow-hidden rounded-t-lg">
                     <img 
-                      src={course.thumbnail} 
+                      src={course.thumbnailUrl || course.thumbnail || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=225&fit=crop&crop=center'} 
                       alt={course.title}
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        e.target.src = '/default-course-image.jpg';
+                        e.target.src = 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=225&fit=crop&crop=center';
                       }}
                     />
                     <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
