@@ -692,7 +692,7 @@ const QuizTakingNewFixed = () => {
                         value={answers[currentQuestion.id]?.[index] || index + 1}
                         onChange={(e) => {
                           if (currentQuestion.id) {
-                            const currentOrder = answers[currentQuestion.id] || currentQuestion.items.map((_, i) => i + 1);
+                            const currentOrder = answers[currentQuestion.id] || (currentQuestion.items || []).map((_, i) => i + 1);
                             const newOrder = [...currentOrder];
                             newOrder[index] = parseInt(e.target.value);
                             handleAnswerChange(currentQuestion.id, newOrder);
@@ -700,7 +700,7 @@ const QuizTakingNewFixed = () => {
                         }}
                         className="border rounded px-2 py-1 text-sm"
                       >
-                        {currentQuestion.items.map((_, i) => (
+                        {(currentQuestion.items || []).map((_, i) => (
                           <option key={i} value={i + 1}>{i + 1}</option>
                         ))}
                       </select>
