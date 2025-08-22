@@ -247,6 +247,16 @@ const PasswordChangeModal = ({ isOpen, onClose, onSuccess, currentUser }) => {
                 >
                   {loading ? 'Changing Password...' : 'Change Password'}
                 </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleLogout}
+                  disabled={loading}
+                  className="flex items-center space-x-2 text-gray-600 hover:text-red-600 hover:border-red-300"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Logout</span>
+                </Button>
               </div>
             </form>
 
