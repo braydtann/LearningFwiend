@@ -112,12 +112,14 @@ const QuizTakingNew = () => {
   useEffect(() => {
     let timerInterval = null;
 
-    if (quizStarted && timeLeft !== null && timeLeft > 0 && !quizCompleted) {
+    if (quizStarted && timeLeft !== null && timeLeft > 0 && !quizCompleted && quiz && quiz.questions) {
       timerInterval = setInterval(() => {
         setTimeLeft(prev => {
           if (prev <= 1) {
             // Time's up - submit quiz
-            handleSubmitQuiz();
+            if (typeof handleSubmitQuiz === 'function') {
+              handleSubmitQuiz();
+            }
             return 0;
           }
           return prev - 1;
