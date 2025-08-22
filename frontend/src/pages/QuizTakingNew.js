@@ -146,6 +146,14 @@ const QuizTakingNew = () => {
     };
   }, [quizStarted, timeLeft, quizCompleted]);
 
+  // Auto-submit when time runs out
+  useEffect(() => {
+    if (quizStarted && timeLeft === 0 && !quizCompleted && !submitting) {
+      console.log('Time up - auto-submitting quiz');
+      handleSubmitQuiz();
+    }
+  }, [timeLeft, quizStarted, quizCompleted, submitting, handleSubmitQuiz]);
+
   // Format time display
   const formatTime = (seconds) => {
     if (seconds === null) return '';
