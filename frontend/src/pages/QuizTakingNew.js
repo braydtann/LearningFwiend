@@ -19,7 +19,9 @@ import {
 import { useToast } from '../hooks/use-toast';
 
 const QuizTakingNew = () => {
-  const { courseId, lessonId } = useParams();
+  const params = useParams();
+  const courseId = params?.courseId;
+  const lessonId = params?.lessonId;
   const navigate = useNavigate();
   const { user, getCourseById, updateEnrollmentProgress } = useAuth();
   const toastHook = useToast();
