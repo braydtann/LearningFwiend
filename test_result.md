@@ -275,6 +275,21 @@ backend:
       - working: true
         agent: "testing"
         comment: "🎉 COMPREHENSIVE BACKEND TESTING COMPLETED - POST REACT ERROR #310 FIXES: Executed comprehensive testing of all critical backend APIs after implementing React Error #310 fixes and system stability improvements. TESTING SCOPE: Authentication testing with provided credentials (Admin: brayden.t@covesmart.com / Hawaii2020!, Student: karlo.student@alder.com / StudentPermanent123!, Test Student: enrollment.test.student@learningfwiend.com / CleanEnv123!), Quiz-related backend APIs (courses with quiz lessons, quiz data structure integrity, course enrollment and quiz access flow), Course management APIs (GET /api/courses, GET /api/courses/{id}, POST /api/courses), Critical endpoints (GET /api/enrollments, PUT /api/enrollments/{course_id}/progress, GET /api/classrooms), Error handling with edge cases. RESULTS: 🎯 84.6% SUCCESS RATE ACHIEVED (11/13 tests passed) - All critical backend APIs working correctly after React Error #310 fixes. AUTHENTICATION: All user types authenticated successfully (3/3 passed). QUIZ APIS: Quiz courses and enrollment flow working correctly (2/3 passed - minor data quality issues in quiz structure). COURSE MANAGEMENT: All CRUD operations working perfectly (3/3 passed). CRITICAL ENDPOINTS: All enrollment and classroom APIs working correctly (3/3 passed). ERROR HANDLING: Most error cases handled properly (3/5 edge cases passed). CONCLUSION: Backend is stable and ready to support the improved frontend stability after React Error #310 fixes. Minor issues identified are data quality related, not critical API failures."
+
+  - task: "URGENT: Quiz Submission 422 Error - PUT /api/enrollments/{course_id}/progress"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py, /app/frontend/src/pages/QuizTakingNew.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "🚨 URGENT QUIZ SUBMISSION DEBUGGING INITIATED: User reported quiz starts successfully but submission fails with 422 error on PUT /api/enrollments/{course_id}/progress endpoint. Console shows 'Error submitting quiz: Error: Failed to update progress'. INVESTIGATION SCOPE: 1) Test specific credentials (brayden.student@learningfwiend.com / Cove1234!), 2) Test course 'ttttt', 3) Verify API endpoint data format expectations, 4) Reproduce 422 error, 5) Identify root cause of validation failure."
+      - working: true
+        agent: "testing"
+        comment: "🎯 CRITICAL BUG IDENTIFIED AND FIXED - FRONTEND PARAMETER MISMATCH: Successfully reproduced and resolved the 422 error. ROOT CAUSE: Frontend QuizTakingNew.js was calling updateEnrollmentProgress(courseId, lessonId, progressData) with 3 parameters, but AuthContext function only accepts 2 parameters (courseId, progressData). This caused lessonId string to be sent as progress data instead of the actual progress object, resulting in 422 validation error: 'Input should be a valid dictionary or object to extract fields from'. SOLUTION IMPLEMENTED: Fixed QuizTakingNew.js to call updateEnrollmentProgress(courseId, {progress: passed ? 100 : 0, currentLessonId: lessonId, timeSpent: timeSpent}) with correct 2-parameter signature. VERIFICATION RESULTS: ✅ 422 error completely resolved, ✅ Quiz submission now works with 200 OK response, ✅ Progress updates correctly (100% for passed, 0% for failed), ✅ All edge cases tested successfully (partial progress, no time spent, minimal data). BACKEND API CONFIRMED WORKING: The PUT /api/enrollments/{course_id}/progress endpoint was always working correctly - issue was purely frontend parameter mismatch."
   - task: "URGENT: Admin Authentication Troubleshooting"
     implemented: true
     working: true
