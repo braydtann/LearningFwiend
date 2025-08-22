@@ -563,7 +563,7 @@ const Programs = () => {
                         className="rounded"
                       />
                       <img 
-                        src={course.thumbnail || 'https://via.placeholder.com/48'} 
+                        src={course.thumbnailUrl || course.thumbnail || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=48&h=48&fit=crop&crop=center'} 
                         alt={course.title}
                         className="w-12 h-12 rounded-lg object-cover"
                       />
