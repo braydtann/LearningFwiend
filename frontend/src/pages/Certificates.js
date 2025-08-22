@@ -45,9 +45,56 @@ const Certificates = () => {
     }
   };
 
-  const handleDownload = (certificateId) => {
-    // Mock download functionality
-    console.log(`Downloading certificate ${certificateId}`);
+  const handleDownload = async (certificateId) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL;
+      
+      const response = await fetch(`${backendUrl}/api/certificates/${certificateId}/download`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        // Get the filename from the response headers
+        const contentDisposition = response.headers.get('Content-Disposition');
+        let filename = 'certificate.txt';
+        if (contentDisposition) {
+          const filenameMatch = contentDisposition.match(/filename=(.+)/);
+          if (filenameMatch) {
+            filename = filenameMatch[1];
+          }
+        }
+
+        // Create blob and download
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+
+        toast({
+          title: "Certificate Downloaded",
+          description: "Your certificate has been downloaded successfully",
+        });
+      } else {
+        throw new Error('Download failed');
+      }
+    } catch (error) {
+      console.error('Error downloading certificate:', error);
+      toast({
+        title: "Download Failed",
+        description: "Unable to download certificate. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleShare = (certificateId) => {
