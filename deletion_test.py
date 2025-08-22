@@ -258,8 +258,8 @@ class DeletionTester:
             return False
         
         # Manually enroll students in the course
-        self.manually_enroll_student(student1['id'], course['id'])
-        self.manually_enroll_student(student2['id'], course['id'])
+        self.manually_enroll_student(student1['id'], course['id'], student1['username'])
+        self.manually_enroll_student(student2['id'], course['id'], student2['username'])
         
         # Get enrollment count before deletion
         enrollments_before = self.get_enrollments_count()
