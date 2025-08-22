@@ -2354,8 +2354,9 @@ metadata:
 test_plan:
   current_focus:
     - "Course Completion Certificate Navigation Fix"
-    - "Text-based Content Display Fix"
+    - "Text-based Content Display Fix" 
     - "Student Enrolled Courses Thumbnail Images Fix"
+    - "Password Change Modal Logout Functionality Testing"
   stuck_tasks:
     - "Student login access issue preventing completion of testing"
   test_all: false
