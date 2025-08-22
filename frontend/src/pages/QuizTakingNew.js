@@ -27,8 +27,8 @@ const QuizTakingNew = () => {
   const user = auth.user;
   const getCourseById = auth.getCourseById;
   const updateEnrollmentProgress = auth.updateEnrollmentProgress;
-  const toastHook = useToast();
-  const toast = toastHook?.toast || (() => console.log('Toast not available'));
+  const toastHook = useToast() || {};
+  const toast = toastHook.toast || (() => console.log('Toast not available'));
 
   // Core state
   const [course, setCourse] = useState(null);
