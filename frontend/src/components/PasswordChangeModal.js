@@ -8,7 +8,7 @@ import { useToast } from '../hooks/use-toast';
 import { useAuth } from '../contexts/AuthContext';
 
 const PasswordChangeModal = ({ isOpen, onClose, onSuccess, currentUser }) => {
-  const { changePassword } = useAuth();
+  const { changePassword, logout } = useAuth();
   const [formData, setFormData] = useState({
     currentPassword: '',
     newPassword: '',
