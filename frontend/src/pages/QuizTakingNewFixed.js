@@ -564,7 +564,7 @@ const QuizTakingNewFixed = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Multiple Choice Questions */}
-            {currentQuestion?.type === 'multiple-choice' && currentQuestion?.options && (
+            {currentQuestion?.type === 'multiple-choice' && currentQuestion?.options && Array.isArray(currentQuestion.options) && (
               <div className="space-y-3">
                 {currentQuestion.options.map((option, index) => (
                   <label
