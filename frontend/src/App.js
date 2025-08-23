@@ -184,6 +184,12 @@ function App() {
               </ProtectedRoute>
             } />
             
+            <Route path="/admin/utilities" element={
+              <ProtectedRoute>
+                <AdminUtilities />
+              </ProtectedRoute>
+            } />
+            
             <Route path="/certificates" element={
               <ProtectedRoute>
                 <Certificates />
