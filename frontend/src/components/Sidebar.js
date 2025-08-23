@@ -17,7 +17,8 @@ import {
   ClipboardCheck,
   Shield,
   Building2,
-  FolderOpen
+  FolderOpen,
+  Wrench
 } from 'lucide-react';
 
 const Sidebar = () => {
