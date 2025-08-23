@@ -122,11 +122,15 @@ class QuizDataStructureInvestigator:
                         issue = {
                             'course_id': course['id'],
                             'course_title': course['title'],
+                            'course_created': course.get('created_at'),
                             'module_idx': module_idx,
                             'lesson_idx': lesson_idx,
                             'lesson_title': lesson.get('title', 'Untitled'),
+                            'question_idx': 0,
+                            'question_type': 'quiz',
                             'issue_type': 'NO_QUESTIONS',
-                            'description': 'Quiz lesson has no questions array or empty questions'
+                            'description': 'Quiz lesson has no questions array or empty questions',
+                            'severity': 'CRITICAL'
                         }
                         course_issues.append(issue)
                         print(f"      ❌ ISSUE: No questions found in quiz")
