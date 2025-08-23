@@ -163,7 +163,7 @@ def create_test_accounts():
         print(f"   • Use these accounts to test Multiple Choice question type rebuild")
         print(f"   • Admin account can create courses with Multiple Choice questions")
         print(f"   • Student account can take quizzes and test functionality")
-        print(f"   • Both accounts are ready to use (no password change required)")
+        print(f"   • Note: These are temporary passwords, may require password change on first login")
         
         # Write credentials to file for easy reference
         with open('/app/mc_test_credentials.txt', 'w') as f:
@@ -172,6 +172,7 @@ def create_test_accounts():
             for acc in created_accounts:
                 f.write(f"{acc['role'].upper()} ACCOUNT:\n")
                 f.write(f"Email: {acc['email']}\n")
+                f.write(f"Username: {acc.get('username', 'N/A')}\n")
                 f.write(f"Password: {acc['password']}\n")
                 f.write(f"User ID: {acc['user_id']}\n")
                 f.write(f"Status: {acc['status']}\n\n")
