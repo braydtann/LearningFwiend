@@ -2502,29 +2502,13 @@ metadata:
 
 test_plan:
   current_focus:
-    - "URGENT: Quiz Data Structure Investigation - OLD vs NEW Quizzes"
-  stuck_tasks: []
+    - "Rebuild Multiple Choice Question Type in CreateCourse.js"
+    - "Rebuild Multiple Choice Question Type in QuizTakingNewFixed.js"
+    - "Create Preview Test Accounts"
+  stuck_tasks:
+    - "None currently"
   test_all: false
-  test_priority: "critical_first"
-  backend_testing_complete: true
-  frontend_testing_complete: true
-  comprehensive_e2e_complete: true
-  classroom_creation_testing_complete: true
-  course_visibility_testing_complete: true
-  comprehensive_backend_api_testing_complete: true
-  post_mockdata_cleanup_testing_complete: true
-  program_access_control_testing_complete: true
-  draft_functionality_testing_complete: true
-  quiz_backend_testing_complete: true
-  urgent_authentication_testing_complete: true
-  quiz_data_structure_investigation_complete: true
-  new_feature_development_phase: "quiz_data_structure_root_cause_identified"
-  production_readiness_backend: true
-  authentication_system_phase: "completed"
-  frontend_integration_testing_phase: "progress_tracking_verified"
-  final_test_functionality_phase: "completed"
-  urgent_auth_phase: "multiple_working_credentials_established"
-  react_error_31_investigation_phase: "root_cause_identified_solution_confirmed"
+  test_priority: "high_first"
 
   - task: "Production Backend URL Testing for Frontend Compatibility"
     implemented: true
