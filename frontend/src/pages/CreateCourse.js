@@ -1326,7 +1326,7 @@ const CreateCourse = () => {
                                         <div className="space-y-2">
                                           <Label>Question Type</Label>
                                           <Select 
-                                            value={question.type || 'multiple-choice'} 
+                                            value={question.type || 'true-false'} 
                                             onValueChange={(value) => handleQuestionChange(moduleIndex, lessonIndex, questionIndex, 'type', value)}
                                           >
                                             <SelectTrigger>
