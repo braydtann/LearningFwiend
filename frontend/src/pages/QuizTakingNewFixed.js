@@ -686,7 +686,7 @@ const QuizTakingNewFixed = () => {
             )}
 
             {/* Chronological Order Questions */}
-            {currentQuestion?.type === 'chronological-order' && currentQuestion?.items && Array.isArray(currentQuestion.items) && (
+            {currentQuestion?.type === 'chronological-order' && currentQuestion.items.length > 0 && (
               <div className="space-y-3">
                 <p className="text-sm text-gray-600 mb-3">Drag and drop to arrange in chronological order:</p>
                 <div className="space-y-2">
