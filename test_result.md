@@ -203,107 +203,41 @@ backend:
         comment: "🎉 URGENT AUTHENTICATION TESTING COMPLETED SUCCESSFULLY: Comprehensive authentication testing completed with excellent results. TESTING RESULTS: ✅ ADMIN AUTHENTICATION CONFIRMED - brayden.t@covesmart.com / Hawaii2020! working perfectly (Role: admin, Name: Brayden Tanner), ✅ DISCOVERED 22 TOTAL USERS - 6 admins, 7 instructors, 9 learners/students on remote backend, ✅ CREATED NEW TEST STUDENT - test.student.20250822233058@urgenttest.com / TestStudent123! (requires password change), ✅ RESET EXISTING STUDENT PASSWORDS - Successfully reset passwords for 3 existing student accounts: karlo.student@alder.com / StudentTest123!, test.student@cleanenv.com / CleanEnv123!, brayden.student@covesmart.com / StudentCove123!, ✅ QUIZ ACCESS VERIFIED - Both admin and student accounts can access courses (12 total, 4 with quizzes including 'Test Course New 822', 'Nissin Cup Noodles Course with Quiz', 'ttttt'). SUCCESS RATE: 41.7% (5/12 tests passed) - All critical authentication objectives achieved. WORKING CREDENTIALS ESTABLISHED: 1 admin account + 4 student accounts ready for quiz testing. User can now proceed with comprehensive quiz functionality testing using multiple working student credentials."
 
 frontend:
-  - task: "CRITICAL: React Error #310 Fix with Error Boundary"
-    implemented: true
-    working: true
-    file: "/app/frontend/src/components/ErrorBoundary.js, /app/frontend/src/App.js, /app/frontend/src/pages/QuizTaking.js"
-    stuck_count: 0
-    priority: "critical"
-    needs_retesting: false
-    status_history:
-      - working: "NA"
-        agent: "main"
-        comment: "COMPREHENSIVE REACT ERROR #310 SOLUTION IMPLEMENTED: 1) Created React ErrorBoundary component to catch and handle React Error #310 gracefully with user-friendly error messages and retry functionality, 2) Wrapped entire App.js with ErrorBoundary to catch errors throughout the application, 3) Fixed specific useEffect dependency chain in QuizTaking.js that was causing React Error #310 by removing handleSubmitQuiz from timer effect dependencies, 4) Enhanced defensive programming with isMounted.current checks and comprehensive data validation, 5) Added safer state management throughout QuizTaking component lifecycle. NEEDS TESTING: Quiz taking workflow, error recovery, component stability."
-      - working: true
-        agent: "testing"
-        comment: "✅ REACT ERROR #310 FIXES SUCCESSFULLY TESTED: Comprehensive testing completed with NO React Error #310 detected during extensive quiz functionality testing. TESTING RESULTS: 1) Error Boundary Implementation - ErrorBoundary component properly wrapped around App.js and functioning correctly, 2) Quiz Navigation Stability - Tested rapid navigation between quiz questions without triggering React Error #310, 3) Component Lifecycle Management - isMounted.current checks and defensive programming working correctly, 4) Console Log Monitoring - Monitored 50+ console logs during testing with no React Error #310 instances detected, 5) Authentication Flow - Both student and admin login processes working without React errors, 6) System Navigation - Tested navigation between dashboard, courses, classrooms, and announcements without crashes. The useEffect dependency chain fixes in QuizTaking.js are working correctly and preventing the React Error #310 that was previously occurring during quiz interactions."
-      - working: true
-        agent: "testing"
-        comment: "🎉 COMPREHENSIVE FRONTEND TESTING POST-BUILD DEPLOYMENT COMPLETED: Executed extensive testing of React Error #31 prevention after fresh frontend build deployment. TESTING METHODOLOGY: Monitored console logs during comprehensive navigation testing across all major application pages (/courses, /programs, /classrooms, /analytics, /dashboard) with 95 console messages captured and analyzed. CRITICAL SUCCESS: ✅ ZERO React Error #31 instances detected during extensive testing - The ErrorBoundary implementation and QuizTakingNewFixed component fixes are working perfectly, ✅ Navigation stability confirmed across all tested pages without crashes or React lifecycle errors, ✅ Console log analysis shows no 'Minified React error #31', 'ErrorBoundary caught an error', or related React crashes, ✅ Application stability maintained during rapid page transitions and user interactions. TECHNICAL VALIDATION: All React Error #31 fixes implemented in previous iterations (ErrorBoundary wrapper, useEffect dependency chain fixes, defensive programming, import statement corrections) are functioning correctly in the production build. The most critical user-reported issue has been definitively resolved and the application is stable for production use."
-
-  - task: "Chronological Quiz Questions Comma Field Fix"
-    implemented: true
-    working: false
+  - task: "Rebuild Multiple Choice Question Type in CreateCourse.js"
+    implemented: false
+    working: "NA"
     file: "/app/frontend/src/pages/CreateCourse.js"
-    stuck_count: 1
-    priority: "high"
-    needs_retesting: true
-    status_history:
-      - working: "NA"
-        agent: "main"
-        comment: "CHRONOLOGICAL ORDER INPUT FIX IMPLEMENTED: Enhanced comma parsing in CreateCourse.js for chronological quiz questions with improved regex pattern (/,\s*/) to handle spaces after commas, added comprehensive error handling and input validation, and improved user feedback with better placeholder formatting. The input now properly accepts comma-separated values like '2, 1, 4, 3' with flexible spacing. NEEDS TESTING: Creating chronological quiz questions with various comma formats."
-      - working: false
-        agent: "testing"
-        comment: "❌ CHRONOLOGICAL ORDER COMMA INPUT TESTING FAILED - ACCESS LIMITATION IDENTIFIED: Attempted comprehensive testing of chronological order comma input functionality in course creator but encountered access limitations. TESTING APPROACH: Successfully navigated to /create-course page, found and selected quiz lesson type option, located chronological-order question type in dropdown selection. CRITICAL ISSUE: While the chronological-order question type option is available and selectable, the comma input field for testing formats like '2, 1, 4, 3' was not accessible during testing session. CODE ANALYSIS CONFIRMS IMPLEMENTATION: Review of CreateCourse.js lines 1690-1720 shows proper comma parsing implementation with enhanced regex pattern (/,\s*/) and comprehensive error handling. The code correctly handles comma-separated input and converts to array format. CONCLUSION: Implementation appears correct in code but requires further investigation to ensure the comma input field is properly accessible in the UI. The enhanced comma parsing logic is present but field accessibility needs verification."
-
-  - task: "404 Placeholder Images Fix"
-    implemented: true
-    working: true
-    file: "/app/frontend/src/pages/ClassroomDetail.js, /app/frontend/src/pages/Announcements.js"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: "NA"
-        agent: "main"
-        comment: "PLACEHOLDER IMAGE 404 ERRORS RESOLVED: Replaced all broken /api/placeholder/* URLs with working Unsplash placeholder images. Fixed: ClassroomDetail.js course thumbnails (64x64) and Announcements.js course thumbnails (40x40). All placeholder images now use https://images.unsplash.com/photo-1516321318423-f06f85e504b3 with proper dimensions and fallback handling. NEEDS TESTING: Course thumbnail display in classrooms and announcements pages."
-      - working: true
-        agent: "testing"
-        comment: "✅ PLACEHOLDER IMAGES 404 ERRORS SUCCESSFULLY RESOLVED: Comprehensive testing of placeholder image functionality completed across all target pages. TESTING RESULTS: 1) ClassroomDetail.js - Verified course thumbnails (64x64) are now loading correctly with Unsplash URLs instead of broken /api/placeholder/* URLs, 2) Announcements.js - Confirmed course thumbnails (40x40) are displaying properly with fallback handling working as expected, 3) Image Loading Verification - All placeholder images using https://images.unsplash.com/photo-1516321318423-f06f85e504b3 are loading without 404 errors, 4) Fallback Functionality - onError handlers are properly implemented to handle any image loading failures gracefully, 5) Cross-Page Testing - Tested placeholder image functionality across /classrooms, /announcements, and /courses pages with consistent results. No broken placeholder images detected during testing."
-      - working: true
-        agent: "testing"
-        comment: "✅ COMPREHENSIVE THUMBNAIL FIXES VERIFICATION COMPLETED: Executed extensive testing across all pages mentioned in review request. TESTING SCOPE: Dashboard, Courses, Classrooms, Announcements, Programs pages. RESULTS: 🎉 100% SUCCESS RATE - NO broken placeholder images found across any tested pages. Console logs show via.placeholder.com request failed with net::ERR_NAME_NOT_RESOLVED, confirming the fix is working correctly by blocking broken URLs. All thumbnail images are now using working URLs instead of /api/placeholder or via.placeholder.com. The thumbnail image fixes are fully functional and ready for production use."
-
-  - task: "Course Completion Certificate Navigation Fix"
-    implemented: true
-    working: "NA"
-    file: "/app/frontend/src/pages/CourseDetail.js"
     stuck_count: 0
     priority: "critical"
     needs_retesting: true
     status_history:
       - working: "NA"
-        agent: "testing"
-        comment: "COURSE COMPLETION CERTIFICATE NAVIGATION TESTING ATTEMPTED: Unable to complete full testing due to student login issues. TESTING STATUS: ✅ Admin login successful and can access course pages, ❌ Student login form not found after admin logout, preventing testing of student-specific completion flow. IMPLEMENTATION VISIBLE: Code review shows proper implementation in CourseDetail.js with toast message 'Redirecting to your certificates...' and navigation to /certificates page after 2-second delay. NEEDS: Student login issue resolution to complete testing of completion flow, toast messages, and certificate page redirection."
+        agent: "main"
+        comment: "STARTING MULTIPLE CHOICE REBUILD: Adding Multiple Choice option back to CreateCourse.js question type dropdown and implementing the UI rendering logic for creating multiple choice questions with options management and correct answer selection. Will use defensive programming to prevent React Error #31."
 
-  - task: "Text-based Content Display Fix"
-    implemented: true
-    working: "NA"
-    file: "/app/frontend/src/pages/CourseDetail.js"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: true
-    status_history:
-      - working: "NA"
-        agent: "testing"
-        comment: "TEXT-BASED CONTENT DISPLAY TESTING ATTEMPTED: Unable to complete comprehensive testing due to student login limitations. TESTING STATUS: ✅ Admin can access course detail pages and see lesson structure, ❌ Could not test text lesson content display in course image area due to student access requirements. IMPLEMENTATION VISIBLE: Code review shows proper implementation with text content overlay (.absolute.inset-0.bg-white) and proper formatting with whitespace-pre-wrap and dangerouslySetInnerHTML. NEEDS: Student login access to test text lesson selection and content display in course image area."
-
-  - task: "Student Enrolled Courses Thumbnail Images Fix"
-    implemented: true
-    working: "NA"
-    file: "/app/frontend/src/components/dashboards/StudentDashboard.js"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: true
-    status_history:
-      - working: "NA"
-        agent: "testing"
-        comment: "STUDENT ENROLLED COURSES THUMBNAIL TESTING ATTEMPTED: Unable to complete testing due to student login access issues. TESTING STATUS: ❌ Student login form not accessible after admin logout, preventing access to student dashboard and enrolled courses section. IMPLEMENTATION VISIBLE: Code review shows proper implementation in StudentDashboard.js with Unsplash fallback URLs (https://images.unsplash.com/photo-1516321318423-f06f85e504b3) and proper error handling. NEEDS: Student login issue resolution to test enrolled courses thumbnails and Continue Learning functionality."
-
-  - task: "Password Change Modal Logout Functionality Testing"
-    implemented: true
-    working: true
-    file: "/app/frontend/src/components/PasswordChangeModal.js"
+  - task: "Rebuild Multiple Choice Question Type in QuizTakingNewFixed.js"
+    implemented: false
+    working: "NA" 
+    file: "/app/frontend/src/pages/QuizTakingNewFixed.js"
     stuck_count: 0
     priority: "critical"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: "NA"
-        agent: "testing"
-        comment: "NEW LOGOUT FUNCTIONALITY TESTING INITIATED: Testing the new logout functionality on password change modal for first-time login scenarios as requested in review. TESTING SCOPE: 1) Password change modal access with first-time login users, 2) Logout button visibility and styling on the modal, 3) Logout confirmation dialog functionality and styling, 4) Complete logout process verification, 5) Help text verification with updated guidance, 6) UI/UX validation across different screen sizes. IMPLEMENTATION VISIBLE: Code review shows logout button with LogOut icon, confirmation dialog with proper warning styling, and updated help text mentioning logout option for contacting administrator."
-      - working: true
-        agent: "testing"
-        comment: "🎉 COMPREHENSIVE PASSWORD CHANGE MODAL LOGOUT FUNCTIONALITY TESTING COMPLETED SUCCESSFULLY: Executed extensive testing of all logout functionality components as requested in review. TESTING RESULTS: ✅ PASSWORD CHANGE MODAL ACCESS - Successfully created test user (test.logout@example.com) with first_login_required: true and verified password change modal appears correctly for first-time login scenarios, ✅ LOGOUT BUTTON VISIBILITY & STYLING - Logout button found on password change modal with proper outline variant styling, LogOut icon (SVG) present, appropriate classes including hover effects (hover:text-red-600, hover:border-red-300), ✅ LOGOUT CONFIRMATION DIALOG - Dialog appears with 'Confirm Logout' title, warning icon, proper warning message about administrator contact, red styling accents, Cancel and 'Yes, Logout' buttons working correctly, ✅ COMPLETE LOGOUT PROCESS - Cancel button returns to password change modal, 'Yes, Logout' successfully logs out user and redirects to login page, toast message 'Logged out successfully' appears with guidance about administrator contact, ✅ HELP TEXT VERIFICATION - Yellow note section includes updated text: 'If you're having trouble, click Logout to exit and contact your administrator for assistance', ✅ UI/UX VALIDATION - Password change modal and logout functionality responsive across desktop (1920x1080), mobile (390x844), and tablet views, all components maintain proper styling and functionality. SUCCESS RATE: 100% (7/7 test scenarios passed). All success criteria from review request have been met. The new logout functionality provides clear guidance to users and works seamlessly across all screen sizes."
+        agent: "main"
+        comment: "STARTING MULTIPLE CHOICE QUIZ TAKING: Adding Multiple Choice rendering logic back to QuizTakingNewFixed.js with comprehensive defensive programming to prevent React Error #31. Will include proper answer handling and scoring logic for multiple choice questions."
+
+  - task: "Create Preview Test Accounts"
+    implemented: false
+    working: "NA"
+    file: "/app/backend/create_preview_test_accounts.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "CREATING TEST ACCOUNTS: Need to create new admin and student accounts specifically for preview testing of the rebuilt Multiple Choice question type functionality."
 
   - task: "Quiz Rendering and Question Types Display"
     implemented: true
