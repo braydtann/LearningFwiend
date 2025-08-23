@@ -703,44 +703,8 @@ const QuizTakingNewFixed = () => {
               />
             )}
 
-            {/* Chronological Order Questions */}
-            {currentQuestion?.type === 'chronological-order' && currentQuestion?.items?.length > 0 && (
-              <div className="space-y-3">
-                <p className="text-sm text-gray-600 mb-3">Drag and drop to arrange in chronological order:</p>
-                <div className="space-y-2">
-                  {currentQuestion.items.map((item, index) => (
-                    <div
-                      key={`chrono-${index}`}
-                      className="flex items-center space-x-3 p-3 border rounded-lg bg-gray-50"
-                    >
-                      <span className="text-sm font-medium text-gray-500 min-w-[60px]">
-                        Position:
-                      </span>
-                      <select
-                        value={answers[currentQuestion.id]?.[index] || index + 1}
-                        onChange={(e) => {
-                          if (currentQuestion?.id && currentQuestion?.items?.length > 0) {
-                            const currentOrder = answers[currentQuestion.id] || currentQuestion.items.map((_, i) => i + 1);
-                            const newOrder = [...currentOrder];
-                            newOrder[index] = parseInt(e.target.value);
-                            handleAnswerChange(currentQuestion.id, newOrder);
-                          }
-                        }}
-                        className="border rounded px-2 py-1 text-sm"
-                      >
-                        {currentQuestion.items.map((_, i) => (
-                          <option key={i} value={i + 1}>{i + 1}</option>
-                        ))}
-                      </select>
-                      <span className="flex-1">{item || `Item ${index + 1}`}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
             {/* Fallback for unknown question types */}
-            {currentQuestion && !['multiple-choice', 'select-all-that-apply', 'true-false', 'short-answer', 'long-form-answer', 'chronological-order'].includes(currentQuestion.type) && (
+            {currentQuestion && !['true-false', 'short-answer', 'long-form-answer'].includes(currentQuestion.type) && (
               <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <p className="text-yellow-800">
                   Unsupported question type: {currentQuestion.type}
