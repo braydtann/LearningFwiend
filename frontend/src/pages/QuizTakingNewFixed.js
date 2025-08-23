@@ -688,7 +688,7 @@ const QuizTakingNewFixed = () => {
                 placeholder="Enter your detailed answer here..."
                 value={answers[currentQuestion.id] || ''}
                 onChange={(e) => {
-                  if (currentQuestion.id) {
+                  if (currentQuestion?.id) {
                     handleAnswerChange(currentQuestion.id, e.target.value);
                   }
                 }}
