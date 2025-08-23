@@ -691,8 +691,8 @@ const QuizTakingNewFixed = () => {
                       <select
                         value={answers[currentQuestion.id]?.[index] || index + 1}
                         onChange={(e) => {
-                          if (currentQuestion.id) {
-                            const currentOrder = answers[currentQuestion.id] || (currentQuestion.items || []).map((_, i) => i + 1);
+                          if (currentQuestion.id && currentQuestion.items && Array.isArray(currentQuestion.items)) {
+                            const currentOrder = answers[currentQuestion.id] || currentQuestion.items.map((_, i) => i + 1);
                             const newOrder = [...currentOrder];
                             newOrder[index] = parseInt(e.target.value);
                             handleAnswerChange(currentQuestion.id, newOrder);
