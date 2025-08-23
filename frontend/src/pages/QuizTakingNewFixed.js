@@ -128,6 +128,47 @@ const QuizTakingNewFixed = () => {
       if (!foundQuiz || !foundQuiz.questions || foundQuiz.questions.length === 0) {
         throw new Error('Quiz not found or has no questions');
       }
+      
+      // Validate each question has required structure to prevent React Error #31
+      const validatedQuestions = foundQuiz.questions.filter((question, index) => {
+        if (!question || typeof question !== 'object') {
+          console.warn(`Question ${index + 1} is invalid (not an object):`, question);
+          return false;
+        }
+        if (!question.type) {
+          console.warn(`Question ${index + 1} missing type:`, question);
+          return false;
+        }
+        
+        // Validate question-type specific requirements
+        if (question.type === 'multiple-choice' || question.type === 'select-all-that-apply') {
+          if (!question.options || !Array.isArray(question.options) || question.options.length === 0) {
+            console.warn(`Question ${index + 1} (${question.type}) has invalid options:`, question.options);
+            return false;
+          }
+        }
+        
+        if (question.type === 'chronological-order') {
+          if (!question.items || !Array.isArray(question.items) || question.items.length === 0) {
+            console.warn(`Question ${index + 1} (chronological-order) has invalid items:`, question.items);
+            return false;
+          }
+        }
+        
+        return true;
+      });
+      
+      if (validatedQuestions.length === 0) {
+        throw new Error('No valid questions found after validation');
+      }
+      
+      if (validatedQuestions.length < foundQuiz.questions.length) {
+        console.warn(`Filtered out ${foundQuiz.questions.length - validatedQuestions.length} invalid questions`);
+        foundQuiz = {
+          ...foundQuiz,
+          questions: validatedQuestions
+        };
+      }
 
       setLesson(foundLesson);
       
