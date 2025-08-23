@@ -710,7 +710,7 @@ const QuizTakingNewFixed = () => {
                         }}
                         className="border rounded px-2 py-1 text-sm"
                       >
-                        {(currentQuestion.items || []).map((_, i) => (
+                        {currentQuestion.items.map((_, i) => (
                           <option key={i} value={i + 1}>{i + 1}</option>
                         ))}
                       </select>
