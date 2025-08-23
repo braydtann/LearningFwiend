@@ -43,7 +43,7 @@ def create_test_accounts():
     accounts = [
         {
             "role": "admin", 
-            "email": f"mc.admin.{timestamp}@preview.test",
+            "email": f"mc.admin.{timestamp}@testmc.com",
             "username": f"mc_admin_{timestamp}",
             "full_name": "MC Admin Test Account",
             "temporary_password": "MCAdmin123!",
@@ -51,7 +51,7 @@ def create_test_accounts():
         },
         {
             "role": "learner",
-            "email": f"mc.student.{timestamp}@preview.test", 
+            "email": f"mc.student.{timestamp}@testmc.com", 
             "username": f"mc_student_{timestamp}",
             "full_name": "MC Student Test Account",
             "temporary_password": "MCStudent123!",
