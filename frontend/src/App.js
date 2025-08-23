@@ -30,6 +30,7 @@ import Categories from './pages/Categories';
 import Notifications from './pages/Notifications';
 import Announcements from './pages/Announcements';
 import LoginPalStatus from './pages/LoginPalStatus';
+import AdminUtilities from './pages/AdminUtilities';
 
 // Components
 import Layout from './components/Layout';
