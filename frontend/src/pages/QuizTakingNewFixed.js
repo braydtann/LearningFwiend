@@ -141,18 +141,13 @@ const QuizTakingNewFixed = () => {
         }
         
         // Validate question-type specific requirements
-        if (question.type === 'multiple-choice' || question.type === 'select-all-that-apply') {
-          if (!question.options || !Array.isArray(question.options) || question.options.length === 0) {
-            console.warn(`Question ${index + 1} (${question.type}) has invalid options:`, question.options);
-            return false;
-          }
-        }
-        
-        if (question.type === 'chronological-order') {
-          if (!question.items || !Array.isArray(question.items) || question.items.length === 0) {
-            console.warn(`Question ${index + 1} (chronological-order) has invalid items:`, question.items);
-            return false;
-          }
+        if (question.type === 'true-false') {
+          // True/false questions don't need additional validation
+        } else if (question.type === 'short-answer' || question.type === 'long-form-answer') {
+          // Text questions don't need additional validation  
+        } else {
+          console.warn(`Question ${index + 1} has unsupported type: ${question.type}`);
+          return false;
         }
         
         return true;
