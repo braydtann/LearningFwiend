@@ -649,64 +649,6 @@ const QuizTakingNewFixed = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Multiple Choice Questions */}
-            {currentQuestion?.type === 'multiple-choice' && currentQuestion?.options?.length > 0 && (
-              <div className="space-y-3">
-                {currentQuestion.options.map((option, index) => (
-                  <label
-                    key={`option-${index}`}
-                    className="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
-                  >
-                    <input
-                      type="radio"
-                      name={`question-${currentQuestion.id || 'unknown'}`}
-                      value={index}
-                      checked={answers[currentQuestion.id] === index}
-                      onChange={(e) => {
-                        const value = parseInt(e.target.value);
-                        if (currentQuestion?.id) {
-                          handleAnswerChange(currentQuestion.id, value);
-                        }
-                      }}
-                      className="w-4 h-4 text-blue-600"
-                    />
-                    <span className="flex-1">{option || `Option ${index + 1}`}</span>
-                  </label>
-                ))}
-              </div>
-            )}
-
-            {/* Select All That Apply Questions */}
-            {currentQuestion?.type === 'select-all-that-apply' && currentQuestion?.options?.length > 0 && (
-              <div className="space-y-3">
-                <p className="text-sm text-gray-600 mb-3">Select all correct answers:</p>
-                {currentQuestion.options.map((option, index) => (
-                  <label
-                    key={`select-${index}`}
-                    className="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
-                  >
-                    <input
-                      type="checkbox"
-                      value={index}
-                      checked={(answers[currentQuestion.id] || []).includes(index)}
-                      onChange={(e) => {
-                        if (currentQuestion?.id) {
-                          const currentAnswers = answers[currentQuestion.id] || [];
-                          const value = parseInt(e.target.value);
-                          const newAnswers = e.target.checked
-                            ? [...currentAnswers, value]
-                            : currentAnswers.filter(v => v !== value);
-                          handleAnswerChange(currentQuestion.id, newAnswers);
-                        }
-                      }}
-                      className="w-4 h-4 text-blue-600"
-                    />
-                    <span className="flex-1">{option || `Option ${index + 1}`}</span>
-                  </label>
-                ))}
-              </div>
-            )}
-
             {/* True/False Questions */}
             {currentQuestion?.type === 'true-false' && (
               <div className="space-y-3">
