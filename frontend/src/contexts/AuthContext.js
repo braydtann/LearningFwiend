@@ -2688,6 +2688,39 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // =============================================================================
+  // ORPHANED ENROLLMENT CLEANUP FUNCTION
+  // =============================================================================
+
+  const cleanupOrphanedEnrollments = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/enrollments/cleanup-orphaned`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        return { success: true, message: result.message, deletedCount: result.deletedCount };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to cleanup orphaned enrollments' 
+        };
+      }
+    } catch (error) {
+      console.error('Cleanup orphaned enrollments error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
   const value = {
     user,
     loading,
