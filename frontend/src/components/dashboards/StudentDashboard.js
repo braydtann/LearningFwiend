@@ -37,18 +37,21 @@ const StudentDashboard = () => {
         const courseResult = await getAllCourses();
         
         if (courseResult.success) {
-          const enrolledCourseData = enrollmentResult.enrollments.map(enrollment => {
-            const course = courseResult.courses.find(c => c.id === enrollment.courseId);
-            return {
-              id: enrollment.courseId,
-              title: course?.title || enrollment.courseName || 'Unknown Course',
-              thumbnail: course?.thumbnailUrl || course?.thumbnail || 'https://via.placeholder.com/300x200?text=Course+Image',
-              instructor: course?.instructor || 'Unknown',
-              duration: course?.duration || '1 week',
-              progress: enrollment.progress || 0,
-              enrollmentId: enrollment.id
-            };
-          });
+          const enrolledCourseData = enrollmentResult.enrollments
+            .map(enrollment => {
+              const course = courseResult.courses.find(c => c.id === enrollment.courseId);
+              return {
+                id: enrollment.courseId,
+                title: course?.title || enrollment.courseName || 'Unknown Course',
+                thumbnail: course?.thumbnailUrl || course?.thumbnail || 'https://via.placeholder.com/300x200?text=Course+Image',
+                instructor: course?.instructor || 'Unknown',
+                duration: course?.duration || '1 week',
+                progress: enrollment.progress || 0,
+                enrollmentId: enrollment.id,
+                isOrphaned: !course // Flag for orphaned enrollments
+              };
+            })
+            .filter(course => !course.isOrphaned); // Filter out orphaned enrollments
           setEnrolledCourses(enrolledCourseData);
         } else {
           // Fallback to enrollment data only
