@@ -224,6 +224,8 @@ const QuizTakingNewFixed = () => {
             // Handle different question types  
             if (question.type === 'true-false' && userAnswer === question.correctAnswer) {
               correctAnswers++;
+            } else if (question.type === 'multiple-choice' && userAnswer === question.correctAnswer) {
+              correctAnswers++;
             } else if (question.type === 'short-answer' || question.type === 'long-form-answer') {
               // For text answers, basic string comparison (case-insensitive)
               const correctAnswer = question.correctAnswer || '';
