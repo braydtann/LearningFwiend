@@ -591,7 +591,7 @@ const QuizTakingNewFixed = () => {
             )}
 
             {/* Select All That Apply Questions */}
-            {currentQuestion?.type === 'select-all-that-apply' && currentQuestion?.options && (
+            {currentQuestion?.type === 'select-all-that-apply' && currentQuestion?.options && Array.isArray(currentQuestion.options) && (
               <div className="space-y-3">
                 <p className="text-sm text-gray-600 mb-3">Select all correct answers:</p>
                 {currentQuestion.options.map((option, index) => (
