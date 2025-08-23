@@ -130,6 +130,18 @@ const QuizTakingNewFixed = () => {
       }
 
       setLesson(foundLesson);
+      
+      // Handle target question count if specified
+      if (foundQuiz.targetQuestionCount && foundQuiz.targetQuestionCount > 0 && foundQuiz.questions.length > foundQuiz.targetQuestionCount) {
+        // If we have more questions than target, take the first targetQuestionCount questions
+        // This prevents array access issues if targetQuestionCount is set incorrectly
+        foundQuiz = {
+          ...foundQuiz,
+          questions: foundQuiz.questions.slice(0, foundQuiz.targetQuestionCount)
+        };
+        console.log(`Quiz filtered to ${foundQuiz.targetQuestionCount} questions (was ${foundQuiz.questions.length})`);
+      }
+      
       setQuiz(foundQuiz);
       
       // Initialize timer if quiz has time limit
