@@ -1333,12 +1333,9 @@ const CreateCourse = () => {
                                               <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                              <SelectItem value="multiple-choice">Multiple Choice</SelectItem>
-                                              <SelectItem value="select-all-that-apply">Select All That Apply</SelectItem>
                                               <SelectItem value="true-false">True/False</SelectItem>
                                               <SelectItem value="short-answer">Short Answer</SelectItem>
                                               <SelectItem value="long-form-answer">Long Form Answer</SelectItem>
-                                              <SelectItem value="chronological-order">Chronological Order</SelectItem>
                                             </SelectContent>
                                           </Select>
                                         </div>
