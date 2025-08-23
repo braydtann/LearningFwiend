@@ -78,7 +78,7 @@ const QuizTakingNewFixed = () => {
       let foundLesson = null;
       let foundQuiz = null;
 
-      // Safely iterate through modules
+      // Safely iterate through modules - handle both old and new quiz structures
       if (courseData.modules && Array.isArray(courseData.modules)) {
         for (let i = 0; i < courseData.modules.length; i++) {
           const module = courseData.modules[i];
@@ -87,8 +87,19 @@ const QuizTakingNewFixed = () => {
               const moduleLesson = module.lessons[j];
               if (moduleLesson && moduleLesson.id === lessonId) {
                 foundLesson = moduleLesson;
-                if (moduleLesson.type === 'quiz' && moduleLesson.quiz) {
-                  foundQuiz = moduleLesson.quiz;
+                if (moduleLesson.type === 'quiz') {
+                  // Handle both old and new quiz structures
+                  if (moduleLesson.questions && Array.isArray(moduleLesson.questions)) {
+                    // New structure: questions directly on lesson
+                    foundQuiz = {
+                      questions: moduleLesson.questions,
+                      timeLimit: moduleLesson.timeLimit,
+                      passingScore: moduleLesson.passingScore
+                    };
+                  } else if (moduleLesson.quiz && moduleLesson.quiz.questions) {
+                    // Old structure: questions nested in quiz object
+                    foundQuiz = moduleLesson.quiz;
+                  }
                 }
                 break;
               }
