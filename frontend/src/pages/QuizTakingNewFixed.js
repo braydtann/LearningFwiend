@@ -656,7 +656,7 @@ const QuizTakingNewFixed = () => {
                       value={value.toString()}
                       checked={answers[currentQuestion.id] === value}
                       onChange={(e) => {
-                        if (currentQuestion.id) {
+                        if (currentQuestion?.id) {
                           handleAnswerChange(currentQuestion.id, e.target.value === 'true');
                         }
                       }}
