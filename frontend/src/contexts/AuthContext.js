@@ -2782,6 +2782,7 @@ export const AuthProvider = ({ children }) => {
     updateEnrollmentProgress,
     migrateEnrollmentProgress,
     deleteEnrollment,
+    cleanupOrphanedEnrollments,
     // Announcement management
     createAnnouncement,
     getAllAnnouncements,
