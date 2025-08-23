@@ -17,6 +17,25 @@ def create_test_accounts():
     
     print("🚀 Creating new test accounts for Multiple Choice question type testing...")
     
+    # First, get admin token
+    print("🔐 Authenticating with existing admin credentials...")
+    admin_login = requests.post(
+        f"{BACKEND_URL}/auth/login",
+        headers={"Content-Type": "application/json"},
+        json={
+            "username_or_email": "brayden.t@covesmart.com",
+            "password": "Hawaii2020!"
+        },
+        timeout=30
+    )
+    
+    if admin_login.status_code != 200:
+        print(f"❌ Failed to authenticate admin: {admin_login.status_code} - {admin_login.text}")
+        return False
+        
+    admin_token = admin_login.json()["access_token"]
+    print("✅ Admin authentication successful")
+    
     # Generate unique identifiers for this test session
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     
@@ -25,17 +44,17 @@ def create_test_accounts():
         {
             "role": "admin", 
             "email": f"mc.admin.{timestamp}@preview.test",
-            "password": "MCAdmin123!",
-            "firstName": "MC Admin",
-            "lastName": "Test Account",
+            "username": f"mc_admin_{timestamp}",
+            "full_name": "MC Admin Test Account",
+            "temporary_password": "MCAdmin123!",
             "description": "Admin account for Multiple Choice question type testing"
         },
         {
             "role": "learner",
             "email": f"mc.student.{timestamp}@preview.test", 
-            "password": "MCStudent123!",
-            "firstName": "MC Student",
-            "lastName": "Test Account",
+            "username": f"mc_student_{timestamp}",
+            "full_name": "MC Student Test Account",
+            "temporary_password": "MCStudent123!",
             "description": "Student account for Multiple Choice question type testing"
         }
     ]
@@ -46,36 +65,40 @@ def create_test_accounts():
         try:
             print(f"\n📝 Creating {account['role']} account: {account['email']}")
             
-            # Create account payload
+            # Create account payload according to UserCreate model
             account_data = {
                 "email": account["email"],
-                "password": account["password"],
-                "firstName": account["firstName"],
-                "lastName": account["lastName"],
+                "username": account["username"],
+                "full_name": account["full_name"],
                 "role": account["role"],
-                "firstLoginRequired": False  # Set to False so accounts are ready to use
+                "temporary_password": account["temporary_password"]
             }
             
-            # Make API request to create account
+            # Make API request to create account using admin endpoint
             response = requests.post(
-                f"{BACKEND_URL}/auth/register",
-                headers={"Content-Type": "application/json"},
+                f"{BACKEND_URL}/auth/admin/create-user",
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {admin_token}"
+                },
                 json=account_data,
                 timeout=30
             )
             
-            if response.status_code == 201:
+            if response.status_code == 200:
                 result = response.json()
                 print(f"✅ SUCCESS: {account['role']} account created successfully")
                 print(f"   📧 Email: {account['email']}")
-                print(f"   🔐 Password: {account['password']}")
-                print(f"   🆔 User ID: {result.get('user', {}).get('id', 'N/A')}")
+                print(f"   👤 Username: {account['username']}")
+                print(f"   🔐 Password: {account['temporary_password']}")
+                print(f"   🆔 User ID: {result.get('id', 'N/A')}")
                 
                 created_accounts.append({
                     "role": account["role"],
                     "email": account["email"],
-                    "password": account["password"],
-                    "user_id": result.get('user', {}).get('id'),
+                    "username": account["username"],
+                    "password": account["temporary_password"],
+                    "user_id": result.get('id'),
                     "status": "created"
                 })
                 
@@ -87,8 +110,8 @@ def create_test_accounts():
                     f"{BACKEND_URL}/auth/login",
                     headers={"Content-Type": "application/json"},
                     json={
-                        "email": account["email"],
-                        "password": account["password"]
+                        "username_or_email": account["email"],
+                        "password": account["temporary_password"]
                     },
                     timeout=30
                 )
@@ -97,25 +120,27 @@ def create_test_accounts():
                     login_result = login_response.json()
                     print(f"✅ VERIFIED: Account exists and credentials work")
                     print(f"   📧 Email: {account['email']}")
-                    print(f"   🔐 Password: {account['password']}")
+                    print(f"   👤 Username: {account['username']}")
+                    print(f"   🔐 Password: {account['temporary_password']}")
                     print(f"   🆔 User ID: {login_result.get('user', {}).get('id', 'N/A')}")
                     
                     created_accounts.append({
                         "role": account["role"], 
                         "email": account["email"],
-                        "password": account["password"],
+                        "username": account["username"],
+                        "password": account["temporary_password"],
                         "user_id": login_result.get('user', {}).get('id'),
                         "status": "verified_existing"
                     })
                 else:
                     print(f"❌ FAILED: Cannot create or verify account")
                     print(f"   Status: {response.status_code}")
-                    print(f"   Response: {response.text}")
+                    print(f"   Response: {response.text[:200]}")
                     
             else:
                 print(f"❌ FAILED: Account creation failed")
                 print(f"   Status: {response.status_code}")
-                print(f"   Response: {response.text}")
+                print(f"   Response: {response.text[:200]}")
                 
         except Exception as e:
             print(f"❌ ERROR creating {account['role']} account: {str(e)}")
