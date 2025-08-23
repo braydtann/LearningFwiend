@@ -625,7 +625,7 @@ const QuizTakingNewFixed = () => {
                       value={index}
                       checked={(answers[currentQuestion.id] || []).includes(index)}
                       onChange={(e) => {
-                        if (currentQuestion.id) {
+                        if (currentQuestion?.id) {
                           const currentAnswers = answers[currentQuestion.id] || [];
                           const value = parseInt(e.target.value);
                           const newAnswers = e.target.checked
