@@ -94,11 +94,23 @@ const QuizTakingNewFixed = () => {
                     foundQuiz = {
                       questions: moduleLesson.questions,
                       timeLimit: moduleLesson.timeLimit,
-                      passingScore: moduleLesson.passingScore
+                      passingScore: moduleLesson.passingScore,
+                      maxAttempts: moduleLesson.maxAttempts,
+                      targetQuestionCount: moduleLesson.targetQuestionCount,
+                      // Copy any other quiz properties that might exist
+                      ...moduleLesson.quiz
                     };
                   } else if (moduleLesson.quiz && moduleLesson.quiz.questions) {
                     // Old structure: questions nested in quiz object
-                    foundQuiz = moduleLesson.quiz;
+                    foundQuiz = {
+                      ...moduleLesson.quiz,
+                      // Ensure all expected properties exist with defaults
+                      questions: moduleLesson.quiz.questions || [],
+                      timeLimit: moduleLesson.quiz.timeLimit,
+                      passingScore: moduleLesson.quiz.passingScore,
+                      maxAttempts: moduleLesson.quiz.maxAttempts,
+                      targetQuestionCount: moduleLesson.quiz.targetQuestionCount
+                    };
                   }
                 }
                 break;
