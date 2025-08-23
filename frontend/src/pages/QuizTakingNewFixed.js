@@ -496,7 +496,17 @@ const QuizTakingNewFixed = () => {
 
   // Ensure currentQuestionIndex is within bounds
   const safeCurrentQuestionIndex = Math.max(0, Math.min(currentQuestionIndex, quiz.questions.length - 1));
-  const currentQuestion = quiz.questions[safeCurrentQuestionIndex];
+  const rawCurrentQuestion = quiz.questions[safeCurrentQuestionIndex];
+  
+  // Create a safely validated current question object
+  const currentQuestion = rawCurrentQuestion && typeof rawCurrentQuestion === 'object' ? {
+    ...rawCurrentQuestion,
+    id: rawCurrentQuestion.id || `question-${safeCurrentQuestionIndex}`,
+    type: rawCurrentQuestion.type || 'unknown',
+    text: rawCurrentQuestion.text || '',
+    options: Array.isArray(rawCurrentQuestion.options) ? rawCurrentQuestion.options : [],
+    items: Array.isArray(rawCurrentQuestion.items) ? rawCurrentQuestion.items : []
+  } : null;
   
   // Additional safety check for currentQuestion
   if (!currentQuestion) {
