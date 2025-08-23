@@ -43,7 +43,7 @@ import time
 import uuid
 
 # Configuration - Using Production Backend URL from frontend/.env
-BACKEND_URL = "https://lms-stability.preview.emergentagent.com/api"
+BACKEND_URL = "https://lms-bugfix-1.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 # Test credentials from review request

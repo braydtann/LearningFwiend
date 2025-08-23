@@ -6,7 +6,7 @@ Setup test users for comprehensive testing
 import requests
 import json
 
-BACKEND_URL = "https://lms-stability.preview.emergentagent.com/api"
+BACKEND_URL = "https://lms-bugfix-1.preview.emergentagent.com/api"
 TEST_TIMEOUT = 10
 
 def setup_test_users():

@@ -17,7 +17,7 @@ import json
 import sys
 from datetime import datetime
 
-BACKEND_URL = "https://lms-stability.preview.emergentagent.com/api"
+BACKEND_URL = "https://lms-bugfix-1.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 STUDENT_CREDENTIALS = {
