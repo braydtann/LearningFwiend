@@ -1,60 +1,76 @@
 <analysis>
-The previous AI engineer's work primarily revolved around stabilizing the LearningFwiend LMS, tackling critical bugs in the quiz functionality, certificate downloads, and system-level deployment issues. Initial efforts focused on resolving a persistent  in  by addressing temporal dead zones, followed by fixing a 422 quiz submission error due to a function signature mismatch in . Subsequently, a certificate download feature was implemented. The most challenging phase involved a recurring  in the quiz, which led to implementing robust null checks, comprehensive support for all question types, and ultimately diagnosing a system-wide file watcher  error preventing code compilation. The final action involved forcing a production build to ensure all code changes were applied, making the previously implemented fixes effective.
+The AI engineer's work in this trajectory primarily focused on stabilizing the LearningFwiend LMS and resolving critical bugs that surfaced after initial development. The journey began with diagnosing and fixing a system-wide  file watcher error that prevented frontend code changes from being deployed. Following this, persistent quiz functionality issues (React Error #31, network errors, missing input fields) were addressed, which traced back to an incorrect backend URL configuration in the frontend, complicated by a double  path in the request construction within . Concurrently, the AI engineer implemented a solution for orphaned enrollment records, where deleted courses/classrooms appeared as Unknown Course on student dashboards. This involved both a frontend filter in  and a backend cleanup endpoint exposed through a new  page, which was subsequently integrated into  for ease of access. The core challenge involved a cyclical debugging process of environment configuration, code logic, and user feedback, particularly concerning URL correctness and feature accessibility.
 </analysis>
 
 <product_requirements>
-The LearningFwiend LMS is envisioned as a Learning 360 platform, supporting user, course, classroom, and program management with role-based dashboards, diverse content types (YouTube, Google Drive, PDFs, Canva), program-level assessments, notifications, certificates, and instructor tools, all secured with JWT authentication. Key goals included migrating data to MongoDB, integrating program-level analytics, linking program access to classroom end dates, enhancing course detail pages with real-time progress, and enabling automatic certificate generation. Recent explicit requirements addressed involved resolving severe quiz functionality crashes (React Error #310, TypeErrors, ReferenceErrors), ensuring course completion leads to certificate page navigation, displaying text-based content, fixing broken thumbnail images, adding a logout option to the password change page, removing difficulty level from program creation, and cleaning up enrollment data on course/classroom deletion. The most recent work involved fixing a recurring quiz crash and enabling certificate downloads.
+The LearningFwiend LMS, a Learning 360 platform, supports comprehensive user, course, classroom, and program management with role-based dashboards, diverse content types, program-level assessments, notifications, and certificates, secured by JWT. Key objectives include MongoDB migration, program-level analytics, linking program access to classroom end dates, real-time course progress, and automatic certificate generation. Recent explicit requirements focused on resolving severe quiz functionality crashes (React Error #310, TypeErrors, ReferenceErrors), ensuring course completion leads to certificate page navigation, correct display of text-based content, fixing broken thumbnails, adding logout options, removing difficulty level from program creation, and cleaning up enrollment data on course/classroom deletion. The recent work tackled fixing recurring quiz crashes (including specific question types) and enabling certificate downloads, as well as addressing an unknown course display bug after course/classroom deletion.
 </product_requirements>
 
 <key_technical_concepts>
 - **Full-stack Architecture**: React (Frontend), FastAPI (Backend), MongoDB Atlas.
 - **Authentication**: JWT, bcrypt, Role-Based Access Control, React Context API.
 - **UI/UX**: Shadcn/UI, Tailwind CSS, Error Boundaries.
-- **Frontend State Management**: React Hooks (, , , ).
-- **Data Iteration**: Traditional  loops, defensive array mapping ().
-- **Deployment**: Kubernetes container environment, Supervisor, Webpack compilation.
+- **Frontend State Management**: React Hooks.
+- **Deployment**: Kubernetes, Supervisor, Webpack (Craco) compilation.
+- **API Communication**: RESTful principles, environment variables.
 </key_technical_concepts>
 
 <code_architecture>
 
--   : Core FastAPI backend.
-    -   **Importance**: Handles API endpoints and business logic.
-    -   **Changes**: Added a new endpoint  for certificate PDF generation/download. The backend testing agent also fixed malformed quiz data for a specific course by adding missing 'items' to chronological questions.
--   : Defines frontend routing.
-    -   **Importance**: Central for navigation.
-    -   **Changes**: The quiz route () was previously updated to use . No further changes within this trajectory block but crucial for component selection.
--   : Global authentication and data management context.
-    -   **Importance**: Provides user authentication state and functions for data manipulation.
-    -   **Changes**: The  function signature was corrected by a testing agent. Previously,  was passing  as  due to a mismatch ( vs expected ), which was rectified.
--   : Final, comprehensively rebuilt quiz-taking interface.
-    -   **Importance**: The primary component for student assessments. Was the source of numerous persistent React errors.
-    -   **Changes**:
-        -   **ReferenceError Fix**:  definition () was moved above its first reference in  to resolve a temporal dead zone, and a duplicate definition was removed.
-        -   **422 Submission Fix**: The call to  was corrected to match the 's expected signature .
-        -   **React Error #31 Fix**: Added comprehensive null checks for  (e.g., ) and defensive programming, including  at lines 695 and 703 for chronological questions to prevent  on undefined.
-        -   **Question Type Support**: Added rendering logic for previously unsupported question types (, , ). Updated scoring logic to account for all question types.
--   : Displays and manages certificates.
-    -   **Importance**: Interface for students to view and download certificates.
-    -   **Changes**: The mock  function was replaced with an actual implementation that calls the new backend  endpoint, enabling real certificate downloads.
--   : Page for creating courses and managing lessons.
-    -   **Importance**: Admin interface for content creation, including quizzes and question types.
-    -   **Changes**: Used to identify available question types and their data structures to inform  updates. A user-reported bug about chronological order input not accepting commas/spaces was addressed by the backend agent, confirming backend parsing.
+- : Core FastAPI backend, handling API endpoints and business logic.
+    - **Importance**: Central for backend operations.
+    - **Changes**: Added a new endpoint  for certificate downloads. A  endpoint was added to remove invalid enrollment records from the database.
+- : Defines frontend routing.
+    - **Importance**: Manages application navigation.
+    - **Changes**: A new route  was added for the  component, accessible only to authenticated users via .
+- : Global authentication and data management context.
+    - **Importance**: Provides user authentication state and functions for data manipulation.
+    - **Changes**: The  function signature was corrected. A new function  was added to call the corresponding backend endpoint for removing invalid enrollments. The URL construction for login was fixed by removing a redundant  to avoid .
+- : The primary component for student assessments.
+    - **Importance**: Critical for quiz functionality.
+    - **Changes**: Fixed  (temporal dead zone), 422 submission error (incorrect  signature), and  (comprehensive null checks, defensive array mapping, full question type support).
+- : Displays and manages certificates.
+    - **Importance**: Interface for students to view and download certificates.
+    - **Changes**: Replaced mock  with an actual implementation calling the new backend download endpoint.
+- : Admin interface for content creation.
+    - **Importance**: Used to create courses and quizzes.
+    - **Changes**: No direct code changes within this trajectory, but was referenced for understanding chronological question input.
+- : Displays enrolled courses for students.
+    - **Importance**: Student's main view of their learning progress.
+    - **Changes**: Modified  to filter out orphaned enrollment records, preventing Unknown Course entries from being displayed.
+-  (NEW): A new page for administrative tools.
+    - **Importance**: Provides a UI for backend cleanup functions.
+    - **Changes**: Created to house the Clean Up Orphaned Enrollments button, which triggers the  function from .
+- : Navigation menu.
+    - **Importance**: Provides main application navigation.
+    - **Changes**: Added a new menu item for Admin Utilities (), restricted to users with the admin role.
+- : Frontend environment variables.
+    - **Importance**: Configuration for frontend services.
+    - **Changes**:  was initially incorrectly set to , then corrected to , and finally to  to resolve a double  issue in API calls.
 </code_architecture>
 
 <pending_tasks>
--   **Frontend Automated Testing**: Full end-to-end automated testing for all functionalities needs to be confirmed.
--   **Session Management Monitoring**: Investigate and monitor session management issues causing authentication loss.
--   **Systemic UI Component Import Fix**: Many UI components are imported without  extensions across the app; this broader issue remains.
--   **Chronological Order Creation Field**: User reports the input field still won't accept commas/spaces during creation, despite backend confirmation of parsing.
--   **UI Improvements**: User mentioned plans for fixes to UI elements regarding course creation and the layout of the learning page.
+- Frontend Automated Testing: Full end-to-end automated testing for all functionalities needs to be confirmed.
+- Session Management Monitoring: Investigate and monitor session management issues causing authentication loss.
+- Systemic UI Component Import Fix: Many UI components are imported without  extensions across the app; this broader issue remains.
+- Chronological Order Creation Field: User reports the input field still won't accept commas/spaces during creation, despite backend confirmation of parsing.
+- UI Improvements: User mentioned plans for fixes to UI elements regarding course creation and the layout of the learning page.
+- Comprehensive Quiz Testing: Verify all quiz types (multiple choice, long form, chronological, select all that apply) are fully functional after recent environment and URL fixes.
 </pending_tasks>
 
 <current_work>
-Immediately before this summary request, the AI engineer addressed a critical system-level issue that was preventing any frontend code changes from being applied to the running application. The problem was identified by the troubleshoot expert as a **file watcher limit () being too low**, leading to  errors during Webpack compilation. This meant that all the recent code fixes—including the  resolution, the 422 quiz submission fix, the  solutions (null checks, defensive programming, and chronological order race condition fix), and the comprehensive support for all question types—were not being compiled or deployed to the browser.
+Immediately before this summary, the AI engineer successfully resolved a critical user experience issue related to accessing the newly created Admin Utilities page. The user reported that after signing in as an administrator, they could not find a frontend button or link to access this utility.
 
-The AI engineer attempted to increase the file watcher limit but faced permission denied errors on the read-only filesystem. As a workaround, the frontend service was stopped, a **production build () was manually triggered to force compilation of all pending changes**, and then the frontend service was restarted. This action successfully resolved the underlying system issue, ensuring that all previously implemented code fixes are now active and deployed to the frontend, ready for user testing.
+The previous work involved:
+1.  **Backend Fix**: Implementing an endpoint () in  to remove orphaned enrollment records.
+2.  **AuthContext Integration**: Adding  function to  to call the new backend endpoint.
+3.  **Admin Utilities Page Creation**: Creating  to provide a UI for triggering the cleanup.
+4.  **Frontend Routing**: Adding a route for  in .
+5.  **URL Correction**: Fixing a persistent login issue caused by a double  path in frontend requests, by adjusting  in  to exclude the  prefix.
+
+The immediate problem identified by the user was the lack of navigation to the  page. The AI engineer addressed this by modifying  to add an Admin Utilities menu item. This item is configured with a wrench icon, positioned logically in the sidebar (between Analytics and Certificates), and is only visible to users with the admin role, ensuring proper access control. After this change, the frontend was rebuilt () and services restarted to deploy the update.
 </current_work>
 
 <optional_next_step>
-Verify that all previously implemented frontend fixes are now active and working correctly in the browser.
+Verify that the Admin Utilities menu item is now visible in the sidebar, test the orphaned enrollment cleanup tool, and then re-test all quiz functionalities.
 </optional_next_step>
