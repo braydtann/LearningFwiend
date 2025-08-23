@@ -226,7 +226,7 @@ const CreateCourse = () => {
                           ...(lesson.quiz?.questions || []),
                           {
                             id: `q${Date.now()}`,
-                            type: 'multiple-choice',
+                            type: 'true-false',
                             question: '',
                             questionImage: '',
                             questionAudio: '',
