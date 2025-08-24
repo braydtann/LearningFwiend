@@ -446,7 +446,7 @@ const QuizTakingNewFixed = () => {
         console.warn('Component unmounted, not setting loading to false');
       }
     }
-  }, [courseId, lessonId, getCourseById, initializing]);
+  }, [courseId, lessonId, getCourseById]);
 
   // Submit quiz - MOVED UP to prevent temporal dead zone
   const handleSubmitQuiz = useCallback(async () => {
