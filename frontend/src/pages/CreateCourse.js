@@ -1675,6 +1675,136 @@ const CreateCourse = () => {
                                         </div>
                                       )}
 
+                                      {question.type === 'chronological-order' && (
+                                        <div className="space-y-4 mb-4">
+                                          <div className="flex items-center justify-between">
+                                            <Label>Items to Order</Label>
+                                            <Button
+                                              type="button"
+                                              variant="outline"
+                                              size="sm"
+                                              onClick={() => addOrderItem(moduleIndex, lessonIndex, questionIndex)}
+                                            >
+                                              <Plus className="w-4 h-4 mr-1" />
+                                              Add Item
+                                            </Button>
+                                          </div>
+                                          
+                                          <div className="space-y-3">
+                                            {((question.items && Array.isArray(question.items)) ? question.items : []).map((item, itemIndex) => (
+                                              <div key={`item-${itemIndex}`} className="border border-gray-200 rounded-lg p-3">
+                                                <div className="flex items-center justify-between mb-2">
+                                                  <Badge variant="outline">
+                                                    Item {itemIndex + 1}
+                                                  </Badge>
+                                                  {question.items && question.items.length > 2 && (
+                                                    <Button
+                                                      type="button"
+                                                      variant="outline"
+                                                      size="sm"
+                                                      onClick={() => removeOrderItem(moduleIndex, lessonIndex, questionIndex, itemIndex)}
+                                                    >
+                                                      <Trash2 className="w-4 h-4" />
+                                                    </Button>
+                                                  )}
+                                                </div>
+                                                
+                                                <div className="space-y-2">
+                                                  <Label className="text-sm">Item Text</Label>
+                                                  <Input
+                                                    placeholder={`Enter item ${itemIndex + 1} text`}
+                                                    value={(typeof item === 'string' ? item : item?.text) || ''}
+                                                    onChange={(e) => handleOrderItemTextChange(moduleIndex, lessonIndex, questionIndex, itemIndex, e.target.value)}
+                                                  />
+                                                </div>
+                                                
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                                                  <div className="space-y-2">
+                                                    <Label className="text-sm">Image URL (Optional)</Label>
+                                                    <Input
+                                                      placeholder="https://example.com/image.jpg"
+                                                      value={(typeof item === 'object' ? item?.image : '') || ''}
+                                                      onChange={(e) => handleOrderItemMediaChange(moduleIndex, lessonIndex, questionIndex, itemIndex, 'image', e.target.value)}
+                                                    />
+                                                  </div>
+                                                  <div className="space-y-2">
+                                                    <Label className="text-sm">Audio URL (Optional)</Label>
+                                                    <Input
+                                                      placeholder="https://example.com/audio.mp3"
+                                                      value={(typeof item === 'object' ? item?.audio : '') || ''}
+                                                      onChange={(e) => handleOrderItemMediaChange(moduleIndex, lessonIndex, questionIndex, itemIndex, 'audio', e.target.value)}
+                                                    />
+                                                  </div>
+                                                </div>
+                                                
+                                                {/* Preview media if provided */}
+                                                {(typeof item === 'object' && item?.image) && (
+                                                  <div className="mt-2">
+                                                    <img src={item.image} alt={`Item ${itemIndex + 1}`} className="max-w-xs h-20 object-cover rounded border" />
+                                                  </div>
+                                                )}
+                                                {(typeof item === 'object' && item?.audio) && (
+                                                  <div className="mt-2">
+                                                    <audio controls className="w-full max-w-xs">
+                                                      <source src={item.audio} type="audio/mpeg" />
+                                                      Your browser does not support the audio element.
+                                                    </audio>
+                                                  </div>
+                                                )}
+                                              </div>
+                                            ))}
+                                          </div>
+                                          
+                                          {(!question.items || question.items.length === 0) && (
+                                            <div className="text-center py-4 text-gray-500 border border-dashed border-gray-300 rounded-lg">
+                                              <p>No items added yet. Click "Add Item" to get started.</p>
+                                            </div>
+                                          )}
+                                          
+                                          {/* Correct Order Input */}
+                                          {question.items && question.items.length > 0 && (
+                                            <div className="space-y-2">
+                                              <Label>Correct Order</Label>
+                                              <Input
+                                                placeholder="Enter correct order as numbers separated by commas (e.g., 2, 1, 4, 3)"
+                                                value={Array.isArray(question.correctOrder) ? question.correctOrder.join(', ') : ''}
+                                                onChange={(e) => {
+                                                  const orderString = e.target.value;
+                                                  // Parse comma-separated order into array of numbers
+                                                  const orderArray = orderString.split(',').map(num => {
+                                                    const parsed = parseInt(num.trim());
+                                                    return isNaN(parsed) ? null : parsed - 1; // Convert to 0-based index
+                                                  }).filter(num => num !== null && num >= 0 && num < question.items.length);
+                                                  
+                                                  handleQuestionChange(moduleIndex, lessonIndex, questionIndex, 'correctOrder', orderArray);
+                                                }}
+                                              />
+                                              <p className="text-xs text-gray-500">
+                                                Enter the correct order using item numbers (1, 2, 3, etc.). For example: "2, 1, 4, 3" means Item 2 should be first, Item 1 second, Item 4 third, and Item 3 last.
+                                              </p>
+                                            </div>
+                                          )}
+                                          
+                                          {/* Display current order if set */}
+                                          {question.correctOrder && Array.isArray(question.correctOrder) && question.correctOrder.length > 0 && (
+                                            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                                              <p className="text-green-800 text-sm font-medium mb-1">
+                                                ✅ Correct Order Set: {question.correctOrder.map(idx => idx + 1).join(' → ')}
+                                              </p>
+                                              <p className="text-green-700 text-xs">
+                                                Students will need to arrange items in this exact order to get points.
+                                              </p>
+                                            </div>
+                                          )}
+                                          
+                                          <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                                            <p className="text-orange-800 text-sm">
+                                              💡 <strong>Tip:</strong> Add multiple items and set the correct chronological order. Students will drag and drop to arrange them correctly.
+                                            </p>
+                                          </div>
+                                        </div>
+                                      )}
+
                                       {question.type === 'short-answer' && (
                                         <div className="space-y-2 mb-4">
                                           <Label>Sample Correct Answer</Label>
