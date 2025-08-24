@@ -173,6 +173,12 @@ const QuizTakingNewFixed = () => {
           }
         } else if (question.type === 'short-answer' || question.type === 'long-form-answer') {
           // Text questions don't need additional validation  
+        } else if (question.type === 'chronological-order') {
+          // Chronological order questions need items array
+          if (!question.items || !Array.isArray(question.items) || question.items.length < 2) {
+            console.warn(`Question ${index + 1} (chronological-order) missing valid items array:`, question);
+            return false;
+          }
         } else {
           console.warn(`Question ${index + 1} has unsupported type: ${question.type}`);
           return false;
