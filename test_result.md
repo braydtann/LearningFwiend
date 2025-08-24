@@ -1938,7 +1938,7 @@ frontend:
     file: "/app/frontend/src/components/CoursePreview.js, /app/frontend/src/components/QuizPreview.js, /app/frontend/src/pages/Courses.js"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "user"
