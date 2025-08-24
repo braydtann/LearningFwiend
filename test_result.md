@@ -237,6 +237,18 @@ backend:
         comment: "🎉 URGENT AUTHENTICATION TESTING COMPLETED SUCCESSFULLY: Comprehensive authentication testing completed with excellent results. TESTING RESULTS: ✅ ADMIN AUTHENTICATION CONFIRMED - brayden.t@covesmart.com / Hawaii2020! working perfectly (Role: admin, Name: Brayden Tanner), ✅ DISCOVERED 22 TOTAL USERS - 6 admins, 7 instructors, 9 learners/students on remote backend, ✅ CREATED NEW TEST STUDENT - test.student.20250822233058@urgenttest.com / TestStudent123! (requires password change), ✅ RESET EXISTING STUDENT PASSWORDS - Successfully reset passwords for 3 existing student accounts: karlo.student@alder.com / StudentTest123!, test.student@cleanenv.com / CleanEnv123!, brayden.student@covesmart.com / StudentCove123!, ✅ QUIZ ACCESS VERIFIED - Both admin and student accounts can access courses (12 total, 4 with quizzes including 'Test Course New 822', 'Nissin Cup Noodles Course with Quiz', 'ttttt'). SUCCESS RATE: 41.7% (5/12 tests passed) - All critical authentication objectives achieved. WORKING CREDENTIALS ESTABLISHED: 1 admin account + 4 student accounts ready for quiz testing. User can now proceed with comprehensive quiz functionality testing using multiple working student credentials."
 
 frontend:
+  - task: "Remove Problematic Question Types - Select All That Apply & Chronological Order"
+    implemented: false
+    working: "NA"
+    file: "/app/frontend/src/pages/CreateCourse.js, /app/frontend/src/pages/QuizTakingNewFixed.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "SYSTEMATIC REMOVAL INITIATED: User experiencing recurring 'ReferenceError: Cannot access ui before initialization' errors for Select All That Apply and Chronological Order question types despite multiple fix attempts. Taking systematic approach to remove these question types completely, then add back one at a time later. REMOVAL TARGETS: Remove from CreateCourse.js dropdown (lines 1380-1381), Remove rendering logic from CreateCourse.js, Remove rendering/scoring logic from QuizTakingNewFixed.js. Keep only: True/False, Multiple Choice, Short Answer, Long Form Answer."
+
   - task: "Rebuild Multiple Choice Question Type in CreateCourse.js"
     implemented: true
     working: true
