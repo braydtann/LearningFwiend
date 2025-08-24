@@ -995,6 +995,140 @@ const QuizTakingNewFixed = () => {
               </div>
             )}
 
+            {/* Chronological Order Questions */}  
+            {currentQuestion?.type === 'chronological-order' && (
+              <div className="space-y-4">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                  <p className="text-blue-800 text-sm">
+                    📋 <strong>Instructions:</strong> Drag and drop the items below to arrange them in the correct chronological order.
+                  </p>
+                </div>
+                
+                {/* Display items for ordering */}
+                {(Array.isArray(currentQuestion.items) ? currentQuestion.items : []).map((item, index) => {
+                  // Handle both string and object item formats with defensive programming
+                  const itemText = typeof item === 'string' ? item : (item?.text || `Item ${index + 1}`);
+                  const itemImage = typeof item === 'object' ? item?.image : null;
+                  const itemAudio = typeof item === 'object' ? item?.audio : null;
+                  
+                  // Get current order (array of indices representing the user's arrangement)
+                  const currentOrder = Array.isArray(answers[currentQuestion.id]) ? answers[currentQuestion.id] : [];
+                  const itemPosition = currentOrder.indexOf(index);
+                  const isOrdered = itemPosition !== -1;
+                  
+                  return (
+                    <div
+                      key={`co-${index}`}
+                      className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                        isOrdered 
+                          ? 'border-blue-500 bg-blue-50' 
+                          : 'border-gray-200 bg-white hover:border-gray-300'
+                      }`}
+                      onClick={() => {
+                        if (currentQuestion?.id) {
+                          const currentOrder = Array.isArray(answers[currentQuestion.id]) ? [...answers[currentQuestion.id]] : [];
+                          
+                          if (isOrdered) {
+                            // Remove from order
+                            const newOrder = currentOrder.filter(idx => idx !== index);
+                            handleAnswerChange(currentQuestion.id, newOrder);
+                          } else {
+                            // Add to end of order
+                            const newOrder = [...currentOrder, index];
+                            handleAnswerChange(currentQuestion.id, newOrder);
+                          }
+                        }
+                      }}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <span className="text-sm font-medium text-gray-600">Item {index + 1}</span>
+                            {isOrdered && (
+                              <span className="px-2 py-1 bg-blue-500 text-white text-xs rounded-full">
+                                Position: {itemPosition + 1}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-gray-900 font-medium">{itemText}</p>
+                          
+                          {/* Display item image if available */}
+                          {itemImage && itemImage.trim() !== '' && (
+                            <div className="mt-2">
+                              <img 
+                                src={itemImage} 
+                                alt={`Item ${index + 1}`} 
+                                className="max-w-xs h-32 object-cover rounded border"
+                                onError={(e) => {
+                                  e.target.style.display = 'none';
+                                }}
+                              />
+                            </div>
+                          )}
+                          
+                          {/* Display item audio if available */}
+                          {itemAudio && itemAudio.trim() !== '' && (
+                            <div className="mt-2">
+                              <audio controls className="w-full max-w-xs">
+                                <source src={itemAudio} type="audio/mpeg" />
+                                Your browser does not support the audio element.
+                              </audio>
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="ml-4">
+                          {isOrdered ? (
+                            <div className="text-blue-600">
+                              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                          ) : (
+                            <div className="text-gray-400">
+                              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+                
+                {/* Fallback if no items available */}
+                {(!currentQuestion.items || !Array.isArray(currentQuestion.items) || currentQuestion.items.length === 0) && (
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-red-800">No items available for ordering in this question.</p>
+                  </div>
+                )}
+                
+                {/* Show current order */}
+                {Array.isArray(answers[currentQuestion.id]) && answers[currentQuestion.id].length > 0 && (
+                  <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <p className="text-green-800 text-sm font-medium mb-1">
+                      📝 Your Current Order:
+                    </p>
+                    <p className="text-green-700 text-sm">
+                      {answers[currentQuestion.id].map((itemIndex, position) => {
+                        const item = currentQuestion.items[itemIndex];
+                        const itemText = typeof item === 'string' ? item : (item?.text || `Item ${itemIndex + 1}`);
+                        return `${position + 1}. ${itemText}`;
+                      }).join(' → ')}
+                    </p>
+                  </div>
+                )}
+                
+                {/* Instructions for reordering */}
+                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <p className="text-yellow-800 text-sm">
+                    💡 <strong>Tip:</strong> Click items in the order you think they should be arranged chronologically. Click again to remove from your order.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Short Answer Questions */}
             {currentQuestion?.type === 'short-answer' && (
               <Textarea
