@@ -1872,7 +1872,7 @@ frontend:
     file: "/app/frontend/src/pages/QuizTaking.js, /app/frontend/src/pages/QuizResults.js, /app/frontend/src/pages/FinalTest.js"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
