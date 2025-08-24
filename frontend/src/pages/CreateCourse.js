@@ -1556,7 +1556,121 @@ const CreateCourse = () => {
                                         </div>
                                       )}
 
-
+                                      {question.type === 'select-all-that-apply' && (
+                                        <div className="space-y-4 mb-4">
+                                          <div className="flex items-center justify-between">
+                                            <Label>Answer Options</Label>
+                                            <Button
+                                              type="button"
+                                              variant="outline"
+                                              size="sm"
+                                              onClick={() => addAnswerOption(moduleIndex, lessonIndex, questionIndex)}
+                                            >
+                                              <Plus className="w-4 h-4 mr-1" />
+                                              Add Option
+                                            </Button>
+                                          </div>
+                                          
+                                          <div className="space-y-3">
+                                            {((question.options && Array.isArray(question.options)) ? question.options : []).map((option, optionIndex) => (
+                                              <div key={`option-${optionIndex}`} className="border border-gray-200 rounded-lg p-3">
+                                                <div className="flex items-center justify-between mb-2">
+                                                  <div className="flex items-center space-x-2">
+                                                    <Badge variant={(question.correctAnswers && Array.isArray(question.correctAnswers) && question.correctAnswers.includes(optionIndex)) ? "default" : "outline"}>
+                                                      Option {optionIndex + 1}
+                                                    </Badge>
+                                                    <Button
+                                                      type="button"
+                                                      variant={(question.correctAnswers && Array.isArray(question.correctAnswers) && question.correctAnswers.includes(optionIndex)) ? "default" : "outline"}
+                                                      size="sm"
+                                                      onClick={() => toggleCorrectAnswer(moduleIndex, lessonIndex, questionIndex, optionIndex)}
+                                                    >
+                                                      {(question.correctAnswers && Array.isArray(question.correctAnswers) && question.correctAnswers.includes(optionIndex)) ? '✓ Correct' : 'Mark as Correct'}
+                                                    </Button>
+                                                  </div>
+                                                  {question.options && question.options.length > 2 && (
+                                                    <Button
+                                                      type="button"
+                                                      variant="outline"
+                                                      size="sm"
+                                                      onClick={() => removeAnswerOption(moduleIndex, lessonIndex, questionIndex, optionIndex)}
+                                                    >
+                                                      <Trash2 className="w-4 h-4" />
+                                                    </Button>
+                                                  )}
+                                                </div>
+                                                
+                                                <div className="space-y-2">
+                                                  <Label className="text-sm">Option Text</Label>
+                                                  <Input
+                                                    placeholder={`Enter option ${optionIndex + 1} text`}
+                                                    value={(typeof option === 'string' ? option : option?.text) || ''}
+                                                    onChange={(e) => handleOptionTextChange(moduleIndex, lessonIndex, questionIndex, optionIndex, e.target.value)}
+                                                  />
+                                                </div>
+                                                
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                                                  <div className="space-y-2">
+                                                    <Label className="text-sm">Image URL (Optional)</Label>
+                                                    <Input
+                                                      placeholder="https://example.com/image.jpg"
+                                                      value={(typeof option === 'object' ? option?.image : '') || ''}
+                                                      onChange={(e) => handleOptionMediaChange(moduleIndex, lessonIndex, questionIndex, optionIndex, 'image', e.target.value)}
+                                                    />
+                                                  </div>
+                                                  <div className="space-y-2">
+                                                    <Label className="text-sm">Audio URL (Optional)</Label>
+                                                    <Input
+                                                      placeholder="https://example.com/audio.mp3"
+                                                      value={(typeof option === 'object' ? option?.audio : '') || ''}
+                                                      onChange={(e) => handleOptionMediaChange(moduleIndex, lessonIndex, questionIndex, optionIndex, 'audio', e.target.value)}
+                                                    />
+                                                  </div>
+                                                </div>
+                                                
+                                                {/* Preview media if provided */}
+                                                {(typeof option === 'object' && option?.image) && (
+                                                  <div className="mt-2">
+                                                    <img src={option.image} alt={`Option ${optionIndex + 1}`} className="max-w-xs h-20 object-cover rounded border" />
+                                                  </div>
+                                                )}
+                                                {(typeof option === 'object' && option?.audio) && (
+                                                  <div className="mt-2">
+                                                    <audio controls className="w-full max-w-xs">
+                                                      <source src={option.audio} type="audio/mpeg" />
+                                                      Your browser does not support the audio element.
+                                                    </audio>
+                                                  </div>
+                                                )}
+                                              </div>
+                                            ))}
+                                          </div>
+                                          
+                                          {(!question.options || question.options.length === 0) && (
+                                            <div className="text-center py-4 text-gray-500 border border-dashed border-gray-300 rounded-lg">
+                                              <p>No answer options added yet. Click "Add Option" to get started.</p>
+                                            </div>
+                                          )}
+                                          
+                                          {/* Display selected correct answers */}
+                                          {question.correctAnswers && Array.isArray(question.correctAnswers) && question.correctAnswers.length > 0 && (
+                                            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                                              <p className="text-green-800 text-sm font-medium mb-1">
+                                                ✅ Correct Answers Selected: {question.correctAnswers.length}
+                                              </p>
+                                              <p className="text-green-700 text-xs">
+                                                Options: {question.correctAnswers.map(idx => `${idx + 1}`).join(', ')}
+                                              </p>
+                                            </div>
+                                          )}
+                                          
+                                          <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                                            <p className="text-purple-800 text-sm">
+                                              💡 <strong>Tip:</strong> Mark multiple options as correct. Students must select ALL correct answers to get points.
+                                            </p>
+                                          </div>
+                                        </div>
+                                      )}
 
                                       {question.type === 'short-answer' && (
                                         <div className="space-y-2 mb-4">
