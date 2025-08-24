@@ -153,6 +153,24 @@ const QuizTakingNewFixed = () => {
             console.warn(`Question ${index + 1} (multiple-choice) has invalid correctAnswer:`, question.correctAnswer);
             return false;
           }
+        } else if (question.type === 'select-all-that-apply') {
+          // Select all questions need options array and correctAnswers array
+          if (!question.options || !Array.isArray(question.options) || question.options.length < 2) {
+            console.warn(`Question ${index + 1} (select-all-that-apply) missing valid options array:`, question);
+            return false;
+          }
+          if (!question.correctAnswers || !Array.isArray(question.correctAnswers) || question.correctAnswers.length === 0) {
+            console.warn(`Question ${index + 1} (select-all-that-apply) missing valid correctAnswers array:`, question.correctAnswers);
+            return false;
+          }
+          // Validate that all correctAnswers indices are within options range
+          const invalidIndices = question.correctAnswers.filter(idx => 
+            typeof idx !== 'number' || idx < 0 || idx >= question.options.length
+          );
+          if (invalidIndices.length > 0) {
+            console.warn(`Question ${index + 1} (select-all-that-apply) has invalid correctAnswers indices:`, invalidIndices);
+            return false;
+          }
         } else if (question.type === 'short-answer' || question.type === 'long-form-answer') {
           // Text questions don't need additional validation
         } else {
