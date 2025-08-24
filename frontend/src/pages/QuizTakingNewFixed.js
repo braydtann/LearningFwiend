@@ -89,8 +89,17 @@ const QuizTakingNewFixed = () => {
                 foundLesson = moduleLesson;
                 if (moduleLesson.type === 'quiz') {
                   // Handle both old and new quiz structures
+                  console.log('Found quiz lesson, checking structure:', {
+                    lessonId: moduleLesson.id,
+                    hasDirectQuestions: !!(moduleLesson.questions && Array.isArray(moduleLesson.questions)),
+                    hasNestedQuestions: !!(moduleLesson.quiz && moduleLesson.quiz.questions),
+                    directQuestionsLength: moduleLesson.questions ? moduleLesson.questions.length : 0,
+                    nestedQuestionsLength: moduleLesson.quiz && moduleLesson.quiz.questions ? moduleLesson.quiz.questions.length : 0
+                  });
+                  
                   if (moduleLesson.questions && Array.isArray(moduleLesson.questions)) {
                     // New structure: questions directly on lesson
+                    console.log('Using NEW quiz structure (lesson.questions)');
                     foundQuiz = {
                       questions: moduleLesson.questions,
                       timeLimit: moduleLesson.timeLimit,
@@ -102,6 +111,7 @@ const QuizTakingNewFixed = () => {
                     };
                   } else if (moduleLesson.quiz && moduleLesson.quiz.questions) {
                     // Old structure: questions nested in quiz object
+                    console.log('Using OLD quiz structure (lesson.quiz.questions)');
                     foundQuiz = {
                       ...moduleLesson.quiz,
                       // Ensure all expected properties exist with defaults
@@ -111,6 +121,12 @@ const QuizTakingNewFixed = () => {
                       maxAttempts: moduleLesson.quiz.maxAttempts,
                       targetQuestionCount: moduleLesson.quiz.targetQuestionCount
                     };
+                  } else {
+                    console.warn('Quiz lesson found but no questions structure detected:', {
+                      hasQuiz: !!moduleLesson.quiz,
+                      quizKeys: moduleLesson.quiz ? Object.keys(moduleLesson.quiz) : [],
+                      lessonKeys: Object.keys(moduleLesson)
+                    });
                   }
                 }
                 break;
