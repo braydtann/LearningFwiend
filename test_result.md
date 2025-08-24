@@ -257,7 +257,7 @@ frontend:
     file: "/app/frontend/src/pages/CreateCourse.js, /app/frontend/src/pages/QuizTakingNewFixed.js"
     stuck_count: 0
     priority: "critical"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
