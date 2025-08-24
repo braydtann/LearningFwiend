@@ -506,6 +506,48 @@ const CreateCourse = () => {
     }));
   };
 
+  const toggleCorrectAnswer = (moduleIndex, lessonIndex, questionIndex, optionIndex) => {
+    setCourseData(prev => ({
+      ...prev,
+      modules: prev.modules.map((module, mIdx) => 
+        mIdx === moduleIndex 
+          ? {
+              ...module,
+              lessons: module.lessons.map((lesson, lIdx) =>
+                lIdx === lessonIndex 
+                  ? { 
+                      ...lesson, 
+                      quiz: {
+                        ...lesson.quiz,
+                        questions: (lesson.quiz?.questions || []).map((question, qIdx) =>
+                          qIdx === questionIndex 
+                            ? { 
+                                ...question, 
+                                correctAnswers: (() => {
+                                  const currentAnswers = question.correctAnswers || [];
+                                  const isCurrentlyCorrect = currentAnswers.includes(optionIndex);
+                                  
+                                  if (isCurrentlyCorrect) {
+                                    // Remove from correct answers
+                                    return currentAnswers.filter(idx => idx !== optionIndex);
+                                  } else {
+                                    // Add to correct answers
+                                    return [...currentAnswers, optionIndex];
+                                  }
+                                })()
+                              } 
+                            : question
+                        )
+                      }
+                    } 
+                  : lesson
+              )
+            }
+          : module
+      )
+    }));
+  };
+
   const handleOptionTextChange = (moduleIndex, lessonIndex, questionIndex, optionIndex, value) => {
     setCourseData(prev => ({
       ...prev,
