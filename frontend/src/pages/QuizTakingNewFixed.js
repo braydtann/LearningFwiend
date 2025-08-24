@@ -393,36 +393,7 @@ const QuizTakingNewFixed = () => {
     }
   }, [currentQuestionIndex, quiz]);
 
-  // Handle chronological order item movement
-  const moveItemUp = useCallback((questionId, itemIndex) => {
-    if (!isMountedRef.current) return;
-    
-    const currentOrder = Array.isArray(answers[questionId]) ? answers[questionId] : 
-                        [...(currentQuestion?.items || [])].map((_, idx) => idx);
-    
-    const currentPosition = currentOrder.indexOf(itemIndex);
-    if (currentPosition > 0) {
-      const newOrder = [...currentOrder];
-      // Swap with the item above
-      [newOrder[currentPosition - 1], newOrder[currentPosition]] = [newOrder[currentPosition], newOrder[currentPosition - 1]];
-      handleAnswerChange(questionId, newOrder);
-    }
-  }, [answers, currentQuestion, handleAnswerChange]);
 
-  const moveItemDown = useCallback((questionId, itemIndex) => {
-    if (!isMountedRef.current) return;
-    
-    const currentOrder = Array.isArray(answers[questionId]) ? answers[questionId] : 
-                        [...(currentQuestion?.items || [])].map((_, idx) => idx);
-    
-    const currentPosition = currentOrder.indexOf(itemIndex);
-    if (currentPosition < currentOrder.length - 1) {
-      const newOrder = [...currentOrder];
-      // Swap with the item below
-      [newOrder[currentPosition], newOrder[currentPosition + 1]] = [newOrder[currentPosition + 1], newOrder[currentPosition]];
-      handleAnswerChange(questionId, newOrder);
-    }
-  }, [answers, currentQuestion, handleAnswerChange]);
 
   // Loading state
   if (loading) {
