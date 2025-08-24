@@ -2573,11 +2573,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Rebuild Multiple Choice Question Type in CreateCourse.js"
-    - "Rebuild Multiple Choice Question Type in QuizTakingNewFixed.js"
-    - "Create Preview Test Accounts"
-  stuck_tasks:
-    - "None currently"
+    - "Rebuild Select All That Apply Question Type in CreateCourse.js"
+    - "Rebuild Select All That Apply Question Type in QuizTakingNewFixed.js"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
