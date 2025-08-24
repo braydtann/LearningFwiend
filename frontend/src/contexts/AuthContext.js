@@ -558,7 +558,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const getCourseById = async (courseId) => {
+  const getCourseById = useCallback(async (courseId) => {
     try {
       const token = localStorage.getItem('auth_token');
       const response = await fetch(`${backendUrl}/api/courses/${courseId}`, {
@@ -584,7 +584,7 @@ export const AuthProvider = ({ children }) => {
         error: 'Network error. Please try again.' 
       };
     }
-  };
+  }, [backendUrl]);
 
   // =============================================================================
   // PROGRAM MANAGEMENT FUNCTIONS  
