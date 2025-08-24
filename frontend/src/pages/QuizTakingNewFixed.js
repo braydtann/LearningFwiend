@@ -145,6 +145,20 @@ const QuizTakingNewFixed = () => {
         throw new Error('Quiz not found or has no questions');
       }
       
+      console.log('Starting question validation for quiz:', {
+        totalQuestions: foundQuiz.questions.length,
+        questions: foundQuiz.questions.map((q, i) => ({
+          index: i,
+          id: q?.id,
+          type: q?.type,
+          question: q?.question?.substring(0, 50) + '...',
+          hasOptions: !!(q?.options && Array.isArray(q.options)),
+          optionsLength: q?.options?.length,
+          hasCorrectAnswers: !!(q?.correctAnswers && Array.isArray(q.correctAnswers)),
+          correctAnswersLength: q?.correctAnswers?.length
+        }))
+      });
+      
       // Validate each question has required structure to prevent React Error #31
       const validatedQuestions = foundQuiz.questions.filter((question, index) => {
         if (!question || typeof question !== 'object') {
