@@ -1377,8 +1377,6 @@ const CreateCourse = () => {
                                             <SelectContent>
                                               <SelectItem value="true-false">True/False</SelectItem>
                                               <SelectItem value="multiple-choice">Multiple Choice</SelectItem>
-                                              <SelectItem value="select-all-that-apply">Select All That Apply</SelectItem>
-                                              <SelectItem value="chronological-order">Chronological Order</SelectItem>
                                               <SelectItem value="short-answer">Short Answer</SelectItem>
                                               <SelectItem value="long-form-answer">Long Form Answer</SelectItem>
                                             </SelectContent>
