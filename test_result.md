@@ -238,7 +238,7 @@ backend:
 
 frontend:
   - task: "Remove Problematic Question Types - Select All That Apply & Chronological Order"
-    implemented: false
+    implemented: true
     working: "NA"
     file: "/app/frontend/src/pages/CreateCourse.js, /app/frontend/src/pages/QuizTakingNewFixed.js"
     stuck_count: 0
@@ -248,6 +248,9 @@ frontend:
       - working: "NA"
         agent: "main"
         comment: "SYSTEMATIC REMOVAL INITIATED: User experiencing recurring 'ReferenceError: Cannot access ui before initialization' errors for Select All That Apply and Chronological Order question types despite multiple fix attempts. Taking systematic approach to remove these question types completely, then add back one at a time later. REMOVAL TARGETS: Remove from CreateCourse.js dropdown (lines 1380-1381), Remove rendering logic from CreateCourse.js, Remove rendering/scoring logic from QuizTakingNewFixed.js. Keep only: True/False, Multiple Choice, Short Answer, Long Form Answer."
+      - working: "NA"
+        agent: "main"
+        comment: "✅ REMOVAL COMPLETED: Successfully removed Select All That Apply and Chronological Order question types from both CreateCourse.js and QuizTakingNewFixed.js. CHANGES: 1) Removed dropdown options from CreateCourse.js question type selector, 2) Removed entire rendering UI sections from CreateCourse.js (200+ lines), 3) Removed validation logic from QuizTakingNewFixed.js, 4) Removed scoring logic from QuizTakingNewFixed.js, 5) Removed rendering sections from QuizTakingNewFixed.js (150+ lines), 6) Removed helper functions (moveItemUp, moveItemDown), 7) Updated fallback section to only include remaining question types. REMAINING TYPES: True/False, Multiple Choice, Short Answer, Long Form Answer. Ready for backend testing to ensure no breaking changes."
 
   - task: "Rebuild Multiple Choice Question Type in CreateCourse.js"
     implemented: true
