@@ -284,6 +284,19 @@ const QuizTakingNewFixed = () => {
               if (userAnswerText === correctAnswerText) {
                 correctAnswers++;
               }
+            } else if (question.type === 'chronological-order') {
+              // For chronological order questions, check if user's order matches correct order
+              const userOrder = Array.isArray(userAnswer) ? userAnswer : [];
+              const correctOrder = Array.isArray(question.correctOrder) ? question.correctOrder : 
+                                  [...(question.items || [])].map((_, idx) => idx); // Default to original order if no correctOrder specified
+              
+              // Check if arrays are exactly equal (same length and same elements in same order)
+              const isCorrect = userOrder.length === correctOrder.length &&
+                               userOrder.every((item, index) => item === correctOrder[index]);
+              
+              if (isCorrect) {
+                correctAnswers++;
+              }
             }
           }
         }
