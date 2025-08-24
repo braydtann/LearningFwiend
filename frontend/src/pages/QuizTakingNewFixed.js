@@ -492,26 +492,107 @@ const QuizTakingNewFixed = () => {
                 correctAnswers++;
               }
             } else if (question.type === 'chronological-order') {
+              console.log(`🔍 CHRONOLOGICAL ORDER SCORING - Question ${question.id}:`, {
+                questionText: question.question,
+                itemsCount: question.items ? question.items.length : 0,
+                items: question.items ? question.items.map((item, idx) => ({
+                  index: idx,
+                  text: typeof item === 'string' ? item : (item?.text || 'NO TEXT')
+                })) : 'NO ITEMS'
+              });
+              
               // For chronological order questions, user must arrange items in the exact correct order
               const userOrder = Array.isArray(userAnswer) ? userAnswer : [];
               const correctOrder = Array.isArray(question.correctOrder) ? question.correctOrder : [];
               
+              console.log(`🔍 CHRONOLOGICAL ORDER USER ANSWER - Question ${question.id}:`, {
+                userAnswerType: typeof userAnswer,
+                userAnswerIsArray: Array.isArray(userAnswer),
+                userOrder: userOrder,
+                userOrderLength: userOrder.length,
+                userOrderSequence: userOrder.map(idx => ({
+                  position: userOrder.indexOf(idx) + 1,
+                  itemIndex: idx,
+                  itemText: (question.items && question.items[idx]) 
+                    ? (typeof question.items[idx] === 'string' ? question.items[idx] : question.items[idx]?.text || 'NO TEXT')
+                    : 'INVALID INDEX'
+                }))
+              });
+              
+              console.log(`🔍 CHRONOLOGICAL ORDER CORRECT ANSWER - Question ${question.id}:`, {
+                correctOrder: correctOrder,
+                correctOrderLength: correctOrder.length,
+                correctOrderSequence: correctOrder.map(idx => ({
+                  position: correctOrder.indexOf(idx) + 1,
+                  itemIndex: idx,
+                  itemText: (question.items && question.items[idx]) 
+                    ? (typeof question.items[idx] === 'string' ? question.items[idx] : question.items[idx]?.text || 'NO TEXT')
+                    : 'INVALID INDEX'
+                }))
+              });
+              
               // Handle case where no correct order is defined (unscorable question)
               if (correctOrder.length === 0) {
-                console.warn(`Question with ID ${question.id} has no correct order defined - skipping scoring`);
+                console.warn(`⚠️ CHRONOLOGICAL ORDER SKIP SCORING - Question ${question.id}: no correct order defined`, {
+                  correctOrder: correctOrder,
+                  userOrder: userOrder,
+                  reason: 'Question has no correct order defined - skipping scoring',
+                  impact: 'Question will not count toward total score'
+                });
                 // Skip scoring for this question, don't count it in scorableQuestions
                 continue;
               }
               
               // Count this as a scorable question
               scorableQuestions++;
+              console.log(`📊 CHRONOLOGICAL ORDER SCORABLE - Question ${question.id}: counting as scorable question`, {
+                scorableQuestions: scorableQuestions,
+                totalQuestionsProcessed: i + 1
+              });
               
               // Check if user order exactly matches correct order (same length and same sequence)
-              const isCorrect = userOrder.length === correctOrder.length &&
-                               userOrder.every((itemIndex, position) => itemIndex === correctOrder[position]);
+              const lengthMatches = userOrder.length === correctOrder.length;
+              const sequenceMatches = lengthMatches && userOrder.every((itemIndex, position) => itemIndex === correctOrder[position]);
+              
+              console.log(`🔍 CHRONOLOGICAL ORDER COMPARISON - Question ${question.id}:`, {
+                lengthMatches: lengthMatches,
+                userOrderLength: userOrder.length,
+                correctOrderLength: correctOrder.length,
+                sequenceMatches: sequenceMatches,
+                detailedComparison: userOrder.map((userIdx, pos) => ({
+                  position: pos + 1,
+                  userItemIndex: userIdx,
+                  correctItemIndex: correctOrder[pos],
+                  matches: userIdx === correctOrder[pos],
+                  userItemText: (question.items && question.items[userIdx]) 
+                    ? (typeof question.items[userIdx] === 'string' ? question.items[userIdx] : question.items[userIdx]?.text || 'NO TEXT')
+                    : 'INVALID/MISSING',
+                  correctItemText: (question.items && question.items[correctOrder[pos]]) 
+                    ? (typeof question.items[correctOrder[pos]] === 'string' ? question.items[correctOrder[pos]] : question.items[correctOrder[pos]]?.text || 'NO TEXT')
+                    : 'INVALID/MISSING'
+                }))
+              });
+              
+              const isCorrect = lengthMatches && sequenceMatches;
               
               if (isCorrect) {
                 correctAnswers++;
+                console.log(`✅ CHRONOLOGICAL ORDER CORRECT - Question ${question.id}:`, {
+                  isCorrect: true,
+                  correctAnswers: correctAnswers,
+                  scorableQuestions: scorableQuestions,
+                  userSequence: userOrder.map(idx => question.items[idx] ? (typeof question.items[idx] === 'string' ? question.items[idx] : question.items[idx]?.text) : 'INVALID').join(' → '),
+                  correctSequence: correctOrder.map(idx => question.items[idx] ? (typeof question.items[idx] === 'string' ? question.items[idx] : question.items[idx]?.text) : 'INVALID').join(' → ')
+                });
+              } else {
+                console.log(`❌ CHRONOLOGICAL ORDER INCORRECT - Question ${question.id}:`, {
+                  isCorrect: false,
+                  correctAnswers: correctAnswers,
+                  scorableQuestions: scorableQuestions,
+                  userSequence: userOrder.map(idx => question.items[idx] ? (typeof question.items[idx] === 'string' ? question.items[idx] : question.items[idx]?.text) : 'INVALID').join(' → '),
+                  correctSequence: correctOrder.map(idx => question.items[idx] ? (typeof question.items[idx] === 'string' ? question.items[idx] : question.items[idx]?.text) : 'INVALID').join(' → '),
+                  failureReason: !lengthMatches ? 'Length mismatch' : 'Sequence mismatch'
+                });
               }
             } else if (question.type === 'short-answer' || question.type === 'long-form-answer') {
               // For text answers, basic string comparison (case-insensitive)
