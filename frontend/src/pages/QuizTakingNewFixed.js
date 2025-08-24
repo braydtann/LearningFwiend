@@ -159,17 +159,27 @@ const QuizTakingNewFixed = () => {
             console.warn(`Question ${index + 1} (select-all-that-apply) missing valid options array:`, question);
             return false;
           }
-          if (!question.correctAnswers || !Array.isArray(question.correctAnswers) || question.correctAnswers.length === 0) {
-            console.warn(`Question ${index + 1} (select-all-that-apply) missing valid correctAnswers array:`, question.correctAnswers);
-            return false;
+          
+          // Initialize correctAnswers if it doesn't exist or isn't an array
+          if (!question.correctAnswers || !Array.isArray(question.correctAnswers)) {
+            question.correctAnswers = [];
+            console.warn(`Question ${index + 1} (select-all-that-apply) missing correctAnswers array, initializing as empty:`, question.correctAnswers);
           }
-          // Validate that all correctAnswers indices are within options range
-          const invalidIndices = question.correctAnswers.filter(idx => 
-            typeof idx !== 'number' || idx < 0 || idx >= question.options.length
-          );
-          if (invalidIndices.length > 0) {
-            console.warn(`Question ${index + 1} (select-all-that-apply) has invalid correctAnswers indices:`, invalidIndices);
-            return false;
+          
+          // Allow empty correctAnswers (no correct answers marked) but warn about it
+          if (question.correctAnswers.length === 0) {
+            console.warn(`Question ${index + 1} (select-all-that-apply) has no correct answers marked - will be unscorable:`, question.correctAnswers);
+          }
+          
+          // Validate that any existing correctAnswers indices are within options range
+          if (question.correctAnswers.length > 0) {
+            const invalidIndices = question.correctAnswers.filter(idx => 
+              typeof idx !== 'number' || idx < 0 || idx >= question.options.length
+            );
+            if (invalidIndices.length > 0) {
+              console.warn(`Question ${index + 1} (select-all-that-apply) has invalid correctAnswers indices:`, invalidIndices);
+              return false;
+            }
           }
         } else if (question.type === 'short-answer' || question.type === 'long-form-answer') {
           // Text questions don't need additional validation
