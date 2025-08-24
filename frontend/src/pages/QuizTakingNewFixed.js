@@ -53,7 +53,17 @@ const QuizTakingNewFixed = () => {
 
   // Initialize quiz data
   const initializeQuiz = useCallback(async () => {
+    if (!isMountedRef.current) return;
+    
+    // Prevent multiple concurrent initializations
+    if (initializing) {
+      console.log('Quiz initialization already in progress, skipping...');
+      return;
+    }
+    
     try {
+      setInitializing(true);
+      console.log('Starting quiz initialization...');
       setLoading(true);
       setError(null);
       
