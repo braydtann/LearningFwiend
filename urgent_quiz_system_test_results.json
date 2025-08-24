@@ -1,0 +1,87 @@
+{
+  "summary": {
+    "passed": 9,
+    "failed": 2,
+    "success_rate": 81.81818181818183,
+    "timestamp": "2025-08-24T03:39:54.503709"
+  },
+  "results": [
+    {
+      "test": "Admin Authentication",
+      "status": "PASS",
+      "message": "Admin login successful: Brayden T (brayden.t@covesmart.com)",
+      "timestamp": "2025-08-24T03:39:52.263141",
+      "details": "Role: admin, Password change required: False"
+    },
+    {
+      "test": "Student Authentication",
+      "status": "PASS",
+      "message": "Student login successful: Karlo Student (karlo.student@alder.com)",
+      "timestamp": "2025-08-24T03:39:52.579956",
+      "details": "Role: learner, Password change required: True"
+    },
+    {
+      "test": "Session Management",
+      "status": "PASS",
+      "message": "Both admin and student sessions are stable and valid",
+      "timestamp": "2025-08-24T03:39:52.679351",
+      "details": "Admin session: \u2705, Student session: \u2705"
+    },
+    {
+      "test": "Quiz Course Discovery",
+      "status": "PASS",
+      "message": "Found 12 courses with quiz content",
+      "timestamp": "2025-08-24T03:39:52.785940",
+      "details": "Multiple Choice: 7, Select All: 1, Chronological: 1"
+    },
+    {
+      "test": "Multiple Choice Data Structure",
+      "status": "PASS",
+      "message": "Multiple Choice questions have proper data structure: 1 valid questions",
+      "timestamp": "2025-08-24T03:39:52.866366",
+      "details": "Course: Backend Connectivity Test Course - All Question Types, Valid questions: 1/1"
+    },
+    {
+      "test": "Select All That Apply Data Structure",
+      "status": "FAIL",
+      "message": "Select All That Apply questions missing required fields",
+      "timestamp": "2025-08-24T03:39:52.942982",
+      "details": "Validation results: [{'question_id': '4c69d442-46a9-4934-865c-2e75291e5987', 'has_options': True, 'options_count': 5, 'has_correct_answers': False, 'correct_answers_count': 0, 'has_question_text': True, 'valid': False}]"
+    },
+    {
+      "test": "Chronological Order Data Structure",
+      "status": "FAIL",
+      "message": "Chronological Order questions missing required 'items' field - will cause React Error #31",
+      "timestamp": "2025-08-24T03:39:53.022945",
+      "details": "Validation results: [{'question_id': '60548927-2121-4b4e-b05f-75d041395fbb', 'has_items': True, 'items_count': 4, 'has_correct_order': False, 'correct_order_count': 0, 'has_question_text': True, 'valid': False}]"
+    },
+    {
+      "test": "Quiz Submission Workflow",
+      "status": "PASS",
+      "message": "Quiz submission workflow successful - no 422 errors detected",
+      "timestamp": "2025-08-24T03:39:53.349325",
+      "details": "Progress update successful for course: Progress Testing Course"
+    },
+    {
+      "test": "Quiz Scoring and Progress",
+      "status": "PASS",
+      "message": "Quiz scoring and progress tracking working correctly: 5/4 updates successful",
+      "timestamp": "2025-08-24T03:39:54.130113",
+      "details": "Course: Progress Testing Course, Progress levels tested: [25.0, 50.0, 75.0, 100.0]"
+    },
+    {
+      "test": "Toast System Fixes Validation",
+      "status": "PASS",
+      "message": "All backend operations that trigger toast notifications are working correctly",
+      "timestamp": "2025-08-24T03:39:54.335986",
+      "details": "Successful operations: ['Course Access', 'Enrollment Access', 'Profile Access']"
+    },
+    {
+      "test": "Quiz Error Handling",
+      "status": "PASS",
+      "message": "Error handling during quiz operations is working correctly",
+      "timestamp": "2025-08-24T03:39:54.502928",
+      "details": "All 3 error scenarios handled properly"
+    }
+  ]
+}
