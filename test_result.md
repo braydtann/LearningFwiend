@@ -272,6 +272,30 @@ frontend:
         agent: "testing"
         comment: "🎉 MULTIPLE CHOICE TEST ACCOUNTS VERIFICATION COMPLETED SUCCESSFULLY: Executed comprehensive verification and recreation of Multiple Choice test accounts as requested in review. ACCOUNT STATUS: ❌ Original accounts were missing from database (likely due to system changes), ✅ Successfully recreated both test accounts with correct credentials, ✅ MC Admin Account: mc.admin.20250823_234459@testmc.com / MCAdmin123! (Role: admin, ID: f4866aa6-bb9f-4832-a76c-1cf428edf733), ✅ MC Student Account: mc.student.20250823_234459@testmc.com / MCStudent123! (Role: learner, ID: c69092f5-15f6-4038-afe2-23ee016085ba). AUTHENTICATION TESTING: Both accounts authenticate successfully and are ready for Multiple Choice functionality testing. All credentials working as expected for backend API testing."
 
+  - task: "Rebuild Select All That Apply Question Type in CreateCourse.js"
+    implemented: false
+    working: "NA"
+    file: "/app/frontend/src/pages/CreateCourse.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "STARTING SELECT ALL THAT APPLY REBUILD: Adding Select All That Apply option back to CreateCourse.js question type dropdown and implementing the UI rendering logic for creating select-all questions with multiple correct answers management. Will use defensive programming patterns proven successful with Multiple Choice implementation."
+
+  - task: "Rebuild Select All That Apply Question Type in QuizTakingNewFixed.js"
+    implemented: false
+    working: "NA" 
+    file: "/app/frontend/src/pages/QuizTakingNewFixed.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "STARTING SELECT ALL THAT APPLY QUIZ TAKING: Adding Select All That Apply rendering logic back to QuizTakingNewFixed.js with comprehensive defensive programming. Will include proper answer handling for multiple selections and scoring logic for select-all questions."
+
   - task: "Quiz Rendering and Question Types Display"
     implemented: true
     working: "NA"
