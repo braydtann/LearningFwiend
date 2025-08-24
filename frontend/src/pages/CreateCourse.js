@@ -236,8 +236,10 @@ const CreateCourse = () => {
                               { text: '', image: '', audio: '' },
                               { text: '', image: '', audio: '' }
                             ],
+                            items: [], // for chronological-order
                             correctAnswer: 0,
                             correctAnswers: [], // for select-all-that-apply
+                            correctOrder: [], // for chronological-order
                             sampleAnswer: '', // for long-form-answer
                             wordLimit: null, // for long-form-answer
                             points: 5,
