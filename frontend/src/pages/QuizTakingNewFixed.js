@@ -51,6 +51,16 @@ const QuizTakingNewFixed = () => {
   const isMountedRef = useRef(true);
   const timerRef = useRef(null);
 
+  // Ensure mounted ref is set on every mount (handles React Strict Mode)
+  useEffect(() => {
+    isMountedRef.current = true;
+    console.log('🔄 Component mounted - isMountedRef set to true');
+    return () => {
+      console.log('🔄 Component cleanup - isMountedRef set to false');
+      isMountedRef.current = false;
+    };
+  }, []);
+
   // Initialize quiz data
   const initializeQuiz = useCallback(async () => {
     if (!isMountedRef.current) return;
