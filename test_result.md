@@ -1884,7 +1884,7 @@ frontend:
     file: "/app/frontend/src/components/NotificationBell.js, /app/frontend/src/pages/Notifications.js"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
