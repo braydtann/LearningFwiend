@@ -365,6 +365,19 @@ const QuizTakingNewFixed = () => {
               } else if (!q.correctAnswers || !Array.isArray(q.correctAnswers)) {
                 result.reason = 'Missing correctAnswers array (should be initialized)';
               }
+            } else if (q.type === 'chronological-order') {
+              if (!q.items || !Array.isArray(q.items) || q.items.length < 2) {
+                result.reason = 'Invalid items array - need minimum 2 items';
+              } else if (!q.correctOrder || !Array.isArray(q.correctOrder)) {
+                result.reason = 'Missing correctOrder array (should be initialized)';
+              } else if (q.correctOrder.length > 0) {
+                const invalidIndices = q.correctOrder.filter(idx => 
+                  typeof idx !== 'number' || idx < 0 || idx >= q.items.length
+                );
+                if (invalidIndices.length > 0) {
+                  result.reason = `Invalid correctOrder indices: [${invalidIndices.join(', ')}]`;
+                }
+              }
             }
             return { index: i, question: q, result };
           })
