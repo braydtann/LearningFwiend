@@ -155,7 +155,8 @@ const QuizTakingNewFixed = () => {
           hasOptions: !!(q?.options && Array.isArray(q.options)),
           optionsLength: q?.options?.length,
           hasCorrectAnswers: !!(q?.correctAnswers && Array.isArray(q.correctAnswers)),
-          correctAnswersLength: q?.correctAnswers?.length
+          correctAnswersLength: q?.correctAnswers?.length,
+          fullQuestion: q // Log the entire question object
         }))
       });
       
