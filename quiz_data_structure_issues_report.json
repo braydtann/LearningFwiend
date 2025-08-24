@@ -1,0 +1,66 @@
+{
+  "timestamp": "2025-08-24T03:40:39.950255",
+  "total_problematic_questions": 2,
+  "issues": [
+    {
+      "course_id": "f65b6a22-0825-44b6-a205-f7162a874ed5",
+      "course_title": "Backend Connectivity Test Course - All Question Types",
+      "lesson_id": "d8d07376-b84b-4dd1-8aa4-ff9c2c0f54a0",
+      "lesson_title": "All Question Types Quiz",
+      "question_id": "60548927-2121-4b4e-b05f-75d041395fbb",
+      "question_type": "chronological-order",
+      "question_text": "Arrange these steps in the correct order for API testing:",
+      "issues": [
+        "Missing 'correctOrder' field"
+      ],
+      "question_data": {
+        "id": "60548927-2121-4b4e-b05f-75d041395fbb",
+        "type": "chronological-order",
+        "question": "Arrange these steps in the correct order for API testing:",
+        "items": [
+          "Authenticate user",
+          "Send API request",
+          "Validate response",
+          "Setup test environment"
+        ],
+        "correctAnswer": [
+          4,
+          1,
+          2,
+          3
+        ],
+        "points": 20
+      }
+    },
+    {
+      "course_id": "f65b6a22-0825-44b6-a205-f7162a874ed5",
+      "course_title": "Backend Connectivity Test Course - All Question Types",
+      "lesson_id": "d8d07376-b84b-4dd1-8aa4-ff9c2c0f54a0",
+      "lesson_title": "All Question Types Quiz",
+      "question_id": "4c69d442-46a9-4934-865c-2e75291e5987",
+      "question_type": "select-all-that-apply",
+      "question_text": "Which of the following are HTTP status codes for success?",
+      "issues": [
+        "Missing 'correctAnswers' field"
+      ],
+      "question_data": {
+        "id": "4c69d442-46a9-4934-865c-2e75291e5987",
+        "type": "select-all-that-apply",
+        "question": "Which of the following are HTTP status codes for success?",
+        "options": [
+          "200",
+          "201",
+          "404",
+          "500",
+          "202"
+        ],
+        "correctAnswer": [
+          "200",
+          "201",
+          "202"
+        ],
+        "points": 15
+      }
+    }
+  ]
+}
