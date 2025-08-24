@@ -1492,7 +1492,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const updateEnrollmentProgress = async (courseId, progressData) => {
+  const updateEnrollmentProgress = useCallback(async (courseId, progressData) => {
     try {
       const token = localStorage.getItem('auth_token');
       const response = await fetch(`${backendUrl}/api/enrollments/${courseId}/progress`, {
@@ -1521,7 +1521,7 @@ export const AuthProvider = ({ children }) => {
         error: 'Network error. Please try again.' 
       };
     }
-  };
+  }, [backendUrl]);
 
   const migrateEnrollmentProgress = async (enrollmentId) => {
     try {
