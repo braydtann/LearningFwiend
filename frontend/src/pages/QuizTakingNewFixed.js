@@ -723,6 +723,9 @@ const QuizTakingNewFixed = () => {
 
   // Initialize quiz on mount
   useEffect(() => {
+    // Reset mounted ref to true at start of each effect (handles React Strict Mode double-mounting)
+    isMountedRef.current = true;
+    console.log('🔄 Quiz initialization useEffect running - isMountedRef reset to true');
     initializeQuiz();
   }, [initializeQuiz]);
 
