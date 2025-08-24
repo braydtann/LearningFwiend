@@ -310,6 +310,7 @@ const QuizTakingNewFixed = () => {
         console.log('Quiz state set, component should re-render now');
       } else {
         console.warn('Component unmounted before setting quiz state');
+      }
 
     } catch (err) {
       console.error('Error initializing quiz:', err);
