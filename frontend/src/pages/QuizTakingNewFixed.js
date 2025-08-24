@@ -1023,7 +1023,7 @@ const QuizTakingNewFixed = () => {
             )}
 
             {/* Fallback for unknown question types */}
-            {currentQuestion && !['true-false', 'multiple-choice', 'select-all-that-apply', 'short-answer', 'long-form-answer'].includes(currentQuestion.type) && (
+            {currentQuestion && !['true-false', 'multiple-choice', 'select-all-that-apply', 'short-answer', 'long-form-answer', 'chronological-order'].includes(currentQuestion.type) && (
               <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <p className="text-yellow-800">
                   Unsupported question type: {currentQuestion.type}
