@@ -269,6 +269,13 @@ const QuizTakingNewFixed = () => {
               const userSelectedAnswers = Array.isArray(userAnswer) ? userAnswer : [];
               const correctAnswers_array = Array.isArray(question.correctAnswers) ? question.correctAnswers : [];
               
+              // Handle case where no correct answers are defined (unscorable question)
+              if (correctAnswers_array.length === 0) {
+                console.warn(`Question with ID ${question.id} has no correct answers defined - skipping scoring`);
+                // Skip scoring for this question, but don't count it as incorrect
+                continue;
+              }
+              
               // Sort both arrays to compare them properly
               const sortedUserAnswers = [...userSelectedAnswers].sort((a, b) => a - b);
               const sortedCorrectAnswers = [...correctAnswers_array].sort((a, b) => a - b);
