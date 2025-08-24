@@ -8,7 +8,7 @@ import requests
 import json
 
 # Configuration
-BACKEND_URL = "https://lms-quiz-repair.preview.emergentagent.com/api"
+BACKEND_URL = "https://quiz-rebuild.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 # Student credentials
