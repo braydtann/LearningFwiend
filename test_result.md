@@ -253,7 +253,7 @@ backend:
 frontend:
   - task: "Remove Problematic Question Types - Select All That Apply & Chronological Order"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/pages/CreateCourse.js, /app/frontend/src/pages/QuizTakingNewFixed.js"
     stuck_count: 0
     priority: "critical"
