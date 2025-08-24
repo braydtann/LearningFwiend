@@ -246,6 +246,12 @@ const QuizTakingNewFixed = () => {
 
     } catch (err) {
       console.error('Error initializing quiz:', err);
+      console.error('Quiz initialization error details:', {
+        courseId,
+        lessonId,
+        errorMessage: err.message,
+        errorStack: err.stack
+      });
       if (isMountedRef.current) {
         setError(err.message);
       }
