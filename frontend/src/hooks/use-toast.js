@@ -21,6 +21,18 @@ function genId() {
 
 const toastTimeouts = new Map()
 
+// Initialize variables that will be used by functions
+const listeners = []
+let memoryState = { toasts: [] }
+
+// Declare dispatch function before it's used
+function dispatch(action) {
+  memoryState = reducer(memoryState, action)
+  listeners.forEach((listener) => {
+    listener(memoryState)
+  })
+}
+
 const addToRemoveQueue = (toastId) => {
   if (toastTimeouts.has(toastId)) {
     return
@@ -88,17 +100,6 @@ export const reducer = (state, action) => {
         toasts: state.toasts.filter((t) => t.id !== action.toastId),
       };
   }
-}
-
-const listeners = []
-
-let memoryState = { toasts: [] }
-
-function dispatch(action) {
-  memoryState = reducer(memoryState, action)
-  listeners.forEach((listener) => {
-    listener(memoryState)
-  })
 }
 
 function toast({
