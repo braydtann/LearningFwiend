@@ -303,6 +303,14 @@ const QuizTakingNewFixed = () => {
         timeLimit: foundQuiz.timeLimit
       });
 
+      // Set quiz state - THIS IS CRITICAL
+      if (isMountedRef.current) {
+        console.log('Setting quiz state with initialized quiz:', foundQuiz);
+        setQuiz(foundQuiz);
+        console.log('Quiz state set, component should re-render now');
+      } else {
+        console.warn('Component unmounted before setting quiz state');
+
     } catch (err) {
       console.error('Error initializing quiz:', err);
       console.error('Quiz initialization error details:', {
