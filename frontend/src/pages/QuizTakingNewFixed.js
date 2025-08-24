@@ -454,7 +454,34 @@ const QuizTakingNewFixed = () => {
 
     try {
       setSubmitting(true);
-      console.log('Submitting quiz with answers:', answers);
+      console.log('🚀 QUIZ SUBMISSION STARTED - All answers being submitted:', answers);
+      
+      // Debug log all chronological order answers specifically
+      if (quiz?.questions) {
+        const chronologicalQuestions = quiz.questions.filter(q => q.type === 'chronological-order');
+        if (chronologicalQuestions.length > 0) {
+          console.log('🔍 CHRONOLOGICAL ORDER SUBMISSION SUMMARY:', {
+            totalChronologicalQuestions: chronologicalQuestions.length,
+            chronologicalAnswers: chronologicalQuestions.map(q => ({
+              questionId: q.id,
+              questionText: q.question,
+              userAnswer: answers[q.id],
+              userAnswerType: typeof answers[q.id],
+              userAnswerIsArray: Array.isArray(answers[q.id]),
+              userAnswerLength: Array.isArray(answers[q.id]) ? answers[q.id].length : 0,
+              correctOrder: q.correctOrder,
+              correctOrderLength: Array.isArray(q.correctOrder) ? q.correctOrder.length : 0,
+              hasValidAnswer: Array.isArray(answers[q.id]) && answers[q.id].length > 0,
+              userSequence: Array.isArray(answers[q.id]) && q.items 
+                ? answers[q.id].map(idx => q.items[idx] ? (typeof q.items[idx] === 'string' ? q.items[idx] : q.items[idx]?.text) : 'INVALID').join(' → ')
+                : 'NO ANSWER OR INVALID',
+              correctSequence: Array.isArray(q.correctOrder) && q.items
+                ? q.correctOrder.map(idx => q.items[idx] ? (typeof q.items[idx] === 'string' ? q.items[idx] : q.items[idx]?.text) : 'INVALID').join(' → ')
+                : 'NO CORRECT ORDER'
+            }))
+          });
+        }
+      }
 
       // Calculate score
       let correctAnswers = 0;
