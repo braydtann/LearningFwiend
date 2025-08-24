@@ -162,44 +162,65 @@ const QuizTakingNewFixed = () => {
       
       // Validate each question has required structure to prevent React Error #31
       const validatedQuestions = foundQuiz.questions.filter((question, index) => {
+        console.log(`Validating question ${index + 1}:`, question);
+        
         if (!question || typeof question !== 'object') {
-          console.warn(`Question ${index + 1} is invalid (not an object):`, question);
+          console.warn(`❌ Question ${index + 1} FAILED: not an object:`, question);
           return false;
         }
         if (!question.type) {
-          console.warn(`Question ${index + 1} missing type:`, question);
+          console.warn(`❌ Question ${index + 1} FAILED: missing type:`, question);
+          return false;
+        }
+        if (!question.question || typeof question.question !== 'string' || question.question.trim() === '') {
+          console.warn(`❌ Question ${index + 1} FAILED: missing or invalid question text:`, question);
           return false;
         }
         
-        // Validate question-type specific requirements
+        console.log(`Question ${index + 1} passed basic validation, checking type-specific rules for type: ${question.type}`);
+        
+        // Type-specific validation
         if (question.type === 'true-false') {
-          // True/false questions don't need additional validation
+          // True/false questions need correctAnswer boolean
+          if (typeof question.correctAnswer !== 'boolean') {
+            console.warn(`❌ Question ${index + 1} FAILED: (true-false) missing valid correctAnswer:`, question.correctAnswer);
+            return false;
+          }
         } else if (question.type === 'multiple-choice') {
-          // Multiple choice questions need options array
+          // Multiple choice questions need options array and correctAnswer index
           if (!question.options || !Array.isArray(question.options) || question.options.length < 2) {
-            console.warn(`Question ${index + 1} (multiple-choice) missing valid options array:`, question);
+            console.warn(`❌ Question ${index + 1} FAILED: (multiple-choice) missing valid options array:`, question);
             return false;
           }
           if (typeof question.correctAnswer !== 'number' || question.correctAnswer < 0 || question.correctAnswer >= question.options.length) {
-            console.warn(`Question ${index + 1} (multiple-choice) has invalid correctAnswer:`, question.correctAnswer);
+            console.warn(`❌ Question ${index + 1} FAILED: (multiple-choice) has invalid correctAnswer:`, question.correctAnswer);
             return false;
           }
         } else if (question.type === 'select-all-that-apply') {
+          console.log(`Validating select-all-that-apply question ${index + 1}:`, {
+            hasOptions: !!(question.options),
+            isOptionsArray: Array.isArray(question.options),
+            optionsLength: question.options ? question.options.length : 0,
+            hasCorrectAnswers: !!(question.correctAnswers),
+            isCorrectAnswersArray: Array.isArray(question.correctAnswers),
+            correctAnswersLength: question.correctAnswers ? question.correctAnswers.length : 0
+          });
+          
           // Select all questions need options array and correctAnswers array
           if (!question.options || !Array.isArray(question.options) || question.options.length < 2) {
-            console.warn(`Question ${index + 1} (select-all-that-apply) missing valid options array:`, question);
+            console.warn(`❌ Question ${index + 1} FAILED: (select-all-that-apply) missing valid options array:`, question);
             return false;
           }
           
           // Initialize correctAnswers if it doesn't exist or isn't an array
           if (!question.correctAnswers || !Array.isArray(question.correctAnswers)) {
             question.correctAnswers = [];
-            console.warn(`Question ${index + 1} (select-all-that-apply) missing correctAnswers array, initializing as empty:`, question.correctAnswers);
+            console.warn(`⚠️ Question ${index + 1} (select-all-that-apply) missing correctAnswers array, initializing as empty:`, question.correctAnswers);
           }
           
           // Allow empty correctAnswers (no correct answers marked) but warn about it
           if (question.correctAnswers.length === 0) {
-            console.warn(`Question ${index + 1} (select-all-that-apply) has no correct answers marked - will be unscorable:`, question.correctAnswers);
+            console.warn(`⚠️ Question ${index + 1} (select-all-that-apply) has no correct answers marked - will be unscorable:`, question.correctAnswers);
           }
           
           // Validate that any existing correctAnswers indices are within options range
@@ -208,17 +229,18 @@ const QuizTakingNewFixed = () => {
               typeof idx !== 'number' || idx < 0 || idx >= question.options.length
             );
             if (invalidIndices.length > 0) {
-              console.warn(`Question ${index + 1} (select-all-that-apply) has invalid correctAnswers indices:`, invalidIndices);
+              console.warn(`❌ Question ${index + 1} FAILED: (select-all-that-apply) has invalid correctAnswers indices:`, invalidIndices);
               return false;
             }
           }
         } else if (question.type === 'short-answer' || question.type === 'long-form-answer') {
           // Text questions don't need additional validation
         } else {
-          console.warn(`Question ${index + 1} has unsupported type: ${question.type}`);
+          console.warn(`❌ Question ${index + 1} FAILED: unsupported type: ${question.type}`);
           return false;
         }
         
+        console.log(`✅ Question ${index + 1} PASSED validation`);
         return true;
       });
       
