@@ -236,7 +236,7 @@ const CreateCourse = () => {
                               { text: '', image: '', audio: '' },
                               { text: '', image: '', audio: '' }
                             ],
-                            correctAnswer: 0
+                            correctAnswer: 0,
                             sampleAnswer: '', // for long-form-answer
                             wordLimit: null, // for long-form-answer
                             points: 5,
