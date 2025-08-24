@@ -301,6 +301,9 @@ frontend:
       - working: "NA"
         agent: "main"
         comment: "🚨 INDEFINITE LOADING ISSUE IDENTIFIED AND FIXED: User reported indefinite loading when starting quiz with Select All That Apply questions (same issue as before with Multiple Choice). TROUBLESHOOT ANALYSIS: Issue was overly strict validation logic in QuizTakingNewFixed.js that filtered out questions with empty correctAnswers arrays. FIXES APPLIED: 1) Modified validation logic to allow empty correctAnswers arrays (warn instead of filter), 2) Updated scoring logic to handle unscorable questions gracefully with 'continue' statement, 3) Implemented proper scorable question counting to exclude unscorable questions from total, 4) Added defensive initialization of correctAnswers array if missing. SOLUTION: Questions with no correct answers marked are now allowed but warned about, preventing infinite loading while maintaining data integrity."
+      - working: "NA"
+        agent: "main"
+        comment: "🔍 ROOT CAUSE DISCOVERED - DATA FORMAT INCOMPATIBILITY: User confirmed they selected correct answers and issue persists after validation fixes. INVESTIGATION REVEALED: 1) 'pizza2' course EXISTS in database (ID: 040b7021-eaf6-4f33-b813-a7a286f19e11), 2) Course uses OLD data format (lesson.quiz.questions) instead of NEW format (lesson.questions) expected by frontend, 3) Frontend has fallback logic for both formats but may have execution issue. DEBUGGING ADDED: Enhanced console logging to track quiz structure detection, Added detailed error logging for initialization failures, Frontend already has logic to handle old format but needs verification. NEXT: Need to test with enhanced logging to see exact failure point in quiz initialization process."
 
   - task: "Remove Problematic Question Types - Select All That Apply & Chronological Order"
     implemented: true
