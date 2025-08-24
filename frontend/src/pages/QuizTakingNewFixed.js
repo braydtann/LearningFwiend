@@ -236,41 +236,12 @@ const QuizTakingNewFixed = () => {
               correctAnswers++;
             } else if (question.type === 'multiple-choice' && userAnswer === question.correctAnswer) {
               correctAnswers++;
-            } else if (question.type === 'select-all-that-apply') {
-              // For select-all questions, user must select ALL correct answers and NO incorrect ones
-              const userSelectedAnswers = Array.isArray(userAnswer) ? userAnswer : [];
-              const correctAnswers_array = Array.isArray(question.correctAnswers) ? question.correctAnswers : [];
-              
-              // Sort both arrays to compare them properly
-              const sortedUserAnswers = [...userSelectedAnswers].sort((a, b) => a - b);
-              const sortedCorrectAnswers = [...correctAnswers_array].sort((a, b) => a - b);
-              
-              // Check if arrays are exactly equal (same length and same elements)
-              const isCorrect = sortedUserAnswers.length === sortedCorrectAnswers.length &&
-                               sortedUserAnswers.every((answer, index) => answer === sortedCorrectAnswers[index]);
-              
-              if (isCorrect) {
-                correctAnswers++;
-              }
             } else if (question.type === 'short-answer' || question.type === 'long-form-answer') {
               // For text answers, basic string comparison (case-insensitive)
               const correctAnswer = question.correctAnswer || '';
               const userAnswerText = (userAnswer || '').toString().trim().toLowerCase();
               const correctAnswerText = correctAnswer.toString().trim().toLowerCase();
               if (userAnswerText === correctAnswerText) {
-                correctAnswers++;
-              }
-            } else if (question.type === 'chronological-order') {
-              // For chronological order questions, check if user's order matches correct order
-              const userOrder = Array.isArray(userAnswer) ? userAnswer : [];
-              const correctOrder = Array.isArray(question.correctOrder) ? question.correctOrder : 
-                                  [...(question.items || [])].map((_, idx) => idx); // Default to original order if no correctOrder specified
-              
-              // Check if arrays are exactly equal (same length and same elements in same order)
-              const isCorrect = userOrder.length === correctOrder.length &&
-                               userOrder.every((item, index) => item === correctOrder[index]);
-              
-              if (isCorrect) {
                 correctAnswers++;
               }
             }
