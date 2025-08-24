@@ -2640,8 +2640,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Rebuild Chronological Order Question Type in CreateCourse.js"
-    - "Rebuild Chronological Order Question Type in QuizTakingNewFixed.js"
+    - "Backend Testing - Post Question Type Removal (Select All That Apply & Chronological Order)"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
