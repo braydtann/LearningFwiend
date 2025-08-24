@@ -1192,9 +1192,29 @@ const QuizTakingNewFixed = () => {
             {/* Chronological Order Questions */}  
             {currentQuestion?.type === 'chronological-order' && (
               <div className="space-y-4">
+                {(() => {
+                  console.log(`🔍 CHRONOLOGICAL ORDER RENDERING - Question ${currentQuestion.id}:`, {
+                    questionText: currentQuestion.question,
+                    hasItems: !!(currentQuestion.items),
+                    isItemsArray: Array.isArray(currentQuestion.items),
+                    itemsLength: currentQuestion.items ? currentQuestion.items.length : 0,
+                    itemsContent: currentQuestion.items ? currentQuestion.items.map((item, idx) => ({
+                      index: idx,
+                      type: typeof item,
+                      text: typeof item === 'string' ? item : (item?.text || 'NO TEXT'),
+                      hasImage: !!(typeof item === 'object' && item?.image),
+                      hasAudio: !!(typeof item === 'object' && item?.audio)
+                    })) : 'NO ITEMS',
+                    currentAnswer: answers[currentQuestion.id],
+                    currentAnswerType: typeof answers[currentQuestion.id],
+                    currentAnswerIsArray: Array.isArray(answers[currentQuestion.id])
+                  });
+                  return null;
+                })()}
+                
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
                   <p className="text-blue-800 text-sm">
-                    📋 <strong>Instructions:</strong> Drag and drop the items below to arrange them in the correct chronological order.
+                    📋 <strong>Instructions:</strong> Click items in the correct chronological order to arrange them.
                   </p>
                 </div>
                 
@@ -1210,6 +1230,18 @@ const QuizTakingNewFixed = () => {
                   const itemPosition = currentOrder.indexOf(index);
                   const isOrdered = itemPosition !== -1;
                   
+                  console.log(`🔍 CHRONOLOGICAL ORDER ITEM RENDER - Item ${index}:`, {
+                    itemIndex: index,
+                    itemText: itemText,
+                    itemType: typeof item,
+                    hasImage: !!itemImage,
+                    hasAudio: !!itemAudio,
+                    currentOrder: currentOrder,
+                    itemPosition: itemPosition,
+                    isOrdered: isOrdered,
+                    currentAnswer: answers[currentQuestion.id]
+                  });
+                  
                   return (
                     <div
                       key={`co-${index}`}
@@ -1219,16 +1251,37 @@ const QuizTakingNewFixed = () => {
                           : 'border-gray-200 bg-white hover:border-gray-300'
                       }`}
                       onClick={() => {
+                        console.log(`🔍 CHRONOLOGICAL ORDER ITEM CLICK - Item ${index}:`, {
+                          itemIndex: index,
+                          itemText: itemText,
+                          currentOrder: currentOrder,
+                          isOrdered: isOrdered,
+                          questionId: currentQuestion.id
+                        });
+                        
                         if (currentQuestion?.id) {
                           const currentOrder = Array.isArray(answers[currentQuestion.id]) ? [...answers[currentQuestion.id]] : [];
                           
                           if (isOrdered) {
                             // Remove from order
                             const newOrder = currentOrder.filter(idx => idx !== index);
+                            console.log(`🔄 CHRONOLOGICAL ORDER REMOVE - Item ${index}:`, {
+                              oldOrder: currentOrder,
+                              newOrder: newOrder,
+                              removedItem: itemText,
+                              action: 'REMOVE'
+                            });
                             handleAnswerChange(currentQuestion.id, newOrder);
                           } else {
                             // Add to end of order
                             const newOrder = [...currentOrder, index];
+                            console.log(`🔄 CHRONOLOGICAL ORDER ADD - Item ${index}:`, {
+                              oldOrder: currentOrder,
+                              newOrder: newOrder,
+                              addedItem: itemText,
+                              newPosition: newOrder.length,
+                              action: 'ADD'
+                            });
                             handleAnswerChange(currentQuestion.id, newOrder);
                           }
                         }
@@ -1254,7 +1307,18 @@ const QuizTakingNewFixed = () => {
                                 alt={`Item ${index + 1}`} 
                                 className="max-w-xs h-32 object-cover rounded border"
                                 onError={(e) => {
+                                  console.warn(`🖼️ CHRONOLOGICAL ORDER IMAGE ERROR - Item ${index}:`, {
+                                    itemIndex: index,
+                                    imageUrl: itemImage,
+                                    error: 'Failed to load image'
+                                  });
                                   e.target.style.display = 'none';
+                                }}
+                                onLoad={() => {
+                                  console.log(`🖼️ CHRONOLOGICAL ORDER IMAGE LOADED - Item ${index}:`, {
+                                    itemIndex: index,
+                                    imageUrl: itemImage
+                                  });
                                 }}
                               />
                             </div>
@@ -1263,7 +1327,23 @@ const QuizTakingNewFixed = () => {
                           {/* Display item audio if available */}
                           {itemAudio && itemAudio.trim() !== '' && (
                             <div className="mt-2">
-                              <audio controls className="w-full max-w-xs">
+                              <audio 
+                                controls 
+                                className="w-full max-w-xs"
+                                onError={() => {
+                                  console.warn(`🔊 CHRONOLOGICAL ORDER AUDIO ERROR - Item ${index}:`, {
+                                    itemIndex: index,
+                                    audioUrl: itemAudio,
+                                    error: 'Failed to load audio'
+                                  });
+                                }}
+                                onCanPlay={() => {
+                                  console.log(`🔊 CHRONOLOGICAL ORDER AUDIO LOADED - Item ${index}:`, {
+                                    itemIndex: index,
+                                    audioUrl: itemAudio
+                                  });
+                                }}
+                              >
                                 <source src={itemAudio} type="audio/mpeg" />
                                 Your browser does not support the audio element.
                               </audio>
@@ -1295,12 +1375,39 @@ const QuizTakingNewFixed = () => {
                 {(!currentQuestion.items || !Array.isArray(currentQuestion.items) || currentQuestion.items.length === 0) && (
                   <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
                     <p className="text-red-800">No items available for ordering in this question.</p>
+                    {(() => {
+                      console.error(`❌ CHRONOLOGICAL ORDER NO ITEMS - Question ${currentQuestion.id}:`, {
+                        items: currentQuestion.items,
+                        hasItems: !!(currentQuestion.items),
+                        isArray: Array.isArray(currentQuestion.items),
+                        length: currentQuestion.items ? currentQuestion.items.length : 0
+                      });
+                      return null;
+                    })()}
                   </div>
                 )}
                 
                 {/* Show current order */}
                 {Array.isArray(answers[currentQuestion.id]) && answers[currentQuestion.id].length > 0 && (
                   <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                    {(() => {
+                      const currentOrder = answers[currentQuestion.id];
+                      console.log(`📝 CHRONOLOGICAL ORDER CURRENT ORDER DISPLAY - Question ${currentQuestion.id}:`, {
+                        currentOrder: currentOrder,
+                        orderLength: currentOrder.length,
+                        itemsInOrder: currentOrder.map(itemIndex => ({
+                          position: currentOrder.indexOf(itemIndex) + 1,
+                          itemIndex: itemIndex,
+                          itemText: currentQuestion.items[itemIndex] 
+                            ? (typeof currentQuestion.items[itemIndex] === 'string' 
+                                ? currentQuestion.items[itemIndex] 
+                                : currentQuestion.items[itemIndex]?.text || 'NO TEXT')
+                            : 'INVALID INDEX'
+                        }))
+                      });
+                      return null;
+                    })()}
+                    
                     <p className="text-green-800 text-sm font-medium mb-1">
                       📝 Your Current Order:
                     </p>
