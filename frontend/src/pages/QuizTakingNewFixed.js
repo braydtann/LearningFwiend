@@ -250,7 +250,7 @@ const QuizTakingNewFixed = () => {
 
       // Calculate score
       let correctAnswers = 0;
-      const totalQuestions = quiz?.questions?.length || 0;
+      let scorableQuestions = 0; // Track questions that can actually be scored
 
       // Safely iterate through questions
       if (quiz?.questions && Array.isArray(quiz.questions)) {
@@ -262,8 +262,14 @@ const QuizTakingNewFixed = () => {
             // Handle different question types  
             if (question.type === 'true-false' && userAnswer === question.correctAnswer) {
               correctAnswers++;
+              scorableQuestions++;
+            } else if (question.type === 'true-false') {
+              scorableQuestions++; // Count as scorable even if incorrect
             } else if (question.type === 'multiple-choice' && userAnswer === question.correctAnswer) {
               correctAnswers++;
+              scorableQuestions++;
+            } else if (question.type === 'multiple-choice') {
+              scorableQuestions++; // Count as scorable even if incorrect
             } else if (question.type === 'select-all-that-apply') {
               // For select-all questions, user must select ALL correct answers and NO incorrect ones
               const userSelectedAnswers = Array.isArray(userAnswer) ? userAnswer : [];
@@ -272,9 +278,12 @@ const QuizTakingNewFixed = () => {
               // Handle case where no correct answers are defined (unscorable question)
               if (correctAnswers_array.length === 0) {
                 console.warn(`Question with ID ${question.id} has no correct answers defined - skipping scoring`);
-                // Skip scoring for this question, but don't count it as incorrect
+                // Skip scoring for this question, don't count it in scorableQuestions
                 continue;
               }
+              
+              // Count this as a scorable question
+              scorableQuestions++;
               
               // Sort both arrays to compare them properly
               const sortedUserAnswers = [...userSelectedAnswers].sort((a, b) => a - b);
@@ -289,6 +298,7 @@ const QuizTakingNewFixed = () => {
               }
             } else if (question.type === 'short-answer' || question.type === 'long-form-answer') {
               // For text answers, basic string comparison (case-insensitive)
+              scorableQuestions++;
               const correctAnswer = question.correctAnswer || '';
               const userAnswerText = (userAnswer || '').toString().trim().toLowerCase();
               const correctAnswerText = correctAnswer.toString().trim().toLowerCase();
@@ -299,6 +309,9 @@ const QuizTakingNewFixed = () => {
           }
         }
       }
+
+      // Use scorableQuestions instead of total questions for score calculation
+      const totalQuestions = scorableQuestions;
 
       const score = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
       const passed = score >= (quiz?.passingScore || 70);
