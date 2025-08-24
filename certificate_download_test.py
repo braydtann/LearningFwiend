@@ -17,7 +17,7 @@ import os
 from datetime import datetime
 
 # Configuration
-BACKEND_URL = "https://quizfix-learning.preview.emergentagent.com/api"
+BACKEND_URL = "https://quiz-doctor.preview.emergentagent.com/api"
 
 # Test credentials from review request
 ADMIN_CREDENTIALS = {

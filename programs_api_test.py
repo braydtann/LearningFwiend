@@ -10,7 +10,7 @@ import sys
 from datetime import datetime
 
 # Configuration
-BACKEND_URL = "https://quizfix-learning.preview.emergentagent.com/api"
+BACKEND_URL = "https://quiz-doctor.preview.emergentagent.com/api"
 TEST_TIMEOUT = 10
 
 class ProgramsAPITester:

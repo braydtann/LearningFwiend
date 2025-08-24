@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 import time
 
 # Configuration - Using Production Backend URL from frontend/.env
-BACKEND_URL = "https://quizfix-learning.preview.emergentagent.com/api"
+BACKEND_URL = "https://quiz-doctor.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 class ProgramAccessTester:

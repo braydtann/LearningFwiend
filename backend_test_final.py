@@ -8,7 +8,7 @@ import json
 import uuid
 from datetime import datetime, timedelta
 
-BACKEND_URL = "https://quizfix-learning.preview.emergentagent.com/api"
+BACKEND_URL = "https://quiz-doctor.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 class FinalBackendTester:
