@@ -2591,8 +2591,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Rebuild Select All That Apply Question Type in CreateCourse.js"
-    - "Rebuild Select All That Apply Question Type in QuizTakingNewFixed.js"
+    - "Rebuild Chronological Order Question Type in CreateCourse.js"
+    - "Rebuild Chronological Order Question Type in QuizTakingNewFixed.js"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
