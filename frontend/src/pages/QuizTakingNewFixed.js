@@ -725,6 +725,96 @@ const QuizTakingNewFixed = () => {
               </div>
             )}
 
+            {/* Select All That Apply Questions */}
+            {currentQuestion?.type === 'select-all-that-apply' && (
+              <div className="space-y-3">
+                {(Array.isArray(currentQuestion.options) ? currentQuestion.options : []).map((option, index) => {
+                  // Handle both string and object option formats with defensive programming
+                  const optionText = typeof option === 'string' ? option : (option?.text || `Option ${index + 1}`);
+                  const optionImage = typeof option === 'object' ? option?.image : null;
+                  const optionAudio = typeof option === 'object' ? option?.audio : null;
+                  
+                  // Get current selected answers (array of indices)
+                  const selectedAnswers = Array.isArray(answers[currentQuestion.id]) ? answers[currentQuestion.id] : [];
+                  const isSelected = selectedAnswers.includes(index);
+                  
+                  return (
+                    <label
+                      key={`sata-${index}`}
+                      className="flex items-start space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                    >
+                      <input
+                        type="checkbox"
+                        name={`question-${currentQuestion.id || 'unknown'}`}
+                        value={index.toString()}
+                        checked={isSelected}
+                        onChange={(e) => {
+                          if (currentQuestion?.id) {
+                            const currentAnswers = Array.isArray(answers[currentQuestion.id]) ? answers[currentQuestion.id] : [];
+                            let newAnswers;
+                            
+                            if (e.target.checked) {
+                              // Add this index to selected answers
+                              newAnswers = [...currentAnswers, index];
+                            } else {
+                              // Remove this index from selected answers
+                              newAnswers = currentAnswers.filter(idx => idx !== index);
+                            }
+                            
+                            handleAnswerChange(currentQuestion.id, newAnswers);
+                          }
+                        }}
+                        className="w-4 h-4 text-blue-600 mt-1"
+                      />
+                      <div className="flex-1">
+                        <span className="block text-gray-900">{optionText}</span>
+                        
+                        {/* Display option image if available */}
+                        {optionImage && optionImage.trim() !== '' && (
+                          <div className="mt-2">
+                            <img 
+                              src={optionImage} 
+                              alt={`Option ${index + 1}`} 
+                              className="max-w-xs h-32 object-cover rounded border"
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                              }}
+                            />
+                          </div>
+                        )}
+                        
+                        {/* Display option audio if available */}
+                        {optionAudio && optionAudio.trim() !== '' && (
+                          <div className="mt-2">
+                            <audio controls className="w-full max-w-xs">
+                              <source src={optionAudio} type="audio/mpeg" />
+                              Your browser does not support the audio element.
+                            </audio>
+                          </div>
+                        )}
+                      </div>
+                    </label>
+                  );
+                })}
+                
+                {/* Fallback if no options available */}
+                {(!currentQuestion.options || !Array.isArray(currentQuestion.options) || currentQuestion.options.length === 0) && (
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-red-800">No answer options available for this question.</p>
+                  </div>
+                )}
+                
+                {/* Show selected count */}
+                {Array.isArray(answers[currentQuestion.id]) && answers[currentQuestion.id].length > 0 && (
+                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-blue-800 text-sm">
+                      ✓ Selected {answers[currentQuestion.id].length} option{answers[currentQuestion.id].length !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Short Answer Questions */}
             {currentQuestion?.type === 'short-answer' && (
               <Textarea
