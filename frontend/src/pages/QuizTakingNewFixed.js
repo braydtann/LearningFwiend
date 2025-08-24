@@ -319,13 +319,32 @@ const QuizTakingNewFixed = () => {
             });
             
             if (invalidIndices.length > 0) {
-              console.error(`❌ CHRONOLOGICAL ORDER INDEX VALIDATION FAILED - Question ${index + 1}: invalid correctOrder indices`, {
+              console.warn(`⚠️ CHRONOLOGICAL ORDER AUTO-CORRECTION - Question ${index + 1}: filtering out invalid correctOrder indices`, {
                 invalidIndices: invalidIndices,
-                correctOrder: question.correctOrder,
+                originalCorrectOrder: question.correctOrder,
                 itemsLength: question.items.length,
-                requirement: `All indices must be numbers between 0 and ${question.items.length - 1}`
+                action: 'Removing invalid indices and keeping valid ones'
               });
-              return false;
+              
+              // Auto-correct by filtering out invalid indices
+              question.correctOrder = question.correctOrder.filter(idx => 
+                typeof idx === 'number' && idx >= 0 && idx < question.items.length
+              );
+              
+              console.log(`🔧 CHRONOLOGICAL ORDER CORRECTED - Question ${index + 1}:`, {
+                originalLength: question.correctOrder.length + invalidIndices.length,
+                correctedLength: question.correctOrder.length,
+                correctedOrder: question.correctOrder,
+                removedIndices: invalidIndices
+              });
+              
+              // If all indices were invalid, warn but allow question to continue (will be unscorable)
+              if (question.correctOrder.length === 0) {
+                console.warn(`⚠️ CHRONOLOGICAL ORDER NO VALID INDICES - Question ${index + 1}: all correctOrder indices were invalid, question will be unscorable`, {
+                  originalCorrectOrder: question.correctOrder.concat(invalidIndices),
+                  result: 'Question kept but unscorable'
+                });
+              }
             }
           }
           
