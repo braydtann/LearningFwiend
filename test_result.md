@@ -254,7 +254,7 @@ backend:
 
 frontend:
   - task: "Rebuild Select All That Apply Question Type - Incremental Approach"
-    implemented: false
+    implemented: true
     working: "NA"
     file: "/app/frontend/src/pages/CreateCourse.js, /app/frontend/src/pages/QuizTakingNewFixed.js"
     stuck_count: 0
