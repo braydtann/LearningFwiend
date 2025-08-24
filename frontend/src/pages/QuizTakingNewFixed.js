@@ -45,6 +45,7 @@ const QuizTakingNewFixed = () => {
   const [timeLeft, setTimeLeft] = useState(null);
   const [quizCompleted, setQuizCompleted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [initializing, setInitializing] = useState(false); // Prevent multiple concurrent initializations
 
   // Refs for stable references
   const isMountedRef = useRef(true);
