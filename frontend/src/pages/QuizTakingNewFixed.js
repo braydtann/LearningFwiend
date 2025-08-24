@@ -221,7 +221,29 @@ const QuizTakingNewFixed = () => {
         return true;
       });
       
+      console.log('Question validation results:', {
+        originalCount: foundQuiz.questions.length,
+        validatedCount: validatedQuestions.length,
+        filteredOut: foundQuiz.questions.length - validatedQuestions.length
+      });
+      
       if (validatedQuestions.length === 0) {
+        console.error('All questions filtered out during validation!', {
+          originalQuestions: foundQuiz.questions,
+          validationResults: foundQuiz.questions.map((q, i) => {
+            const result = {};
+            if (!q || typeof q !== 'object') result.reason = 'Not an object';
+            else if (!q.type) result.reason = 'Missing type';
+            else if (q.type === 'select-all-that-apply') {
+              if (!q.options || !Array.isArray(q.options) || q.options.length < 2) {
+                result.reason = 'Invalid options array';
+              } else if (!q.correctAnswers || !Array.isArray(q.correctAnswers)) {
+                result.reason = 'Missing correctAnswers array (should be initialized)';
+              }
+            }
+            return { index: i, question: q, result };
+          })
+        });
         throw new Error('No valid questions found after validation');
       }
       
