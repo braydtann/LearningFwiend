@@ -323,7 +323,11 @@ const QuizTakingNewFixed = () => {
       }
     } finally {
       if (isMountedRef.current) {
+        console.log('Quiz initialization finally block: setting loading to false');
         setLoading(false);
+        console.log('Loading state should now be false, component should re-render');
+      } else {
+        console.warn('Component unmounted, not setting loading to false');
       }
     }
   }, [courseId, lessonId, getCourseById]);
