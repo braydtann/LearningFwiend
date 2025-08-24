@@ -551,8 +551,18 @@ const QuizTakingNewFixed = () => {
 
 
 
+  // Add render state logging
+  console.log('QuizTakingNewFixed render - Component states:', {
+    loading,
+    error,
+    quizStarted,
+    hasQuiz: !!quiz,
+    quizQuestionsLength: quiz?.questions?.length
+  });
+
   // Loading state
   if (loading) {
+    console.log('Rendering loading state');
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card className="w-full max-w-md">
