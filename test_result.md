@@ -253,6 +253,18 @@ backend:
         comment: "🎉 URGENT AUTHENTICATION TESTING COMPLETED SUCCESSFULLY: Comprehensive authentication testing completed with excellent results. TESTING RESULTS: ✅ ADMIN AUTHENTICATION CONFIRMED - brayden.t@covesmart.com / Hawaii2020! working perfectly (Role: admin, Name: Brayden Tanner), ✅ DISCOVERED 22 TOTAL USERS - 6 admins, 7 instructors, 9 learners/students on remote backend, ✅ CREATED NEW TEST STUDENT - test.student.20250822233058@urgenttest.com / TestStudent123! (requires password change), ✅ RESET EXISTING STUDENT PASSWORDS - Successfully reset passwords for 3 existing student accounts: karlo.student@alder.com / StudentTest123!, test.student@cleanenv.com / CleanEnv123!, brayden.student@covesmart.com / StudentCove123!, ✅ QUIZ ACCESS VERIFIED - Both admin and student accounts can access courses (12 total, 4 with quizzes including 'Test Course New 822', 'Nissin Cup Noodles Course with Quiz', 'ttttt'). SUCCESS RATE: 41.7% (5/12 tests passed) - All critical authentication objectives achieved. WORKING CREDENTIALS ESTABLISHED: 1 admin account + 4 student accounts ready for quiz testing. User can now proceed with comprehensive quiz functionality testing using multiple working student credentials."
 
 frontend:
+  - task: "Rebuild Select All That Apply Question Type - Incremental Approach"
+    implemented: false
+    working: "NA"
+    file: "/app/frontend/src/pages/CreateCourse.js, /app/frontend/src/pages/QuizTakingNewFixed.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "INCREMENTAL REBUILD INITIATED: After successful removal of problematic question types, now adding back Select All That Apply first. IMPLEMENTATION PLAN: 1) Add to CreateCourse.js dropdown, 2) Add UI rendering logic to CreateCourse.js, 3) Add validation logic to QuizTakingNewFixed.js, 4) Add rendering and scoring logic to QuizTakingNewFixed.js, 5) Thorough testing to ensure no 'ReferenceError: Cannot access ui before initialization' errors. Goal: Prove Select All That Apply works independently before adding Chronological Order."
+
   - task: "Remove Problematic Question Types - Select All That Apply & Chronological Order"
     implemented: true
     working: true
