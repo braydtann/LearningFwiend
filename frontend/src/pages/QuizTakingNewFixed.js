@@ -245,30 +245,54 @@ const QuizTakingNewFixed = () => {
             }
           }
         } else if (question.type === 'chronological-order') {
-          console.log(`Validating chronological-order question ${index + 1}:`, {
+          console.log(`🔍 CHRONOLOGICAL ORDER VALIDATION - Question ${index + 1}:`, {
+            questionId: question.id,
+            questionText: question.question,
             hasItems: !!(question.items),
             isItemsArray: Array.isArray(question.items),
             itemsLength: question.items ? question.items.length : 0,
+            itemsContent: question.items ? question.items.map((item, idx) => ({
+              index: idx,
+              type: typeof item,
+              text: typeof item === 'string' ? item : (item?.text || 'NO TEXT'),
+              hasImage: !!(typeof item === 'object' && item?.image),
+              hasAudio: !!(typeof item === 'object' && item?.audio)
+            })) : 'NO ITEMS',
             hasCorrectOrder: !!(question.correctOrder),
             isCorrectOrderArray: Array.isArray(question.correctOrder),
-            correctOrderLength: question.correctOrder ? question.correctOrder.length : 0
+            correctOrderLength: question.correctOrder ? question.correctOrder.length : 0,
+            correctOrderContent: question.correctOrder || 'NO CORRECT ORDER'
           });
           
           // Chronological order questions need items array and correctOrder array
           if (!question.items || !Array.isArray(question.items) || question.items.length < 2) {
-            console.warn(`❌ Question ${index + 1} FAILED: (chronological-order) missing valid items array:`, question);
+            console.error(`❌ CHRONOLOGICAL ORDER VALIDATION FAILED - Question ${index + 1}: missing valid items array`, {
+              hasItems: !!(question.items),
+              isArray: Array.isArray(question.items),
+              length: question.items ? question.items.length : 0,
+              actualItems: question.items,
+              requirement: 'Items array with minimum 2 items required'
+            });
             return false;
           }
           
           // Initialize correctOrder if it doesn't exist or isn't an array
           if (!question.correctOrder || !Array.isArray(question.correctOrder)) {
             question.correctOrder = [];
-            console.warn(`⚠️ Question ${index + 1} (chronological-order) missing correctOrder array, initializing as empty:`, question.correctOrder);
+            console.warn(`⚠️ CHRONOLOGICAL ORDER INITIALIZATION - Question ${index + 1}: missing correctOrder array, initializing as empty`, {
+              originalCorrectOrder: question.correctOrder,
+              newCorrectOrder: [],
+              impact: 'Question will be unscorable until correct order is defined'
+            });
           }
           
           // Allow empty correctOrder (no correct order defined) but warn about it
           if (question.correctOrder.length === 0) {
-            console.warn(`⚠️ Question ${index + 1} (chronological-order) has no correct order defined - will be unscorable:`, question.correctOrder);
+            console.warn(`⚠️ CHRONOLOGICAL ORDER WARNING - Question ${index + 1}: no correct order defined - will be unscorable`, {
+              correctOrder: question.correctOrder,
+              itemsCount: question.items.length,
+              recommendation: 'Define correctOrder array to make question scorable'
+            });
           }
           
           // Validate that any existing correctOrder indices are within items range
@@ -276,11 +300,41 @@ const QuizTakingNewFixed = () => {
             const invalidIndices = question.correctOrder.filter(idx => 
               typeof idx !== 'number' || idx < 0 || idx >= question.items.length
             );
+            
+            console.log(`🔍 CHRONOLOGICAL ORDER INDEX VALIDATION - Question ${index + 1}:`, {
+              correctOrder: question.correctOrder,
+              itemsLength: question.items.length,
+              validIndices: question.correctOrder.filter(idx => 
+                typeof idx === 'number' && idx >= 0 && idx < question.items.length
+              ),
+              invalidIndices: invalidIndices,
+              indexValidation: question.correctOrder.map(idx => ({
+                index: idx,
+                isNumber: typeof idx === 'number',
+                isValid: typeof idx === 'number' && idx >= 0 && idx < question.items.length,
+                itemText: (typeof idx === 'number' && idx >= 0 && idx < question.items.length) 
+                  ? (typeof question.items[idx] === 'string' ? question.items[idx] : question.items[idx]?.text || 'NO TEXT')
+                  : 'INVALID INDEX'
+              }))
+            });
+            
             if (invalidIndices.length > 0) {
-              console.warn(`❌ Question ${index + 1} FAILED: (chronological-order) has invalid correctOrder indices:`, invalidIndices);
+              console.error(`❌ CHRONOLOGICAL ORDER INDEX VALIDATION FAILED - Question ${index + 1}: invalid correctOrder indices`, {
+                invalidIndices: invalidIndices,
+                correctOrder: question.correctOrder,
+                itemsLength: question.items.length,
+                requirement: `All indices must be numbers between 0 and ${question.items.length - 1}`
+              });
               return false;
             }
           }
+          
+          console.log(`✅ CHRONOLOGICAL ORDER VALIDATION PASSED - Question ${index + 1}:`, {
+            itemsCount: question.items.length,
+            correctOrderCount: question.correctOrder.length,
+            isScoreable: question.correctOrder.length > 0,
+            validationStatus: 'PASSED'
+          });
         } else if (question.type === 'short-answer' || question.type === 'long-form-answer') {
           // Text questions don't need additional validation
         } else {
