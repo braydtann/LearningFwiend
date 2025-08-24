@@ -400,6 +400,28 @@ const QuizTakingNewFixed = () => {
               if (isCorrect) {
                 correctAnswers++;
               }
+            } else if (question.type === 'chronological-order') {
+              // For chronological order questions, user must arrange items in the exact correct order
+              const userOrder = Array.isArray(userAnswer) ? userAnswer : [];
+              const correctOrder = Array.isArray(question.correctOrder) ? question.correctOrder : [];
+              
+              // Handle case where no correct order is defined (unscorable question)
+              if (correctOrder.length === 0) {
+                console.warn(`Question with ID ${question.id} has no correct order defined - skipping scoring`);
+                // Skip scoring for this question, don't count it in scorableQuestions
+                continue;
+              }
+              
+              // Count this as a scorable question
+              scorableQuestions++;
+              
+              // Check if user order exactly matches correct order (same length and same sequence)
+              const isCorrect = userOrder.length === correctOrder.length &&
+                               userOrder.every((itemIndex, position) => itemIndex === correctOrder[position]);
+              
+              if (isCorrect) {
+                correctAnswers++;
+              }
             } else if (question.type === 'short-answer' || question.type === 'long-form-answer') {
               // For text answers, basic string comparison (case-insensitive)
               scorableQuestions++;
