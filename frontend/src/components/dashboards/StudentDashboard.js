@@ -116,6 +116,7 @@ const StudentDashboard = () => {
       } else {
         // No backend enrollments found
         setEnrolledCourses([]);
+        setQuizResults([]);
       }
     } catch (error) {
       console.error('Error loading enrollments:', error);
