@@ -99,6 +99,19 @@ const StudentDashboard = () => {
             enrollmentId: enrollment.id
           }));
           setEnrolledCourses(enrolledCourseData);
+          
+          // Create basic quiz results from enrollment progress
+          const quizResultsData = enrollmentResult.enrollments
+            .filter(enrollment => enrollment.progress > 0)
+            .map(enrollment => ({
+              courseId: enrollment.courseId,
+              courseName: enrollment.courseName || 'Unknown Course',
+              bestScore: enrollment.progress,
+              totalAttempts: 1,
+              passed: enrollment.progress >= 70,
+              lastAttempt: new Date(enrollment.updated_at || enrollment.created_at)
+            }));
+          setQuizResults(quizResultsData);
         }
       } else {
         // No backend enrollments found
