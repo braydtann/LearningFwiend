@@ -150,18 +150,36 @@ const QuizAndTestResults = () => {
             const course = courses.find(c => c.id === enrollment.courseId);
             if (!course) continue;
             
-            // Check if course has quiz content
+            // Check if course has quiz content (be more flexible)
             let hasQuizContent = false;
             const courseModules = course.modules || [];
+            
+            // First check: look for explicit quiz lessons
             for (const module of courseModules) {
               const lessons = module.lessons || [];
               for (const lesson of lessons) {
-                if (lesson.type === 'quiz' || lesson.questions?.length > 0) {
+                if (lesson.type === 'quiz' || 
+                    lesson.questions?.length > 0 ||
+                    lesson.quiz?.questions?.length > 0 ||
+                    (lesson.type && lesson.type.toLowerCase().includes('quiz'))) {
                   hasQuizContent = true;
+                  console.log(`Found quiz content in course "${course.title}" - lesson type: ${lesson.type}`);
                   break;
                 }
               }
               if (hasQuizContent) break;
+            }
+            
+            // Second check: if student has completed the course (100% progress), assume it had quiz content
+            if (!hasQuizContent && enrollment.progress === 100) {
+              hasQuizContent = true;
+              console.log(`Assuming course "${course.title}" had quiz content based on 100% completion`);
+            }
+            
+            // Third check: if student has significant progress (>70%), likely had some assessment
+            if (!hasQuizContent && enrollment.progress >= 70) {
+              hasQuizContent = true;
+              console.log(`Assuming course "${course.title}" had assessment content based on ${enrollment.progress}% progress`);
             }
             
             // If course has quiz content and student has progress, create quiz attempt record
