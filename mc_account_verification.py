@@ -7,7 +7,7 @@ import requests
 import json
 from datetime import datetime
 
-BACKEND_URL = "https://quiz-doctor.preview.emergentagent.com/api"
+BACKEND_URL = "https://chrono-quiz-repair.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 # Fallback admin credentials that work
