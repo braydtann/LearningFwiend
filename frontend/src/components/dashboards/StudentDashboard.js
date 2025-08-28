@@ -59,15 +59,24 @@ const StudentDashboard = () => {
                 const courseModules = course.modules || [];
                 let hasQuizContent = false;
                 
+                // Check for quiz content (be more flexible)
                 for (const module of courseModules) {
                   const lessons = module.lessons || [];
                   for (const lesson of lessons) {
-                    if (lesson.type === 'quiz' || lesson.questions?.length > 0) {
+                    if (lesson.type === 'quiz' || 
+                        lesson.questions?.length > 0 ||
+                        lesson.quiz?.questions?.length > 0 ||
+                        (lesson.type && lesson.type.toLowerCase().includes('quiz'))) {
                       hasQuizContent = true;
                       break;
                     }
                   }
                   if (hasQuizContent) break;
+                }
+
+                // If student completed the course or has significant progress, assume it had assessment
+                if (!hasQuizContent && (enrollment.progress === 100 || enrollment.progress >= 70)) {
+                  hasQuizContent = true;
                 }
 
                 if (hasQuizContent) {
