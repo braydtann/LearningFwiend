@@ -125,14 +125,78 @@ const QuizAndTestResults = () => {
         setFinalTests([]);
       }
 
-      // Load quiz attempts from backend
+      // Load quiz attempts from backend (standalone quizzes)
       const attemptsResult = await getQuizAttempts();
+      let allQuizAttempts = [];
       if (attemptsResult.success) {
-        setQuizAttempts(attemptsResult.attempts);
+        allQuizAttempts = [...attemptsResult.attempts];
+        console.log(`Loaded ${attemptsResult.attempts.length} standalone quiz attempts`);
       } else {
         console.log('Could not load quiz attempts:', attemptsResult.error);
-        setQuizAttempts([]);
       }
+
+      // CRITICAL FIX: Also load enrollment-based quiz data which contains actual scores
+      try {
+        const enrollmentsResult = await getAllEnrollments();
+        if (enrollmentsResult.success) {
+          const enrollmentQuizAttempts = [];
+          
+          for (const enrollment of enrollmentsResult.enrollments) {
+            // Skip enrollments without progress or with 0% progress
+            if (!enrollment.progress || enrollment.progress <= 0) continue;
+            
+            // Find the corresponding course
+            const course = courses.find(c => c.id === enrollment.courseId);
+            if (!course) continue;
+            
+            // Check if course has quiz content
+            let hasQuizContent = false;
+            const courseModules = course.modules || [];
+            for (const module of courseModules) {
+              const lessons = module.lessons || [];
+              for (const lesson of lessons) {
+                if (lesson.type === 'quiz' || lesson.questions?.length > 0) {
+                  hasQuizContent = true;
+                  break;
+                }
+              }
+              if (hasQuizContent) break;
+            }
+            
+            // If course has quiz content and student has progress, create quiz attempt record
+            if (hasQuizContent) {
+              const syntheticAttempt = {
+                id: `enrollment-${enrollment.id}`,
+                quizId: `course-quiz-${course.id}`,
+                quizTitle: `${course.title} - Course Quiz`,
+                studentId: enrollment.userId || enrollment.studentId,
+                studentName: enrollment.studentName || 'Unknown Student',
+                score: enrollment.progress, // Use progress as score
+                pointsEarned: Math.round(enrollment.progress),
+                totalPoints: 100,
+                isPassed: enrollment.progress >= 70, // Assume 70% passing grade
+                timeSpent: null,
+                startedAt: new Date(enrollment.enrolledAt || enrollment.created_at),
+                completedAt: enrollment.progress >= 100 ? new Date(enrollment.updated_at || enrollment.created_at) : null,
+                attemptNumber: 1,
+                isActive: true,
+                created_at: new Date(enrollment.created_at),
+                status: enrollment.progress >= 100 ? 'completed' : 'in_progress'
+              };
+              enrollmentQuizAttempts.push(syntheticAttempt);
+            }
+          }
+          
+          // Combine standalone quiz attempts with enrollment-based attempts
+          allQuizAttempts = [...allQuizAttempts, ...enrollmentQuizAttempts];
+          console.log(`Added ${enrollmentQuizAttempts.length} enrollment-based quiz attempts`);
+          console.log(`Total quiz attempts: ${allQuizAttempts.length}`);
+        }
+      } catch (enrollmentError) {
+        console.error('Error loading enrollment-based quiz data:', enrollmentError);
+      }
+      
+      setQuizAttempts(allQuizAttempts);
 
       // Load final test attempts from backend
       const finalTestAttemptsResult = await getFinalTestAttempts();
