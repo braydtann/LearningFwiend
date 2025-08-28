@@ -120,8 +120,9 @@ const StudentDashboard = () => {
       }
     } catch (error) {
       console.error('Error loading enrollments:', error);
-      // Set empty array on error
+      // Set empty arrays on error
       setEnrolledCourses([]);
+      setQuizResults([]);
     } finally {
       setLoading(false);
     }
