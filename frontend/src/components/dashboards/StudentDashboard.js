@@ -37,10 +37,13 @@ const StudentDashboard = () => {
         const courseResult = await getAllCourses();
         
         if (courseResult.success) {
-          const enrolledCourseData = enrollmentResult.enrollments
-            .map(enrollment => {
-              const course = courseResult.courses.find(c => c.id === enrollment.courseId);
-              return {
+          const enrolledCourseData = [];
+          const quizResultsData = [];
+          
+          enrollmentResult.enrollments.forEach(enrollment => {
+            const course = courseResult.courses.find(c => c.id === enrollment.courseId);
+            if (course) { // Only process if course exists
+              enrolledCourseData.push({
                 id: enrollment.courseId,
                 title: course?.title || enrollment.courseName || 'Unknown Course',
                 thumbnail: course?.thumbnailUrl || course?.thumbnail || 'https://via.placeholder.com/300x200?text=Course+Image',
@@ -48,11 +51,42 @@ const StudentDashboard = () => {
                 duration: course?.duration || '1 week',
                 progress: enrollment.progress || 0,
                 enrollmentId: enrollment.id,
-                isOrphaned: !course // Flag for orphaned enrollments
-              };
-            })
-            .filter(course => !course.isOrphaned); // Filter out orphaned enrollments
+                isOrphaned: false
+              });
+
+              // Extract quiz results from enrollment progress for courses with quiz content
+              if (enrollment.progress > 0) {
+                const courseModules = course.modules || [];
+                let hasQuizContent = false;
+                
+                for (const module of courseModules) {
+                  const lessons = module.lessons || [];
+                  for (const lesson of lessons) {
+                    if (lesson.type === 'quiz' || lesson.questions?.length > 0) {
+                      hasQuizContent = true;
+                      break;
+                    }
+                  }
+                  if (hasQuizContent) break;
+                }
+
+                if (hasQuizContent) {
+                  quizResultsData.push({
+                    courseId: enrollment.courseId,
+                    courseName: course.title,
+                    bestScore: enrollment.progress,
+                    totalAttempts: 1,
+                    passed: enrollment.progress >= 70, // Assume 70% passing
+                    lastAttempt: new Date(enrollment.updated_at || enrollment.created_at)
+                  });
+                }
+              }
+            }
+          });
+          
           setEnrolledCourses(enrolledCourseData);
+          setQuizResults(quizResultsData);
+          console.log(`Loaded ${quizResultsData.length} quiz results from enrollments`);
         } else {
           // Fallback to enrollment data only
           const enrolledCourseData = enrollmentResult.enrollments.map(enrollment => ({
