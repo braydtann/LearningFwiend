@@ -1001,11 +1001,14 @@ const CreateCourse = () => {
         </Card>
 
         {/* Course Content */}
-        <Card>
+        <Card className="bg-blue-50/50 border-blue-200">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>Course Content</CardTitle>
-              <Button type="button" variant="outline" onClick={addModule}>
+              <div className="flex items-center space-x-3">
+                <div className="w-3 h-3 rounded-full bg-blue-400"></div>
+                <CardTitle className="text-blue-800">Course Content</CardTitle>
+              </div>
+              <Button type="button" variant="outline" onClick={addModule} className="border-blue-300 text-blue-700 hover:bg-blue-100">
                 <Plus className="w-4 h-4 mr-2" />
                 Add Module
               </Button>
@@ -1013,7 +1016,7 @@ const CreateCourse = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             {courseData.modules.map((module, moduleIndex) => (
-              <Card key={module.id} className="border-2 border-dashed border-gray-200">
+              <Card key={module.id} className="border-2 border-dashed border-green-200 bg-green-50/60">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-3">
