@@ -189,6 +189,7 @@ class CourseResponse(BaseModel):
     duration: Optional[str] = None
     thumbnailUrl: Optional[str] = None
     accessType: str
+    learningOutcomes: List[str] = []  # What students will learn
     modules: List[dict] = []
     canvaEmbedCode: Optional[str] = None
     instructorId: str
