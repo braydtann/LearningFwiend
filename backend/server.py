@@ -169,6 +169,7 @@ class CourseInDB(BaseModel):
     duration: Optional[str] = None
     thumbnailUrl: Optional[str] = None
     accessType: str = "open"
+    learningOutcomes: List[str] = []  # What students will learn
     modules: List[CourseModule] = []
     canvaEmbedCode: Optional[str] = None
     instructorId: str
