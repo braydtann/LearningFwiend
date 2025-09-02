@@ -1852,10 +1852,31 @@ const CreateCourse = () => {
                                 ))}
 
                                 {(!lesson.quiz?.questions || lesson.quiz.questions.length === 0) && (
-                                  <div className="text-center py-8 text-gray-500">
-                                    <p>No questions added yet. Click "Add Question" to get started.</p>
+                                  <div className="text-center py-8 text-pink-600 bg-pink-50/40 rounded-lg border-2 border-dashed border-pink-200">
+                                    <p>No questions added yet. Click "Add Question" below to get started.</p>
                                   </div>
                                 )}
+                                
+                                {/* Add Question Button at Bottom */}
+                                <div className="pt-4 border-t border-pink-200">
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => addQuizQuestion(moduleIndex, lessonIndex)}
+                                    disabled={
+                                      lesson.quiz?.targetQuestionCount && 
+                                      (lesson.quiz?.questions || []).length >= lesson.quiz.targetQuestionCount
+                                    }
+                                    className="w-full border-pink-300 text-pink-700 hover:bg-pink-100"
+                                  >
+                                    <Plus className="w-4 h-4 mr-2" />
+                                    Add Question
+                                    {lesson.quiz?.targetQuestionCount && 
+                                     (lesson.quiz?.questions || []).length >= lesson.quiz.targetQuestionCount && 
+                                     " (Target Reached)"}
+                                  </Button>
+                                </div>
                               </div>
                             </div>
                           </div>
