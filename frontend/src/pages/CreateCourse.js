@@ -1020,7 +1020,8 @@ const CreateCourse = () => {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-3">
-                      <Badge variant="secondary">Module {moduleIndex + 1}</Badge>
+                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                      <Badge variant="secondary" className="bg-green-200 text-green-800 border-green-300">Module {moduleIndex + 1}</Badge>
                       <Input
                         placeholder="Module title"
                         value={module.title}
