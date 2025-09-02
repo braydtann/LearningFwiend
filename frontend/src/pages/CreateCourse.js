@@ -34,6 +34,7 @@ const CreateCourse = () => {
     thumbnail: '',
     isPublic: true,
     enrollmentType: 'open', // 'open' or 'assignment'
+    learningOutcomes: [''], // What students will learn
     modules: [
       {
         id: 'm1',
