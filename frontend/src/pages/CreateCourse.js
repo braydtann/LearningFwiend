@@ -1043,9 +1043,12 @@ const CreateCourse = () => {
 
                   <div className="space-y-4">
                     {module.lessons.map((lesson, lessonIndex) => (
-                      <div key={lesson.id} className="border border-gray-200 rounded-lg p-4">
+                      <div key={lesson.id} className="border-2 border-purple-200 rounded-lg p-4 bg-purple-50/70">
                         <div className="flex items-center justify-between mb-3">
-                          <h4 className="font-medium">Lesson {lessonIndex + 1}</h4>
+                          <div className="flex items-center space-x-3">
+                            <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                            <h4 className="font-medium text-purple-800">Lesson {lessonIndex + 1}</h4>
+                          </div>
                           {module.lessons.length > 1 && (
                             <Button
                               type="button"
