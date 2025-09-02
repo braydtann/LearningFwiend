@@ -1023,6 +1023,57 @@ const CreateCourse = () => {
                 </p>
               </div>
             </div>
+
+            {/* What You'll Learn Section */}
+            <div className="space-y-4 border-t pt-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <Label className="text-lg font-medium">What You'll Learn</Label>
+                  <p className="text-sm text-gray-600">Add learning outcomes that will be displayed to students</p>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addLearningOutcome}
+                  className="border-green-300 text-green-700 hover:bg-green-100"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Outcome
+                </Button>
+              </div>
+              
+              <div className="space-y-3">
+                {courseData.learningOutcomes.map((outcome, index) => (
+                  <div key={index} className="flex items-center space-x-3 p-3 bg-green-50/50 rounded-lg border border-green-200">
+                    <div className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></div>
+                    <Input
+                      placeholder="e.g., Master the fundamentals and advanced concepts"
+                      value={outcome}
+                      onChange={(e) => handleLearningOutcomeChange(index, e.target.value)}
+                      className="border-green-200 focus:border-green-400"
+                    />
+                    {courseData.learningOutcomes.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeLearningOutcome(index)}
+                        className="border-red-300 text-red-600 hover:bg-red-50 flex-shrink-0"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+                
+                {courseData.learningOutcomes.length === 0 && (
+                  <div className="text-center py-8 text-gray-500 bg-gray-50/50 rounded-lg border-2 border-dashed border-gray-200">
+                    <p>No learning outcomes added yet. Click "Add Outcome" to get started.</p>
+                  </div>
+                )}
+              </div>
+            </div>
           </CardContent>
         </Card>
 
