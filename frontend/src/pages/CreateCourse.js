@@ -1889,6 +1889,7 @@ const CreateCourse = () => {
                       variant="outline"
                       size="sm"
                       onClick={() => addLesson(moduleIndex)}
+                      className="border-purple-300 text-purple-700 hover:bg-purple-100"
                     >
                       <Plus className="w-4 h-4 mr-2" />
                       Add Lesson
