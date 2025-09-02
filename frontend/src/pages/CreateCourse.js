@@ -849,6 +849,7 @@ const CreateCourse = () => {
         duration: courseData.duration,
         thumbnailUrl: courseData.thumbnail,
         accessType: courseData.accessType || 'open',
+        learningOutcomes: courseData.learningOutcomes.filter(outcome => outcome.trim() !== ''), // Only include non-empty outcomes
         modules: courseData.modules || [],
         canvaEmbedCode: courseData.canvaEmbedCode,
         status: "published"  // Publish the course
