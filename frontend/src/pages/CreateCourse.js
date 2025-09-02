@@ -1351,6 +1351,7 @@ const CreateCourse = () => {
                                           variant="outline"
                                           size="sm"
                                           onClick={() => removeQuizQuestion(moduleIndex, lessonIndex, questionIndex)}
+                                          className="border-red-300 text-red-600 hover:bg-red-50"
                                         >
                                           <Trash2 className="w-4 h-4" />
                                         </Button>
