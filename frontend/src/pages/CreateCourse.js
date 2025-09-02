@@ -107,6 +107,7 @@ const CreateCourse = () => {
           thumbnail: result.course.thumbnailUrl || result.course.thumbnail || '',
           isPublic: true,
           enrollmentType: 'open',
+          learningOutcomes: result.course.learningOutcomes || [''],
           modules: result.course.modules || [
             {
               id: 'm1',
