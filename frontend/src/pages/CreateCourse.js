@@ -1318,7 +1318,8 @@ const CreateCourse = () => {
                             <div className="border-t pt-4">
                               <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center space-x-4">
-                                  <Label className="text-lg font-medium">Quiz Questions</Label>
+                                  <div className="w-2 h-2 rounded-full bg-pink-500"></div>
+                                  <Label className="text-lg font-medium text-pink-800">Quiz Questions</Label>
                                   {lesson.quiz?.targetQuestionCount && (
                                     <Badge variant="outline" className={
                                       (lesson.quiz?.questions || []).length === lesson.quiz.targetQuestionCount
@@ -1332,27 +1333,11 @@ const CreateCourse = () => {
                                     </Badge>
                                   )}
                                 </div>
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => addQuizQuestion(moduleIndex, lessonIndex)}
-                                  disabled={
-                                    lesson.quiz?.targetQuestionCount && 
-                                    (lesson.quiz?.questions || []).length >= lesson.quiz.targetQuestionCount
-                                  }
-                                >
-                                  <Plus className="w-4 h-4 mr-2" />
-                                  Add Question
-                                  {lesson.quiz?.targetQuestionCount && 
-                                   (lesson.quiz?.questions || []).length >= lesson.quiz.targetQuestionCount && 
-                                   " (Target Reached)"}
-                                </Button>
                               </div>
 
                               <div className="space-y-4">
                                 {(lesson.quiz?.questions || []).map((question, questionIndex) => (
-                                  <Card key={question.id} className="border-dashed">
+                                  <Card key={question.id} className="border-dashed border-pink-300 bg-pink-50/80">
                                     <CardContent className="p-4">
                                       <div className="flex items-center justify-between mb-3">
                                         <Badge variant="outline">Question {questionIndex + 1}</Badge>
