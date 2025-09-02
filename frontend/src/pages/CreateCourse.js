@@ -143,6 +143,30 @@ const CreateCourse = () => {
     }));
   };
 
+  // Learning Outcomes Functions
+  const handleLearningOutcomeChange = (index, value) => {
+    setCourseData(prev => ({
+      ...prev,
+      learningOutcomes: prev.learningOutcomes.map((outcome, idx) => 
+        idx === index ? value : outcome
+      )
+    }));
+  };
+
+  const addLearningOutcome = () => {
+    setCourseData(prev => ({
+      ...prev,
+      learningOutcomes: [...prev.learningOutcomes, '']
+    }));
+  };
+
+  const removeLearningOutcome = (index) => {
+    setCourseData(prev => ({
+      ...prev,
+      learningOutcomes: prev.learningOutcomes.filter((_, idx) => idx !== index)
+    }));
+  };
+
   const handleModuleChange = (moduleIndex, field, value) => {
     setCourseData(prev => ({
       ...prev,
