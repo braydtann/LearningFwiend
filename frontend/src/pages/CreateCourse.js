@@ -1340,7 +1340,10 @@ const CreateCourse = () => {
                                   <Card key={question.id} className="border-dashed border-pink-300 bg-pink-50/80">
                                     <CardContent className="p-4">
                                       <div className="flex items-center justify-between mb-3">
-                                        <Badge variant="outline">Question {questionIndex + 1}</Badge>
+                                        <div className="flex items-center space-x-2">
+                                          <div className="w-1.5 h-1.5 rounded-full bg-pink-600"></div>
+                                          <Badge variant="outline" className="bg-pink-200 text-pink-800 border-pink-400">Question {questionIndex + 1}</Badge>
+                                        </div>
                                         <Button
                                           type="button"
                                           variant="outline"
