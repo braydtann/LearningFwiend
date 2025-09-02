@@ -26,7 +26,7 @@ import time
 import uuid
 
 # Configuration - Using production URL from frontend/.env
-BACKEND_URL = "https://chrono-quiz-repair.preview.emergentagent.com/api"
+BACKEND_URL = "https://project-summary-3.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 # Test credentials from review request
