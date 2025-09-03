@@ -28395,27 +28395,20 @@ class BackendTester:
 
 
 if __name__ == "__main__":
-    print("🔍 CLASSROOM CREATION STUDENT ASSIGNMENT BUG REPRODUCTION")
+    print("🚨 CRITICAL BUG INVESTIGATION - LEARNINGFWIEND LMS")
     print("=" * 80)
-    print("Testing scenario: Create classroom with student 'brayden.student' and 'test last' course")
-    print("Goal: Reproduce issue where students don't appear in classroom after assignment")
+    print("INVESTIGATING TWO URGENT PRODUCTION BUGS:")
+    print("1. 'instavision' course enrollment issue - students can't see enrolled course")
+    print("2. Quiz analytics returning no results despite previous fixes")
     print("Authentication: Using admin credentials brayden.t@covesmart.com / Hawaii2020!")
     print("=" * 80)
     
     tester = BackendTester()
     
-    # Run the classroom creation bug reproduction test
-    bug_reproduced = tester.test_classroom_creation_student_assignment_bug_reproduction()
+    # Run the critical bug investigation
+    success = tester.run_all_tests()
     
-    if not bug_reproduced:
-        print(f"\n🚨 BUG REPRODUCED: Classroom student assignment issues detected!")
-        print(f"Students don't appear in classroom after being assigned during creation.")
-        print(f"This explains why students can't access courses through classroom assignment.")
-    else:
-        print(f"\n✅ NO BUG DETECTED: Classroom creation with student assignment working correctly!")
-        print(f"Students are properly assigned and auto-enrolled in classroom courses.")
-    
-    print(f"\nTest completed at: {datetime.now().isoformat()}")
+    print(f"\nInvestigation completed at: {datetime.now().isoformat()}")
     
     # Exit with appropriate code
-    sys.exit(1 if not bug_reproduced else 0)
+    sys.exit(0 if success else 1)
