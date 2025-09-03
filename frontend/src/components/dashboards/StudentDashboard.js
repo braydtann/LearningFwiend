@@ -227,6 +227,8 @@ const StudentDashboard = () => {
     certificates: certificates.length,
     classrooms: studentClassrooms.length,
     quizzesTaken: quizResults.length,
+    programs: enrolledPrograms.length,
+    completedPrograms: enrolledPrograms.filter(program => program.isCompleted).length,
     avgQuizScore: quizResults.length > 0 
       ? Math.round(quizResults.reduce((sum, result) => sum + result.bestScore, 0) / quizResults.length)
       : 0
