@@ -344,6 +344,103 @@ const StudentDashboard = () => {
         </Card>
       )}
 
+      {/* Enrolled Programs Section */}
+      {enrolledPrograms.length > 0 && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-xl">Enrolled Programs</CardTitle>
+              <Button 
+                variant="outline" 
+                onClick={() => navigate('/programs')}
+              >
+                View All Programs
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {enrolledPrograms.map((program) => (
+                <Card key={program.id} className="hover:shadow-lg transition-shadow border-l-4 border-l-blue-500">
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-lg text-gray-900 mb-2">
+                          {program.title}
+                        </h3>
+                        <p className="text-sm text-gray-600 mb-3">
+                          {program.description}
+                        </p>
+                        <p className="text-xs text-gray-500 mb-3">
+                          From: {program.classroomName}
+                        </p>
+                      </div>
+                      <Badge 
+                        variant={program.isCompleted ? "default" : "secondary"}
+                        className="ml-2"
+                      >
+                        {program.isCompleted ? "Completed" : "In Progress"}
+                      </Badge>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">Overall Progress</span>
+                        <span className="font-medium">{program.progress}%</span>
+                      </div>
+                      <Progress value={program.progress} className="h-2" />
+                      
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">Courses Completed</span>
+                        <span className="font-medium">
+                          {program.completedCourses} / {program.totalCourses}
+                        </span>
+                      </div>
+
+                      {/* Course List */}
+                      <div className="space-y-2 max-h-32 overflow-y-auto">
+                        {program.courses.map((course, index) => (
+                          <div key={course.id} className="flex items-center justify-between py-1">
+                            <div className="flex items-center">
+                              {course.completed ? (
+                                <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
+                              ) : (
+                                <div className="w-4 h-4 border-2 border-gray-300 rounded-full mr-2"></div>
+                              )}
+                              <span className="text-sm text-gray-700">{course.title}</span>
+                            </div>
+                            <span className="text-xs text-gray-500">{course.progress}%</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-2 mt-4">
+                      <Button 
+                        className="flex-1"
+                        variant="outline"
+                        onClick={() => navigate(`/program/${program.id}`)}
+                      >
+                        Continue Learning
+                      </Button>
+                      {program.isCompleted && (
+                        <Button 
+                          className="flex-1 bg-green-600 hover:bg-green-700"
+                          onClick={() => navigate(`/final-test/program/${program.id}`)}
+                        >
+                          <Award className="w-4 h-4 mr-2" />
+                          Take Final Exam
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Enrolled Courses */}
       <Card>
         <CardHeader>
