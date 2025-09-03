@@ -3618,7 +3618,7 @@ class FinalTestAttemptInDB(BaseModel):
 
 class FinalTestAttemptResponse(BaseModel):
     id: str
-    finalTestId: str
+    testId: str
     testTitle: str
     programId: str
     programName: str
@@ -3637,7 +3637,7 @@ class FinalTestAttemptResponse(BaseModel):
     created_at: datetime
 
 class FinalTestAttemptWithAnswersResponse(FinalTestAttemptResponse):
-    answers: List[str]
+    answers: List[Dict[str, Any]]
 
 
 # =============================================================================
