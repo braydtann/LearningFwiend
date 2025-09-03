@@ -244,7 +244,7 @@ class ClassroomCourseCountTester:
         print("\n🎯 TEST 2: SIMULATE VIEW MODE LOGIC")
         print("=" * 60)
         print("OBJECTIVE: Test course count calculation with programs loaded")
-        print("EXPECTED: 0 direct courses + 2 program courses = 2 total")
+        print("EXPECTED: 0 direct courses + 3 program courses = 3 total")
         print("-" * 60)
         
         if not classroom:
