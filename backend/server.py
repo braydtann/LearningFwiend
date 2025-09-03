@@ -3383,7 +3383,10 @@ class QuestionInDB(BaseModel):
     type: str
     question: str
     options: List[str] = []
-    correctAnswer: str  # String representation: index for MC, text for others
+    correctAnswer: Optional[str] = None  # String representation: index for MC, text for others, not used for chronological-order
+    correctAnswers: Optional[List[int]] = None  # For select-all-that-apply questions
+    items: Optional[List[str]] = None  # For chronological-order questions
+    correctOrder: Optional[List[int]] = None  # For chronological-order questions
     points: int
     explanation: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
