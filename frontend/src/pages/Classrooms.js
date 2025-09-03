@@ -722,7 +722,7 @@ const Classrooms = () => {
                         <div className="flex items-center text-gray-600">
                           <BookOpen className="w-4 h-4 mr-1" />
                           <span>
-                            Courses: {classroom.courseIds?.length || 0}
+                            Courses: {getTotalCourseCount(classroom)}
                           </span>
                         </div>
                       </div>
