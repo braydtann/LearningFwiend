@@ -67,6 +67,11 @@ const ClassroomDetail = () => {
     loadClassroomData();
   }, [id]);
 
+  // Load programs for course count calculation (needed in both view and edit modes)
+  useEffect(() => {
+    loadPrograms();
+  }, []);
+
   // Load additional data for edit mode
   useEffect(() => {
     if (isEditMode) {
