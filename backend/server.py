@@ -3597,18 +3597,18 @@ class FinalTestAttemptCreate(BaseModel):
 
 class FinalTestAttemptInDB(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    finalTestId: str
+    testId: str
     testTitle: str  # Denormalized
     programId: str  # Denormalized
     programName: str  # Denormalized
     studentId: str
     studentName: str  # Denormalized
-    answers: List[str]
+    answers: List[Dict[str, Any]]  # Student answers with questionId and answer
     score: float = 0.0  # Percentage
     pointsEarned: int = 0
     totalPoints: int = 0
     isPassed: bool = False
-    timeSpent: Optional[int] = None  # Minutes
+    timeSpent: Optional[int] = None  # Seconds
     startedAt: datetime = Field(default_factory=datetime.utcnow)
     completedAt: Optional[datetime] = None
     attemptNumber: int = 1
