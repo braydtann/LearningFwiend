@@ -2752,10 +2752,13 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Backend Testing - Post Question Type Removal (Select All That Apply & Chronological Order)"
-  stuck_tasks: []
+    - "CRITICAL BUG 1: Instavision Course Enrollment Investigation"
+    - "CRITICAL BUG 2: Quiz Analytics Data Investigation"
+  stuck_tasks:
+    - "CRITICAL BUG 1: Instavision Course Enrollment Investigation"
+    - "CRITICAL BUG 2: Quiz Analytics Data Investigation"
   test_all: false
-  test_priority: "high_first"
+  test_priority: "critical_first"
 
   - task: "Production Backend URL Testing for Frontend Compatibility"
     implemented: true
