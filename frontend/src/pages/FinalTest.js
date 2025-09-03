@@ -363,29 +363,72 @@ const FinalTest = () => {
 
       case 'chronological-order':
         const items = question.items || [];
-        const currentOrder = currentAnswer || [];
+        const currentOrder = Array.isArray(currentAnswer) ? currentAnswer : [];
         
         return (
           <div className="space-y-4">
-            <p className="text-sm text-gray-600 mb-4">
-              Drag and drop the items below to arrange them in chronological order:
-            </p>
-            <div className="space-y-2">
-              {items.map((item, index) => (
-                <div key={index} className="p-3 border rounded bg-gray-50 cursor-move">
-                  {item}
-                </div>
-              ))}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+              <p className="text-blue-800 text-sm">
+                📋 <strong>Instructions:</strong> Click items in the correct chronological order to arrange them.
+              </p>
             </div>
-            <p className="text-xs text-gray-500">
-              Note: For now, please enter your answer as comma-separated numbers (e.g., "3,1,4,2")
-            </p>
-            <Textarea
-              placeholder="Enter the correct order as numbers (e.g., 3,1,4,2)"
-              value={currentAnswer || ''}
-              onChange={(e) => handleAnswerChange(question.id, e.target.value)}
-              rows={2}
-            />
+            
+            {/* Display items for ordering */}
+            <div className="space-y-2">
+              {items.map((item, index) => {
+                const itemText = typeof item === 'string' ? item : (item?.text || `Item ${index + 1}`);
+                const itemPosition = currentOrder.indexOf(index);
+                const isOrdered = itemPosition !== -1;
+                
+                return (
+                  <div
+                    key={index}
+                    className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                      isOrdered 
+                        ? 'border-blue-500 bg-blue-50' 
+                        : 'border-gray-200 bg-white hover:border-gray-300'
+                    }`}
+                    onClick={() => {
+                      if (isOrdered) {
+                        // Remove from order
+                        const newOrder = currentOrder.filter(idx => idx !== index);
+                        handleAnswerChange(question.id, newOrder);
+                      } else {
+                        // Add to end of order
+                        const newOrder = [...currentOrder, index];
+                        handleAnswerChange(question.id, newOrder);
+                      }
+                    }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="flex-1">{itemText}</span>
+                      {isOrdered && (
+                        <Badge variant="default" className="ml-2">
+                          {itemPosition + 1}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            
+            {/* Show current order summary */}
+            {currentOrder.length > 0 && (
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-blue-800 text-sm mb-2">
+                  <strong>Current Order:</strong>
+                </p>
+                <div className="space-y-1">
+                  {currentOrder.map((itemIndex, position) => (
+                    <div key={position} className="flex items-center text-sm">
+                      <span className="font-medium mr-2">{position + 1}.</span>
+                      <span>{typeof items[itemIndex] === 'string' ? items[itemIndex] : items[itemIndex]?.text}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         );
 
