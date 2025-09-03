@@ -223,9 +223,9 @@ class ClassroomCourseCountTester:
                     # Show similar classrooms for debugging
                     similar_classrooms = []
                     for classroom in classrooms:
-                        title = classroom.get('title', '').lower()
+                        title = classroom.get('title', '').lower() or classroom.get('name', '').lower()
                         if 'test' in title or 'exam' in title:
-                            similar_classrooms.append(classroom.get('title'))
+                            similar_classrooms.append(classroom.get('title') or classroom.get('name'))
                     
                     if similar_classrooms:
                         print(f"   🔍 Similar classrooms found: {', '.join(similar_classrooms[:5])}")
