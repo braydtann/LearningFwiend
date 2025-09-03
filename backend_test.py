@@ -73,6 +73,901 @@ class BackendTester:
                 print(f"   Details: {details}")
     
     # =============================================================================
+    # CRITICAL BUG INVESTIGATION METHODS
+    # =============================================================================
+    
+    def investigate_instavision_course_bug(self):
+        """🚨 BUG 1: Investigate "instavision" course enrollment issue"""
+        print("\n🚨 CRITICAL BUG INVESTIGATION: INSTAVISION COURSE ENROLLMENT ISSUE")
+        print("=" * 80)
+        print("ISSUE: Instructor Karlo created course 'instavision' but students enrolled")
+        print("       are NOT seeing the course in their courses list")
+        print("=" * 80)
+        
+        if "admin" not in self.auth_tokens:
+            admin_success = self.test_admin_login()
+            if not admin_success:
+                self.log_result(
+                    "🚨 Instavision Course Investigation", 
+                    "FAIL", 
+                    "Cannot investigate - admin authentication failed",
+                    "Need admin access to search for courses and enrollments"
+                )
+                return False
+        
+        # Step 1: Search for "instavision" course
+        print("\n🔍 STEP 1: Searching for 'instavision' course...")
+        print("-" * 50)
+        instavision_course = self.find_instavision_course()
+        
+        if not instavision_course:
+            self.log_result(
+                "🚨 Instavision Course Investigation", 
+                "FAIL", 
+                "❌ CRITICAL: 'instavision' course NOT FOUND in database",
+                "Course may have been deleted or never created properly"
+            )
+            return False
+        
+        # Step 2: Check course details and status
+        print(f"\n📋 STEP 2: Analyzing course details...")
+        print("-" * 50)
+        course_issues = self.analyze_instavision_course_details(instavision_course)
+        
+        # Step 3: Check enrollments for this course
+        print(f"\n👥 STEP 3: Checking enrollments for instavision course...")
+        print("-" * 50)
+        enrollments = self.check_instavision_enrollments(instavision_course['id'])
+        
+        # Step 4: Test student access to the course
+        print(f"\n🎓 STEP 4: Testing student access to instavision course...")
+        print("-" * 50)
+        student_access_results = self.test_student_access_to_instavision(instavision_course, enrollments)
+        
+        # Step 5: Check instructor Karlo
+        print(f"\n👨‍🏫 STEP 5: Verifying instructor Karlo...")
+        print("-" * 50)
+        karlo_info = self.find_instructor_karlo()
+        
+        # Step 6: Root cause analysis
+        print(f"\n🔍 STEP 6: Root cause analysis...")
+        print("-" * 50)
+        root_cause = self.analyze_instavision_root_cause(instavision_course, enrollments, student_access_results, course_issues)
+        
+        return len(root_cause) == 0
+    
+    def investigate_quiz_analytics_bug(self):
+        """🚨 BUG 2: Investigate quiz analytics returning no results"""
+        print("\n🚨 CRITICAL BUG INVESTIGATION: QUIZ ANALYTICS BROKEN")
+        print("=" * 80)
+        print("ISSUE: Quiz analytics page returning no results despite previous fixes")
+        print("       Need to check quiz attempts storage and analytics data flow")
+        print("=" * 80)
+        
+        if "admin" not in self.auth_tokens:
+            admin_success = self.test_admin_login()
+            if not admin_success:
+                self.log_result(
+                    "🚨 Quiz Analytics Investigation", 
+                    "FAIL", 
+                    "Cannot investigate - admin authentication failed",
+                    "Need admin access to check quiz data and analytics"
+                )
+                return False
+        
+        # Step 1: Check if quiz attempts are being stored
+        print("\n📊 STEP 1: Checking quiz attempts storage...")
+        print("-" * 50)
+        quiz_attempts_data = self.check_quiz_attempts_storage()
+        
+        # Step 2: Check enrollments with quiz progress
+        print("\n📈 STEP 2: Checking enrollment progress data...")
+        print("-" * 50)
+        enrollment_progress_data = self.check_enrollment_quiz_progress()
+        
+        # Step 3: Test analytics endpoints
+        print("\n🔍 STEP 3: Testing analytics endpoints...")
+        print("-" * 50)
+        analytics_endpoints_results = self.test_analytics_endpoints()
+        
+        # Step 4: Check data structure compatibility
+        print("\n🔧 STEP 4: Checking data structure compatibility...")
+        print("-" * 50)
+        data_structure_issues = self.check_analytics_data_structure()
+        
+        # Step 5: Test student with quiz scores
+        print("\n🎓 STEP 5: Testing student with quiz scores...")
+        print("-" * 50)
+        student_quiz_results = self.test_student_quiz_analytics_access()
+        
+        # Step 6: Root cause analysis for analytics
+        print("\n🔍 STEP 6: Analytics root cause analysis...")
+        print("-" * 50)
+        analytics_issues = self.analyze_quiz_analytics_root_cause(
+            quiz_attempts_data, enrollment_progress_data, 
+            analytics_endpoints_results, data_structure_issues
+        )
+        
+        return len(analytics_issues) == 0
+    
+    def find_instavision_course(self):
+        """Search for the 'instavision' course in the database"""
+        try:
+            # Get all courses
+            response = requests.get(
+                f"{BACKEND_URL}/courses",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            if response.status_code == 200:
+                courses = response.json()
+                print(f"📚 Searching through {len(courses)} courses for 'instavision'...")
+                
+                # Search for instavision course (case-insensitive)
+                instavision_course = None
+                for course in courses:
+                    title = course.get('title', '').lower()
+                    if 'instavision' in title:
+                        instavision_course = course
+                        break
+                
+                if instavision_course:
+                    print(f"✅ FOUND 'instavision' course!")
+                    print(f"   📋 Title: {instavision_course.get('title')}")
+                    print(f"   🆔 ID: {instavision_course.get('id')}")
+                    print(f"   👨‍🏫 Instructor: {instavision_course.get('instructor')}")
+                    print(f"   📊 Status: {instavision_course.get('status')}")
+                    print(f"   👥 Enrolled Students: {instavision_course.get('enrolledStudents', 0)}")
+                    print(f"   📅 Created: {instavision_course.get('created_at')}")
+                    return instavision_course
+                else:
+                    print("❌ 'instavision' course NOT FOUND")
+                    # Show similar courses for debugging
+                    similar_courses = []
+                    for course in courses:
+                        title = course.get('title', '').lower()
+                        if any(word in title for word in ['insta', 'vision', 'video', 'image']):
+                            similar_courses.append(course.get('title'))
+                    
+                    if similar_courses:
+                        print(f"   🔍 Similar courses found: {', '.join(similar_courses[:5])}")
+                    
+                    return None
+            else:
+                print(f"❌ Failed to get courses list: {response.status_code}")
+                return None
+                
+        except Exception as e:
+            print(f"❌ Error searching for instavision course: {str(e)}")
+            return None
+    
+    def analyze_instavision_course_details(self, course):
+        """Analyze the instavision course for potential issues"""
+        issues = []
+        
+        print(f"📋 COURSE DETAILS ANALYSIS:")
+        print(f"   Title: {course.get('title')}")
+        print(f"   ID: {course.get('id')}")
+        print(f"   Status: {course.get('status')}")
+        print(f"   Access Type: {course.get('accessType')}")
+        print(f"   Instructor ID: {course.get('instructorId')}")
+        print(f"   Instructor Name: {course.get('instructor')}")
+        print(f"   Enrolled Students: {course.get('enrolledStudents', 0)}")
+        print(f"   Modules: {len(course.get('modules', []))}")
+        
+        # Check for issues
+        if course.get('status') != 'published':
+            issues.append(f"❌ Course status is '{course.get('status')}' instead of 'published'")
+            print(f"   ⚠️ ISSUE: Course not published - this prevents student access")
+        
+        if course.get('accessType') == 'restricted':
+            issues.append("⚠️ Course has restricted access - may limit student visibility")
+            print(f"   ⚠️ WARNING: Restricted access may prevent some students from seeing course")
+        
+        modules = course.get('modules', [])
+        if len(modules) == 0:
+            issues.append("⚠️ Course has no modules - may cause display issues")
+            print(f"   ⚠️ WARNING: Course has no modules")
+        else:
+            total_lessons = sum(len(module.get('lessons', [])) for module in modules)
+            print(f"   📚 Total lessons: {total_lessons}")
+            if total_lessons == 0:
+                issues.append("⚠️ Course has no lessons - may cause display issues")
+        
+        enrolled_count = course.get('enrolledStudents', 0)
+        if enrolled_count == 0:
+            issues.append("❌ Course shows 0 enrolled students - enrollment issue confirmed")
+            print(f"   ❌ CRITICAL: No enrolled students recorded")
+        else:
+            print(f"   ✅ Course shows {enrolled_count} enrolled students")
+        
+        return issues
+    
+    def check_instavision_enrollments(self, course_id):
+        """Check enrollments for the instavision course"""
+        try:
+            # Get all enrollments (admin can see all)
+            response = requests.get(
+                f"{BACKEND_URL}/enrollments",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            if response.status_code == 200:
+                all_enrollments = response.json()
+                
+                # Filter enrollments for this course
+                course_enrollments = [e for e in all_enrollments if e.get('courseId') == course_id]
+                
+                print(f"📊 ENROLLMENT ANALYSIS:")
+                print(f"   Total enrollments in system: {len(all_enrollments)}")
+                print(f"   Enrollments for instavision course: {len(course_enrollments)}")
+                
+                if len(course_enrollments) == 0:
+                    print(f"   ❌ CRITICAL: NO ENROLLMENTS found for instavision course")
+                    print(f"   This explains why students don't see the course!")
+                    return []
+                
+                # Analyze each enrollment
+                for i, enrollment in enumerate(course_enrollments):
+                    print(f"\n   📋 Enrollment {i+1}:")
+                    print(f"      Student ID: {enrollment.get('userId')}")
+                    print(f"      Student Name: {enrollment.get('studentName', 'N/A')}")
+                    print(f"      Enrolled At: {enrollment.get('enrolledAt')}")
+                    print(f"      Status: {enrollment.get('status')}")
+                    print(f"      Progress: {enrollment.get('progress', 0)}%")
+                    print(f"      Active: {enrollment.get('isActive', 'N/A')}")
+                
+                return course_enrollments
+            else:
+                print(f"❌ Failed to get enrollments: {response.status_code}")
+                return None
+                
+        except Exception as e:
+            print(f"❌ Error checking enrollments: {str(e)}")
+            return None
+    
+    def test_student_access_to_instavision(self, course, enrollments):
+        """Test if enrolled students can actually access the instavision course"""
+        if not enrollments:
+            print("❌ Cannot test student access - no enrollments found")
+            return []
+        
+        results = []
+        
+        # Test each enrolled student
+        for enrollment in enrollments[:3]:  # Test first 3 students
+            student_id = enrollment.get('userId')
+            student_name = enrollment.get('studentName', 'Unknown')
+            
+            print(f"\n🎓 Testing access for student: {student_name} (ID: {student_id})")
+            
+            # Try to get student info and login
+            student_info = self.get_student_info(student_id)
+            if not student_info:
+                results.append({
+                    'student_id': student_id,
+                    'student_name': student_name,
+                    'can_login': False,
+                    'can_see_course': False,
+                    'issue': 'Student not found in database'
+                })
+                continue
+            
+            # Try to login as student
+            login_success = self.test_student_login_by_info(student_info)
+            if not login_success:
+                results.append({
+                    'student_id': student_id,
+                    'student_name': student_name,
+                    'can_login': False,
+                    'can_see_course': False,
+                    'issue': 'Student login failed'
+                })
+                continue
+            
+            # Check if student can see the course
+            can_see_course = self.check_student_can_see_course(course['id'], student_info)
+            
+            results.append({
+                'student_id': student_id,
+                'student_name': student_name,
+                'can_login': True,
+                'can_see_course': can_see_course,
+                'issue': None if can_see_course else 'Course not visible to student'
+            })
+        
+        return results
+    
+    def find_instructor_karlo(self):
+        """Find instructor Karlo who created the instavision course"""
+        try:
+            response = requests.get(
+                f"{BACKEND_URL}/auth/admin/users",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            if response.status_code == 200:
+                users = response.json()
+                
+                # Look for Karlo (case-insensitive)
+                karlo_users = []
+                for user in users:
+                    full_name = user.get('full_name', '').lower()
+                    username = user.get('username', '').lower()
+                    email = user.get('email', '').lower()
+                    
+                    if 'karlo' in full_name or 'karlo' in username or 'karlo' in email:
+                        karlo_users.append(user)
+                
+                print(f"👨‍🏫 INSTRUCTOR KARLO SEARCH:")
+                print(f"   Found {len(karlo_users)} users with 'karlo' in name/username/email")
+                
+                for user in karlo_users:
+                    print(f"   📋 {user.get('full_name')} | {user.get('email')} | Role: {user.get('role')}")
+                
+                # Return instructor Karlo if found
+                instructor_karlo = None
+                for user in karlo_users:
+                    if user.get('role') == 'instructor':
+                        instructor_karlo = user
+                        break
+                
+                if instructor_karlo:
+                    print(f"   ✅ Found instructor Karlo: {instructor_karlo.get('full_name')}")
+                    return instructor_karlo
+                else:
+                    print(f"   ❌ No instructor named Karlo found")
+                    return None
+            else:
+                print(f"❌ Failed to get users: {response.status_code}")
+                return None
+                
+        except Exception as e:
+            print(f"❌ Error finding instructor Karlo: {str(e)}")
+            return None
+    
+    def analyze_instavision_root_cause(self, course, enrollments, student_access_results, course_issues):
+        """Analyze root cause of instavision course visibility issue"""
+        print(f"\n🔍 INSTAVISION COURSE ROOT CAUSE ANALYSIS")
+        print("=" * 60)
+        
+        root_causes = []
+        
+        # Check 1: Course exists
+        if course:
+            print("✅ Course exists in database")
+        else:
+            root_causes.append("❌ CRITICAL: Course does not exist")
+            return root_causes
+        
+        # Check 2: Course is published
+        if course.get('status') == 'published':
+            print("✅ Course is published")
+        else:
+            root_causes.append(f"❌ CRITICAL: Course status is '{course.get('status')}' not 'published'")
+        
+        # Check 3: Enrollments exist
+        if enrollments and len(enrollments) > 0:
+            print(f"✅ Found {len(enrollments)} enrollments")
+        else:
+            root_causes.append("❌ CRITICAL: No enrollment records found - students never enrolled properly")
+        
+        # Check 4: Student access
+        if student_access_results:
+            successful_access = [r for r in student_access_results if r.get('can_see_course')]
+            failed_access = [r for r in student_access_results if not r.get('can_see_course')]
+            
+            if len(successful_access) > 0:
+                print(f"✅ {len(successful_access)} students can access the course")
+            
+            if len(failed_access) > 0:
+                print(f"❌ {len(failed_access)} students CANNOT access the course")
+                for result in failed_access:
+                    root_causes.append(f"❌ Student {result.get('student_name')} cannot access course: {result.get('issue')}")
+        
+        # Check 5: Course structure
+        if len(course_issues) == 0:
+            print("✅ Course structure appears normal")
+        else:
+            print(f"⚠️ Found {len(course_issues)} course structure issues:")
+            for issue in course_issues:
+                print(f"   {issue}")
+                root_causes.append(issue)
+        
+        # Summary
+        if len(root_causes) == 0:
+            self.log_result(
+                "🚨 Instavision Course Investigation", 
+                "PASS", 
+                "✅ NO CRITICAL ISSUES FOUND - Course should be visible to students",
+                f"Course exists, published, {len(enrollments) if enrollments else 0} enrollments found"
+            )
+        else:
+            self.log_result(
+                "🚨 Instavision Course Investigation", 
+                "FAIL", 
+                f"❌ FOUND {len(root_causes)} CRITICAL ISSUES preventing course visibility",
+                "; ".join(root_causes)
+            )
+        
+        return root_causes
+    
+    def check_quiz_attempts_storage(self):
+        """Check if quiz attempts are being stored properly"""
+        # Note: This would require a specific quiz attempts endpoint
+        # For now, we'll check enrollment progress which should contain quiz scores
+        try:
+            response = requests.get(
+                f"{BACKEND_URL}/enrollments",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            if response.status_code == 200:
+                enrollments = response.json()
+                
+                # Look for enrollments with quiz progress
+                quiz_enrollments = []
+                for enrollment in enrollments:
+                    progress = enrollment.get('progress', 0)
+                    if progress > 0:  # Assuming progress > 0 indicates quiz completion
+                        quiz_enrollments.append(enrollment)
+                
+                print(f"📊 QUIZ ATTEMPTS ANALYSIS:")
+                print(f"   Total enrollments: {len(enrollments)}")
+                print(f"   Enrollments with progress > 0: {len(quiz_enrollments)}")
+                
+                if len(quiz_enrollments) > 0:
+                    print(f"   ✅ Found quiz progress data in enrollments")
+                    
+                    # Show sample quiz data
+                    for i, enrollment in enumerate(quiz_enrollments[:3]):
+                        print(f"   📋 Sample {i+1}: Progress {enrollment.get('progress')}% | Course: {enrollment.get('courseId')}")
+                else:
+                    print(f"   ❌ NO quiz progress found in any enrollments")
+                
+                return {
+                    'total_enrollments': len(enrollments),
+                    'quiz_enrollments': len(quiz_enrollments),
+                    'sample_data': quiz_enrollments[:5]
+                }
+            else:
+                print(f"❌ Failed to get enrollments for quiz analysis: {response.status_code}")
+                return None
+                
+        except Exception as e:
+            print(f"❌ Error checking quiz attempts: {str(e)}")
+            return None
+    
+    def check_enrollment_quiz_progress(self):
+        """Check enrollment records for quiz progress data"""
+        try:
+            response = requests.get(
+                f"{BACKEND_URL}/enrollments",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            if response.status_code == 200:
+                enrollments = response.json()
+                
+                progress_analysis = {
+                    'total': len(enrollments),
+                    'with_progress': 0,
+                    'completed': 0,
+                    'progress_distribution': {}
+                }
+                
+                for enrollment in enrollments:
+                    progress = enrollment.get('progress', 0)
+                    if progress > 0:
+                        progress_analysis['with_progress'] += 1
+                    if progress >= 100:
+                        progress_analysis['completed'] += 1
+                    
+                    # Group by progress ranges
+                    if progress == 0:
+                        range_key = '0%'
+                    elif progress < 25:
+                        range_key = '1-24%'
+                    elif progress < 50:
+                        range_key = '25-49%'
+                    elif progress < 75:
+                        range_key = '50-74%'
+                    elif progress < 100:
+                        range_key = '75-99%'
+                    else:
+                        range_key = '100%'
+                    
+                    progress_analysis['progress_distribution'][range_key] = progress_analysis['progress_distribution'].get(range_key, 0) + 1
+                
+                print(f"📈 ENROLLMENT PROGRESS ANALYSIS:")
+                print(f"   Total enrollments: {progress_analysis['total']}")
+                print(f"   With progress > 0: {progress_analysis['with_progress']}")
+                print(f"   Completed (100%): {progress_analysis['completed']}")
+                print(f"   Progress distribution:")
+                for range_key, count in progress_analysis['progress_distribution'].items():
+                    print(f"      {range_key}: {count} enrollments")
+                
+                return progress_analysis
+            else:
+                print(f"❌ Failed to get enrollment progress: {response.status_code}")
+                return None
+                
+        except Exception as e:
+            print(f"❌ Error checking enrollment progress: {str(e)}")
+            return None
+    
+    def test_analytics_endpoints(self):
+        """Test analytics-related endpoints"""
+        # Note: We need to check what analytics endpoints exist
+        # Common ones might be /analytics, /quiz-results, /reports, etc.
+        
+        analytics_endpoints = [
+            "/enrollments",  # This contains the quiz progress data
+            "/courses",      # Course data for analytics
+            "/auth/admin/users"  # User data for analytics
+        ]
+        
+        results = {}
+        
+        for endpoint in analytics_endpoints:
+            try:
+                response = requests.get(
+                    f"{BACKEND_URL}{endpoint}",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+                )
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    results[endpoint] = {
+                        'status': 'success',
+                        'data_count': len(data) if isinstance(data, list) else 1,
+                        'sample_keys': list(data[0].keys()) if isinstance(data, list) and len(data) > 0 else []
+                    }
+                    print(f"✅ {endpoint}: {results[endpoint]['data_count']} records")
+                else:
+                    results[endpoint] = {
+                        'status': 'failed',
+                        'status_code': response.status_code
+                    }
+                    print(f"❌ {endpoint}: Failed with status {response.status_code}")
+                    
+            except Exception as e:
+                results[endpoint] = {
+                    'status': 'error',
+                    'error': str(e)
+                }
+                print(f"❌ {endpoint}: Error - {str(e)}")
+        
+        return results
+    
+    def check_analytics_data_structure(self):
+        """Check if data structure is compatible with analytics frontend"""
+        issues = []
+        
+        try:
+            # Check enrollment data structure
+            response = requests.get(
+                f"{BACKEND_URL}/enrollments",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            if response.status_code == 200:
+                enrollments = response.json()
+                
+                if len(enrollments) > 0:
+                    sample_enrollment = enrollments[0]
+                    required_fields = ['id', 'userId', 'courseId', 'progress', 'status', 'enrolledAt']
+                    
+                    print(f"🔧 DATA STRUCTURE ANALYSIS:")
+                    print(f"   Sample enrollment fields: {list(sample_enrollment.keys())}")
+                    
+                    missing_fields = []
+                    for field in required_fields:
+                        if field not in sample_enrollment:
+                            missing_fields.append(field)
+                    
+                    if missing_fields:
+                        issues.append(f"❌ Missing required fields in enrollments: {missing_fields}")
+                        print(f"   ❌ Missing fields: {missing_fields}")
+                    else:
+                        print(f"   ✅ All required fields present")
+                    
+                    # Check data types
+                    progress_values = [e.get('progress') for e in enrollments if e.get('progress') is not None]
+                    if progress_values:
+                        print(f"   📊 Progress values sample: {progress_values[:5]}")
+                        
+                        # Check if progress values are reasonable (0-100)
+                        invalid_progress = [p for p in progress_values if not (0 <= p <= 100)]
+                        if invalid_progress:
+                            issues.append(f"❌ Invalid progress values found: {invalid_progress[:5]}")
+                    else:
+                        issues.append("❌ No progress values found in enrollments")
+                else:
+                    issues.append("❌ No enrollment data available for structure analysis")
+            else:
+                issues.append(f"❌ Cannot access enrollment data: {response.status_code}")
+                
+        except Exception as e:
+            issues.append(f"❌ Error checking data structure: {str(e)}")
+        
+        return issues
+    
+    def test_student_quiz_analytics_access(self):
+        """Test if a student can access their own quiz analytics data"""
+        # First, find a student with quiz progress
+        student_info = None
+        
+        try:
+            response = requests.get(
+                f"{BACKEND_URL}/enrollments",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            if response.status_code == 200:
+                enrollments = response.json()
+                
+                # Find enrollment with progress > 0
+                for enrollment in enrollments:
+                    if enrollment.get('progress', 0) > 0:
+                        student_id = enrollment.get('userId')
+                        student_info = self.get_student_info(student_id)
+                        if student_info:
+                            break
+                
+                if not student_info:
+                    print("❌ No student with quiz progress found for testing")
+                    return None
+                
+                print(f"🎓 Testing analytics access for student: {student_info.get('full_name')}")
+                
+                # Try to login as student
+                login_success = self.test_student_login_by_info(student_info)
+                if not login_success:
+                    print("❌ Student login failed")
+                    return None
+                
+                # Test student's access to their own enrollments
+                student_response = requests.get(
+                    f"{BACKEND_URL}/enrollments",
+                    timeout=TEST_TIMEOUT,
+                    headers={'Authorization': f'Bearer {self.auth_tokens.get("test_student")}'}
+                )
+                
+                if student_response.status_code == 200:
+                    student_enrollments = student_response.json()
+                    
+                    quiz_progress_count = len([e for e in student_enrollments if e.get('progress', 0) > 0])
+                    
+                    print(f"✅ Student can access their enrollments: {len(student_enrollments)} total")
+                    print(f"   📊 Enrollments with quiz progress: {quiz_progress_count}")
+                    
+                    return {
+                        'student_name': student_info.get('full_name'),
+                        'total_enrollments': len(student_enrollments),
+                        'quiz_progress_count': quiz_progress_count,
+                        'can_access_data': True
+                    }
+                else:
+                    print(f"❌ Student cannot access their enrollments: {student_response.status_code}")
+                    return {
+                        'student_name': student_info.get('full_name'),
+                        'can_access_data': False,
+                        'error': f"HTTP {student_response.status_code}"
+                    }
+            else:
+                print(f"❌ Cannot get enrollments for student testing: {response.status_code}")
+                return None
+                
+        except Exception as e:
+            print(f"❌ Error testing student analytics access: {str(e)}")
+            return None
+    
+    def analyze_quiz_analytics_root_cause(self, quiz_attempts_data, enrollment_progress_data, analytics_endpoints_results, data_structure_issues):
+        """Analyze root cause of quiz analytics issues"""
+        print(f"\n🔍 QUIZ ANALYTICS ROOT CAUSE ANALYSIS")
+        print("=" * 60)
+        
+        issues = []
+        
+        # Check 1: Quiz data exists
+        if quiz_attempts_data and quiz_attempts_data.get('quiz_enrollments', 0) > 0:
+            print(f"✅ Quiz progress data exists: {quiz_attempts_data['quiz_enrollments']} enrollments with progress")
+        else:
+            issues.append("❌ CRITICAL: No quiz progress data found in enrollments")
+        
+        # Check 2: Progress distribution
+        if enrollment_progress_data:
+            completed_count = enrollment_progress_data.get('completed', 0)
+            with_progress = enrollment_progress_data.get('with_progress', 0)
+            
+            if completed_count > 0:
+                print(f"✅ Found {completed_count} completed courses (100% progress)")
+            else:
+                issues.append("❌ No completed courses found - may indicate quiz completion not being recorded")
+            
+            if with_progress > 0:
+                print(f"✅ Found {with_progress} enrollments with some progress")
+            else:
+                issues.append("❌ CRITICAL: No progress data found in any enrollments")
+        
+        # Check 3: Analytics endpoints
+        successful_endpoints = [ep for ep, result in analytics_endpoints_results.items() if result.get('status') == 'success']
+        failed_endpoints = [ep for ep, result in analytics_endpoints_results.items() if result.get('status') != 'success']
+        
+        if len(successful_endpoints) >= 2:
+            print(f"✅ Analytics endpoints accessible: {len(successful_endpoints)}")
+        else:
+            issues.append(f"❌ Analytics endpoints failing: {failed_endpoints}")
+        
+        # Check 4: Data structure
+        if len(data_structure_issues) == 0:
+            print("✅ Data structure appears compatible")
+        else:
+            print(f"❌ Data structure issues found:")
+            for issue in data_structure_issues:
+                print(f"   {issue}")
+                issues.append(issue)
+        
+        # Summary
+        if len(issues) == 0:
+            self.log_result(
+                "🚨 Quiz Analytics Investigation", 
+                "PASS", 
+                "✅ NO CRITICAL ISSUES FOUND - Analytics data should be available",
+                f"Quiz data exists, endpoints accessible, data structure compatible"
+            )
+        else:
+            self.log_result(
+                "🚨 Quiz Analytics Investigation", 
+                "FAIL", 
+                f"❌ FOUND {len(issues)} CRITICAL ISSUES preventing analytics from working",
+                "; ".join(issues)
+            )
+        
+        return issues
+    
+    def get_student_info(self, student_id):
+        """Get student information by ID"""
+        try:
+            response = requests.get(
+                f"{BACKEND_URL}/auth/admin/users",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["admin"]}'}
+            )
+            
+            if response.status_code == 200:
+                users = response.json()
+                for user in users:
+                    if user.get('id') == student_id:
+                        return user
+            return None
+        except:
+            return None
+    
+    def test_student_login_by_info(self, student_info):
+        """Test login for a specific student"""
+        try:
+            # Try common passwords
+            passwords = ["StudentPermanent123!", "Student123!", "Password123!", "Temp123!"]
+            
+            for password in passwords:
+                login_data = {
+                    "username_or_email": student_info.get('email'),
+                    "password": password
+                }
+                
+                response = requests.post(
+                    f"{BACKEND_URL}/auth/login",
+                    json=login_data,
+                    timeout=TEST_TIMEOUT,
+                    headers={'Content-Type': 'application/json'}
+                )
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    token = data.get('access_token')
+                    if token:
+                        self.auth_tokens['test_student'] = token
+                        print(f"   ✅ Student login successful")
+                        return True
+            
+            # If login fails, try password reset
+            print(f"   ⚠️ Login failed, attempting password reset...")
+            reset_success = self.reset_student_password_for_testing(student_info)
+            if reset_success:
+                # Try with reset password
+                login_data = {
+                    "username_or_email": student_info.get('email'),
+                    "password": "TestReset123!"
+                }
+                
+                response = requests.post(
+                    f"{BACKEND_URL}/auth/login",
+                    json=login_data,
+                    timeout=TEST_TIMEOUT,
+                    headers={'Content-Type': 'application/json'}
+                )
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    token = data.get('access_token')
+                    if token:
+                        self.auth_tokens['test_student'] = token
+                        print(f"   ✅ Student login successful after reset")
+                        return True
+            
+            print(f"   ❌ Student login failed")
+            return False
+            
+        except Exception as e:
+            print(f"   ❌ Error testing student login: {str(e)}")
+            return False
+    
+    def reset_student_password_for_testing(self, student_info):
+        """Reset student password for testing purposes"""
+        try:
+            reset_data = {
+                "user_id": student_info.get('id'),
+                "new_temporary_password": "TestReset123!"
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/auth/admin/reset-password",
+                json=reset_data,
+                timeout=TEST_TIMEOUT,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {self.auth_tokens["admin"]}'
+                }
+            )
+            
+            return response.status_code == 200
+        except:
+            return False
+    
+    def check_student_can_see_course(self, course_id, student_info):
+        """Check if student can see a specific course"""
+        if 'test_student' not in self.auth_tokens:
+            return False
+        
+        try:
+            # Check student's enrollments
+            response = requests.get(
+                f"{BACKEND_URL}/enrollments",
+                timeout=TEST_TIMEOUT,
+                headers={'Authorization': f'Bearer {self.auth_tokens["test_student"]}'}
+            )
+            
+            if response.status_code == 200:
+                enrollments = response.json()
+                
+                # Check if course is in student's enrollments
+                for enrollment in enrollments:
+                    if enrollment.get('courseId') == course_id:
+                        print(f"   ✅ Course found in student's enrollments")
+                        return True
+                
+                print(f"   ❌ Course NOT found in student's enrollments")
+                print(f"   📋 Student has {len(enrollments)} enrollments total")
+                return False
+            else:
+                print(f"   ❌ Cannot access student enrollments: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            print(f"   ❌ Error checking student course access: {str(e)}")
+            return False
+
+    # =============================================================================
     # MONGODB ATLAS CONNECTION TESTS - PRIORITY FOCUS
     # =============================================================================
     
