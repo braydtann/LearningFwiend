@@ -211,7 +211,7 @@ class ClassroomCourseCountTester:
                 
                 if testing_exam_classroom:
                     print(f"✅ FOUND 'Testing exam' classroom!")
-                    print(f"   📋 Title: {testing_exam_classroom.get('title')}")
+                    print(f"   📋 Title: {testing_exam_classroom.get('title') or testing_exam_classroom.get('name')}")
                     print(f"   🆔 ID: {testing_exam_classroom.get('id')}")
                     print(f"   📚 Direct Course IDs: {testing_exam_classroom.get('courseIds', [])}")
                     print(f"   🎓 Program IDs: {testing_exam_classroom.get('programIds', [])}")
