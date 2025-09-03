@@ -9,10 +9,11 @@ import { Badge } from '../ui/badge';
 import { BookOpen, Clock, Award, TrendingUp, Play, Users, ClipboardCheck } from 'lucide-react';
 
 const StudentDashboard = () => {
-  const { user, getMyEnrollments, getAllCourses } = useAuth();
+  const { user, getMyEnrollments, getAllCourses, getAllPrograms, getAllClassrooms } = useAuth();
   const navigate = useNavigate();
   
   const [enrolledCourses, setEnrolledCourses] = useState([]);
+  const [enrolledPrograms, setEnrolledPrograms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [quizResults, setQuizResults] = useState([]);
   
