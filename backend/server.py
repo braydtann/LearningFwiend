@@ -3590,8 +3590,10 @@ class FinalTestUpdate(BaseModel):
     isPublished: Optional[bool] = None
 
 class FinalTestAttemptCreate(BaseModel):
-    finalTestId: str
-    answers: List[str]  # Student's answers in order
+    testId: str
+    programId: Optional[str] = None
+    answers: List[Dict[str, Any]] = Field(..., description="Student answers with questionId and answer fields")
+    timeSpent: Optional[int] = None  # Time spent in seconds
 
 class FinalTestAttemptInDB(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
