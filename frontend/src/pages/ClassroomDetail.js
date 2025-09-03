@@ -159,15 +159,49 @@ const ClassroomDetail = () => {
     }
   }, [classroom]);
 
+  // Calculate total course count including courses from programs
+  const getTotalCourseCount = (classroom) => {
+    if (!classroom) return 0;
+    
+    // Count direct courses
+    const directCoursesCount = classroom.courseIds?.length || 0;
+    
+    // Count courses from programs
+    let programCoursesCount = 0;
+    if (classroom.programIds && availablePrograms.length > 0) {
+      classroom.programIds.forEach(programId => {
+        const program = availablePrograms.find(p => p.id === programId);
+        if (program && program.courseIds) {
+          programCoursesCount += program.courseIds.length;
+        }
+      });
+    }
+    
+    return directCoursesCount + programCoursesCount;
+  };
+
   const loadCourses = async () => {
     setLoadingCourses(true);
     setCoursesError(null);
     try {
       const result = await getAllCourses();
       if (result.success) {
-        // Filter courses that are assigned to this classroom
+        // Collect all course IDs from both direct courses and program courses
+        const allCourseIds = new Set(classroom?.courseIds || []);
+        
+        // Add courses from programs
+        if (classroom?.programIds && availablePrograms.length > 0) {
+          classroom.programIds.forEach(programId => {
+            const program = availablePrograms.find(p => p.id === programId);
+            if (program && program.courseIds) {
+              program.courseIds.forEach(courseId => allCourseIds.add(courseId));
+            }
+          });
+        }
+        
+        // Filter courses that are assigned to this classroom (direct + program courses)
         const classroomCourses = result.courses.filter(course => 
-          classroom?.courseIds?.includes(course.id)
+          allCourseIds.has(course.id)
         );
         setCourses(classroomCourses);
       } else {
