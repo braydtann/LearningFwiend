@@ -516,7 +516,7 @@ const ClassroomDetail = () => {
                   <BookOpen className="h-5 w-5 text-gray-500" />
                   <div>
                     <p className="text-sm text-gray-500">Courses</p>
-                    <p className="font-medium">{courses.length}</p>
+                    <p className="font-medium">{getTotalCourseCount(classroom)}</p>
                   </div>
                 </div>
               </div>
