@@ -6,7 +6,9 @@ import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Progress } from '../components/ui/progress';
 import { Textarea } from '../components/ui/textarea';
-// TODO: Replace with backend data when final tests are implemented
+import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group';
+import { Checkbox } from '../components/ui/checkbox';
+import { Label } from '../components/ui/label';
 import { 
   Clock, 
   CheckCircle, 
@@ -17,14 +19,26 @@ import {
   BookOpen,
   Trophy,
   Play,
-  FileText
+  FileText,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 
 const FinalTest = () => {
   const { courseId, programId } = useParams();
   const navigate = useNavigate();
-  const { user, getProgramById, getCourseById, getAllCourses, updateEnrollmentProgress } = useAuth();
+  const { 
+    user, 
+    getProgramById, 
+    getCourseById, 
+    getAllCourses, 
+    updateEnrollmentProgress,
+    getAllFinalTests,
+    getFinalTestById,
+    submitFinalTestAttempt,
+    getFinalTestAttempts
+  } = useAuth();
   const { toast } = useToast();
 
   // Determine if this is a program or course final test
@@ -32,10 +46,16 @@ const FinalTest = () => {
   
   const [program, setProgram] = useState(null);
   const [course, setCourse] = useState(null);
+  const [finalTest, setFinalTest] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [testStarted, setTestStarted] = useState(false);
   const [testCompleted, setTestCompleted] = useState(false);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [answers, setAnswers] = useState({});
+  const [timeRemaining, setTimeRemaining] = useState(null);
+  const [previousAttempts, setPreviousAttempts] = useState([]);
+  const [attemptResult, setAttemptResult] = useState(null);
 
   useEffect(() => {
     loadTestData();
