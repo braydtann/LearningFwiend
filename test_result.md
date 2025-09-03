@@ -192,6 +192,13 @@ backend:
     stuck_count: 0
     priority: "critical"
     needs_retesting: false
+  - task: "Student Dashboard Enrolled Programs Functionality"
+    implemented: true
+    working: true
+    file: "/app/student_dashboard_enrolled_programs_test.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
     status_history:
       - working: false
         agent: "testing"
