@@ -159,57 +159,106 @@ const FinalTest = () => {
   };
 
   const startFinalExam = () => {
+    if (!finalTest || !finalTest.questions || finalTest.questions.length === 0) {
+      toast({
+        title: "Error",
+        description: "No questions available for this final exam.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setTestStarted(true);
+    setCurrentQuestionIndex(0);
+    setAnswers({});
+    
+    // Initialize time if there's a time limit
+    if (finalTest.timeLimit) {
+      setTimeRemaining(finalTest.timeLimit * 60);
+    }
+
     toast({
       title: "Final Exam Started",
       description: "You are now taking the final exam. Good luck!",
     });
   };
 
-  const completeFinalExam = async () => {
-    // For now, we'll mark the exam as completed
-    // In a real implementation, this would involve actual quiz questions
-    setTestCompleted(true);
-    
-    // Simulate exam completion with high score
-    const score = 95; // Simulated score
-    
+  const handleAnswerChange = (questionId, answer) => {
+    setAnswers(prev => ({
+      ...prev,
+      [questionId]: answer
+    }));
+  };
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const nextQuestion = () => {
+    if (currentQuestionIndex < finalTest.questions.length - 1) {
+      setCurrentQuestionIndex(prev => prev + 1);
+    }
+  };
+
+  const previousQuestion = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(prev => prev - 1);
+    }
+  };
+
+  const handleSubmitExam = async () => {
+    if (!finalTest) return;
+
     try {
-      if (isProgram && program) {
-        // For program completion, we could create a program completion record
-        // For now, we'll just show success
+      // Prepare answers in the format expected by the backend
+      const formattedAnswers = finalTest.questions.map(question => ({
+        questionId: question.id,
+        answer: answers[question.id] || null
+      }));
+
+      const attemptData = {
+        testId: finalTest.id,
+        programId: programId,
+        answers: formattedAnswers,
+        timeSpent: finalTest.timeLimit ? (finalTest.timeLimit * 60 - (timeRemaining || 0)) : null
+      };
+
+      const result = await submitFinalTestAttempt(attemptData);
+      
+      if (result.success) {
+        setAttemptResult(result.attempt);
+        setTestCompleted(true);
+        setTestStarted(false);
+        
+        const score = result.attempt.score || 0;
+        const passed = score >= (finalTest.passingScore || 70);
+        
         toast({
-          title: "Program Final Exam Completed!",
-          description: `Congratulations! You scored ${score}% on your final exam for "${program.title}". Your certificate is being generated.`,
+          title: passed ? "Exam Completed Successfully!" : "Exam Completed",
+          description: `You scored ${score}% on your final exam for "${finalTest.title}". ${passed ? 'Congratulations! Your certificate is being generated.' : 'You need 70% or higher to pass.'}`,
+          variant: passed ? "default" : "destructive",
         });
         
-        // Navigate to certificates page after a delay
-        setTimeout(() => {
-          navigate('/certificates');
-        }, 3000);
-      } else if (course) {
-        // Update course progress to 100%
-        const result = await updateEnrollmentProgress(course.id, {
-          progress: 100
-        });
-        
-        if (result.success) {
-          toast({
-            title: "Course Final Exam Completed!",
-            description: `Congratulations! You scored ${score}% on your final exam for "${course.title}". Your certificate is being generated.`,
-          });
-          
-          // Navigate to certificates page after a delay
+        if (passed) {
+          // Navigate to certificates page after a delay for passed exams
           setTimeout(() => {
             navigate('/certificates');
           }, 3000);
         }
+      } else {
+        toast({
+          title: "Error",
+          description: result.error || "Failed to submit exam. Please try again.",
+          variant: "destructive",
+        });
       }
     } catch (error) {
-      console.error('Error completing final exam:', error);
+      console.error('Error submitting final exam:', error);
       toast({
         title: "Error",
-        description: "There was an error processing your exam completion.",
+        description: "There was an error processing your exam submission.",
         variant: "destructive",
       });
     }
