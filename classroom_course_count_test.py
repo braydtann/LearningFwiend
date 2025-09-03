@@ -333,7 +333,7 @@ class ClassroomCourseCountTester:
         print("\n🎯 TEST 3: TESTING EXAM CLASSROOM COURSE COUNT")
         print("=" * 60)
         print("OBJECTIVE: Verify Testing exam classroom shows correct course count (2)")
-        print("EXPECTED: Should calculate 0 direct + 2 program = 2 total courses")
+        print("EXPECTED: Should calculate 0 direct + 3 program = 3 total courses")
         print("-" * 60)
         
         if not classroom:
