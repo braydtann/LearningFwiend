@@ -32,7 +32,7 @@ import sys
 from datetime import datetime
 
 # Configuration
-BACKEND_URL = "https://project-summary-3.preview.emergentagent.com/api"
+BACKEND_URL = "https://learningfriend-lms.preview.emergentagent.com/api"
 ADMIN_EMAIL = "brayden.t@covesmart.com"
 ADMIN_PASSWORD = "Hawaii2020!"
 

@@ -28,7 +28,7 @@ import sys
 from datetime import datetime
 
 # Configuration - Using production URL from frontend/.env
-BACKEND_URL = "https://project-summary-3.preview.emergentagent.com/api"
+BACKEND_URL = "https://learningfriend-lms.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 # Test credentials from review request

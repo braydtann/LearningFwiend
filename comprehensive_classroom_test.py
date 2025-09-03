@@ -11,7 +11,7 @@ from datetime import datetime
 import time
 
 # Configuration
-BACKEND_URL = "https://project-summary-3.preview.emergentagent.com/api"
+BACKEND_URL = "https://learningfriend-lms.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 class ComprehensiveClassroomTester:
