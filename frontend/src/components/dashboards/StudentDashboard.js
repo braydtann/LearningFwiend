@@ -138,6 +138,87 @@ const StudentDashboard = () => {
       setLoading(false);
     }
   };
+
+  const loadEnrolledPrograms = async () => {
+    try {
+      // Get classrooms where student is enrolled
+      const classroomsResult = await getAllClassrooms();
+      if (!classroomsResult.success) return;
+
+      const studentClassrooms = classroomsResult.classrooms.filter(classroom => 
+        classroom.studentIds && classroom.studentIds.includes(user.id)
+      );
+
+      if (studentClassrooms.length === 0) {
+        setEnrolledPrograms([]);
+        return;
+      }
+
+      // Get all programs to match with classroom programs
+      const programsResult = await getAllPrograms();
+      if (!programsResult.success) return;
+
+      // Get enrollments to track course completion
+      const enrollmentResult = await getMyEnrollments();
+      const enrollments = enrollmentResult.success ? enrollmentResult.enrollments : [];
+
+      // Get all courses for program course lookup
+      const coursesResult = await getAllCourses();
+      const allCourses = coursesResult.success ? coursesResult.courses : [];
+
+      const enrolledProgramsData = [];
+
+      // Process each classroom to find programs
+      studentClassrooms.forEach(classroom => {
+        classroom.programIds?.forEach(programId => {
+          const program = programsResult.programs.find(p => p.id === programId);
+          if (program && !enrolledProgramsData.find(ep => ep.id === program.id)) {
+            // Calculate program progress
+            const programCourses = program.courseIds.map(courseId => 
+              allCourses.find(c => c.id === courseId)
+            ).filter(Boolean);
+
+            const completedCourses = programCourses.filter(course => {
+              const enrollment = enrollments.find(e => e.courseId === course.id);
+              return enrollment && enrollment.progress >= 100;
+            });
+
+            const overallProgress = programCourses.length > 0 
+              ? Math.round((completedCourses.length / programCourses.length) * 100)
+              : 0;
+
+            const isCompleted = completedCourses.length === programCourses.length && programCourses.length > 0;
+
+            enrolledProgramsData.push({
+              id: program.id,
+              title: program.title,
+              description: program.description,
+              totalCourses: programCourses.length,
+              completedCourses: completedCourses.length,
+              progress: overallProgress,
+              isCompleted,
+              courses: programCourses.map(course => {
+                const enrollment = enrollments.find(e => e.courseId === course.id);
+                return {
+                  id: course.id,
+                  title: course.title,
+                  completed: enrollment && enrollment.progress >= 100,
+                  progress: enrollment ? enrollment.progress : 0
+                };
+              }),
+              classroomName: classroom.name
+            });
+          }
+        });
+      });
+
+      setEnrolledPrograms(enrolledProgramsData);
+      console.log(`Loaded ${enrolledProgramsData.length} enrolled programs`);
+    } catch (error) {
+      console.error('Error loading enrolled programs:', error);
+      setEnrolledPrograms([]);
+    }
+  };
   
   const stats = {
     enrolled: enrolledCourses.length,
