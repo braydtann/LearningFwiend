@@ -25,6 +25,7 @@ const StudentDashboard = () => {
   useEffect(() => {
     if (user) {
       loadEnrollments();
+      loadEnrolledPrograms();
     }
   }, [user]);
 
