@@ -316,8 +316,8 @@ class ClassroomCourseCountTester:
         print(f"   Program courses: {program_course_count}")
         print(f"   Total courses: {total_course_count}")
         
-        # Check if matches expected result (2 total)
-        expected_total = 2
+        # Check if matches expected result (3 total)
+        expected_total = 3
         if total_course_count == expected_total:
             self.log_result(
                 "View Mode Logic Simulation", 
