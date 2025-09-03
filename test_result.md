@@ -2743,11 +2743,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "CRITICAL BUG 1: Instavision Course Enrollment Investigation"
-    - "CRITICAL BUG 2: Quiz Analytics Data Investigation"
-  stuck_tasks:
-    - "CRITICAL BUG 1: Instavision Course Enrollment Investigation"
-    - "CRITICAL BUG 2: Quiz Analytics Data Investigation"
+    - "Password Reset and Enrollment Verification Testing"
+    - "Course Count Display Bug Investigation"
+  stuck_tasks: []
   test_all: false
   test_priority: "critical_first"
 
