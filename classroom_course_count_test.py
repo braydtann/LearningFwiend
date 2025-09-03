@@ -550,7 +550,7 @@ class ClassroomCourseCountTester:
         print("=" * 100)
         print("OBJECTIVE: Verify the ClassroomDetail.js fix is working correctly")
         print("CONTEXT: Applied fix to load programs in both VIEW and EDIT modes")
-        print("EXPECTED: Course count should show 2 instead of 0 for Testing exam classroom")
+        print("EXPECTED: Course count should show 3 instead of 0 for Testing exam classroom")
         print("=" * 100)
         
         # Test 1: Student Programs Access
