@@ -971,7 +971,111 @@ class BackendTester:
     # MONGODB ATLAS CONNECTION TESTS - PRIORITY FOCUS
     # =============================================================================
     
-    def test_mongodb_atlas_connectivity(self):
+    def run_critical_bug_investigation(self):
+        """🚨 MAIN METHOD: Run both critical bug investigations"""
+        print("\n" + "=" * 100)
+        print("🚨 CRITICAL BUG INVESTIGATION - LEARNINGFWIEND LMS")
+        print("=" * 100)
+        print("INVESTIGATING TWO URGENT PRODUCTION BUGS:")
+        print("1. 'instavision' course enrollment issue - students can't see enrolled course")
+        print("2. Quiz analytics returning no results despite previous fixes")
+        print("=" * 100)
+        
+        # Initialize results
+        investigation_results = {
+            'instavision_course': False,
+            'quiz_analytics': False,
+            'admin_auth': False
+        }
+        
+        # Step 1: Test admin authentication first
+        print("\n🔑 STEP 1: Admin Authentication")
+        print("-" * 50)
+        admin_success = self.test_admin_login()
+        investigation_results['admin_auth'] = admin_success
+        
+        if not admin_success:
+            self.log_result(
+                "🚨 CRITICAL BUG INVESTIGATION", 
+                "FAIL", 
+                "❌ CANNOT PROCEED - Admin authentication failed",
+                "Need admin access (brayden.t@covesmart.com / Hawaii2020!) to investigate bugs"
+            )
+            return False
+        
+        # Step 2: Investigate instavision course bug
+        print("\n" + "=" * 80)
+        investigation_results['instavision_course'] = self.investigate_instavision_course_bug()
+        
+        # Step 3: Investigate quiz analytics bug
+        print("\n" + "=" * 80)
+        investigation_results['quiz_analytics'] = self.investigate_quiz_analytics_bug()
+        
+        # Step 4: Final summary
+        print("\n" + "=" * 100)
+        print("🚨 CRITICAL BUG INVESTIGATION SUMMARY")
+        print("=" * 100)
+        
+        total_issues = 0
+        if not investigation_results['instavision_course']:
+            total_issues += 1
+            print("❌ BUG 1: 'instavision' course enrollment issue - CRITICAL ISSUES FOUND")
+        else:
+            print("✅ BUG 1: 'instavision' course enrollment issue - NO CRITICAL ISSUES")
+        
+        if not investigation_results['quiz_analytics']:
+            total_issues += 1
+            print("❌ BUG 2: Quiz analytics broken - CRITICAL ISSUES FOUND")
+        else:
+            print("✅ BUG 2: Quiz analytics broken - NO CRITICAL ISSUES")
+        
+        print(f"\n📊 INVESTIGATION RESULTS:")
+        print(f"   Admin Authentication: {'✅ SUCCESS' if investigation_results['admin_auth'] else '❌ FAILED'}")
+        print(f"   Instavision Course Bug: {'✅ RESOLVED' if investigation_results['instavision_course'] else '❌ ISSUES FOUND'}")
+        print(f"   Quiz Analytics Bug: {'✅ RESOLVED' if investigation_results['quiz_analytics'] else '❌ ISSUES FOUND'}")
+        print(f"   Total Critical Issues: {total_issues}")
+        
+        if total_issues == 0:
+            self.log_result(
+                "🚨 CRITICAL BUG INVESTIGATION - FINAL SUMMARY", 
+                "PASS", 
+                "✅ ALL INVESTIGATIONS COMPLETED - No critical backend issues found",
+                f"Both bugs may be frontend-related or already resolved. Backend APIs functioning correctly."
+            )
+            return True
+        else:
+            self.log_result(
+                "🚨 CRITICAL BUG INVESTIGATION - FINAL SUMMARY", 
+                "FAIL", 
+                f"❌ FOUND CRITICAL ISSUES in {total_issues} bug investigation(s)",
+                f"Detailed findings logged above. Immediate attention required for production bugs."
+            )
+            return False
+
+    def run_all_tests(self):
+        """Run the critical bug investigation as the main test suite"""
+        print("🚀 Starting Critical Bug Investigation...")
+        
+        # Run the critical bug investigation
+        success = self.run_critical_bug_investigation()
+        
+        # Print final results
+        print(f"\n" + "=" * 100)
+        print("📊 FINAL TEST RESULTS")
+        print("=" * 100)
+        print(f"Total Tests: {len(self.results)}")
+        print(f"Passed: {self.passed}")
+        print(f"Failed: {self.failed}")
+        print(f"Success Rate: {(self.passed / len(self.results) * 100):.1f}%" if self.results else "0%")
+        
+        if success:
+            print("\n✅ CRITICAL BUG INVESTIGATION COMPLETED SUCCESSFULLY")
+            print("   Backend APIs are functioning correctly for both reported bugs")
+        else:
+            print("\n❌ CRITICAL ISSUES FOUND IN BUG INVESTIGATION")
+            print("   Detailed findings above require immediate attention")
+        
+        return success
         """Test basic MongoDB Atlas cloud database connectivity"""
         try:
             # Test basic backend health which should indicate database connectivity
