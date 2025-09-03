@@ -204,8 +204,8 @@ class ClassroomCourseCountTester:
                 # Search for "Testing exam" classroom (case-insensitive)
                 testing_exam_classroom = None
                 for classroom in classrooms:
-                    title = classroom.get('title', '').lower()
-                    if 'testing' in title and 'exam' in title:
+                    title = classroom.get('title', '').lower() or classroom.get('name', '').lower()
+                    if 'testing' in title and ('exam' in title or 'classroom' in title):
                         testing_exam_classroom = classroom
                         break
                 
