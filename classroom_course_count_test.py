@@ -413,7 +413,7 @@ class ClassroomCourseCountTester:
                         "Testing Exam Classroom Course Count", 
                         "FAIL", 
                         "❌ Classroom title mismatch - not the Testing exam classroom",
-                        f"Found: '{detailed_classroom.get('title')}'"
+                        f"Found: '{detailed_classroom.get('title') or detailed_classroom.get('name')}'"
                     )
                     return False
             else:
