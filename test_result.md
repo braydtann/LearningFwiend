@@ -2781,8 +2781,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Password Reset and Enrollment Verification Testing"
-    - "Course Count Display Bug Investigation"
+    - "Student Programs Access Investigation - COMPLETED"
+    - "ClassroomDetail.js Course Count Bug - ROOT CAUSE IDENTIFIED"
   stuck_tasks: []
   test_all: false
   test_priority: "critical_first"
