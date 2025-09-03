@@ -178,7 +178,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "QUIZ ANALYTICS SCORES SHOWING 0%: User reports that quiz and test scores from agents are not deploying the correct results to the quiz and test analytics page for students. All scores report as 0% instead of reporting the proper scores taken from the quizzes. This is a critical analytics data flow issue affecting the QuizResults.js frontend page."
+user_problem_statement: "CRITICAL BUG INVESTIGATION - Two urgent issues need investigation: BUG 1: Course Enrollment Issue - 'instavision' course - Instructor Karlo created a course called 'instavision', Students were enrolled but course is NOT showing in their courses list, Need to investigate: Does the course exist? Are enrollment records created? Is course published? Are students actually enrolled? BUG 2: Quiz Analytics Still Broken - Quiz analytics page returning no results despite previous fixes, Need to check: Are quiz attempts being stored? Is analytics query working? Is data flow correct? TESTING REQUIRED: Find 'instavision' course, Test student enrollments, Quiz analytics investigation, Test student dashboard. Use admin credentials: brayden.t@covesmart.com / Hawaii2020!"
 
 backend:
   - task: "Quiz Analytics Data Flow Investigation - Root Cause Analysis"
