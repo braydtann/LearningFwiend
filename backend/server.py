@@ -4268,7 +4268,7 @@ async def update_final_test(
         )
     
     # Check if test has attempts
-    attempt_count = await db.final_test_attempts.count_documents({"finalTestId": test_id, "isActive": True})
+    attempt_count = await db.final_test_attempts.count_documents({"testId": test_id, "isActive": True})
     if attempt_count > 0 and test_data.passingScore is not None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
