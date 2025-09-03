@@ -264,6 +264,140 @@ const FinalTest = () => {
     }
   };
 
+  const renderQuestion = (question) => {
+    const currentAnswer = answers[question.id];
+
+    switch (question.type) {
+      case 'multiple-choice':
+        return (
+          <div className="space-y-4">
+            <RadioGroup
+              value={currentAnswer || ''}
+              onValueChange={(value) => handleAnswerChange(question.id, value)}
+            >
+              {question.options?.map((option, index) => (
+                <div key={index} className="flex items-center space-x-2">
+                  <RadioGroupItem value={option} id={`option-${index}`} />
+                  <Label htmlFor={`option-${index}`} className="flex-grow cursor-pointer">
+                    {option}
+                  </Label>
+                </div>
+              ))}
+            </RadioGroup>
+          </div>
+        );
+
+      case 'select-all-that-apply':
+        return (
+          <div className="space-y-4">
+            {question.options?.map((option, index) => {
+              const selectedOptions = currentAnswer || [];
+              const isChecked = selectedOptions.includes(option);
+              
+              return (
+                <div key={index} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`option-${index}`}
+                    checked={isChecked}
+                    onCheckedChange={(checked) => {
+                      let newSelection = [...selectedOptions];
+                      if (checked && !isChecked) {
+                        newSelection.push(option);
+                      } else if (!checked && isChecked) {
+                        newSelection = newSelection.filter(item => item !== option);
+                      }
+                      handleAnswerChange(question.id, newSelection);
+                    }}
+                  />
+                  <Label htmlFor={`option-${index}`} className="flex-grow cursor-pointer">
+                    {option}
+                  </Label>
+                </div>
+              );
+            })}
+          </div>
+        );
+
+      case 'true-false':
+        return (
+          <div className="space-y-4">
+            <RadioGroup
+              value={currentAnswer || ''}
+              onValueChange={(value) => handleAnswerChange(question.id, value)}
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="true" id="true" />
+                <Label htmlFor="true" className="cursor-pointer">True</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="false" id="false" />
+                <Label htmlFor="false" className="cursor-pointer">False</Label>
+              </div>
+            </RadioGroup>
+          </div>
+        );
+
+      case 'short-answer':
+        return (
+          <div className="space-y-4">
+            <Textarea
+              placeholder="Enter your answer here..."
+              value={currentAnswer || ''}
+              onChange={(e) => handleAnswerChange(question.id, e.target.value)}
+              rows={3}
+            />
+          </div>
+        );
+
+      case 'long-form':
+        return (
+          <div className="space-y-4">
+            <Textarea
+              placeholder="Enter your detailed answer here..."
+              value={currentAnswer || ''}
+              onChange={(e) => handleAnswerChange(question.id, e.target.value)}
+              rows={6}
+            />
+          </div>
+        );
+
+      case 'chronological-order':
+        const items = question.items || [];
+        const currentOrder = currentAnswer || [];
+        
+        return (
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600 mb-4">
+              Drag and drop the items below to arrange them in chronological order:
+            </p>
+            <div className="space-y-2">
+              {items.map((item, index) => (
+                <div key={index} className="p-3 border rounded bg-gray-50 cursor-move">
+                  {item}
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-gray-500">
+              Note: For now, please enter your answer as comma-separated numbers (e.g., "3,1,4,2")
+            </p>
+            <Textarea
+              placeholder="Enter the correct order as numbers (e.g., 3,1,4,2)"
+              value={currentAnswer || ''}
+              onChange={(e) => handleAnswerChange(question.id, e.target.value)}
+              rows={2}
+            />
+          </div>
+        );
+
+      default:
+        return (
+          <div className="p-4 border border-yellow-200 bg-yellow-50 rounded">
+            <p className="text-yellow-800">Unsupported question type: {question.type}</p>
+          </div>
+        );
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -304,22 +438,36 @@ const FinalTest = () => {
   const examType = isProgram ? "Program Final Exam" : "Course Final Exam";
 
   if (testCompleted) {
+    const passed = attemptResult && attemptResult.score >= (finalTest?.passingScore || 70);
+    
     return (
       <div className="max-w-4xl mx-auto p-6">
         <Card>
           <CardContent className="text-center py-12">
-            <Trophy className="h-20 w-20 text-yellow-500 mx-auto mb-6" />
+            <Trophy className={`h-20 w-20 ${passed ? 'text-yellow-500' : 'text-gray-400'} mx-auto mb-6`} />
             <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              Congratulations! 🎉
+              {passed ? 'Congratulations! 🎉' : 'Exam Completed'}
             </h1>
             <p className="text-xl text-gray-600 mb-6">
-              You have successfully completed the final exam for "{examTitle}"
+              You have completed the final exam for "{examTitle}"
             </p>
+            {attemptResult && (
+              <div className="mb-6">
+                <p className="text-2xl font-bold mb-2">
+                  Score: {attemptResult.score}%
+                </p>
+                <p className="text-gray-600">
+                  {passed ? 'You have passed the final exam!' : `You need ${finalTest?.passingScore || 70}% or higher to pass.`}
+                </p>
+              </div>
+            )}
             <div className="flex gap-4 justify-center">
-              <Button onClick={() => navigate('/certificates')}>
-                <Award className="w-4 h-4 mr-2" />
-                View Certificate
-              </Button>
+              {passed && (
+                <Button onClick={() => navigate('/certificates')}>
+                  <Award className="w-4 h-4 mr-2" />
+                  View Certificate
+                </Button>
+              )}
               <Button variant="outline" onClick={() => navigate('/dashboard')}>
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Dashboard
@@ -331,7 +479,11 @@ const FinalTest = () => {
     );
   }
 
-  if (testStarted) {
+  if (testStarted && finalTest) {
+    const currentQuestion = finalTest.questions[currentQuestionIndex];
+    const progress = ((currentQuestionIndex + 1) / finalTest.questions.length) * 100;
+    const answeredCount = Object.keys(answers).length;
+
     return (
       <div className="max-w-4xl mx-auto p-6">
         <Card>
@@ -341,30 +493,62 @@ const FinalTest = () => {
                 <CardTitle className="text-2xl">{examType}</CardTitle>
                 <p className="text-gray-600 mt-1">{examTitle}</p>
               </div>
-              <Badge variant="secondary">
-                <Timer className="w-4 h-4 mr-1" />
-                60:00 remaining
-              </Badge>
+              {timeRemaining !== null && (
+                <Badge variant={timeRemaining < 300 ? "destructive" : "secondary"}>
+                  <Timer className="w-4 h-4 mr-1" />
+                  {formatTime(timeRemaining)} remaining
+                </Badge>
+              )}
             </div>
           </CardHeader>
-          <CardContent className="space-y-8">
-            {/* Simulated Exam Interface */}
-            <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-lg">
-              <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Final Examination in Progress
-              </h3>
-              <p className="text-gray-600 mb-6">
-                This is a simulated final exam interface. In a real implementation, 
-                this would contain actual exam questions.
-              </p>
-              <p className="text-sm text-gray-500 mb-6">
-                For demonstration purposes, clicking "Submit Exam" will mark the exam as completed 
-                with a passing grade.
-              </p>
-              <Button onClick={completeFinalExam} size="lg">
-                Submit Exam
+          <CardContent className="space-y-6">
+            {/* Progress Bar */}
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm text-gray-600">
+                <span>Question {currentQuestionIndex + 1} of {finalTest.questions.length}</span>
+                <span>{answeredCount} answered</span>
+              </div>
+              <Progress value={progress} className="h-2" />
+            </div>
+
+            {/* Current Question */}
+            <Card className="border-l-4 border-l-blue-500">
+              <CardContent className="p-6">
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold mb-4">
+                    {currentQuestion.question}
+                  </h3>
+                  {renderQuestion(currentQuestion)}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Navigation */}
+            <div className="flex justify-between items-center">
+              <Button
+                variant="outline"
+                onClick={previousQuestion}
+                disabled={currentQuestionIndex === 0}
+              >
+                <ChevronLeft className="w-4 h-4 mr-2" />
+                Previous
               </Button>
+
+              <div className="flex gap-2">
+                {currentQuestionIndex === finalTest.questions.length - 1 ? (
+                  <Button
+                    onClick={handleSubmitExam}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    Submit Exam
+                  </Button>
+                ) : (
+                  <Button onClick={nextQuestion}>
+                    Next
+                    <ChevronRight className="w-4 h-4 ml-2" />
+                  </Button>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
