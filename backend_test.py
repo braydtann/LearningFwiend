@@ -1,14 +1,25 @@
 #!/usr/bin/env python3
 """
-COMPREHENSIVE BACKEND TESTING SUITE - POST 404 ERROR RESOLUTION
+CRITICAL BUG INVESTIGATION - INSTAVISION COURSE & QUIZ ANALYTICS
 LearningFwiend LMS Application Backend API Testing
 
-TESTING SCOPE:
-✅ AUTHENTICATION TESTING with provided credentials
-✅ CORE API ENDPOINTS (User, Course, Enrollment, Classroom, Program, etc.)
-✅ CRITICAL FUNCTIONALITIES (Course creation, Auto-enrollment, Progress tracking, etc.)
+URGENT ISSUES TO INVESTIGATE:
+🚨 BUG 1: Course Enrollment Issue - "instavision" course
+   - Instructor Karlo created a course called "instavision"  
+   - Students were enrolled but course is NOT showing in their courses list
+   - Need to investigate: Does the course exist? Are enrollment records created? Is course published? Are students actually enrolled?
 
-TARGET SUCCESS RATE: 90%+ on all critical functionality tests
+🚨 BUG 2: Quiz Analytics Still Broken
+   - Quiz analytics page returning no results despite previous fixes
+   - Need to check: Are quiz attempts being stored? Is analytics query working? Is data flow correct?
+
+TESTING REQUIRED:
+1. Find "instavision" course - Search for course by title, check its status, enrollments
+2. Test student enrollments - Check if students are properly enrolled and can access courses
+3. Quiz analytics investigation - Check quiz_attempts collection, analytics endpoints, data structure
+4. Test student dashboard - Verify enrolled courses appear correctly
+
+Admin credentials: brayden.t@covesmart.com / Hawaii2020!
 """
 
 import requests
