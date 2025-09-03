@@ -220,12 +220,12 @@ const ClassroomDetail = () => {
     }
   };
 
-  // Load courses when classroom data is available
+  // Load courses when classroom data is available and programs are loaded
   useEffect(() => {
-    if (classroom) {
+    if (classroom && (availablePrograms.length > 0 || !classroom.programIds || classroom.programIds.length === 0)) {
       loadCourses();
     }
-  }, [classroom]);
+  }, [classroom, availablePrograms]);
 
   const handleSave = async () => {
     setSaving(true);
