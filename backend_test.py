@@ -19,8 +19,8 @@ from datetime import datetime
 import time
 import uuid
 
-# Configuration - Using localhost URL from frontend/.env as per review request
-BACKEND_URL = "http://localhost:8001/api"
+# Configuration - Using production URL from frontend/.env
+BACKEND_URL = "https://project-summary-3.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 # Test credentials from review request
