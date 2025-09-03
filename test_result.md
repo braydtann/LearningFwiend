@@ -181,29 +181,17 @@
 user_problem_statement: "🚨 CRITICAL BUG INVESTIGATION: Program Assignment to Classroom Enrollment Issue - User created a new program called 'test program 2', Assigned student user (brayden.student) to that program, Student can see classroom in their classrooms list, BUT classroom shows student is NOT enrolled (enrollment status mismatch). INVESTIGATION NEEDED: 1) Find 'test program 2' - Verify program exists and student assignment, 2) Check student assignment - Verify brayden.student is properly assigned to the program, 3) Check classroom creation - Find the classroom associated with this program, 4) Test auto-enrollment logic - Verify if program assignment triggers classroom enrollment, 5) Check enrollment records - Look for enrollment records for brayden.student, 6) Test enrollment status display - Verify how frontend determines enrollment status. SPECIFIC TESTS: GET /api/programs - Find 'test program 2', GET /api/programs/{id} - Check student assignments, GET /api/classrooms - Find associated classroom, GET /api/enrollments - Check brayden.student enrollment records, Test program-to-classroom auto-enrollment workflow. Use admin credentials: brayden.t@covesmart.com / Hawaii2020!, Also test with student credentials: brayden.student@learningfwiend.com"
 
 backend:
-  - task: "CRITICAL BUG 1: Instavision Course Enrollment Investigation"
+  - task: "CRITICAL BUG: Program Assignment to Classroom Enrollment Issue"
     implemented: true
     working: false
-    file: "/app/backend_test.py"
-    stuck_count: 1
+    file: "/app/program_enrollment_bug_test.py"
+    stuck_count: 0
     priority: "critical"
     needs_retesting: false
     status_history:
       - working: false
         agent: "testing"
-        comment: "🚨 CRITICAL DISCOVERY: 'INSTAVISION' COURSE NOT FOUND IN DATABASE - Executed comprehensive investigation of the specific 'instavision' course enrollment issue as requested in review. INVESTIGATION FINDINGS: ❌ COURSE DOES NOT EXIST - Searched through 31 courses in database, 'instavision' course NOT FOUND anywhere, no courses with similar names (insta, vision, video, image) detected, ✅ ADMIN AUTHENTICATION WORKING - Successfully authenticated with brayden.t@covesmart.com / Hawaii2020! credentials, ✅ BACKEND APIS FUNCTIONAL - GET /api/courses endpoint working correctly (retrieved 31 courses), course search functionality operational. ROOT CAUSE IDENTIFIED: The 'instavision' course was either: 1) Never actually created successfully by instructor Karlo, 2) Created but subsequently deleted, 3) Created with a different name than 'instavision', 4) Created in a different database/environment. IMPACT: Students cannot see the course in their courses list because the course literally does not exist in the database. This explains the enrollment issue completely - you cannot enroll in or see a course that doesn't exist. RECOMMENDATION: Need to verify with instructor Karlo whether the course was actually created successfully and check if it might have been created with a different name or in a different system."
-
-  - task: "CRITICAL BUG 2: Quiz Analytics Data Investigation"
-    implemented: true
-    working: false
-    file: "/app/backend_test.py"
-    stuck_count: 1
-    priority: "critical"
-    needs_retesting: false
-    status_history:
-      - working: false
-        agent: "testing"
-        comment: "🚨 CRITICAL DISCOVERY: NO ENROLLMENT OR QUIZ DATA EXISTS - Executed comprehensive investigation of quiz analytics returning no results issue. INVESTIGATION FINDINGS: ❌ ZERO ENROLLMENTS FOUND - GET /api/enrollments returned 0 records, no students are enrolled in any courses, no quiz progress data exists anywhere in the system, ❌ NO QUIZ ATTEMPTS DATA - No quiz completion records found, no progress tracking data available, no student activity detected, ✅ BACKEND APIS FUNCTIONAL - All analytics endpoints working correctly (/enrollments: 0 records, /courses: 31 records, /auth/admin/users: 40 records), ✅ DATA STRUCTURE COMPATIBLE - APIs returning proper JSON structure, no technical issues with endpoints. ROOT CAUSE IDENTIFIED: Quiz analytics shows no results because there is literally NO DATA to display: 1) No students are enrolled in any courses (0 enrollments), 2) No quiz attempts or completions have occurred, 3) No progress tracking data exists, 4) System appears to be in a clean/empty state with courses but no student activity. IMPACT: Analytics page correctly shows no results because no quiz activity has occurred. This is not a bug in the analytics system but rather an absence of data to analyze. RECOMMENDATION: Need to verify if this is expected (new/clean system) or if enrollment/quiz data was lost/deleted. Check if students should be enrolled and taking quizzes."
+        comment: "🚨 CRITICAL BUG IDENTIFIED: AUTO-ENROLLMENT LOGIC FAILURE - Executed comprehensive investigation of the specific program assignment to classroom enrollment issue as requested in review. INVESTIGATION FINDINGS: ✅ PROGRAM EXISTS - Found 'test program 2' (ID: 62c6708d-cd59-4021-9bb8-7c1346199f4c) with 2 courses, created by Brayden T, ✅ CLASSROOM EXISTS - Found classroom 'testing exam' (ID: 57e243fd-6805-4c74-b7e4-7a6ed8dff250) containing the program, ✅ STUDENT ASSIGNED - brayden.student@learningfwiend.com is properly assigned to the classroom, ✅ AUTHENTICATION WORKING - Both admin and student authentication successful (student password reset required), ❌ CRITICAL ISSUE 1: AUTO-ENROLLMENT FAILED - Student is assigned to classroom with program but NO enrollment records created for program courses, Expected 2 enrollments for program courses, Found 0 enrollments, ❌ CRITICAL ISSUE 2: ENROLLMENT MISMATCH - Student can see 8 other enrollments but NONE for the program courses they should be auto-enrolled in. ROOT CAUSE IDENTIFIED: The auto-enrollment logic that should create course enrollments when students are assigned to classrooms containing programs is NOT WORKING. Student assignment to classroom is successful, but the system fails to automatically enroll them in the program's courses. IMPACT: This explains the enrollment status mismatch - student appears in classroom but shows as not enrolled because the auto-enrollment never happened. RECOMMENDATION: Fix the auto-enrollment logic in classroom/program assignment workflow to ensure students are automatically enrolled in all courses within programs when assigned to classrooms."
     implemented: true
     working: true
     file: "/app/quiz_data_structure_investigation.py, /app/detailed_quiz_investigation.py, /app/quiz_data_structure_analysis_report.py"
