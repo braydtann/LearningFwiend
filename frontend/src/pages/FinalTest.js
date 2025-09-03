@@ -139,152 +139,194 @@ const FinalTest = () => {
     }
   };
 
-  // Timer effect
-  useEffect(() => {
-    if (testState === 'taking' && timeLeft > 0) {
-      const timer = setTimeout(() => {
-        setTimeLeft(timeLeft - 1);
-      }, 1000);
-      return () => clearTimeout(timer);
-    } else if (testState === 'taking' && timeLeft === 0) {
-      handleSubmitTest();
-    }
-  }, [testState, timeLeft]);
-
-  const startTest = () => {
-    setTestState('taking');
-    setStartTime(Date.now());
-    setTimeLeft((finalTest.timeLimit || 60) * 60); // Convert minutes to seconds
-    setAnswers({});
-    setCurrentQuestionIndex(0);
-  };
-
-  const handleAnswerChange = (questionId, answer) => {
-    setAnswers(prev => ({
-      ...prev,
-      [questionId]: answer
-    }));
-  };
-
-  const nextQuestion = () => {
-    if (currentQuestionIndex < finalTest.questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-    }
-  };
-
-  const prevQuestion = () => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(currentQuestionIndex - 1);
-    }
-  };
-
-  const handleSubmitTest = () => {
-    const endTime = Date.now();
-    const timeSpent = Math.floor((endTime - startTime) / 1000);
-    
-    // Calculate score
-    let totalPoints = 0;
-    let earnedPoints = 0;
-    
-    const gradedAnswers = finalTest.questions.map(question => {
-      const userAnswer = answers[question.id];
-      let correct = false;
-      let points = 0;
-      
-      totalPoints += question.points;
-      
-      if (question.type === 'multiple-choice') {
-        correct = userAnswer === question.correctAnswer;
-      } else if (question.type === 'select-all-that-apply') {
-        const correctAnswers = question.correctAnswers || [];
-        const userAnswers = userAnswer || [];
-        correct = correctAnswers.length === userAnswers.length && 
-                 correctAnswers.every(answer => userAnswers.includes(answer));
-      } else if (question.type === 'true-false') {
-        correct = userAnswer === question.correctAnswer;
-      } else if (question.type === 'chronological-order') {
-        const correctOrder = question.correctOrder || [];
-        const userOrder = userAnswer || [];
-        correct = correctOrder.length === userOrder.length && 
-                 correctOrder.every((item, index) => item === userOrder[index]);
-      } else if (question.type === 'short-answer') {
-        correct = userAnswer && 
-          userAnswer.toLowerCase().includes(question.correctAnswer?.toLowerCase().split(' ')[0] || '');
-      } else if (question.type === 'long-form-answer') {
-        // Long form answers require manual grading
-        correct = userAnswer && userAnswer.trim().length > 100; // Basic completion check
-      } else if (question.type === 'record-screen' || question.type === 'record_screen') {
-        // Screen recording questions require manual grading
-        // For now, mark as completed if recording exists
-        correct = userAnswer && userAnswer.hasRecording && userAnswer.duration > 0;
-      }
-      
-      if (correct) {
-        points = question.points;
-        earnedPoints += points;
-      }
-      
-      return {
-        questionId: question.id,
-        answer: userAnswer,
-        correct,
-        points
-      };
-    });
-
-    const score = totalPoints > 0 ? Math.round((earnedPoints / totalPoints) * 100) : 0;
-    const passed = score >= (finalTest.passingScore || 70);
-
-    const results = {
-      score,
-      totalPoints,
-      earnedPoints,
-      passed,
-      timeSpent,
-      answers: gradedAnswers,
-      completedAt: new Date().toISOString(),
-      isFinalTest: true
-    };
-
-    setTestResults(results);
-    setTestState('submitted');
-    
-    if (finalTest.showResults) {
-      setShowResults(true);
-    }
-
-    toast({
-      title: passed ? "Final Test Completed!" : "Final Test Submitted",
-      description: passed 
-        ? `Congratulations! You scored ${score}% and passed the final assessment. Your certificate is now available!`
-        : `You scored ${score}%. The passing score is ${finalTest.passingScore || 70}%. You can retake the test if attempts are available.`,
-      variant: passed ? "default" : "destructive"
-    });
-  };
-
-  const formatTime = (seconds) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
-
-  const getProgressPercentage = () => {
-    return Math.round(((currentQuestionIndex + 1) / finalTest.questions.length) * 100);
-  };
-
-  if (testState === 'loading') {
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading final test...</p>
+          <p className="text-gray-600">Loading final exam...</p>
         </div>
       </div>
     );
   }
 
-  if (testState === 'error' || !finalTest) {
+  if (error || (!program && isProgram) || (!course && !isProgram)) {
     return (
+      <div className="max-w-4xl mx-auto p-6">
+        <Card>
+          <CardContent className="text-center py-12">
+            <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              {error || 'Exam not found'}
+            </h1>
+            <p className="text-gray-600 mb-6">
+              {isProgram 
+                ? "The program exam you're looking for could not be found."
+                : "The course exam you're looking for could not be found."
+              }
+            </p>
+            <Button onClick={() => navigate('/dashboard')}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Dashboard
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const examTitle = isProgram ? program?.title : course?.title;
+  const examType = isProgram ? "Program Final Exam" : "Course Final Exam";
+
+  if (testCompleted) {
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <Card>
+          <CardContent className="text-center py-12">
+            <Trophy className="h-20 w-20 text-yellow-500 mx-auto mb-6" />
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">
+              Congratulations! 🎉
+            </h1>
+            <p className="text-xl text-gray-600 mb-6">
+              You have successfully completed the final exam for "{examTitle}"
+            </p>
+            <div className="flex gap-4 justify-center">
+              <Button onClick={() => navigate('/certificates')}>
+                <Award className="w-4 h-4 mr-2" />
+                View Certificate
+              </Button>
+              <Button variant="outline" onClick={() => navigate('/dashboard')}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Dashboard
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (testStarted) {
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-2xl">{examType}</CardTitle>
+                <p className="text-gray-600 mt-1">{examTitle}</p>
+              </div>
+              <Badge variant="secondary">
+                <Timer className="w-4 h-4 mr-1" />
+                60:00 remaining
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-8">
+            {/* Simulated Exam Interface */}
+            <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-lg">
+              <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Final Examination in Progress
+              </h3>
+              <p className="text-gray-600 mb-6">
+                This is a simulated final exam interface. In a real implementation, 
+                this would contain actual exam questions.
+              </p>
+              <p className="text-sm text-gray-500 mb-6">
+                For demonstration purposes, clicking "Submit Exam" will mark the exam as completed 
+                with a passing grade.
+              </p>
+              <Button onClick={completeFinalExam} size="lg">
+                Submit Exam
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-4xl mx-auto p-6">
+      <div className="mb-6">
+        <Button 
+          variant="ghost" 
+          onClick={() => navigate(isProgram ? `/program/${programId}` : `/course/${courseId}`)}
+          className="mb-4"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to {isProgram ? 'Program' : 'Course'}
+        </Button>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <div className="text-center">
+            <Trophy className="h-16 w-16 text-yellow-500 mx-auto mb-4" />
+            <CardTitle className="text-3xl mb-2">{examType}</CardTitle>
+            <p className="text-xl text-gray-600">{examTitle}</p>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-8">
+          <Card className="bg-blue-50 border-blue-200">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold text-blue-900 mb-4">
+                📋 Exam Instructions
+              </h3>
+              <ul className="space-y-2 text-blue-800">
+                <li className="flex items-start">
+                  <CheckCircle className="w-5 h-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
+                  This is your final examination for {isProgram ? 'the program' : 'this course'}
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="w-5 h-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
+                  You must achieve a passing score of 70% or higher
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="w-5 h-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
+                  Time limit: 60 minutes
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="w-5 h-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
+                  Upon successful completion, you will receive a certificate
+                </li>
+              </ul>
+            </CardContent>
+          </Card>
+
+          {isProgram && program && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Program Summary</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600 mb-4">{program.description}</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-500">Total Courses</p>
+                    <p className="text-lg font-semibold">{program.courseIds?.length || 0}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Program Type</p>
+                    <p className="text-lg font-semibold">Comprehensive Training</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          <div className="text-center">
+            <Button onClick={startFinalExam} size="lg" className="px-8">
+              <Play className="w-5 h-5 mr-2" />
+              Start Final Exam
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
       <div className="text-center py-12">
         <AlertCircle className="w-16 h-16 text-red-600 mx-auto mb-4" />
         <h1 className="text-2xl font-bold text-gray-900 mb-4">Final test not available</h1>
