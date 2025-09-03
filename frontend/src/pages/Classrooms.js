@@ -325,6 +325,25 @@ const Classrooms = () => {
     }
   };
 
+  // Calculate total course count including courses from programs
+  const getTotalCourseCount = (classroom) => {
+    // Count direct courses
+    const directCoursesCount = classroom.courseIds?.length || 0;
+    
+    // Count courses from programs
+    let programCoursesCount = 0;
+    if (classroom.programIds && realPrograms.length > 0) {
+      classroom.programIds.forEach(programId => {
+        const program = realPrograms.find(p => p.id === programId);
+        if (program && program.courseIds) {
+          programCoursesCount += program.courseIds.length;
+        }
+      });
+    }
+    
+    return directCoursesCount + programCoursesCount;
+  };
+
   return (
     <div className="space-y-8">
       {/* Header */}
