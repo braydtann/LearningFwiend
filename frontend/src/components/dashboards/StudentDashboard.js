@@ -245,7 +245,7 @@ const StudentDashboard = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-6 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-7 gap-6">
         <Card className="bg-blue-50 border-blue-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -254,6 +254,18 @@ const StudentDashboard = () => {
                 <p className="text-2xl font-bold text-blue-700">{stats.enrolled}</p>
               </div>
               <BookOpen className="h-8 w-8 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-cyan-50 border-cyan-200">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-cyan-600 text-sm font-medium">Programs</p>
+                <p className="text-2xl font-bold text-cyan-700">{stats.programs}</p>
+              </div>
+              <Users className="h-8 w-8 text-cyan-600" />
             </div>
           </CardContent>
         </Card>
