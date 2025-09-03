@@ -666,7 +666,7 @@ const ClassroomDetail = () => {
                     Retry Loading Courses
                   </Button>
                 </div>
-              ) : courses.length === 0 ? (
+              ) : getTotalCourseCount(classroom) === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   No courses assigned to this classroom
                 </div>
