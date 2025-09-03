@@ -127,6 +127,18 @@ const ClassroomDetail = () => {
     }
   };
 
+  // Load programs for course count calculation (needed in both view and edit modes)
+  const loadPrograms = async () => {
+    try {
+      const programsResult = await getAllPrograms();
+      if (programsResult.success) {
+        setAvailablePrograms(programsResult.programs);
+      }
+    } catch (error) {
+      console.error('Error loading programs:', error);
+    }
+  };
+
   // Load classroom students using the proper API endpoint
   const loadClassroomStudents = async () => {
     if (!classroom || !classroom.id) {
