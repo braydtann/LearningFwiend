@@ -578,31 +578,79 @@ const FinalTest = () => {
           </div>
         </CardHeader>
         <CardContent className="space-y-8">
-          <Card className="bg-blue-50 border-blue-200">
-            <CardContent className="p-6">
-              <h3 className="text-lg font-semibold text-blue-900 mb-4">
-                📋 Exam Instructions
-              </h3>
-              <ul className="space-y-2 text-blue-800">
-                <li className="flex items-start">
-                  <CheckCircle className="w-5 h-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
-                  This is your final examination for {isProgram ? 'the program' : 'this course'}
-                </li>
-                <li className="flex items-start">
-                  <CheckCircle className="w-5 h-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
-                  You must achieve a passing score of 70% or higher
-                </li>
-                <li className="flex items-start">
-                  <CheckCircle className="w-5 h-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
-                  Time limit: 60 minutes
-                </li>
-                <li className="flex items-start">
-                  <CheckCircle className="w-5 h-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
-                  Upon successful completion, you will receive a certificate
-                </li>
-              </ul>
-            </CardContent>
-          </Card>
+          {finalTest ? (
+            <>
+              <Card className="bg-blue-50 border-blue-200">
+                <CardContent className="p-6">
+                  <h3 className="text-lg font-semibold text-blue-900 mb-4">
+                    📋 Exam Instructions
+                  </h3>
+                  <ul className="space-y-2 text-blue-800">
+                    <li className="flex items-start">
+                      <CheckCircle className="w-5 h-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
+                      This is your final examination for {isProgram ? 'the program' : 'this course'}
+                    </li>
+                    <li className="flex items-start">
+                      <CheckCircle className="w-5 h-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
+                      You must achieve a passing score of {finalTest.passingScore || 70}% or higher
+                    </li>
+                    {finalTest.timeLimit && (
+                      <li className="flex items-start">
+                        <CheckCircle className="w-5 h-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
+                        Time limit: {finalTest.timeLimit} minutes
+                      </li>
+                    )}
+                    <li className="flex items-start">
+                      <CheckCircle className="w-5 h-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
+                      Total questions: {finalTest.questions?.length || 0}
+                    </li>
+                    <li className="flex items-start">
+                      <CheckCircle className="w-5 h-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
+                      Upon successful completion, you will receive a certificate
+                    </li>
+                  </ul>
+                </CardContent>
+              </Card>
+
+              {/* Previous Attempts */}
+              {previousAttempts.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Previous Attempts</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {previousAttempts.slice(0, 3).map((attempt, index) => (
+                        <div key={attempt.id} className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                          <div>
+                            <span className="font-medium">Attempt {previousAttempts.length - index}</span>
+                            <span className="text-sm text-gray-500 ml-2">
+                              {new Date(attempt.createdAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <Badge variant={attempt.score >= (finalTest.passingScore || 70) ? "default" : "secondary"}>
+                            {attempt.score}%
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </>
+          ) : (
+            <Card className="bg-yellow-50 border-yellow-200">
+              <CardContent className="p-6 text-center">
+                <AlertCircle className="h-12 w-12 text-yellow-600 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-yellow-900 mb-2">
+                  Final Exam Not Available
+                </h3>
+                <p className="text-yellow-800">
+                  No final exam has been created for this program yet. Please contact your instructor.
+                </p>
+              </CardContent>
+            </Card>
+          )}
 
           {isProgram && program && (
             <Card>
@@ -626,10 +674,17 @@ const FinalTest = () => {
           )}
 
           <div className="text-center">
-            <Button onClick={startFinalExam} size="lg" className="px-8">
-              <Play className="w-5 h-5 mr-2" />
-              Start Final Exam
-            </Button>
+            {finalTest && finalTest.questions?.length > 0 ? (
+              <Button onClick={startFinalExam} size="lg" className="px-8">
+                <Play className="w-5 h-5 mr-2" />
+                Start Final Exam
+              </Button>
+            ) : (
+              <Button disabled size="lg" className="px-8">
+                <Play className="w-5 h-5 mr-2" />
+                Final Exam Not Available
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
