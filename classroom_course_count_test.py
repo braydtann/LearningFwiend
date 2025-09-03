@@ -266,7 +266,7 @@ class ClassroomCourseCountTester:
             return False
         
         print(f"📋 CLASSROOM ANALYSIS:")
-        print(f"   Title: {classroom.get('title')}")
+        print(f"   Title: {classroom.get('title') or classroom.get('name')}")
         print(f"   Direct Course IDs: {classroom.get('courseIds', [])}")
         print(f"   Program IDs: {classroom.get('programIds', [])}")
         
