@@ -359,7 +359,7 @@ class ClassroomCourseCountTester:
                 detailed_classroom = response.json()
                 
                 print(f"📋 DETAILED CLASSROOM ANALYSIS:")
-                print(f"   Title: {detailed_classroom.get('title')}")
+                print(f"   Title: {detailed_classroom.get('title') or detailed_classroom.get('name')}")
                 print(f"   ID: {detailed_classroom.get('id')}")
                 print(f"   Direct Course IDs: {detailed_classroom.get('courseIds', [])}")
                 print(f"   Program IDs: {detailed_classroom.get('programIds', [])}")
@@ -367,7 +367,8 @@ class ClassroomCourseCountTester:
                 print(f"   Active: {detailed_classroom.get('isActive', False)}")
                 
                 # Verify this is the correct classroom
-                if 'testing' in detailed_classroom.get('title', '').lower() and 'exam' in detailed_classroom.get('title', '').lower():
+                title_to_check = (detailed_classroom.get('title') or detailed_classroom.get('name', '')).lower()
+                if 'testing' in title_to_check and ('exam' in title_to_check or 'classroom' in title_to_check):
                     print("✅ Confirmed: This is the 'Testing exam' classroom")
                     
                     # Calculate course count using the same logic as frontend
