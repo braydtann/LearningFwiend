@@ -1,5 +1,440 @@
 #!/usr/bin/env python3
 """
+🔧 DEBUG AUTO-ENROLLMENT LOGIC - Deep dive investigation
+
+The auto-enrollment code LOOKS correct but isn't working. Need to debug why:
+
+**DEBUG TASKS:**
+1. **Check program structure** - Does "test program 2" actually have courseIds array populated?
+2. **Check course existence** - Do the courses referenced in the program actually exist?  
+3. **Test manual enrollment** - Can we manually enroll brayden.student in a course?
+4. **Check enrollment creation** - Debug the exact auto-enrollment workflow step by step
+5. **Check database permissions** - Are enrollments being written to DB successfully?
+
+**SPECIFIC INVESTIGATION:**
+- GET /api/programs/{test_program_2_id} - Check courseIds array
+- For each courseId in program, GET /api/courses/{courseId} - Verify courses exist
+- POST /api/enrollments - Test manual enrollment to verify endpoint works
+- Check database insert operations are successful
+
+**HYPOTHESIS:** Either:
+- Program has empty courseIds array 
+- Course IDs in program don't match actual courses
+- Database write operation is failing silently
+- Auto-enrollment logic has a bug despite looking correct
+
+Use admin credentials: brayden.t@covesmart.com / Hawaii2020!
+
+**CRITICAL**: Need to identify exact failure point in auto-enrollment workflow.
+"""
+
+import requests
+import json
+import sys
+from datetime import datetime
+
+# Configuration
+BACKEND_URL = "https://project-summary-3.preview.emergentagent.com/api"
+ADMIN_EMAIL = "brayden.t@covesmart.com"
+ADMIN_PASSWORD = "Hawaii2020!"
+STUDENT_EMAIL = "brayden.student@learningfwiend.com"
+
+def authenticate_admin():
+    """Authenticate admin user and return token"""
+    print("🔐 Authenticating admin user...")
+    
+    login_data = {
+        "username_or_email": ADMIN_EMAIL,
+        "password": ADMIN_PASSWORD
+    }
+    
+    try:
+        response = requests.post(f"{BACKEND_URL}/auth/login", json=login_data)
+        print(f"Admin login response: {response.status_code}")
+        
+        if response.status_code == 200:
+            data = response.json()
+            print(f"✅ Admin authenticated successfully: {data['user']['full_name']} ({data['user']['role']})")
+            return data['access_token']
+        else:
+            print(f"❌ Admin authentication failed: {response.text}")
+            return None
+    except Exception as e:
+        print(f"❌ Admin authentication error: {e}")
+        return None
+
+def find_test_program_2(token):
+    """Find 'test program 2' and return its details"""
+    print("\n🔍 Searching for 'test program 2'...")
+    
+    headers = {"Authorization": f"Bearer {token}"}
+    
+    try:
+        response = requests.get(f"{BACKEND_URL}/programs", headers=headers)
+        print(f"Programs API response: {response.status_code}")
+        
+        if response.status_code == 200:
+            programs = response.json()
+            print(f"Found {len(programs)} total programs")
+            
+            # Search for test program 2
+            test_program = None
+            for program in programs:
+                if "test program 2" in program.get('title', '').lower():
+                    test_program = program
+                    break
+            
+            if test_program:
+                print(f"✅ Found 'test program 2':")
+                print(f"   - ID: {test_program['id']}")
+                print(f"   - Title: {test_program['title']}")
+                print(f"   - Course IDs: {test_program.get('courseIds', [])}")
+                print(f"   - Course Count: {len(test_program.get('courseIds', []))}")
+                print(f"   - Instructor: {test_program.get('instructor', 'Unknown')}")
+                print(f"   - Created: {test_program.get('created_at', 'Unknown')}")
+                return test_program
+            else:
+                print("❌ 'test program 2' not found in programs list")
+                print("Available programs:")
+                for program in programs[:5]:  # Show first 5
+                    print(f"   - {program.get('title', 'No title')} (ID: {program['id']})")
+                return None
+        else:
+            print(f"❌ Failed to get programs: {response.text}")
+            return None
+    except Exception as e:
+        print(f"❌ Error getting programs: {e}")
+        return None
+
+def check_program_courses(token, program):
+    """Check if courses in program actually exist"""
+    print(f"\n🔍 Checking courses in program '{program['title']}'...")
+    
+    course_ids = program.get('courseIds', [])
+    if not course_ids:
+        print("❌ CRITICAL ISSUE: Program has NO courseIds!")
+        return []
+    
+    print(f"Program has {len(course_ids)} course IDs: {course_ids}")
+    
+    headers = {"Authorization": f"Bearer {token}"}
+    existing_courses = []
+    
+    for course_id in course_ids:
+        print(f"\n   Checking course ID: {course_id}")
+        try:
+            response = requests.get(f"{BACKEND_URL}/courses/{course_id}", headers=headers)
+            print(f"   Course API response: {response.status_code}")
+            
+            if response.status_code == 200:
+                course = response.json()
+                print(f"   ✅ Course exists: '{course['title']}'")
+                print(f"      - Instructor: {course.get('instructor', 'Unknown')}")
+                print(f"      - Status: {course.get('status', 'Unknown')}")
+                print(f"      - Enrolled Students: {course.get('enrolledStudents', 0)}")
+                existing_courses.append(course)
+            elif response.status_code == 404:
+                print(f"   ❌ Course NOT FOUND: {course_id}")
+            else:
+                print(f"   ❌ Error getting course: {response.text}")
+        except Exception as e:
+            print(f"   ❌ Error checking course {course_id}: {e}")
+    
+    print(f"\n📊 Course Check Summary:")
+    print(f"   - Program has {len(course_ids)} course IDs")
+    print(f"   - {len(existing_courses)} courses actually exist")
+    print(f"   - {len(course_ids) - len(existing_courses)} courses are missing")
+    
+    if len(existing_courses) != len(course_ids):
+        print("❌ CRITICAL ISSUE: Some courses in program don't exist!")
+    
+    return existing_courses
+
+def find_student_user(token):
+    """Find the brayden.student user"""
+    print(f"\n🔍 Searching for student user: {STUDENT_EMAIL}")
+    
+    headers = {"Authorization": f"Bearer {token}"}
+    
+    try:
+        response = requests.get(f"{BACKEND_URL}/auth/admin/users", headers=headers)
+        print(f"Users API response: {response.status_code}")
+        
+        if response.status_code == 200:
+            users = response.json()
+            print(f"Found {len(users)} total users")
+            
+            # Search for student
+            student_user = None
+            for user in users:
+                if user.get('email', '').lower() == STUDENT_EMAIL.lower():
+                    student_user = user
+                    break
+            
+            if student_user:
+                print(f"✅ Found student user:")
+                print(f"   - ID: {student_user['id']}")
+                print(f"   - Email: {student_user['email']}")
+                print(f"   - Name: {student_user['full_name']}")
+                print(f"   - Role: {student_user['role']}")
+                print(f"   - Active: {student_user.get('is_active', False)}")
+                return student_user
+            else:
+                print(f"❌ Student user {STUDENT_EMAIL} not found")
+                return None
+        else:
+            print(f"❌ Failed to get users: {response.text}")
+            return None
+    except Exception as e:
+        print(f"❌ Error getting users: {e}")
+        return None
+
+def check_student_enrollments(token, student_user):
+    """Check current enrollments for the student"""
+    print(f"\n🔍 Checking current enrollments for {student_user['email']}...")
+    
+    # We need to authenticate as the student to get their enrollments
+    print("   Authenticating as student...")
+    
+    # First, let's try to get student enrollments via admin (if possible)
+    headers = {"Authorization": f"Bearer {token}"}
+    
+    try:
+        # Try to get all enrollments and filter by student
+        response = requests.get(f"{BACKEND_URL}/enrollments", headers=headers)
+        print(f"   Enrollments API response: {response.status_code}")
+        
+        if response.status_code == 403:
+            print("   ℹ️ Admin can't access all enrollments, this is expected")
+            return []
+        elif response.status_code == 200:
+            enrollments = response.json()
+            student_enrollments = [e for e in enrollments if e.get('userId') == student_user['id']]
+            
+            print(f"   Found {len(student_enrollments)} enrollments for student:")
+            for enrollment in student_enrollments:
+                print(f"      - Course ID: {enrollment.get('courseId', 'Unknown')}")
+                print(f"        Progress: {enrollment.get('progress', 0)}%")
+                print(f"        Status: {enrollment.get('status', 'Unknown')}")
+                print(f"        Enrolled: {enrollment.get('enrolledAt', 'Unknown')}")
+            
+            return student_enrollments
+        else:
+            print(f"   ❌ Error getting enrollments: {response.text}")
+            return []
+    except Exception as e:
+        print(f"   ❌ Error checking enrollments: {e}")
+        return []
+
+def test_manual_enrollment(token, student_user, course):
+    """Test manual enrollment to verify the endpoint works"""
+    print(f"\n🧪 Testing manual enrollment...")
+    print(f"   Student: {student_user['email']}")
+    print(f"   Course: {course['title']} ({course['id']})")
+    
+    # We need to authenticate as the student to create enrollment
+    print("   Authenticating as student for enrollment test...")
+    
+    # Try to authenticate student (may need password reset)
+    student_login_data = {
+        "username_or_email": STUDENT_EMAIL,
+        "password": "StudentTest123!"  # Try common password
+    }
+    
+    try:
+        response = requests.post(f"{BACKEND_URL}/auth/login", json=student_login_data)
+        print(f"   Student login response: {response.status_code}")
+        
+        if response.status_code == 200:
+            student_data = response.json()
+            student_token = student_data['access_token']
+            print(f"   ✅ Student authenticated successfully")
+            
+            # Now try to enroll
+            enrollment_data = {
+                "courseId": course['id']
+            }
+            
+            headers = {"Authorization": f"Bearer {student_token}"}
+            response = requests.post(f"{BACKEND_URL}/enrollments", json=enrollment_data, headers=headers)
+            print(f"   Enrollment API response: {response.status_code}")
+            
+            if response.status_code == 200:
+                enrollment = response.json()
+                print(f"   ✅ Manual enrollment successful!")
+                print(f"      - Enrollment ID: {enrollment.get('id', 'Unknown')}")
+                print(f"      - Progress: {enrollment.get('progress', 0)}%")
+                print(f"      - Status: {enrollment.get('status', 'Unknown')}")
+                return True
+            elif response.status_code == 400 and "already enrolled" in response.text:
+                print(f"   ℹ️ Student already enrolled in this course")
+                return True
+            else:
+                print(f"   ❌ Manual enrollment failed: {response.text}")
+                return False
+        else:
+            print(f"   ❌ Student authentication failed: {response.text}")
+            print("   This might explain why auto-enrollment isn't working!")
+            return False
+    except Exception as e:
+        print(f"   ❌ Error testing manual enrollment: {e}")
+        return False
+
+def find_classroom_with_program(token, program):
+    """Find classroom that contains the test program"""
+    print(f"\n🔍 Searching for classroom containing program '{program['title']}'...")
+    
+    headers = {"Authorization": f"Bearer {token}"}
+    
+    try:
+        response = requests.get(f"{BACKEND_URL}/classrooms", headers=headers)
+        print(f"Classrooms API response: {response.status_code}")
+        
+        if response.status_code == 200:
+            classrooms = response.json()
+            print(f"Found {len(classrooms)} total classrooms")
+            
+            # Search for classroom containing this program
+            matching_classrooms = []
+            for classroom in classrooms:
+                program_ids = classroom.get('programIds', [])
+                if program['id'] in program_ids:
+                    matching_classrooms.append(classroom)
+            
+            print(f"Found {len(matching_classrooms)} classrooms containing the program:")
+            
+            for classroom in matching_classrooms:
+                print(f"   ✅ Classroom: '{classroom.get('title', 'No title')}'")
+                print(f"      - ID: {classroom['id']}")
+                print(f"      - Program IDs: {classroom.get('programIds', [])}")
+                print(f"      - Student IDs: {classroom.get('studentIds', [])}")
+                print(f"      - Course IDs: {classroom.get('courseIds', [])}")
+                print(f"      - Students Count: {len(classroom.get('studentIds', []))}")
+                print(f"      - Active: {classroom.get('isActive', False)}")
+            
+            return matching_classrooms
+        else:
+            print(f"❌ Failed to get classrooms: {response.text}")
+            return []
+    except Exception as e:
+        print(f"❌ Error getting classrooms: {e}")
+        return []
+
+def analyze_auto_enrollment_logic(program, courses, student_user, classrooms):
+    """Analyze what should happen with auto-enrollment"""
+    print(f"\n🔬 ANALYZING AUTO-ENROLLMENT LOGIC:")
+    print(f"=" * 50)
+    
+    print(f"📋 PROGRAM ANALYSIS:")
+    print(f"   - Program: '{program['title']}'")
+    print(f"   - Program ID: {program['id']}")
+    print(f"   - Course IDs in program: {program.get('courseIds', [])}")
+    print(f"   - Actual courses found: {len(courses)}")
+    
+    print(f"\n👤 STUDENT ANALYSIS:")
+    print(f"   - Student: {student_user['email']}")
+    print(f"   - Student ID: {student_user['id']}")
+    print(f"   - Student Role: {student_user['role']}")
+    
+    print(f"\n🏫 CLASSROOM ANALYSIS:")
+    for classroom in classrooms:
+        print(f"   - Classroom: '{classroom.get('title', 'No title')}'")
+        print(f"     * Contains program: {'✅' if program['id'] in classroom.get('programIds', []) else '❌'}")
+        print(f"     * Contains student: {'✅' if student_user['id'] in classroom.get('studentIds', []) else '❌'}")
+        print(f"     * Student IDs: {classroom.get('studentIds', [])}")
+        print(f"     * Program IDs: {classroom.get('programIds', [])}")
+    
+    print(f"\n🎯 EXPECTED AUTO-ENROLLMENT BEHAVIOR:")
+    print(f"   When student is assigned to classroom containing program:")
+    print(f"   1. System should detect student assignment")
+    print(f"   2. System should find all programs in classroom")
+    print(f"   3. For each program, system should find all courses")
+    print(f"   4. System should create enrollment records for each course")
+    
+    print(f"\n📊 EXPECTED ENROLLMENTS:")
+    for course in courses:
+        print(f"   - Should create enrollment: Student {student_user['id']} → Course {course['id']} ({course['title']})")
+    
+    print(f"\n❓ POTENTIAL FAILURE POINTS:")
+    print(f"   1. Program has empty courseIds array: {'❌ YES' if not program.get('courseIds') else '✅ NO'}")
+    print(f"   2. Courses don't exist: {'❌ YES' if len(courses) != len(program.get('courseIds', [])) else '✅ NO'}")
+    print(f"   3. Student not in classroom: {'❌ YES' if not any(student_user['id'] in c.get('studentIds', []) for c in classrooms) else '✅ NO'}")
+    print(f"   4. Program not in classroom: {'❌ YES' if not any(program['id'] in c.get('programIds', []) for c in classrooms) else '✅ NO'}")
+    print(f"   5. Auto-enrollment logic not triggered: {'❓ UNKNOWN - NEEDS INVESTIGATION'}")
+
+def main():
+    """Main investigation function"""
+    print("🔧 DEBUG AUTO-ENROLLMENT LOGIC - Deep dive investigation")
+    print("=" * 60)
+    
+    # Step 1: Authenticate admin
+    token = authenticate_admin()
+    if not token:
+        print("❌ Cannot proceed without admin authentication")
+        return
+    
+    # Step 2: Find test program 2
+    program = find_test_program_2(token)
+    if not program:
+        print("❌ Cannot proceed without finding test program 2")
+        return
+    
+    # Step 3: Check program courses
+    courses = check_program_courses(token, program)
+    if not courses:
+        print("❌ Program has no valid courses - this explains the auto-enrollment failure!")
+        return
+    
+    # Step 4: Find student user
+    student_user = find_student_user(token)
+    if not student_user:
+        print("❌ Cannot proceed without finding student user")
+        return
+    
+    # Step 5: Check student's current enrollments
+    enrollments = check_student_enrollments(token, student_user)
+    
+    # Step 6: Find classrooms containing the program
+    classrooms = find_classroom_with_program(token, program)
+    
+    # Step 7: Test manual enrollment
+    if courses:
+        manual_enrollment_works = test_manual_enrollment(token, student_user, courses[0])
+    else:
+        manual_enrollment_works = False
+    
+    # Step 8: Analyze the auto-enrollment logic
+    analyze_auto_enrollment_logic(program, courses, student_user, classrooms)
+    
+    # Final summary
+    print(f"\n🎯 INVESTIGATION SUMMARY:")
+    print(f"=" * 40)
+    print(f"✅ Program exists: {'YES' if program else 'NO'}")
+    print(f"✅ Program has courses: {'YES' if courses else 'NO'} ({len(courses)} courses)")
+    print(f"✅ Student exists: {'YES' if student_user else 'NO'}")
+    print(f"✅ Classrooms found: {'YES' if classrooms else 'NO'} ({len(classrooms)} classrooms)")
+    print(f"✅ Manual enrollment works: {'YES' if manual_enrollment_works else 'NO'}")
+    
+    # Determine root cause
+    if not courses:
+        print(f"\n🚨 ROOT CAUSE: Program has no valid courses!")
+        print(f"   - Program courseIds: {program.get('courseIds', [])}")
+        print(f"   - Valid courses found: {len(courses)}")
+        print(f"   - This explains why auto-enrollment fails")
+    elif not classrooms:
+        print(f"\n🚨 ROOT CAUSE: No classroom contains this program!")
+    elif not any(student_user['id'] in c.get('studentIds', []) for c in classrooms):
+        print(f"\n🚨 ROOT CAUSE: Student not assigned to any classroom containing the program!")
+    elif not manual_enrollment_works:
+        print(f"\n🚨 ROOT CAUSE: Manual enrollment doesn't work - API or authentication issue!")
+    else:
+        print(f"\n🚨 ROOT CAUSE: Auto-enrollment logic bug - all components exist but auto-enrollment not triggered!")
+    
+    print(f"\n✅ Investigation complete!")
+
+if __name__ == "__main__":
+    main()
+"""
 CRITICAL BUG INVESTIGATION - INSTAVISION COURSE & QUIZ ANALYTICS
 LearningFwiend LMS Application Backend API Testing
 
