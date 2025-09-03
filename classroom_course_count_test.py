@@ -102,7 +102,7 @@ class ClassroomCourseCountTester:
         print("\n🎯 TEST 1: STUDENT PROGRAMS ACCESS")
         print("=" * 60)
         print("OBJECTIVE: Verify student can access GET /api/programs endpoint")
-        print("EXPECTED: Should return 2 programs as mentioned in review")
+        print("EXPECTED: Should return 2 programs as mentioned in review (total 3 courses)")
         print("-" * 60)
         
         if "student" not in self.auth_tokens:
