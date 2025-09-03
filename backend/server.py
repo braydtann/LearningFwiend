@@ -4492,7 +4492,7 @@ async def get_final_test_attempts(
     
     # Add filters if specified
     if test_id:
-        query["finalTestId"] = test_id
+        query["testId"] = test_id
     if program_id:
         query["programId"] = program_id
     
