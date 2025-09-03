@@ -201,13 +201,20 @@ class ClassroomCourseCountTester:
                 classrooms = response.json()
                 print(f"📚 Searching through {len(classrooms)} classrooms for 'Testing exam'...")
                 
-                # Search for "Testing exam" classroom (case-insensitive)
+                # Search for "Testing exam" classroom with both programs (case-insensitive)
                 testing_exam_classroom = None
+                best_match = None
+                best_program_count = 0
+                
                 for classroom in classrooms:
                     title = classroom.get('title', '').lower() or classroom.get('name', '').lower()
                     if 'testing' in title and ('exam' in title or 'classroom' in title):
-                        testing_exam_classroom = classroom
-                        break
+                        program_count = len(classroom.get('programIds', []))
+                        if program_count > best_program_count:
+                            best_match = classroom
+                            best_program_count = program_count
+                
+                testing_exam_classroom = best_match
                 
                 if testing_exam_classroom:
                     print(f"✅ FOUND 'Testing exam' classroom!")
