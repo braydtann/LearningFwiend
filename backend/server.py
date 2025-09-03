@@ -4350,7 +4350,7 @@ async def submit_final_test_attempt(
         )
     
     # Get test
-    test = await db.final_tests.find_one({"id": attempt_data.finalTestId, "isActive": True})
+    test = await db.final_tests.find_one({"id": attempt_data.testId, "isActive": True})
     if not test:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -4365,7 +4365,7 @@ async def submit_final_test_attempt(
     
     # Check attempt limit
     existing_attempts = await db.final_test_attempts.count_documents({
-        "finalTestId": attempt_data.finalTestId,
+        "testId": attempt_data.testId,
         "studentId": current_user.id,
         "isActive": True
     })
@@ -4383,28 +4383,55 @@ async def submit_final_test_attempt(
             detail=f"Expected {len(test['questions'])} answers, got {len(attempt_data.answers)}"
         )
     
-    # Calculate score (same logic as quiz)
+    # Calculate score with support for all question types
     points_earned = 0
     total_points = test.get('totalPoints', 0)
     
-    for i, (answer, question) in enumerate(zip(attempt_data.answers, test['questions'])):
+    # Create a mapping of question IDs to answers
+    answer_map = {answer.get('questionId'): answer.get('answer') for answer in attempt_data.answers}
+    
+    for question in test['questions']:
+        question_id = question.get('id')
+        student_answer = answer_map.get(question_id)
+        question_points = question.get('points', 1)
+        
         if question['type'] == 'multiple_choice':
             try:
-                answer_index = int(answer) if answer.isdigit() else -1
-                correct_index = int(question['correctAnswer']) if question['correctAnswer'].isdigit() else -1
+                answer_index = int(student_answer) if str(student_answer).isdigit() else -1
+                correct_index = int(question['correctAnswer']) if str(question['correctAnswer']).isdigit() else -1
                 
                 if answer_index >= 0 and correct_index >= 0 and answer_index == correct_index:
-                    points_earned += question.get('points', 1)
-            except (ValueError, AttributeError):
+                    points_earned += question_points
+            except (ValueError, AttributeError, TypeError):
                 pass
+                
         elif question['type'] == 'true_false':
-            if (answer and question.get('correctAnswer') and 
-                answer.lower().strip() == question['correctAnswer'].lower().strip()):
-                points_earned += question.get('points', 1)
+            if (student_answer is not None and question.get('correctAnswer') and 
+                str(student_answer).lower().strip() == str(question['correctAnswer']).lower().strip()):
+                points_earned += question_points
+                
         elif question['type'] in ['short_answer', 'essay']:
-            if (question['type'] == 'short_answer' and answer and question.get('correctAnswer') and
-                answer.lower().strip() == question['correctAnswer'].lower().strip()):
-                points_earned += question.get('points', 1)
+            if (question['type'] == 'short_answer' and student_answer and question.get('correctAnswer') and
+                str(student_answer).lower().strip() == str(question['correctAnswer']).lower().strip()):
+                points_earned += question_points
+                
+        elif question['type'] == 'select-all-that-apply':
+            # Student answer should be a list of indices
+            if isinstance(student_answer, list) and question.get('correctAnswers'):
+                # Sort both lists to compare regardless of order
+                student_set = set(student_answer) if student_answer else set()
+                correct_set = set(question['correctAnswers']) if question['correctAnswers'] else set()
+                
+                # All-or-nothing scoring: full points if all correct, zero otherwise
+                if student_set == correct_set:
+                    points_earned += question_points
+                    
+        elif question['type'] == 'chronological-order':
+            # Student answer should be a list of indices representing the order
+            if isinstance(student_answer, list) and question.get('correctOrder'):
+                # Compare the order arrays directly
+                if student_answer == question['correctOrder']:
+                    points_earned += question_points
     
     # Calculate percentage score
     score_percentage = (points_earned / total_points * 100) if total_points > 0 else 0
@@ -4417,7 +4444,7 @@ async def submit_final_test_attempt(
     # Create attempt record
     attempt_dict = {
         "id": str(uuid.uuid4()),
-        "finalTestId": attempt_data.finalTestId,
+        "testId": attempt_data.testId,
         "testTitle": test['title'],
         "programId": test['programId'],
         "programName": program_name,
@@ -4428,6 +4455,7 @@ async def submit_final_test_attempt(
         "pointsEarned": points_earned,
         "totalPoints": total_points,
         "isPassed": is_passed,
+        "timeSpent": attempt_data.timeSpent,
         "status": "completed",
         "startedAt": datetime.utcnow(),
         "completedAt": datetime.utcnow(),
