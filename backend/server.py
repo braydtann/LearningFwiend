@@ -3396,6 +3396,9 @@ class QuestionResponse(BaseModel):
     type: str
     question: str
     options: List[str] = []
+    correctAnswers: Optional[List[int]] = None  # For select-all-that-apply questions
+    items: Optional[List[str]] = None  # For chronological-order questions
+    correctOrder: Optional[List[int]] = None  # For chronological-order questions
     points: int
     explanation: Optional[str] = None
     created_at: datetime
