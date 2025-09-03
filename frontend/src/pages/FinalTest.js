@@ -61,6 +61,23 @@ const FinalTest = () => {
     loadTestData();
   }, [courseId, programId, isProgram]);
 
+  useEffect(() => {
+    if (testStarted && finalTest?.timeLimit) {
+      const timer = setInterval(() => {
+        setTimeRemaining(prev => {
+          if (prev <= 1) {
+            // Time's up - auto submit
+            handleSubmitExam();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(timer);
+    }
+  }, [testStarted, finalTest]);
+
   const loadTestData = async () => {
     setLoading(true);
     setError(null);
@@ -71,6 +88,41 @@ const FinalTest = () => {
         const programResult = await getProgramById(programId);
         if (programResult.success) {
           setProgram(programResult.program);
+          
+          // Load final tests for this program
+          const testsResult = await getAllFinalTests({ 
+            program_id: programId, 
+            published_only: true 
+          });
+          
+          if (testsResult.success && testsResult.tests.length > 0) {
+            // Get the first published final test for this program
+            const testId = testsResult.tests[0].id;
+            const testDetailResult = await getFinalTestById(testId);
+            
+            if (testDetailResult.success) {
+              setFinalTest(testDetailResult.test);
+              
+              // Initialize time limit (convert minutes to seconds)
+              if (testDetailResult.test.timeLimit) {
+                setTimeRemaining(testDetailResult.test.timeLimit * 60);
+              }
+              
+              // Load previous attempts
+              const attemptsResult = await getFinalTestAttempts({ 
+                test_id: testId,
+                student_id: user.id 
+              });
+              
+              if (attemptsResult.success) {
+                setPreviousAttempts(attemptsResult.attempts);
+              }
+            } else {
+              setError('Final test not found for this program');
+            }
+          } else {
+            setError('No final test available for this program');
+          }
           
           // Also load the courses to verify completion
           if (programResult.program.courseIds?.length > 0) {
@@ -86,10 +138,14 @@ const FinalTest = () => {
           setError('Program not found');
         }
       } else if (courseId) {
-        // Load course data
+        // Load course data - for course-level final tests
         const courseResult = await getCourseById(courseId);
         if (courseResult.success) {
           setCourse(courseResult.course);
+          
+          // For now, course-level final tests use the simulated interface
+          // This can be expanded later if needed
+          setError('Course-level final tests are not yet implemented');
         } else {
           setError('Course not found');
         }
