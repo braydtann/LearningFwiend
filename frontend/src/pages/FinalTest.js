@@ -128,11 +128,26 @@ const FinalTest = () => {
               setError(`Final test not found for this program. Error: ${testDetailResult.error}`);
             }
           } else {
-            console.error('No final tests found:', testsResult);
-            // Try to get all final tests to debug
+            console.error('No final tests found for program:', testsResult);
+            // Try to get all final tests to see if any are available
             const allTestsResult = await getAllFinalTests({ published_only: true });
             console.log('All available final tests:', allTestsResult);
-            setError(`No final test available for this program. Found ${testsResult.tests?.length || 0} tests. Debug info logged to console.`);
+            
+            if (allTestsResult.success && allTestsResult.tests.length > 0) {
+              // There are final tests available, but not for this specific program
+              // Check if the program exists first
+              const programCheck = await getProgramById(programId);
+              
+              if (!programCheck.success) {
+                // Program doesn't exist - show available tests instead
+                setError(`The program ID in the URL (${programId}) doesn't exist. However, you have access to ${allTestsResult.tests.length} final test(s). Please contact your instructor to get the correct final exam link.`);
+              } else {
+                // Program exists but has no final tests
+                setError(`No final test has been created for this program yet. Please contact your instructor. (Program: "${programCheck.program?.title || 'Unknown'}")`);
+              }
+            } else {
+              setError(`No final tests are available to you at this time. Please contact your instructor.`);
+            }
           }
           
           // Also load the courses to verify completion
