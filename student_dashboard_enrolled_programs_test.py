@@ -24,7 +24,7 @@ from datetime import datetime
 import time
 
 # Configuration - Using the backend URL from supervisor config
-BACKEND_URL = "https://92d481e3-4a47-464c-b3ac-8a0264afd50a.preview.emergentagent.com/api"
+BACKEND_URL = "https://lms-chronology.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 # Test credentials from review request

@@ -11,7 +11,7 @@ from datetime import datetime
 import time
 
 # Configuration
-BACKEND_URL = "https://92d481e3-4a47-464c-b3ac-8a0264afd50a.preview.emergentagent.com/api"
+BACKEND_URL = "https://lms-chronology.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_CREDENTIALS = {
