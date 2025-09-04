@@ -61,6 +61,7 @@ const CourseDetail = () => {
     loadCourse();
     if (isLearner) {
       loadEnrollments();
+      loadProgramData();
     }
   }, [id, isLearner]);
 
