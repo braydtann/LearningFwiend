@@ -583,16 +583,40 @@ const CourseDetail = () => {
         if (result.success) {
           setCurrentEnrollment(result.enrollment);
           
-          toast({
-            title: "🎉 Course Completed!",
-            description: "Congratulations! You've successfully completed the entire course. Redirecting to your certificates...",
-            duration: 3000,
-          });
-
-          // Navigate to certificates page after a short delay
-          setTimeout(() => {
-            navigate('/certificates');
-          }, 2000);
+          // Check if this course completion completes the entire program
+          if (currentProgram) {
+            await checkProgramCompletion(currentProgram);
+          }
+          
+          // Show different messages based on program completion
+          if (programCompleted && showFinalExamOption) {
+            toast({
+              title: "🎉 Program Completed!",
+              description: "Congratulations! You've completed all courses in this program. Ready to take the final exam?",
+              duration: 5000,
+            });
+            // Don't navigate away - show final exam option
+          } else if (currentProgram) {
+            toast({
+              title: "🎉 Course Completed!",
+              description: "Great job! Continue with other courses in your program to unlock the final exam.",
+              duration: 3000,
+            });
+            // Navigate back to program course list
+            setTimeout(() => {
+              navigate(`/program/${currentProgram.id}`);
+            }, 2000);
+          } else {
+            toast({
+              title: "🎉 Course Completed!",
+              description: "Congratulations! You've successfully completed the entire course.",
+              duration: 3000,
+            });
+            // Navigate to certificates page after a short delay
+            setTimeout(() => {
+              navigate('/certificates');
+            }, 2000);
+          }
         }
       } else {
         // Navigate to next lesson/module
