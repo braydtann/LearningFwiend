@@ -139,8 +139,11 @@ const FinalTest = () => {
               const programCheck = await getProgramById(programId);
               
               if (!programCheck.success) {
-                // Program doesn't exist - show available tests instead
-                setError(`The program ID in the URL (${programId}) doesn't exist. However, you have access to ${allTestsResult.tests.length} final test(s). Please contact your instructor to get the correct final exam link.`);
+                // Program doesn't exist - offer to show available tests
+                setError(`The program ID in the URL doesn't exist. However, you have access to ${allTestsResult.tests.length} final test(s). Would you like to see available final exams?`);
+                
+                // Set available tests for user to choose from
+                setAvailableTests(allTestsResult.tests);
               } else {
                 // Program exists but has no final tests
                 setError(`No final test has been created for this program yet. Please contact your instructor. (Program: "${programCheck.program?.title || 'Unknown'}")`);
