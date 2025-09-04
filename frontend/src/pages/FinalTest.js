@@ -267,7 +267,10 @@ const FinalTest = () => {
   const renderQuestion = (question) => {
     const currentAnswer = answers[question.id];
 
-    switch (question.type) {
+    // Normalize question type to handle both snake_case and kebab-case
+    const normalizedType = question.type?.replace(/_/g, '-');
+
+    switch (normalizedType) {
       case 'multiple-choice':
         return (
           <div className="space-y-4">
@@ -350,6 +353,7 @@ const FinalTest = () => {
         );
 
       case 'long-form':
+      case 'essay':
         return (
           <div className="space-y-4">
             <Textarea
@@ -435,7 +439,10 @@ const FinalTest = () => {
       default:
         return (
           <div className="p-4 border border-yellow-200 bg-yellow-50 rounded">
-            <p className="text-yellow-800">Unsupported question type: {question.type}</p>
+            <p className="text-yellow-800">Unsupported question type: {question.type} (normalized: {normalizedType})</p>
+            <p className="text-yellow-600 text-sm mt-1">
+              Available types: multiple-choice, select-all-that-apply, true-false, short-answer, long-form, chronological-order
+            </p>
           </div>
         );
     }
