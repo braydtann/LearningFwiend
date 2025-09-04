@@ -161,6 +161,101 @@ const CourseDetail = () => {
     }
   };
 
+  const loadProgramData = async () => {
+    if (!isLearner || !user) return;
+    
+    try {
+      // Get student's classrooms
+      const classroomsResult = await getAllClassrooms();
+      if (!classroomsResult.success) return;
+      
+      // Get all programs
+      const programsResult = await getAllPrograms();
+      if (!programsResult.success) return;
+      
+      // Find classrooms where student is enrolled
+      const studentClassrooms = classroomsResult.classrooms.filter(classroom => 
+        classroom.studentIds && classroom.studentIds.includes(user.id)
+      );
+      
+      // Extract program IDs from student's classrooms
+      const programIds = new Set();
+      studentClassrooms.forEach(classroom => {
+        if (classroom.programIds) {
+          classroom.programIds.forEach(pid => programIds.add(pid));
+        }
+      });
+      
+      // Get program details for enrolled programs
+      const enrolledPrograms = programsResult.programs.filter(program => 
+        programIds.has(program.id)
+      );
+      
+      setEnrolledPrograms(enrolledPrograms);
+      
+      // Find the program that contains the current course
+      const currentProgram = enrolledPrograms.find(program => 
+        program.courseIds && program.courseIds.includes(id)
+      );
+      
+      setCurrentProgram(currentProgram);
+      
+      // Check if program is completed (if we found the current program)
+      if (currentProgram) {
+        await checkProgramCompletion(currentProgram);
+      }
+      
+    } catch (error) {
+      console.error('Error loading program data:', error);
+    }
+  };
+
+  const checkProgramCompletion = async (program) => {
+    if (!program || !program.courseIds) return;
+    
+    try {
+      // Get current enrollments
+      const enrollmentsResult = await getMyEnrollments();
+      if (!enrollmentsResult.success) return;
+      
+      const enrollments = enrollmentsResult.enrollments;
+      
+      // Check completion status for each course in the program
+      let completedCourses = 0;
+      let totalCourses = program.courseIds.length;
+      
+      for (const courseId of program.courseIds) {
+        const enrollment = enrollments.find(e => e.courseId === courseId);
+        if (enrollment && enrollment.progress >= 100) {
+          completedCourses++;
+        }
+      }
+      
+      // If this course completion would complete the program
+      const willCompleteProgram = (completedCourses === totalCourses - 1 && 
+                                  program.courseIds.includes(id));
+      
+      const isProgramCompleted = completedCourses === totalCourses;
+      
+      setProgramCompleted(isProgramCompleted || willCompleteProgram);
+      
+      // Check if final exam exists for this program
+      if (isProgramCompleted || willCompleteProgram) {
+        const finalTestsResult = await getAllFinalTests({ 
+          program_id: program.id, 
+          published_only: true 
+        });
+        
+        if (finalTestsResult.success && finalTestsResult.tests.length > 0) {
+          setShowFinalExamOption(true);
+        }
+      }
+      
+    } catch (error) {
+      console.error('Error checking program completion:', error);
+    }
+  };
+
   // Calculate real progress based on enrollment data
   const calculateProgress = () => {
     return calculateProgressFromEnrollment(currentEnrollment);
