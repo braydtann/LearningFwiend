@@ -56,6 +56,7 @@ const FinalTest = () => {
   const [timeRemaining, setTimeRemaining] = useState(null);
   const [previousAttempts, setPreviousAttempts] = useState([]);
   const [attemptResult, setAttemptResult] = useState(null);
+  const [availableTests, setAvailableTests] = useState([]);
 
   useEffect(() => {
     loadTestData();
