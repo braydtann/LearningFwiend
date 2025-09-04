@@ -504,6 +504,34 @@ const FinalTest = () => {
                 : "The course exam you're looking for could not be found."
               }
             </p>
+            
+            {/* Show available tests if program doesn't exist but tests are available */}
+            {availableTests.length > 0 && (
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold mb-4">Available Final Exams:</h3>
+                <div className="space-y-2">
+                  {availableTests.map((test) => (
+                    <Card key={test.id} className="p-4">
+                      <div className="flex justify-between items-center">
+                        <div className="text-left">
+                          <h4 className="font-medium">{test.title}</h4>
+                          <p className="text-sm text-gray-600">{test.description}</p>
+                        </div>
+                        <Button
+                          onClick={() => {
+                            // Navigate to the correct final test URL
+                            navigate(`/final-test/program/${test.programId || 'unknown'}`);
+                          }}
+                        >
+                          Take Exam
+                        </Button>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+            
             <Button onClick={() => navigate('/dashboard')}>
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Dashboard
