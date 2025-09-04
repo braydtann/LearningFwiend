@@ -1141,6 +1141,33 @@ const CourseDetail = () => {
                 </div>
               </div>
             )}
+            
+            {/* Final Exam Button - Show when program is completed */}
+            {programCompleted && showFinalExamOption && currentProgram && (
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-lg mb-6 border border-green-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
+                      <Trophy className="w-5 h-5 mr-2 text-yellow-500" />
+                      🎉 Program Completed!
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-2">
+                      Congratulations! You've completed all courses in "{currentProgram.title}".
+                    </p>
+                    <p className="text-sm text-green-700 font-medium">
+                      You're now eligible to take the final exam to earn your certificate.
+                    </p>
+                  </div>
+                  <Button 
+                    className="px-6 bg-green-600 hover:bg-green-700 text-white"
+                    onClick={() => navigate(`/final-test/program/${currentProgram.id}`)}
+                  >
+                    <Award className="w-4 h-4 mr-2" />
+                    Take Final Exam
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Course Content Tabs */}
