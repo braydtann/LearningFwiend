@@ -95,10 +95,16 @@ const FinalTest = () => {
             published_only: true 
           });
           
+          console.log('Final tests result:', testsResult);
+          console.log('Program ID:', programId);
+          
           if (testsResult.success && testsResult.tests.length > 0) {
             // Get the first published final test for this program
             const testId = testsResult.tests[0].id;
+            console.log('Using final test ID:', testId);
+            
             const testDetailResult = await getFinalTestById(testId);
+            console.log('Final test details result:', testDetailResult);
             
             if (testDetailResult.success) {
               setFinalTest(testDetailResult.test);
@@ -118,10 +124,15 @@ const FinalTest = () => {
                 setPreviousAttempts(attemptsResult.attempts);
               }
             } else {
-              setError('Final test not found for this program');
+              console.error('Failed to get final test details:', testDetailResult);
+              setError(`Final test not found for this program. Error: ${testDetailResult.error}`);
             }
           } else {
-            setError('No final test available for this program');
+            console.error('No final tests found:', testsResult);
+            // Try to get all final tests to debug
+            const allTestsResult = await getAllFinalTests({ published_only: true });
+            console.log('All available final tests:', allTestsResult);
+            setError(`No final test available for this program. Found ${testsResult.tests?.length || 0} tests. Debug info logged to console.`);
           }
           
           // Also load the courses to verify completion
