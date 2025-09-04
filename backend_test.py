@@ -565,24 +565,30 @@ class FinalTestTester:
             answers = []
             for question in questions:
                 if question['type'] == 'multiple_choice':
-                    # Give correct answer for MC
+                    # Give correct answer for MC (index 1 = Python)
                     answers.append({
                         "questionId": question['id'],
-                        "answer": int(question['correctAnswer'])
+                        "answer": 1
                     })
                 elif question['type'] == 'chronological-order':
                     # Give incorrect order (reverse of correct order)
-                    correct_order = question['correctOrder']
-                    incorrect_order = list(reversed(correct_order))
-                    answers.append({
-                        "questionId": question['id'],
-                        "answer": incorrect_order
-                    })
+                    if "programming languages" in question['question'].lower():
+                        # Wrong order: [3, 2, 0, 1] instead of [1, 0, 2, 3]
+                        answers.append({
+                            "questionId": question['id'],
+                            "answer": [3, 2, 0, 1]
+                        })
+                    elif "methodologies" in question['question'].lower():
+                        # Wrong order: [3, 0, 2, 1] instead of [1, 2, 0, 3]
+                        answers.append({
+                            "questionId": question['id'],
+                            "answer": [3, 0, 2, 1]
+                        })
                 elif question['type'] == 'true_false':
                     # Give correct answer for T/F
                     answers.append({
                         "questionId": question['id'],
-                        "answer": question['correctAnswer']
+                        "answer": "true"
                     })
             
             # Submit test attempt with incorrect chronological answers
