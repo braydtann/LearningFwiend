@@ -452,23 +452,34 @@ class FinalTestTester:
             test_data = test_response.json()
             questions = test_data.get('questions', [])
             
-            # Prepare correct answers
+            # Prepare answers based on our known correct answers from test creation
             answers = []
             for question in questions:
                 if question['type'] == 'multiple_choice':
+                    # We know the correct answer is index 1 (Python) from our test creation
                     answers.append({
                         "questionId": question['id'],
-                        "answer": int(question['correctAnswer'])
+                        "answer": 1
                     })
                 elif question['type'] == 'chronological-order':
-                    answers.append({
-                        "questionId": question['id'],
-                        "answer": question['correctOrder']  # Submit correct order
-                    })
+                    # Use the correct orders we defined during test creation
+                    if "programming languages" in question['question'].lower():
+                        # C, Python, Java, JavaScript order: [1, 0, 2, 3]
+                        answers.append({
+                            "questionId": question['id'],
+                            "answer": [1, 0, 2, 3]
+                        })
+                    elif "methodologies" in question['question'].lower():
+                        # Waterfall, Scrum, Agile, DevOps order: [1, 2, 0, 3]
+                        answers.append({
+                            "questionId": question['id'],
+                            "answer": [1, 2, 0, 3]
+                        })
                 elif question['type'] == 'true_false':
+                    # We know Python is interpreted is true
                     answers.append({
                         "questionId": question['id'],
-                        "answer": question['correctAnswer']
+                        "answer": "true"
                     })
             
             # Submit test attempt with correct answers
