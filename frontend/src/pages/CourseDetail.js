@@ -23,7 +23,9 @@ import {
   Lock,
   ChevronRight,
   SkipForward,
-  ClipboardCheck
+  ClipboardCheck,
+  Trophy,
+  Award
 } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 
