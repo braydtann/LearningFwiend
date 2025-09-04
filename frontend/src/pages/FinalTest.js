@@ -146,8 +146,11 @@ const FinalTest = () => {
                 // Set available tests for user to choose from
                 setAvailableTests(allTestsResult.tests);
               } else {
-                // Program exists but has no final tests
-                setError(`No final test has been created for this program yet. Please contact your instructor. (Program: "${programCheck.program?.title || 'Unknown'}")`);
+                // Program exists but has no final tests - offer available tests as alternative
+                setError(`No final test has been created for "${programCheck.program?.title || 'this program'}" yet. However, you have access to ${allTestsResult.tests.length} other final test(s). Would you like to see available final exams?`);
+                
+                // Set available tests for user to choose from  
+                setAvailableTests(allTestsResult.tests);
               }
             } else {
               setError(`No final tests are available to you at this time. Please contact your instructor.`);
