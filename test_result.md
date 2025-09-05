@@ -2844,6 +2844,7 @@ metadata:
 
 test_plan:
   current_focus:
+    - "Phase 2 Drag-and-Drop Chronological Order Backend Testing - COMPLETED"
     - "Student Programs Access Investigation - COMPLETED"
     - "ClassroomDetail.js Course Count Bug - ROOT CAUSE IDENTIFIED"
   stuck_tasks: []
