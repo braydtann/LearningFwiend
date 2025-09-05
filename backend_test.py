@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Comprehensive Backend Testing for Final Tests with Chronological Order Support
-Testing the updated final test backend with chronological order questions.
+Comprehensive Backend Testing for Chronological Order Question Creation with Drag-and-Drop Interface
+Testing the chronological order question creation functionality after implementing drag-and-drop interface in CreateCourse.js.
 """
 
 import requests
@@ -10,7 +10,7 @@ import sys
 from datetime import datetime
 import time
 
-# Configuration
+# Configuration - Use the correct backend URL from frontend/.env
 BACKEND_URL = "https://learning-flow.preview.emergentagent.com/api"
 
 # Test credentials
