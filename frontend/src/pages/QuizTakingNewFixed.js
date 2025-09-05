@@ -18,7 +18,7 @@ import {
   GripVertical
 } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
 const QuizTakingNewFixed = () => {
   // Get URL parameters safely
