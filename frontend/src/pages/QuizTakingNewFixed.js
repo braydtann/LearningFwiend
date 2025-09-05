@@ -14,9 +14,11 @@ import {
   Timer,
   BookOpen,
   ChevronRight,
-  ChevronLeft
+  ChevronLeft,
+  GripVertical
 } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 const QuizTakingNewFixed = () => {
   // Get URL parameters safely
