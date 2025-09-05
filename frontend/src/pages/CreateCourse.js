@@ -10,9 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Badge } from '../components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 // Backend data only - no more mock dependencies
-import { ArrowLeft, Plus, Trash2, Upload, FileText, Eye } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Upload, FileText, Eye, GripVertical } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 import CoursePreview from '../components/CoursePreview';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 const CreateCourse = () => {
   const navigate = useNavigate();
