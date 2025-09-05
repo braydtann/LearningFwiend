@@ -13,7 +13,7 @@ import time
 import uuid
 
 # Configuration
-BACKEND_URL = "https://lms-chronology.preview.emergentagent.com/api"
+BACKEND_URL = "https://learning-flow.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 class ComprehensiveBackendTester:

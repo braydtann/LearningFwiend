@@ -22,7 +22,7 @@ import time
 import uuid
 
 # Configuration - Using frontend/.env URL as per review request
-BACKEND_URL = "https://lms-chronology.preview.emergentagent.com/api"
+BACKEND_URL = "https://learning-flow.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 # Test credentials from review request

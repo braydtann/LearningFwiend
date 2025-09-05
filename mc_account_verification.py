@@ -7,7 +7,7 @@ import requests
 import json
 from datetime import datetime
 
-BACKEND_URL = "https://lms-chronology.preview.emergentagent.com/api"
+BACKEND_URL = "https://learning-flow.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 # Fallback admin credentials that work
