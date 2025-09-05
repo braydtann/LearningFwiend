@@ -710,6 +710,62 @@ const CreateCourse = () => {
     }));
   };
 
+  // Handle drag-and-drop reordering for chronological order items
+  const handleChronologicalDragEnd = (result, moduleIndex, lessonIndex, questionIndex) => {
+    if (!result.destination) {
+      return;
+    }
+
+    const sourceIndex = result.source.index;
+    const destinationIndex = result.destination.index;
+
+    if (sourceIndex === destinationIndex) {
+      return;
+    }
+
+    setCourseData(prev => ({
+      ...prev,
+      modules: prev.modules.map((module, mIdx) => 
+        mIdx === moduleIndex 
+          ? {
+              ...module,
+              lessons: module.lessons.map((lesson, lIdx) =>
+                lIdx === lessonIndex 
+                  ? { 
+                      ...lesson, 
+                      quiz: {
+                        ...lesson.quiz,
+                        questions: (lesson.quiz?.questions || []).map((question, qIdx) =>
+                          qIdx === questionIndex 
+                            ? { 
+                                ...question, 
+                                items: (() => {
+                                  const newItems = Array.from(question.items || []);
+                                  const [reorderedItem] = newItems.splice(sourceIndex, 1);
+                                  newItems.splice(destinationIndex, 0, reorderedItem);
+                                  return newItems;
+                                })(),
+                                // Update correctOrder to match new item order (0-based indices)
+                                correctOrder: (() => {
+                                  const newItems = Array.from(question.items || []);
+                                  const [reorderedItem] = newItems.splice(sourceIndex, 1);
+                                  newItems.splice(destinationIndex, 0, reorderedItem);
+                                  // correctOrder should be the current order (0, 1, 2, 3, ...)
+                                  return newItems.map((_, index) => index);
+                                })()
+                              } 
+                            : question
+                        )
+                      }
+                    } 
+                  : lesson
+              )
+            }
+          : module
+      )
+    }));
+  };
+
   const addModule = () => {
     setCourseData(prev => ({
       ...prev,
