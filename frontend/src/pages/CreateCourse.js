@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ArrowLeft, Plus, Trash2, Upload, FileText, Eye, GripVertical } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 import CoursePreview from '../components/CoursePreview';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
 const CreateCourse = () => {
   const navigate = useNavigate();
