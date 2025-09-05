@@ -53,6 +53,77 @@ const QuizTakingNewFixed = () => {
   const isMountedRef = useRef(true);
   const timerRef = useRef(null);
 
+  // Utility function to shuffle array (Fisher-Yates shuffle)
+  const shuffleArray = useCallback((array) => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }, []);
+
+  // Handle drag-and-drop for chronological order questions
+  const handleChronologicalDragEnd = useCallback((result, questionId, availableItems) => {
+    if (!result.destination) {
+      return;
+    }
+
+    const sourceIndex = result.source.index;
+    const destinationIndex = result.destination.index;
+
+    if (sourceIndex === destinationIndex) {
+      return;
+    }
+
+    // Get current answer (array of arranged item indices)
+    const currentAnswer = Array.isArray(answers[questionId]) ? [...answers[questionId]] : [];
+    
+    // Handle drag from available items to answer area
+    if (result.source.droppableId === `available-${questionId}` && result.destination.droppableId === `answer-${questionId}`) {
+      // Get the original item index from available items
+      const availableItem = availableItems[sourceIndex];
+      const originalIndex = availableItem.originalIndex;
+      
+      // Insert at destination position in answer area
+      const newAnswer = [...currentAnswer];
+      newAnswer.splice(destinationIndex, 0, originalIndex);
+      
+      handleAnswerChange(questionId, newAnswer);
+    }
+    // Handle drag within answer area (reordering)
+    else if (result.source.droppableId === `answer-${questionId}` && result.destination.droppableId === `answer-${questionId}`) {
+      const newAnswer = [...currentAnswer];
+      const [reorderedItem] = newAnswer.splice(sourceIndex, 1);
+      newAnswer.splice(destinationIndex, 0, reorderedItem);
+      
+      handleAnswerChange(questionId, newAnswer);
+    }
+    // Handle drag from answer area back to available items (removal)
+    else if (result.source.droppableId === `answer-${questionId}` && result.destination.droppableId === `available-${questionId}`) {
+      const newAnswer = [...currentAnswer];
+      newAnswer.splice(sourceIndex, 1);
+      
+      handleAnswerChange(questionId, newAnswer);
+    }
+  }, [answers, handleAnswerChange]);
+
+  // Get shuffled available items for chronological questions
+  const getShuffledAvailableItems = useCallback((question, currentAnswer) => {
+    if (!question.items || !Array.isArray(question.items)) return [];
+    
+    // Get items not already in the answer
+    const usedIndices = Array.isArray(currentAnswer) ? currentAnswer : [];
+    const availableItems = question.items.map((item, index) => ({
+      ...item,
+      originalIndex: index,
+      id: `item-${index}`
+    })).filter(item => !usedIndices.includes(item.originalIndex));
+    
+    // Shuffle the available items for better UX
+    return shuffleArray(availableItems);
+  }, [shuffleArray]);
+
   // Ensure mounted ref is set on every mount (handles React Strict Mode)
   useEffect(() => {
     isMountedRef.current = true;
