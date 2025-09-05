@@ -1376,244 +1376,219 @@ const QuizTakingNewFixed = () => {
               </div>
             )}
 
-            {/* Chronological Order Questions */}  
+            {/* Chronological Order Questions with Drag & Drop */}  
             {currentQuestion?.type === 'chronological-order' && (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {(() => {
-                  console.log(`🔍 CHRONOLOGICAL ORDER RENDERING - Question ${currentQuestion.id}:`, {
+                  console.log(`🔍 CHRONOLOGICAL ORDER DRAG-DROP RENDERING - Question ${currentQuestion.id}:`, {
                     questionText: currentQuestion.question,
                     hasItems: !!(currentQuestion.items),
                     isItemsArray: Array.isArray(currentQuestion.items),
                     itemsLength: currentQuestion.items ? currentQuestion.items.length : 0,
-                    itemsContent: currentQuestion.items ? currentQuestion.items.map((item, idx) => ({
-                      index: idx,
-                      type: typeof item,
-                      text: typeof item === 'string' ? item : (item?.text || 'NO TEXT'),
-                      hasImage: !!(typeof item === 'object' && item?.image),
-                      hasAudio: !!(typeof item === 'object' && item?.audio)
-                    })) : 'NO ITEMS',
                     currentAnswer: answers[currentQuestion.id],
-                    currentAnswerType: typeof answers[currentQuestion.id],
                     currentAnswerIsArray: Array.isArray(answers[currentQuestion.id])
                   });
                   return null;
                 })()}
                 
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                  <p className="text-blue-800 text-sm">
-                    📋 <strong>Instructions:</strong> Click items in the correct chronological order to arrange them.
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <p className="text-blue-800 text-sm font-medium mb-2">
+                    🎯 <strong>Instructions:</strong> Drag items from the "Available Items" area into the "Your Answer" area in the correct chronological order.
+                  </p>
+                  <p className="text-blue-700 text-xs">
+                    • Items in "Your Answer" will be your final sequence
+                    • You can reorder items within "Your Answer" by dragging
+                    • Drag items back to "Available Items" to remove them from your answer
                   </p>
                 </div>
                 
-                {/* Display items for ordering */}
-                {(Array.isArray(currentQuestion.items) ? currentQuestion.items : []).map((item, index) => {
-                  // Handle both string and object item formats with defensive programming
-                  const itemText = typeof item === 'string' ? item : (item?.text || `Item ${index + 1}`);
-                  const itemImage = typeof item === 'object' ? item?.image : null;
-                  const itemAudio = typeof item === 'object' ? item?.audio : null;
-                  
-                  // Get current order (array of indices representing the user's arrangement)
-                  const currentOrder = Array.isArray(answers[currentQuestion.id]) ? answers[currentQuestion.id] : [];
-                  const itemPosition = currentOrder.indexOf(index);
-                  const isOrdered = itemPosition !== -1;
-                  
-                  console.log(`🔍 CHRONOLOGICAL ORDER ITEM RENDER - Item ${index}:`, {
-                    itemIndex: index,
-                    itemText: itemText,
-                    itemType: typeof item,
-                    hasImage: !!itemImage,
-                    hasAudio: !!itemAudio,
-                    currentOrder: currentOrder,
-                    itemPosition: itemPosition,
-                    isOrdered: isOrdered,
-                    currentAnswer: answers[currentQuestion.id]
-                  });
-                  
-                  return (
-                    <div
-                      key={`co-${index}`}
-                      className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                        isOrdered 
-                          ? 'border-blue-500 bg-blue-50' 
-                          : 'border-gray-200 bg-white hover:border-gray-300'
-                      }`}
-                      onClick={() => {
-                        console.log(`🔍 CHRONOLOGICAL ORDER ITEM CLICK - Item ${index}:`, {
-                          itemIndex: index,
-                          itemText: itemText,
-                          currentOrder: currentOrder,
-                          isOrdered: isOrdered,
-                          questionId: currentQuestion.id
-                        });
-                        
-                        if (currentQuestion?.id) {
-                          const currentOrder = Array.isArray(answers[currentQuestion.id]) ? [...answers[currentQuestion.id]] : [];
-                          
-                          if (isOrdered) {
-                            // Remove from order
-                            const newOrder = currentOrder.filter(idx => idx !== index);
-                            console.log(`🔄 CHRONOLOGICAL ORDER REMOVE - Item ${index}:`, {
-                              oldOrder: currentOrder,
-                              newOrder: newOrder,
-                              removedItem: itemText,
-                              action: 'REMOVE'
-                            });
-                            handleAnswerChange(currentQuestion.id, newOrder);
-                          } else {
-                            // Add to end of order
-                            const newOrder = [...currentOrder, index];
-                            console.log(`🔄 CHRONOLOGICAL ORDER ADD - Item ${index}:`, {
-                              oldOrder: currentOrder,
-                              newOrder: newOrder,
-                              addedItem: itemText,
-                              newPosition: newOrder.length,
-                              action: 'ADD'
-                            });
-                            handleAnswerChange(currentQuestion.id, newOrder);
-                          }
-                        }
-                      }}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <span className="text-sm font-medium text-gray-600">Item {index + 1}</span>
-                            {isOrdered && (
-                              <span className="px-2 py-1 bg-blue-500 text-white text-xs rounded-full">
-                                Position: {itemPosition + 1}
-                              </span>
+                <DragDropContext
+                  onDragEnd={(result) => {
+                    const availableItems = getShuffledAvailableItems(currentQuestion, answers[currentQuestion.id]);
+                    handleChronologicalDragEnd(result, currentQuestion.id, availableItems);
+                  }}
+                >
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Available Items Area */}
+                    <div className="space-y-3">
+                      <h4 className="font-medium text-gray-700 flex items-center">
+                        <div className="w-3 h-3 bg-gray-400 rounded-full mr-2"></div>
+                        Available Items
+                      </h4>
+                      <Droppable droppableId={`available-${currentQuestion.id}`}>
+                        {(provided, snapshot) => (
+                          <div
+                            {...provided.droppableProps}
+                            ref={provided.innerRef}
+                            className={`min-h-[120px] border-2 border-dashed rounded-lg p-3 space-y-2 transition-colors ${
+                              snapshot.isDraggingOver ? 'border-blue-400 bg-blue-50' : 'border-gray-300 bg-gray-50'
+                            }`}
+                          >
+                            {(() => {
+                              const availableItems = getShuffledAvailableItems(currentQuestion, answers[currentQuestion.id]);
+                              return availableItems.map((item, index) => (
+                                <Draggable
+                                  key={`available-${item.originalIndex}`}
+                                  draggableId={`available-${currentQuestion.id}-${item.originalIndex}`}
+                                  index={index}
+                                >
+                                  {(provided, snapshot) => (
+                                    <div
+                                      ref={provided.innerRef}
+                                      {...provided.draggableProps}
+                                      {...provided.dragHandleProps}
+                                      className={`p-3 bg-white border rounded-lg shadow-sm cursor-move transition-all ${
+                                        snapshot.isDragging ? 'shadow-lg rotate-1 bg-blue-50' : 'hover:shadow-md'
+                                      }`}
+                                    >
+                                      <div className="flex items-center space-x-2">
+                                        <GripVertical className="w-4 h-4 text-gray-400" />
+                                        <span className="flex-1 text-sm">
+                                          {typeof item === 'string' ? item : (item?.text || `Item ${item.originalIndex + 1}`)}
+                                        </span>
+                                      </div>
+                                      
+                                      {/* Display item media if available */}
+                                      {(typeof item === 'object' && item?.image) && (
+                                        <div className="mt-2">
+                                          <img 
+                                            src={item.image} 
+                                            alt={`Item ${item.originalIndex + 1}`} 
+                                            className="max-w-xs h-20 object-cover rounded border" 
+                                          />
+                                        </div>
+                                      )}
+                                      {(typeof item === 'object' && item?.audio) && (
+                                        <div className="mt-2">
+                                          <audio controls className="w-full max-w-xs">
+                                            <source src={item.audio} type="audio/mpeg" />
+                                            Your browser does not support the audio element.
+                                          </audio>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </Draggable>
+                              ));
+                            })()}
+                            
+                            {getShuffledAvailableItems(currentQuestion, answers[currentQuestion.id]).length === 0 && (
+                              <div className="flex items-center justify-center py-8 text-gray-500">
+                                <p className="text-sm">All items have been placed in your answer</p>
+                              </div>
                             )}
+                            {provided.placeholder}
                           </div>
-                          <p className="text-gray-900 font-medium">{itemText}</p>
-                          
-                          {/* Display item image if available */}
-                          {itemImage && itemImage.trim() !== '' && (
-                            <div className="mt-2">
-                              <img 
-                                src={itemImage} 
-                                alt={`Item ${index + 1}`} 
-                                className="max-w-xs h-32 object-cover rounded border"
-                                onError={(e) => {
-                                  console.warn(`🖼️ CHRONOLOGICAL ORDER IMAGE ERROR - Item ${index}:`, {
-                                    itemIndex: index,
-                                    imageUrl: itemImage,
-                                    error: 'Failed to load image'
-                                  });
-                                  e.target.style.display = 'none';
-                                }}
-                                onLoad={() => {
-                                  console.log(`🖼️ CHRONOLOGICAL ORDER IMAGE LOADED - Item ${index}:`, {
-                                    itemIndex: index,
-                                    imageUrl: itemImage
-                                  });
-                                }}
-                              />
-                            </div>
-                          )}
-                          
-                          {/* Display item audio if available */}
-                          {itemAudio && itemAudio.trim() !== '' && (
-                            <div className="mt-2">
-                              <audio 
-                                controls 
-                                className="w-full max-w-xs"
-                                onError={() => {
-                                  console.warn(`🔊 CHRONOLOGICAL ORDER AUDIO ERROR - Item ${index}:`, {
-                                    itemIndex: index,
-                                    audioUrl: itemAudio,
-                                    error: 'Failed to load audio'
-                                  });
-                                }}
-                                onCanPlay={() => {
-                                  console.log(`🔊 CHRONOLOGICAL ORDER AUDIO LOADED - Item ${index}:`, {
-                                    itemIndex: index,
-                                    audioUrl: itemAudio
-                                  });
-                                }}
-                              >
-                                <source src={itemAudio} type="audio/mpeg" />
-                                Your browser does not support the audio element.
-                              </audio>
-                            </div>
-                          )}
-                        </div>
-                        
-                        <div className="ml-4">
-                          {isOrdered ? (
-                            <div className="text-blue-600">
-                              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                              </svg>
-                            </div>
-                          ) : (
-                            <div className="text-gray-400">
-                              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                              </svg>
-                            </div>
-                          )}
-                        </div>
-                      </div>
+                        )}
+                      </Droppable>
                     </div>
-                  );
-                })}
+                    
+                    {/* Answer Area */}
+                    <div className="space-y-3">
+                      <h4 className="font-medium text-gray-700 flex items-center">
+                        <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                        Your Answer ({Array.isArray(answers[currentQuestion.id]) ? answers[currentQuestion.id].length : 0} items)
+                      </h4>
+                      <Droppable droppableId={`answer-${currentQuestion.id}`}>
+                        {(provided, snapshot) => (
+                          <div
+                            {...provided.droppableProps}
+                            ref={provided.innerRef}
+                            className={`min-h-[120px] border-2 border-dashed rounded-lg p-3 space-y-2 transition-colors ${
+                              snapshot.isDraggingOver ? 'border-green-400 bg-green-50' : 'border-green-300 bg-green-50'
+                            }`}
+                          >
+                            {(() => {
+                              const currentAnswer = Array.isArray(answers[currentQuestion.id]) ? answers[currentQuestion.id] : [];
+                              return currentAnswer.map((itemIndex, position) => {
+                                const item = currentQuestion.items[itemIndex];
+                                return (
+                                  <Draggable
+                                    key={`answer-${itemIndex}`}
+                                    draggableId={`answer-${currentQuestion.id}-${itemIndex}`}
+                                    index={position}
+                                  >
+                                    {(provided, snapshot) => (
+                                      <div
+                                        ref={provided.innerRef}
+                                        {...provided.draggableProps}
+                                        {...provided.dragHandleProps}
+                                        className={`p-3 bg-white border rounded-lg shadow-sm cursor-move transition-all ${
+                                          snapshot.isDragging ? 'shadow-lg rotate-1 bg-green-100' : 'hover:shadow-md'
+                                        }`}
+                                      >
+                                        <div className="flex items-center space-x-2">
+                                          <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
+                                            #{position + 1}
+                                          </Badge>
+                                          <GripVertical className="w-4 h-4 text-gray-400" />
+                                          <span className="flex-1 text-sm">
+                                            {typeof item === 'string' ? item : (item?.text || `Item ${itemIndex + 1}`)}
+                                          </span>
+                                        </div>
+                                        
+                                        {/* Display item media if available */}
+                                        {(typeof item === 'object' && item?.image) && (
+                                          <div className="mt-2">
+                                            <img 
+                                              src={item.image} 
+                                              alt={`Item ${itemIndex + 1}`} 
+                                              className="max-w-xs h-20 object-cover rounded border" 
+                                            />
+                                          </div>
+                                        )}
+                                        {(typeof item === 'object' && item?.audio) && (
+                                          <div className="mt-2">
+                                            <audio controls className="w-full max-w-xs">
+                                              <source src={item.audio} type="audio/mpeg" />
+                                              Your browser does not support the audio element.
+                                            </audio>
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
+                                  </Draggable>
+                                );
+                              });
+                            })()}
+                            
+                            {(!Array.isArray(answers[currentQuestion.id]) || answers[currentQuestion.id].length === 0) && (
+                              <div className="flex items-center justify-center py-8 text-gray-500">
+                                <p className="text-sm">Drag items here to create your chronological sequence</p>
+                              </div>
+                            )}
+                            {provided.placeholder}
+                          </div>
+                        )}
+                      </Droppable>
+                    </div>
+                  </div>
+                </DragDropContext>
+                
+                {/* Answer Summary */}
+                {Array.isArray(answers[currentQuestion.id]) && answers[currentQuestion.id].length > 0 && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h5 className="font-medium text-green-800 mb-2">Your Current Sequence:</h5>
+                    <div className="flex flex-wrap gap-2">
+                      {answers[currentQuestion.id].map((itemIndex, position) => {
+                        const item = currentQuestion.items[itemIndex];
+                        const itemText = typeof item === 'string' ? item : (item?.text || `Item ${itemIndex + 1}`);
+                        return (
+                          <Badge key={position} variant="outline" className="bg-green-100 text-green-800 border-green-300">
+                            {position + 1}. {itemText.length > 25 ? itemText.substring(0, 25) + '...' : itemText}
+                          </Badge>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
                 
                 {/* Fallback if no items available */}
                 {(!currentQuestion.items || !Array.isArray(currentQuestion.items) || currentQuestion.items.length === 0) && (
                   <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-red-800">No items available for ordering in this question.</p>
-                    {(() => {
-                      console.error(`❌ CHRONOLOGICAL ORDER NO ITEMS - Question ${currentQuestion.id}:`, {
-                        items: currentQuestion.items,
-                        hasItems: !!(currentQuestion.items),
-                        isArray: Array.isArray(currentQuestion.items),
-                        length: currentQuestion.items ? currentQuestion.items.length : 0
-                      });
-                      return null;
-                    })()}
+                    <p className="text-red-800">No items available for this chronological order question.</p>
                   </div>
                 )}
-                
-                {/* Show current order */}
-                {Array.isArray(answers[currentQuestion.id]) && answers[currentQuestion.id].length > 0 && (
-                  <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                    {(() => {
-                      const currentOrder = answers[currentQuestion.id];
-                      console.log(`📝 CHRONOLOGICAL ORDER CURRENT ORDER DISPLAY - Question ${currentQuestion.id}:`, {
-                        currentOrder: currentOrder,
-                        orderLength: currentOrder.length,
-                        itemsInOrder: currentOrder.map(itemIndex => ({
-                          position: currentOrder.indexOf(itemIndex) + 1,
-                          itemIndex: itemIndex,
-                          itemText: currentQuestion.items[itemIndex] 
-                            ? (typeof currentQuestion.items[itemIndex] === 'string' 
-                                ? currentQuestion.items[itemIndex] 
-                                : currentQuestion.items[itemIndex]?.text || 'NO TEXT')
-                            : 'INVALID INDEX'
-                        }))
-                      });
-                      return null;
-                    })()}
-                    
-                    <p className="text-green-800 text-sm font-medium mb-1">
-                      📝 Your Current Order:
-                    </p>
-                    <p className="text-green-700 text-sm">
-                      {answers[currentQuestion.id].map((itemIndex, position) => {
-                        const item = currentQuestion.items[itemIndex];
-                        const itemText = typeof item === 'string' ? item : (item?.text || `Item ${itemIndex + 1}`);
-                        return `${position + 1}. ${itemText}`;
-                      }).join(' → ')}
-                    </p>
-                  </div>
-                )}
-                
-                {/* Instructions for reordering */}
-                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <p className="text-yellow-800 text-sm">
-                    💡 <strong>Tip:</strong> Click items in the order you think they should be arranged chronologically. Click again to remove from your order.
-                  </p>
-                </div>
               </div>
             )}
 
