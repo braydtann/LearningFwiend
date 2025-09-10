@@ -629,6 +629,32 @@ const FinalTest = () => {
                   <h3 className="text-lg font-semibold mb-4">
                     {currentQuestion.question}
                   </h3>
+                  
+                  {/* Question Image - Display if available */}
+                  {currentQuestion?.questionImage && currentQuestion.questionImage.trim() !== '' && (
+                    <div className="mb-4">
+                      <img 
+                        src={currentQuestion.questionImage} 
+                        alt="Question illustration" 
+                        className="max-w-full h-64 object-contain rounded border mx-auto block"
+                        onError={(e) => {
+                          console.warn('Failed to load question image:', currentQuestion.questionImage);
+                          e.target.style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  )}
+
+                  {/* Question Audio - Display if available */}
+                  {currentQuestion?.questionAudio && currentQuestion.questionAudio.trim() !== '' && (
+                    <div className="mb-4">
+                      <audio controls className="w-full max-w-md mx-auto">
+                        <source src={currentQuestion.questionAudio} type="audio/mpeg" />
+                        Your browser does not support the audio element.
+                      </audio>
+                    </div>
+                  )}
+                  
                   {renderQuestion(currentQuestion)}
                 </div>
               </CardContent>
