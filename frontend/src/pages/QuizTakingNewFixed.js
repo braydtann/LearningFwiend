@@ -927,8 +927,6 @@ const QuizTakingNewFixed = () => {
     console.log('Quiz started');
   }, []);
 
-  };
-
   // Navigate between questions
   const handlePreviousQuestion = useCallback(() => {
     if (!isMountedRef.current || !quiz?.questions) return;
