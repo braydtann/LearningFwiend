@@ -1,9 +1,140 @@
 [
   {
     "test": "Admin Authentication",
+    "success": true,
+    "details": "Successfully authenticated as Brayden T",
+    "timestamp": "2025-09-10T16:15:42.437040",
+    "data": null
+  },
+  {
+    "test": "Student Authentication",
+    "success": true,
+    "details": "Successfully authenticated as Brayden Student",
+    "timestamp": "2025-09-10T16:15:42.676700",
+    "data": null
+  },
+  {
+    "test": "Find Test Program 2",
+    "success": true,
+    "details": "Found program: Test Program 2 (ID: b67ddcc0-ad3e-4ddd-9c5d-1c6b75dee11e)",
+    "timestamp": "2025-09-10T16:15:42.681746",
+    "data": {
+      "id": "b67ddcc0-ad3e-4ddd-9c5d-1c6b75dee11e",
+      "title": "Test Program 2",
+      "description": "This is the test program 2 for investigating enrollment issues",
+      "departmentId": null,
+      "duration": "12 weeks",
+      "courseIds": [
+        "381eb6dc-6d3d-4ca8-a409-0516d0199dfb",
+        "e20ab9ca-13e3-45dd-ab4e-6ea80f9dfedd",
+        "c1696040-212d-4ff4-9f53-a9f37ef2b696"
+      ],
+      "nestedProgramIds": [],
+      "instructorId": "5524ed2c-9f8c-4a68-9514-2c847cbb5696",
+      "instructor": "Brayden T",
+      "isActive": true,
+      "courseCount": 3,
+      "created_at": "2025-09-10T16:15:35.221000",
+      "updated_at": "2025-09-10T16:15:35.221000"
+    }
+  },
+  {
+    "test": "Check Program Details",
+    "success": true,
+    "details": "Program details retrieved: Test Program 2",
+    "timestamp": "2025-09-10T16:15:42.686115",
+    "data": {
+      "id": "b67ddcc0-ad3e-4ddd-9c5d-1c6b75dee11e",
+      "title": "Test Program 2",
+      "description": "This is the test program 2 for investigating enrollment issues",
+      "departmentId": null,
+      "duration": "12 weeks",
+      "courseIds": [
+        "381eb6dc-6d3d-4ca8-a409-0516d0199dfb",
+        "e20ab9ca-13e3-45dd-ab4e-6ea80f9dfedd",
+        "c1696040-212d-4ff4-9f53-a9f37ef2b696"
+      ],
+      "nestedProgramIds": [],
+      "instructorId": "5524ed2c-9f8c-4a68-9514-2c847cbb5696",
+      "instructor": "Brayden T",
+      "isActive": true,
+      "courseCount": 3,
+      "created_at": "2025-09-10T16:15:35.221000",
+      "updated_at": "2025-09-10T16:15:35.221000"
+    }
+  },
+  {
+    "test": "Find Program Classrooms",
     "success": false,
-    "details": "Failed with status 401",
-    "timestamp": "2025-09-10T16:14:13.418026",
-    "data": "{\"detail\":\"Incorrect username/email or password\"}"
+    "details": "Failed to get classrooms: 500",
+    "timestamp": "2025-09-10T16:15:42.690400",
+    "data": "Internal Server Error"
+  },
+  {
+    "test": "Check Student Classroom Assignment",
+    "success": false,
+    "details": "Student Brayden Student not found in any program classrooms",
+    "timestamp": "2025-09-10T16:15:42.690524",
+    "data": {
+      "student_id": "c30a917b-0042-4a8a-b413-24f0de3557f7",
+      "classrooms_checked": 0
+    }
+  },
+  {
+    "test": "Check Student Enrollments",
+    "success": true,
+    "details": "Student has 3 enrollments",
+    "timestamp": "2025-09-10T16:15:42.697359",
+    "data": [
+      {
+        "id": "8203c64c-5fa8-4b8f-b264-da60bc7a1a27",
+        "userId": "c30a917b-0042-4a8a-b413-24f0de3557f7",
+        "courseId": "381eb6dc-6d3d-4ca8-a409-0516d0199dfb",
+        "enrolledAt": "2025-09-10T16:15:35.245000",
+        "progress": 0.0,
+        "completedAt": null,
+        "status": "active",
+        "currentModuleId": null,
+        "currentLessonId": null,
+        "moduleProgress": null,
+        "lastAccessedAt": null,
+        "timeSpent": null
+      },
+      {
+        "id": "b960f2a5-da58-49b7-adee-f43e4e639d42",
+        "userId": "c30a917b-0042-4a8a-b413-24f0de3557f7",
+        "courseId": "e20ab9ca-13e3-45dd-ab4e-6ea80f9dfedd",
+        "enrolledAt": "2025-09-10T16:15:35.258000",
+        "progress": 0.0,
+        "completedAt": null,
+        "status": "active",
+        "currentModuleId": null,
+        "currentLessonId": null,
+        "moduleProgress": null,
+        "lastAccessedAt": null,
+        "timeSpent": null
+      },
+      {
+        "id": "fb247225-8f73-41c2-ad20-3e0b83adf6b5",
+        "userId": "c30a917b-0042-4a8a-b413-24f0de3557f7",
+        "courseId": "c1696040-212d-4ff4-9f53-a9f37ef2b696",
+        "enrolledAt": "2025-09-10T16:15:35.260000",
+        "progress": 0.0,
+        "completedAt": null,
+        "status": "active",
+        "currentModuleId": null,
+        "currentLessonId": null,
+        "moduleProgress": null,
+        "lastAccessedAt": null,
+        "timeSpent": null
+      }
+    ]
+  },
+  {
+    "test": "Auto-Enrollment Logic Test",
+    "success": true,
+    "details": "Student is enrolled in all program courses",
+    "timestamp": "2025-09-10T16:15:42.705469",
+    "data": null
   }
 ]
