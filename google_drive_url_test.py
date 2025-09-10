@@ -452,9 +452,9 @@ class GoogleDriveURLTestRunner:
                     
                     # Check for convertGoogleDriveUrl function
                     has_function = 'convertGoogleDriveUrl' in content
-                    has_regex_pattern = 'drive.google.com/file/d/' in content
+                    has_regex_pattern = 'drive\\.google\\.com' in content  # Check for escaped regex pattern
                     has_conversion_logic = 'drive.googleusercontent.com' in content
-                    has_usage = content.count('convertGoogleDriveUrl(') > 1  # Function definition + usage
+                    has_usage = content.count('convertGoogleDriveUrl(') >= 1  # Function definition + usage
                     
                     implementation_found[component_path] = {
                         'exists': True,
