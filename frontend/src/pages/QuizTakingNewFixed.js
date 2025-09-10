@@ -1321,10 +1321,41 @@ const QuizTakingNewFixed = () => {
             {currentQuestion?.type === 'select-all-that-apply' && (
               <div className="space-y-3">
                 {(Array.isArray(currentQuestion.options) ? currentQuestion.options : []).map((option, index) => {
-                  // Handle both string and object option formats with defensive programming
-                  const optionText = typeof option === 'string' ? option : (option?.text || `Option ${index + 1}`);
-                  const optionImage = typeof option === 'object' ? option?.image : null;
-                  const optionAudio = typeof option === 'object' ? option?.audio : null;
+                  // Enhanced handling for mixed string/object option formats
+                  let optionText, optionImage, optionAudio;
+                  
+                  if (typeof option === 'string') {
+                    // Check if string contains image URL patterns
+                    const imageUrlPattern = /https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp|svg)/i;
+                    const audioUrlPattern = /https?:\/\/[^\s]+\.(mp3|wav|ogg|m4a)/i;
+                    
+                    if (imageUrlPattern.test(option)) {
+                      // String appears to be an image URL
+                      optionText = `Option ${index + 1}`;
+                      optionImage = option;
+                      optionAudio = null;
+                    } else if (audioUrlPattern.test(option)) {
+                      // String appears to be an audio URL
+                      optionText = `Option ${index + 1}`;
+                      optionImage = null;
+                      optionAudio = option;
+                    } else {
+                      // Regular text option
+                      optionText = option;
+                      optionImage = null;
+                      optionAudio = null;
+                    }
+                  } else if (typeof option === 'object' && option !== null) {
+                    // Object format with text, image, audio properties
+                    optionText = option?.text || `Option ${index + 1}`;
+                    optionImage = option?.image;
+                    optionAudio = option?.audio;
+                  } else {
+                    // Fallback for any other format
+                    optionText = `Option ${index + 1}`;
+                    optionImage = null;
+                    optionAudio = null;
+                  }
                   
                   // Get current selected answers (array of indices)
                   const selectedAnswers = Array.isArray(answers[currentQuestion.id]) ? answers[currentQuestion.id] : [];
