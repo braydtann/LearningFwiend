@@ -362,6 +362,10 @@ class QuizImageInvestigator:
                     module_progress_analysis = []
                     completed_lessons = 0
                     
+                    # Handle None moduleProgress
+                    if module_progress is None:
+                        module_progress = []
+                    
                     for mod_prog in module_progress:
                         module_id = mod_prog.get('moduleId')
                         lessons_progress = mod_prog.get('lessons', [])
