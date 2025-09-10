@@ -25,6 +25,32 @@ import {
 } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 
+// Utility function to convert Google Drive URLs to direct image URLs
+const convertGoogleDriveUrl = (url) => {
+  if (!url || typeof url !== 'string') return url;
+  
+  // Check if it's a Google Drive URL
+  const driveRegex = /https:\/\/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)\/view/;
+  const match = url.match(driveRegex);
+  
+  if (match) {
+    const fileId = match[1];
+    return `https://drive.googleusercontent.com/u/0/uc?id=${fileId}&export=view`;
+  }
+  
+  // Also handle alternative Google Drive sharing URLs
+  const altDriveRegex = /https:\/\/drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/;
+  const altMatch = url.match(altDriveRegex);
+  
+  if (altMatch) {
+    const fileId = altMatch[1];
+    return `https://drive.googleusercontent.com/u/0/uc?id=${fileId}&export=view`;
+  }
+  
+  // Return original URL if not a Google Drive URL
+  return url;
+};
+
 const FinalTest = () => {
   const { courseId, programId } = useParams();
   const navigate = useNavigate();
