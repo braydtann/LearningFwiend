@@ -63,6 +63,57 @@ const QuizTakingNewFixed = () => {
     return shuffled;
   }, []);
 
+  // Handle answer change
+  const handleAnswerChange = useCallback((questionId, answer) => {
+    if (!isMountedRef.current) return;
+    
+    // Find the question to determine its type for debug logging
+    const question = quiz?.questions?.find(q => q.id === questionId);
+    
+    if (question?.type === 'chronological-order') {
+      console.log(`🔄 CHRONOLOGICAL ORDER ANSWER CHANGE - Question ${questionId}:`, {
+        questionId: questionId,
+        questionText: question.question,
+        oldAnswer: answers[questionId],
+        newAnswer: answer,
+        oldAnswerType: typeof answers[questionId],
+        newAnswerType: typeof answer,
+        oldAnswerIsArray: Array.isArray(answers[questionId]),
+        newAnswerIsArray: Array.isArray(answer),
+        oldAnswerLength: Array.isArray(answers[questionId]) ? answers[questionId].length : 0,
+        newAnswerLength: Array.isArray(answer) ? answer.length : 0,
+        items: question.items ? question.items.map((item, idx) => ({
+          index: idx,
+          text: typeof item === 'string' ? item : (item?.text || 'NO TEXT')
+        })) : 'NO ITEMS',
+        answerSequence: Array.isArray(answer) ? answer.map(idx => ({
+          position: answer.indexOf(idx) + 1,
+          itemIndex: idx,
+          itemText: (question.items && question.items[idx]) 
+            ? (typeof question.items[idx] === 'string' ? question.items[idx] : question.items[idx]?.text || 'NO TEXT')
+            : 'INVALID INDEX'
+        })) : 'NOT AN ARRAY'
+      });
+    }
+    
+    setAnswers(prev => {
+      const newAnswers = {
+        ...prev,
+        [questionId]: answer
+      };
+      
+      if (question?.type === 'chronological-order') {
+        console.log(`📝 CHRONOLOGICAL ORDER ANSWERS UPDATED - Question ${questionId}:`, {
+          allAnswers: newAnswers,
+          thisQuestionAnswer: newAnswers[questionId],
+          totalAnsweredQuestions: Object.keys(newAnswers).length
+        });
+      }
+      
+      return newAnswers;
+    });
+  }, [quiz, answers]);
+
   // Handle drag-and-drop for chronological order questions
   const handleChronologicalDragEnd = useCallback((result, questionId, availableItems) => {
     if (!result.destination) {
