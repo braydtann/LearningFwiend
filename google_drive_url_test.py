@@ -462,7 +462,7 @@ class GoogleDriveURLTestRunner:
                         'has_regex': has_regex_pattern,
                         'has_conversion': has_conversion_logic,
                         'has_usage': has_usage,
-                        'usage_count': content.count('convertGoogleDriveUrl(') - 1  # Subtract function definition
+                        'usage_count': content.count('convertGoogleDriveUrl(')  # Total usage including definition
                     }
                     
                     component_name = component_path.split('/')[-1]
