@@ -3,21 +3,21 @@
     "test": "Admin Authentication",
     "success": true,
     "details": "Successfully authenticated as Brayden T",
-    "timestamp": "2025-09-10T16:15:42.437040",
+    "timestamp": "2025-09-10T16:16:31.715958",
     "data": null
   },
   {
     "test": "Student Authentication",
     "success": true,
     "details": "Successfully authenticated as Brayden Student",
-    "timestamp": "2025-09-10T16:15:42.676700",
+    "timestamp": "2025-09-10T16:16:31.952993",
     "data": null
   },
   {
     "test": "Find Test Program 2",
     "success": true,
     "details": "Found program: Test Program 2 (ID: b67ddcc0-ad3e-4ddd-9c5d-1c6b75dee11e)",
-    "timestamp": "2025-09-10T16:15:42.681746",
+    "timestamp": "2025-09-10T16:16:31.957896",
     "data": {
       "id": "b67ddcc0-ad3e-4ddd-9c5d-1c6b75dee11e",
       "title": "Test Program 2",
@@ -42,7 +42,7 @@
     "test": "Check Program Details",
     "success": true,
     "details": "Program details retrieved: Test Program 2",
-    "timestamp": "2025-09-10T16:15:42.686115",
+    "timestamp": "2025-09-10T16:16:31.962713",
     "data": {
       "id": "b67ddcc0-ad3e-4ddd-9c5d-1c6b75dee11e",
       "title": "Test Program 2",
@@ -65,26 +65,77 @@
   },
   {
     "test": "Find Program Classrooms",
-    "success": false,
-    "details": "Failed to get classrooms: 500",
-    "timestamp": "2025-09-10T16:15:42.690400",
-    "data": "Internal Server Error"
+    "success": true,
+    "details": "Found 1 classrooms with program",
+    "timestamp": "2025-09-10T16:16:31.967151",
+    "data": [
+      {
+        "id": "389995aa-a19e-40c8-b0be-194ede79cfda",
+        "name": "Test Classroom for Program 2",
+        "description": "Classroom that includes test program 2 and assigns brayden.student",
+        "trainerId": "5524ed2c-9f8c-4a68-9514-2c847cbb5696",
+        "trainerName": "Brayden T",
+        "courseIds": [],
+        "programIds": [
+          "b67ddcc0-ad3e-4ddd-9c5d-1c6b75dee11e"
+        ],
+        "studentIds": [
+          "c30a917b-0042-4a8a-b413-24f0de3557f7"
+        ],
+        "batchId": null,
+        "startDate": "2025-09-10T16:15:35.233000",
+        "endDate": null,
+        "maxStudents": null,
+        "department": null,
+        "studentCount": 1,
+        "courseCount": 0,
+        "programCount": 1,
+        "isActive": true,
+        "createdBy": "5524ed2c-9f8c-4a68-9514-2c847cbb5696",
+        "created_at": "2025-09-10T16:15:35.233000",
+        "updated_at": "2025-09-10T16:16:24.088000"
+      }
+    ]
   },
   {
     "test": "Check Student Classroom Assignment",
-    "success": false,
-    "details": "Student Brayden Student not found in any program classrooms",
-    "timestamp": "2025-09-10T16:15:42.690524",
-    "data": {
-      "student_id": "c30a917b-0042-4a8a-b413-24f0de3557f7",
-      "classrooms_checked": 0
-    }
+    "success": true,
+    "details": "Student is assigned to 1 classrooms",
+    "timestamp": "2025-09-10T16:16:31.967292",
+    "data": [
+      {
+        "id": "389995aa-a19e-40c8-b0be-194ede79cfda",
+        "name": "Test Classroom for Program 2",
+        "description": "Classroom that includes test program 2 and assigns brayden.student",
+        "trainerId": "5524ed2c-9f8c-4a68-9514-2c847cbb5696",
+        "trainerName": "Brayden T",
+        "courseIds": [],
+        "programIds": [
+          "b67ddcc0-ad3e-4ddd-9c5d-1c6b75dee11e"
+        ],
+        "studentIds": [
+          "c30a917b-0042-4a8a-b413-24f0de3557f7"
+        ],
+        "batchId": null,
+        "startDate": "2025-09-10T16:15:35.233000",
+        "endDate": null,
+        "maxStudents": null,
+        "department": null,
+        "studentCount": 1,
+        "courseCount": 0,
+        "programCount": 1,
+        "isActive": true,
+        "createdBy": "5524ed2c-9f8c-4a68-9514-2c847cbb5696",
+        "created_at": "2025-09-10T16:15:35.233000",
+        "updated_at": "2025-09-10T16:16:24.088000"
+      }
+    ]
   },
   {
     "test": "Check Student Enrollments",
     "success": true,
     "details": "Student has 3 enrollments",
-    "timestamp": "2025-09-10T16:15:42.697359",
+    "timestamp": "2025-09-10T16:16:31.971564",
     "data": [
       {
         "id": "8203c64c-5fa8-4b8f-b264-da60bc7a1a27",
@@ -131,10 +182,37 @@
     ]
   },
   {
+    "test": "Course Enrollment Mismatch",
+    "success": false,
+    "details": "Mismatch detected - Missing: 0, Extra: 3",
+    "timestamp": "2025-09-10T16:16:31.971712",
+    "data": {
+      "classroom_courses": [],
+      "enrolled_courses": [
+        "e20ab9ca-13e3-45dd-ab4e-6ea80f9dfedd",
+        "c1696040-212d-4ff4-9f53-a9f37ef2b696",
+        "381eb6dc-6d3d-4ca8-a409-0516d0199dfb"
+      ],
+      "missing_enrollments": [],
+      "extra_enrollments": [
+        "e20ab9ca-13e3-45dd-ab4e-6ea80f9dfedd",
+        "c1696040-212d-4ff4-9f53-a9f37ef2b696",
+        "381eb6dc-6d3d-4ca8-a409-0516d0199dfb"
+      ]
+    }
+  },
+  {
     "test": "Auto-Enrollment Logic Test",
     "success": true,
     "details": "Student is enrolled in all program courses",
-    "timestamp": "2025-09-10T16:15:42.705469",
+    "timestamp": "2025-09-10T16:16:31.979930",
+    "data": null
+  },
+  {
+    "test": "Enrollment Status Display Investigation",
+    "success": false,
+    "details": "Exception: 'title'",
+    "timestamp": "2025-09-10T16:16:31.984752",
     "data": null
   }
 ]
