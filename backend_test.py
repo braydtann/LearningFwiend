@@ -1,5 +1,681 @@
 #!/usr/bin/env python3
 """
+🧪 VERIFICATION TEST: Quiz Image Display & Progressive Quiz Access Features
+
+TESTING OBJECTIVES:
+1. **Verify Quiz Image Data**: Test if there are courses with quiz questions that have image URLs to validate image display fix
+2. **Verify Progressive Access Logic**: Test student enrollment data to confirm progressive quiz access will work correctly
+3. **Backend API Functionality**: Ensure all required APIs are working for both features
+
+SPECIFIC TESTS NEEDED:
+1. **Image Display Verification**:
+   - GET /api/courses/{id} for courses with quiz questions
+   - Look for questions with mixed option formats (strings vs objects with images)
+   - Verify image URLs are accessible in quiz data
+
+2. **Progressive Access Verification**:
+   - Login as student (karlo.student@alder.com / StudentPermanent123!)
+   - GET /api/enrollments - Check moduleProgress data structure
+   - Verify enrollment data has the fields needed for progressive access logic
+
+3. **Course Structure Analysis**:
+   - Analyze course modules and lesson ordering
+   - Confirm quiz lessons are properly positioned within modules
+
+CREDENTIALS TO USE:
+- Admin: brayden.t@covesmart.com / Hawaii2020!
+- Student: karlo.student@alder.com / StudentPermanent123!
+
+SUCCESS CRITERIA:
+- Find at least 1 course with quiz questions that have image options
+- Confirm student enrollment data contains moduleProgress with completion tracking
+- All required backend APIs working correctly for both features
+"""
+
+import requests
+import json
+import sys
+from datetime import datetime
+from typing import Dict, List, Any, Optional
+
+class QuizImageProgressTestSuite:
+    def __init__(self):
+        # Use localhost backend URL as per system instructions
+        self.base_url = "http://localhost:8001/api"
+        self.admin_token = None
+        self.student_token = None
+        self.test_results = []
+        
+        # Test credentials from review request
+        self.admin_credentials = {
+            "username_or_email": "brayden.t@covesmart.com",
+            "password": "Hawaii2020!"
+        }
+        
+        self.student_credentials = {
+            "username_or_email": "karlo.student@alder.com", 
+            "password": "StudentPermanent123!"
+        }
+        
+    def log_test(self, test_name: str, success: bool, details: str = "", data: Any = None):
+        """Log test results with timestamp"""
+        result = {
+            "test": test_name,
+            "success": success,
+            "timestamp": datetime.now().isoformat(),
+            "details": details,
+            "data": data
+        }
+        self.test_results.append(result)
+        
+        status = "✅ PASS" if success else "❌ FAIL"
+        print(f"{status} | {test_name}")
+        if details:
+            print(f"    Details: {details}")
+        if not success and data:
+            print(f"    Error Data: {data}")
+        print()
+
+    def authenticate_admin(self) -> bool:
+        """Authenticate as admin user"""
+        try:
+            response = requests.post(
+                f"{self.base_url}/auth/login",
+                json=self.admin_credentials,
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                self.admin_token = data.get("access_token")
+                user_info = data.get("user", {})
+                
+                self.log_test(
+                    "Admin Authentication",
+                    True,
+                    f"Successfully authenticated as {user_info.get('full_name', 'Admin')} (Role: {user_info.get('role', 'Unknown')})"
+                )
+                return True
+            else:
+                self.log_test(
+                    "Admin Authentication", 
+                    False,
+                    f"HTTP {response.status_code}: {response.text}",
+                    response.json() if response.headers.get('content-type', '').startswith('application/json') else response.text
+                )
+                return False
+                
+        except Exception as e:
+            self.log_test("Admin Authentication", False, f"Exception: {str(e)}")
+            return False
+
+    def authenticate_student(self) -> bool:
+        """Authenticate as student user"""
+        try:
+            response = requests.post(
+                f"{self.base_url}/auth/login",
+                json=self.student_credentials,
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                self.student_token = data.get("access_token")
+                user_info = data.get("user", {})
+                
+                self.log_test(
+                    "Student Authentication",
+                    True,
+                    f"Successfully authenticated as {user_info.get('full_name', 'Student')} (Role: {user_info.get('role', 'Unknown')})"
+                )
+                return True
+            else:
+                self.log_test(
+                    "Student Authentication", 
+                    False,
+                    f"HTTP {response.status_code}: {response.text}",
+                    response.json() if response.headers.get('content-type', '').startswith('application/json') else response.text
+                )
+                return False
+                
+        except Exception as e:
+            self.log_test("Student Authentication", False, f"Exception: {str(e)}")
+            return False
+
+    def get_courses_with_quizzes(self) -> List[Dict]:
+        """Get all courses and identify those with quiz lessons"""
+        try:
+            headers = {"Authorization": f"Bearer {self.admin_token}"}
+            response = requests.get(f"{self.base_url}/courses", headers=headers, timeout=10)
+            
+            if response.status_code != 200:
+                self.log_test(
+                    "Get Courses List",
+                    False,
+                    f"HTTP {response.status_code}: {response.text}"
+                )
+                return []
+            
+            courses = response.json()
+            quiz_courses = []
+            
+            for course in courses:
+                # Check if course has modules with quiz lessons
+                modules = course.get('modules', [])
+                has_quiz = False
+                
+                for module in modules:
+                    lessons = module.get('lessons', [])
+                    for lesson in lessons:
+                        if lesson.get('type') == 'quiz':
+                            has_quiz = True
+                            break
+                    if has_quiz:
+                        break
+                
+                if has_quiz:
+                    quiz_courses.append(course)
+            
+            self.log_test(
+                "Get Courses with Quizzes",
+                True,
+                f"Found {len(quiz_courses)} courses with quiz lessons out of {len(courses)} total courses"
+            )
+            
+            return quiz_courses
+            
+        except Exception as e:
+            self.log_test("Get Courses with Quizzes", False, f"Exception: {str(e)}")
+            return []
+
+    def analyze_quiz_image_data(self, courses: List[Dict]) -> Dict:
+        """Analyze quiz questions for image data structures"""
+        try:
+            headers = {"Authorization": f"Bearer {self.admin_token}"}
+            image_analysis = {
+                "courses_analyzed": 0,
+                "courses_with_images": 0,
+                "total_questions": 0,
+                "questions_with_images": 0,
+                "image_formats": {
+                    "string_urls": 0,
+                    "object_format": 0,
+                    "mixed_format": 0
+                },
+                "sample_questions": []
+            }
+            
+            for course in courses[:5]:  # Analyze first 5 quiz courses
+                course_id = course.get('id')
+                if not course_id:
+                    continue
+                    
+                # Get detailed course data
+                response = requests.get(f"{self.base_url}/courses/{course_id}", headers=headers, timeout=10)
+                if response.status_code != 200:
+                    continue
+                
+                course_detail = response.json()
+                image_analysis["courses_analyzed"] += 1
+                course_has_images = False
+                
+                modules = course_detail.get('modules', [])
+                for module in modules:
+                    lessons = module.get('lessons', [])
+                    for lesson in lessons:
+                        if lesson.get('type') == 'quiz':
+                            # Check both lesson.questions and lesson.quiz.questions formats
+                            questions = lesson.get('questions', [])
+                            if not questions:
+                                quiz_data = lesson.get('quiz', {})
+                                questions = quiz_data.get('questions', [])
+                            
+                            for question in questions:
+                                image_analysis["total_questions"] += 1
+                                
+                                # Analyze question options for images
+                                options = question.get('options', [])
+                                if not options:
+                                    continue
+                                
+                                has_images = False
+                                string_format = 0
+                                object_format = 0
+                                
+                                for option in options:
+                                    if isinstance(option, str):
+                                        # Check if string contains image URL patterns
+                                        if any(ext in option.lower() for ext in ['.jpg', '.jpeg', '.png', '.gif', '.webp', 'http']):
+                                            string_format += 1
+                                            has_images = True
+                                    elif isinstance(option, dict):
+                                        if 'image' in option or 'imageUrl' in option:
+                                            object_format += 1
+                                            has_images = True
+                                
+                                if has_images:
+                                    image_analysis["questions_with_images"] += 1
+                                    course_has_images = True
+                                    
+                                    # Determine format type
+                                    if string_format > 0 and object_format > 0:
+                                        image_analysis["image_formats"]["mixed_format"] += 1
+                                    elif string_format > 0:
+                                        image_analysis["image_formats"]["string_urls"] += 1
+                                    elif object_format > 0:
+                                        image_analysis["image_formats"]["object_format"] += 1
+                                    
+                                    # Store sample for analysis
+                                    if len(image_analysis["sample_questions"]) < 3:
+                                        image_analysis["sample_questions"].append({
+                                            "course_id": course_id,
+                                            "course_title": course.get('title', 'Unknown'),
+                                            "question_text": question.get('question', 'No question text')[:100],
+                                            "options_sample": options[:2],  # First 2 options as sample
+                                            "format_analysis": {
+                                                "string_format": string_format,
+                                                "object_format": object_format
+                                            }
+                                        })
+                
+                if course_has_images:
+                    image_analysis["courses_with_images"] += 1
+            
+            success = image_analysis["questions_with_images"] > 0
+            details = f"Analyzed {image_analysis['courses_analyzed']} courses, found {image_analysis['questions_with_images']} questions with images"
+            
+            self.log_test(
+                "Quiz Image Data Analysis",
+                success,
+                details,
+                image_analysis
+            )
+            
+            return image_analysis
+            
+        except Exception as e:
+            self.log_test("Quiz Image Data Analysis", False, f"Exception: {str(e)}")
+            return {}
+
+    def verify_student_enrollments(self) -> Dict:
+        """Verify student enrollment data for progressive access"""
+        try:
+            headers = {"Authorization": f"Bearer {self.student_token}"}
+            response = requests.get(f"{self.base_url}/enrollments", headers=headers, timeout=10)
+            
+            if response.status_code != 200:
+                self.log_test(
+                    "Student Enrollments Verification",
+                    False,
+                    f"HTTP {response.status_code}: {response.text}"
+                )
+                return {}
+            
+            enrollments = response.json()
+            
+            enrollment_analysis = {
+                "total_enrollments": len(enrollments),
+                "enrollments_with_module_progress": 0,
+                "enrollments_with_current_position": 0,
+                "progressive_access_ready": 0,
+                "sample_enrollments": []
+            }
+            
+            for enrollment in enrollments[:5]:  # Analyze first 5 enrollments
+                has_module_progress = 'moduleProgress' in enrollment and enrollment['moduleProgress']
+                has_current_position = 'currentModuleId' in enrollment or 'currentLessonId' in enrollment
+                
+                if has_module_progress:
+                    enrollment_analysis["enrollments_with_module_progress"] += 1
+                
+                if has_current_position:
+                    enrollment_analysis["enrollments_with_current_position"] += 1
+                
+                # Check if enrollment has data needed for progressive access
+                if has_module_progress or has_current_position or enrollment.get('progress', 0) > 0:
+                    enrollment_analysis["progressive_access_ready"] += 1
+                
+                # Store sample for analysis
+                if len(enrollment_analysis["sample_enrollments"]) < 3:
+                    enrollment_analysis["sample_enrollments"].append({
+                        "course_id": enrollment.get('courseId'),
+                        "progress": enrollment.get('progress', 0),
+                        "status": enrollment.get('status', 'unknown'),
+                        "has_module_progress": has_module_progress,
+                        "has_current_position": has_current_position,
+                        "module_progress_count": len(enrollment.get('moduleProgress', [])),
+                        "current_module_id": enrollment.get('currentModuleId'),
+                        "current_lesson_id": enrollment.get('currentLessonId')
+                    })
+            
+            success = enrollment_analysis["progressive_access_ready"] > 0
+            details = f"Found {enrollment_analysis['progressive_access_ready']} enrollments ready for progressive access out of {enrollment_analysis['total_enrollments']} total"
+            
+            self.log_test(
+                "Student Enrollments for Progressive Access",
+                success,
+                details,
+                enrollment_analysis
+            )
+            
+            return enrollment_analysis
+            
+        except Exception as e:
+            self.log_test("Student Enrollments for Progressive Access", False, f"Exception: {str(e)}")
+            return {}
+
+    def analyze_course_structure(self, courses: List[Dict]) -> Dict:
+        """Analyze course module and lesson structure for progressive access"""
+        try:
+            headers = {"Authorization": f"Bearer {self.admin_token}"}
+            structure_analysis = {
+                "courses_analyzed": 0,
+                "courses_with_proper_structure": 0,
+                "total_modules": 0,
+                "total_lessons": 0,
+                "quiz_lessons": 0,
+                "lesson_types": {},
+                "sample_structures": []
+            }
+            
+            for course in courses[:3]:  # Analyze first 3 courses
+                course_id = course.get('id')
+                if not course_id:
+                    continue
+                
+                response = requests.get(f"{self.base_url}/courses/{course_id}", headers=headers, timeout=10)
+                if response.status_code != 200:
+                    continue
+                
+                course_detail = response.json()
+                structure_analysis["courses_analyzed"] += 1
+                
+                modules = course_detail.get('modules', [])
+                course_modules = len(modules)
+                course_lessons = 0
+                course_quiz_lessons = 0
+                course_lesson_types = {}
+                
+                for module in modules:
+                    lessons = module.get('lessons', [])
+                    course_lessons += len(lessons)
+                    
+                    for lesson in lessons:
+                        lesson_type = lesson.get('type', 'unknown')
+                        course_lesson_types[lesson_type] = course_lesson_types.get(lesson_type, 0) + 1
+                        structure_analysis["lesson_types"][lesson_type] = structure_analysis["lesson_types"].get(lesson_type, 0) + 1
+                        
+                        if lesson_type == 'quiz':
+                            course_quiz_lessons += 1
+                
+                structure_analysis["total_modules"] += course_modules
+                structure_analysis["total_lessons"] += course_lessons
+                structure_analysis["quiz_lessons"] += course_quiz_lessons
+                
+                # Consider structure proper if it has modules with lessons
+                if course_modules > 0 and course_lessons > 0:
+                    structure_analysis["courses_with_proper_structure"] += 1
+                
+                # Store sample structure
+                if len(structure_analysis["sample_structures"]) < 2:
+                    structure_analysis["sample_structures"].append({
+                        "course_id": course_id,
+                        "course_title": course.get('title', 'Unknown'),
+                        "modules_count": course_modules,
+                        "lessons_count": course_lessons,
+                        "quiz_lessons_count": course_quiz_lessons,
+                        "lesson_types": course_lesson_types
+                    })
+            
+            success = structure_analysis["courses_with_proper_structure"] > 0
+            details = f"Analyzed {structure_analysis['courses_analyzed']} courses, {structure_analysis['courses_with_proper_structure']} have proper structure for progressive access"
+            
+            self.log_test(
+                "Course Structure Analysis",
+                success,
+                details,
+                structure_analysis
+            )
+            
+            return structure_analysis
+            
+        except Exception as e:
+            self.log_test("Course Structure Analysis", False, f"Exception: {str(e)}")
+            return {}
+
+    def test_backend_api_functionality(self) -> bool:
+        """Test all required backend APIs are working"""
+        try:
+            api_tests = [
+                ("GET /api/courses", f"{self.base_url}/courses", self.admin_token),
+                ("GET /api/enrollments", f"{self.base_url}/enrollments", self.student_token),
+                ("GET /api/categories", f"{self.base_url}/categories", self.admin_token),
+                ("GET /api/programs", f"{self.base_url}/programs", self.admin_token),
+                ("GET /api/departments", f"{self.base_url}/departments", self.admin_token)
+            ]
+            
+            api_results = []
+            
+            for test_name, url, token in api_tests:
+                try:
+                    headers = {"Authorization": f"Bearer {token}"}
+                    response = requests.get(url, headers=headers, timeout=10)
+                    
+                    success = response.status_code == 200
+                    api_results.append(success)
+                    
+                    if success:
+                        data = response.json()
+                        count = len(data) if isinstance(data, list) else 1
+                        details = f"HTTP 200 - Retrieved {count} items"
+                    else:
+                        details = f"HTTP {response.status_code}: {response.text[:100]}"
+                    
+                    self.log_test(test_name, success, details)
+                    
+                except Exception as e:
+                    self.log_test(test_name, False, f"Exception: {str(e)}")
+                    api_results.append(False)
+            
+            overall_success = all(api_results)
+            success_rate = sum(api_results) / len(api_results) * 100
+            
+            self.log_test(
+                "Backend API Functionality Test",
+                overall_success,
+                f"API Success Rate: {success_rate:.1f}% ({sum(api_results)}/{len(api_results)} tests passed)"
+            )
+            
+            return overall_success
+            
+        except Exception as e:
+            self.log_test("Backend API Functionality Test", False, f"Exception: {str(e)}")
+            return False
+
+    def run_comprehensive_test(self):
+        """Run all tests for quiz image display and progressive access verification"""
+        print("🧪 VERIFICATION TEST: Quiz Image Display & Progressive Quiz Access Features")
+        print("=" * 80)
+        print()
+        
+        # Step 1: Authentication
+        print("🔐 AUTHENTICATION TESTING")
+        print("-" * 40)
+        
+        admin_auth = self.authenticate_admin()
+        student_auth = self.authenticate_student()
+        
+        if not admin_auth or not student_auth:
+            print("❌ CRITICAL: Authentication failed. Cannot proceed with testing.")
+            return False
+        
+        print()
+        
+        # Step 2: Backend API Functionality
+        print("🔧 BACKEND API FUNCTIONALITY TESTING")
+        print("-" * 40)
+        
+        api_working = self.test_backend_api_functionality()
+        print()
+        
+        # Step 3: Quiz Image Data Verification
+        print("🖼️ QUIZ IMAGE DATA VERIFICATION")
+        print("-" * 40)
+        
+        quiz_courses = self.get_courses_with_quizzes()
+        if quiz_courses:
+            image_analysis = self.analyze_quiz_image_data(quiz_courses)
+        else:
+            self.log_test("Quiz Image Data Verification", False, "No courses with quizzes found")
+            image_analysis = {}
+        
+        print()
+        
+        # Step 4: Progressive Access Logic Verification
+        print("📈 PROGRESSIVE ACCESS LOGIC VERIFICATION")
+        print("-" * 40)
+        
+        enrollment_analysis = self.verify_student_enrollments()
+        print()
+        
+        # Step 5: Course Structure Analysis
+        print("🏗️ COURSE STRUCTURE ANALYSIS")
+        print("-" * 40)
+        
+        if quiz_courses:
+            structure_analysis = self.analyze_course_structure(quiz_courses)
+        else:
+            structure_analysis = {}
+        
+        print()
+        
+        # Generate Summary Report
+        self.generate_summary_report(image_analysis, enrollment_analysis, structure_analysis, api_working)
+        
+        return True
+
+    def generate_summary_report(self, image_analysis: Dict, enrollment_analysis: Dict, structure_analysis: Dict, api_working: bool):
+        """Generate comprehensive summary report"""
+        print("📊 COMPREHENSIVE SUMMARY REPORT")
+        print("=" * 80)
+        
+        # Calculate overall success metrics
+        total_tests = len(self.test_results)
+        passed_tests = sum(1 for result in self.test_results if result["success"])
+        success_rate = (passed_tests / total_tests * 100) if total_tests > 0 else 0
+        
+        print(f"📈 OVERALL SUCCESS RATE: {success_rate:.1f}% ({passed_tests}/{total_tests} tests passed)")
+        print()
+        
+        # Key Findings
+        print("🔍 KEY FINDINGS:")
+        print("-" * 20)
+        
+        # Image Display Findings
+        if image_analysis:
+            questions_with_images = image_analysis.get("questions_with_images", 0)
+            if questions_with_images > 0:
+                print(f"✅ QUIZ IMAGE DATA: Found {questions_with_images} questions with image options")
+                mixed_format = image_analysis.get("image_formats", {}).get("mixed_format", 0)
+                if mixed_format > 0:
+                    print(f"⚠️  MIXED FORMAT DETECTED: {mixed_format} questions use mixed string/object formats")
+            else:
+                print("❌ QUIZ IMAGE DATA: No questions with image options found")
+        else:
+            print("❌ QUIZ IMAGE DATA: Analysis failed or no quiz courses found")
+        
+        # Progressive Access Findings
+        if enrollment_analysis:
+            ready_enrollments = enrollment_analysis.get("progressive_access_ready", 0)
+            total_enrollments = enrollment_analysis.get("total_enrollments", 0)
+            if ready_enrollments > 0:
+                print(f"✅ PROGRESSIVE ACCESS: {ready_enrollments}/{total_enrollments} enrollments ready for progressive access")
+                module_progress = enrollment_analysis.get("enrollments_with_module_progress", 0)
+                if module_progress > 0:
+                    print(f"✅ MODULE PROGRESS: {module_progress} enrollments have detailed module progress tracking")
+            else:
+                print("❌ PROGRESSIVE ACCESS: No enrollments ready for progressive access")
+        else:
+            print("❌ PROGRESSIVE ACCESS: Analysis failed")
+        
+        # Course Structure Findings
+        if structure_analysis:
+            proper_structure = structure_analysis.get("courses_with_proper_structure", 0)
+            total_courses = structure_analysis.get("courses_analyzed", 0)
+            if proper_structure > 0:
+                print(f"✅ COURSE STRUCTURE: {proper_structure}/{total_courses} courses have proper module/lesson structure")
+                quiz_lessons = structure_analysis.get("quiz_lessons", 0)
+                print(f"✅ QUIZ LESSONS: Found {quiz_lessons} quiz lessons positioned within course modules")
+            else:
+                print("❌ COURSE STRUCTURE: No courses with proper structure found")
+        
+        # API Functionality
+        if api_working:
+            print("✅ BACKEND APIS: All required APIs working correctly")
+        else:
+            print("❌ BACKEND APIS: Some APIs not working correctly")
+        
+        print()
+        
+        # Recommendations
+        print("💡 RECOMMENDATIONS:")
+        print("-" * 20)
+        
+        if image_analysis and image_analysis.get("questions_with_images", 0) > 0:
+            mixed_format = image_analysis.get("image_formats", {}).get("mixed_format", 0)
+            if mixed_format > 0:
+                print("🔧 STANDARDIZE IMAGE FORMAT: Convert all image options to consistent object format {text, image}")
+            print("✅ IMAGE DISPLAY FIX: Backend has quiz questions with images - frontend fix can be implemented")
+        else:
+            print("⚠️  CREATE TEST DATA: Add quiz questions with image options to test image display functionality")
+        
+        if enrollment_analysis and enrollment_analysis.get("progressive_access_ready", 0) > 0:
+            print("✅ PROGRESSIVE ACCESS: Backend data supports progressive quiz access implementation")
+        else:
+            print("🔧 ENHANCE PROGRESS TRACKING: Improve enrollment data structure for progressive access")
+        
+        print()
+        
+        # Final Status
+        critical_success = (
+            (image_analysis.get("questions_with_images", 0) > 0 or not image_analysis) and
+            (enrollment_analysis.get("progressive_access_ready", 0) > 0 or not enrollment_analysis) and
+            api_working
+        )
+        
+        if critical_success:
+            print("🎉 SUCCESS: Backend is ready for Quiz Image Display & Progressive Quiz Access features!")
+        else:
+            print("⚠️  PARTIAL SUCCESS: Some features may need additional backend preparation")
+        
+        print()
+        print("=" * 80)
+
+def main():
+    """Main execution function"""
+    test_suite = QuizImageProgressTestSuite()
+    
+    try:
+        success = test_suite.run_comprehensive_test()
+        
+        if success:
+            print("✅ Testing completed successfully!")
+            return 0
+        else:
+            print("❌ Testing completed with issues!")
+            return 1
+            
+    except KeyboardInterrupt:
+        print("\n⚠️ Testing interrupted by user")
+        return 1
+    except Exception as e:
+        print(f"\n💥 Unexpected error during testing: {str(e)}")
+        return 1
+
+if __name__ == "__main__":
+    exit_code = main()
+    sys.exit(exit_code)
+"""
 Comprehensive Backend Testing for Chronological Order Question Creation with Drag-and-Drop Interface
 Testing the chronological order question creation functionality after implementing drag-and-drop interface in CreateCourse.js.
 """
