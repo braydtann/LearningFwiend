@@ -777,6 +777,44 @@ const CourseDetail = () => {
     }
   };
 
+  // Helper function to check if student can access a quiz based on their progress
+  const canAccessQuiz = (quiz) => {
+    if (!currentEnrollment || !currentEnrollment.moduleProgress || !course?.modules) {
+      return false; // No progress data available
+    }
+
+    // Find which module contains this quiz
+    let quizModuleIndex = -1;
+    for (let i = 0; i < course.modules.length; i++) {
+      const module = course.modules[i];
+      if (module.lessons?.some(lesson => lesson.id === quiz.id)) {
+        quizModuleIndex = i;
+        break;
+      }
+    }
+
+    if (quizModuleIndex === -1) {
+      return false; // Quiz module not found
+    }
+
+    // Check if student has reached this module
+    const moduleProgress = currentEnrollment.moduleProgress;
+    
+    // Allow access if:
+    // 1. All previous modules are completed, OR
+    // 2. This is the current module the student is working on
+    for (let i = 0; i < quizModuleIndex; i++) {
+      const prevModuleProgress = moduleProgress.find(mp => mp.moduleId === course.modules[i].id);
+      if (!prevModuleProgress || !prevModuleProgress.completed) {
+        // Previous module not completed - check if this is current working module
+        const currentModuleProgress = moduleProgress.find(mp => mp.moduleId === course.modules[quizModuleIndex].id);
+        return currentModuleProgress && currentModuleProgress.lessons.length > 0;
+      }
+    }
+
+    return true; // All previous modules completed or this is current module
+  };
+
   return (
     <div className="space-y-8">
       {/* Header */}
