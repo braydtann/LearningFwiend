@@ -19,7 +19,7 @@ import sys
 from datetime import datetime
 
 # Configuration
-BACKEND_URL = "https://summarize-it-2.preview.emergentagent.com/api"
+BACKEND_URL = "https://quiz-display-debug.preview.emergentagent.com/api"
 
 # Test credentials
 STUDENT_EMAIL = "karlo.student@alder.com"

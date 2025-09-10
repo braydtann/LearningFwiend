@@ -37,7 +37,7 @@ import time
 import uuid
 
 # Configuration - Using production URL from frontend/.env
-BACKEND_URL = "https://summarize-it-2.preview.emergentagent.com/api"
+BACKEND_URL = "https://quiz-display-debug.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 # Test credentials from review request
