@@ -1048,19 +1048,33 @@ const CourseDetail = () => {
                 });
 
                 if (quizLessons.length > 0) {
+                  // Filter quizzes based on progressive access
+                  const accessibleQuizzes = quizLessons.filter(quiz => canAccessQuiz(quiz));
+                  const lockedQuizzes = quizLessons.filter(quiz => !canAccessQuiz(quiz));
+
                   return (
                     <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-6 rounded-lg mb-6 border border-purple-200">
                       <div className="flex items-center justify-between">
                         <div>
                           <h3 className="text-xl font-semibold text-gray-900 mb-2">
                             <ClipboardCheck className="w-6 h-6 inline mr-2 text-purple-600" />
-                            Available Quizzes
+                            Course Quizzes
                           </h3>
                           <p className="text-gray-600 mb-3">
-                            Test your knowledge with {quizLessons.length} quiz{quizLessons.length > 1 ? 'es' : ''} in this course
+                            {accessibleQuizzes.length > 0 ? (
+                              <>Available: {accessibleQuizzes.length} quiz{accessibleQuizzes.length > 1 ? 'es' : ''}</>
+                            ) : (
+                              <>Complete previous modules to unlock quizzes</>
+                            )}
+                            {lockedQuizzes.length > 0 && (
+                              <span className="text-sm text-gray-500 ml-2">
+                                ({lockedQuizzes.length} locked)
+                              </span>
+                            )}
                           </p>
                           <div className="flex flex-wrap gap-2">
-                            {quizLessons.slice(0, 3).map((quiz) => (
+                            {/* Show accessible quizzes */}
+                            {accessibleQuizzes.slice(0, 3).map((quiz) => (
                               <Button
                                 key={quiz.id}
                                 variant="outline"
@@ -1074,6 +1088,22 @@ const CourseDetail = () => {
                                 {quiz.title}
                               </Button>
                             ))}
+                            
+                            {/* Show locked quizzes (disabled) */}
+                            {lockedQuizzes.slice(0, Math.max(0, 3 - accessibleQuizzes.length)).map((quiz) => (
+                              <Button
+                                key={quiz.id}
+                                variant="outline"
+                                size="sm"
+                                className="bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed"
+                                disabled
+                                title={`Complete previous modules to unlock this quiz`}
+                              >
+                                <Lock className="w-4 h-4 mr-1" />
+                                {quiz.title}
+                              </Button>
+                            ))}
+                            
                             {quizLessons.length > 3 && (
                               <span className="text-sm text-gray-500 self-center">
                                 +{quizLessons.length - 3} more quiz{quizLessons.length - 3 > 1 ? 'es' : ''}
@@ -1081,11 +1111,11 @@ const CourseDetail = () => {
                             )}
                           </div>
                         </div>
-                        {quizLessons.length === 1 && (
+                        {accessibleQuizzes.length === 1 && lockedQuizzes.length === 0 && (
                           <Button 
                             className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 text-lg"
                             onClick={() => {
-                              navigate(`/quiz/${id}/${quizLessons[0].id}`);
+                              navigate(`/quiz/${id}/${accessibleQuizzes[0].id}`);
                             }}
                           >
                             <ClipboardCheck className="w-5 h-5 mr-2" />
