@@ -1224,7 +1224,7 @@ const QuizTakingNewFixed = () => {
             {currentQuestion?.questionImage && currentQuestion.questionImage.trim() !== '' && (
               <div className="mb-4">
                 <img 
-                  src={currentQuestion.questionImage} 
+                  src={convertGoogleDriveUrl(currentQuestion.questionImage)} 
                   alt="Question illustration" 
                   className="max-w-full h-64 object-contain rounded border mx-auto block"
                   onError={(e) => {
