@@ -1565,7 +1565,7 @@ const QuizTakingNewFixed = () => {
                                       {(typeof item === 'object' && item?.image) && (
                                         <div className="mt-2">
                                           <img 
-                                            src={item.image} 
+                                            src={convertGoogleDriveUrl(item.image)} 
                                             alt={`Item ${item.originalIndex + 1}`} 
                                             className="max-w-xs h-20 object-cover rounded border" 
                                           />
