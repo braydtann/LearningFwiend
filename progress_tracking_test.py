@@ -922,7 +922,7 @@ import time
 from datetime import datetime
 
 # Configuration
-BACKEND_URL = "https://learning-flow.preview.emergentagent.com/api"
+BACKEND_URL = "https://summarize-it-2.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 class ProgressTrackingTester:

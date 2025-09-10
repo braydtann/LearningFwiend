@@ -24,7 +24,7 @@ from datetime import datetime
 import time
 
 # Configuration - Using the backend URL from supervisor config
-BACKEND_URL = "https://learning-flow.preview.emergentagent.com/api"
+BACKEND_URL = "https://summarize-it-2.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 # Test credentials from review request
