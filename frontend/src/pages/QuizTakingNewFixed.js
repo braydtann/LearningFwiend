@@ -1335,7 +1335,7 @@ const QuizTakingNewFixed = () => {
                         {optionImage && optionImage.trim() !== '' && (
                           <div className="mt-2">
                             <img 
-                              src={optionImage} 
+                              src={convertGoogleDriveUrl(optionImage)} 
                               alt={`Option ${index + 1}`} 
                               className="max-w-xs h-32 object-cover rounded border"
                               onError={(e) => {
