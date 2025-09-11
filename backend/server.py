@@ -478,6 +478,71 @@ async def change_password(
     
     return {"message": "Password changed successfully"}
 
+# Bootstrap endpoint for creating initial admin user
+class BootstrapAdminRequest(BaseModel):
+    email: EmailStr
+    password: str
+    full_name: str = "Admin User"
+    username: Optional[str] = None
+
+@api_router.post("/auth/bootstrap")
+async def bootstrap_initial_admin(bootstrap_data: BootstrapAdminRequest):
+    """
+    One-time bootstrap endpoint to create the initial admin user.
+    Only works when no users exist in the database.
+    Automatically disables itself after creating the first admin user.
+    """
+    # Check if any users already exist in the database
+    existing_user_count = await db.users.count_documents({})
+    
+    if existing_user_count > 0:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Bootstrap endpoint is disabled. Admin users already exist in the system."
+        )
+    
+    # Validate password strength
+    if len(bootstrap_data.password) < 8:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must be at least 8 characters long"
+        )
+    
+    # Generate username from email if not provided
+    username = bootstrap_data.username or bootstrap_data.email.split('@')[0]
+    
+    # Hash the password
+    hashed_password = hash_password(bootstrap_data.password)
+    
+    # Create the initial admin user
+    admin_user_dict = {
+        "id": str(uuid.uuid4()),
+        "email": bootstrap_data.email,
+        "username": username,
+        "full_name": bootstrap_data.full_name,
+        "role": "admin",
+        "department": "Administration",
+        "hashed_password": hashed_password,
+        "is_temporary_password": False,
+        "first_login_required": False,
+        "is_active": True,
+        "created_at": datetime.utcnow(),
+        "last_login": None,
+        "password_updated_at": datetime.utcnow()
+    }
+    
+    # Insert the admin user into the database
+    await db.users.insert_one(admin_user_dict)
+    
+    # Return success response (don't include sensitive data)
+    return {
+        "success": True,
+        "message": "Bootstrap complete! Initial admin user created successfully.",
+        "admin_email": bootstrap_data.email,
+        "admin_username": username,
+        "note": "Bootstrap endpoint is now disabled. Use the admin login to create additional users."
+    }
+
 @api_router.post("/auth/admin/create-user", response_model=UserResponse)
 async def admin_create_user(
     user_data: UserCreate,
