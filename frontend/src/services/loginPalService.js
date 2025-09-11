@@ -1,7 +1,7 @@
 // LoginPal OAuth Service (Placeholder)
 // This service will handle LoginPal OAuth integration once the service is deployed
 
-const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || '/api';
 
 class LoginPalService {
   constructor() {
