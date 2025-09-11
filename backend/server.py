@@ -5172,6 +5172,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.on_event("startup")
+async def startup_db_client():
+    """Test database connection on startup"""
+    try:
+        logger.info("Testing database connection...")
+        await client.admin.command('ping')
+        logger.info("Database connection test successful")
+        
+        # Test if we can access our specific database
+        collections = await db.list_collection_names()
+        logger.info(f"Found {len(collections)} collections in database '{db_name}'")
+        
+    except Exception as e:
+        logger.error(f"Database connection failed during startup: {str(e)}")
+        # Don't raise here as it will prevent the app from starting
+        # The health check endpoint will catch this
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
     logger.info("Shutting down database client")
