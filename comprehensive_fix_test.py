@@ -7,7 +7,7 @@ import requests
 import json
 import sys
 
-BACKEND_URL = "https://quiz-display-debug.preview.emergentagent.com/api"
+BACKEND_URL = "https://lms-media-display.preview.emergentagent.com/api"
 TEST_TIMEOUT = 10
 
 class FixTester:
