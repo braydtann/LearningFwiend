@@ -5110,6 +5110,31 @@ async def get_analytics_dashboard(current_user: UserResponse = Depends(get_curre
 # Include the router in the main app
 app.include_router(api_router)
 
+# Health check endpoint for deployment
+@app.get("/health")
+async def health_check():
+    try:
+        # Test database connection
+        await client.admin.command('ping')
+        return {
+            "status": "healthy",
+            "database": "connected",
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Health check failed: {str(e)}")
+        return {
+            "status": "unhealthy", 
+            "database": "disconnected",
+            "error": str(e),
+            "timestamp": datetime.utcnow().isoformat()
+        }
+
+# Root endpoint
+@app.get("/")
+async def root():
+    return {"message": "LMS API is running", "status": "active"}
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
