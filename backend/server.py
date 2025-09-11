@@ -47,23 +47,36 @@ security = HTTPBearer()
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
-# Add additional connection options for Atlas MongoDB if needed
-if 'mongodb.net' in mongo_url or 'atlas' in mongo_url.lower():
-    # This is likely an Atlas connection
-    client = AsyncIOMotorClient(
-        mongo_url,
-        maxPoolSize=10,
-        waitQueueTimeoutMS=5000,
-        connectTimeoutMS=5000,
-        socketTimeoutMS=5000,
-        serverSelectionTimeoutMS=5000,
-        retryWrites=True
-    )
-else:
-    # Local or other MongoDB connection
-    client = AsyncIOMotorClient(mongo_url)
+db_name = os.environ.get('DB_NAME', 'test_database')
 
-db = client[os.environ.get('DB_NAME', 'test_database')]
+logger.info(f"Connecting to MongoDB: {mongo_url[:20]}...")
+logger.info(f"Database name: {db_name}")
+
+# Add additional connection options for Atlas MongoDB if needed
+try:
+    if 'mongodb.net' in mongo_url or 'atlas' in mongo_url.lower():
+        # This is likely an Atlas connection
+        logger.info("Detected Atlas MongoDB connection, using production settings")
+        client = AsyncIOMotorClient(
+            mongo_url,
+            maxPoolSize=10,
+            waitQueueTimeoutMS=5000,
+            connectTimeoutMS=5000,
+            socketTimeoutMS=5000,
+            serverSelectionTimeoutMS=5000,
+            retryWrites=True
+        )
+    else:
+        # Local or other MongoDB connection
+        logger.info("Using standard MongoDB connection")
+        client = AsyncIOMotorClient(mongo_url)
+
+    db = client[db_name]
+    logger.info("MongoDB connection established successfully")
+    
+except Exception as e:
+    logger.error(f"Failed to connect to MongoDB: {str(e)}")
+    raise
 
 # Create the main app without a prefix
 app = FastAPI()
