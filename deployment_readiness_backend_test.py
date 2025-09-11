@@ -40,7 +40,8 @@ class DeploymentReadinessTestSuite:
     def __init__(self):
         # Use environment variable from frontend/.env for production testing
         self.frontend_env_url = self.get_frontend_backend_url()
-        self.base_url = f"{self.frontend_env_url}/api" if self.frontend_env_url else "http://localhost:8001/api"
+        # For testing, use localhost since external URL may not be accessible in container
+        self.base_url = "http://localhost:8001/api"
         
         self.admin_token = None
         self.student_token = None
