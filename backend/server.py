@@ -31,7 +31,22 @@ security = HTTPBearer()
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
+# Add additional connection options for Atlas MongoDB if needed
+if 'mongodb.net' in mongo_url or 'atlas' in mongo_url.lower():
+    # This is likely an Atlas connection
+    client = AsyncIOMotorClient(
+        mongo_url,
+        maxPoolSize=10,
+        waitQueueTimeoutMS=5000,
+        connectTimeoutMS=5000,
+        socketTimeoutMS=5000,
+        serverSelectionTimeoutMS=5000,
+        retryWrites=True
+    )
+else:
+    # Local or other MongoDB connection
+    client = AsyncIOMotorClient(mongo_url)
+
 db = client[os.environ.get('DB_NAME', 'test_database')]
 
 # Create the main app without a prefix
