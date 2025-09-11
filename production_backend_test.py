@@ -13,7 +13,7 @@ import time
 
 # Configuration - Production Backend URL to test
 PRODUCTION_BACKEND_URL = "https://lms-evolution.emergent.host/api"
-PREVIEW_BACKEND_URL = "https://lms-media-display.preview.emergentagent.com/api"
+PREVIEW_BACKEND_URL = "https://deploy-fixer-9.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 class ProductionBackendTester:
@@ -573,7 +573,7 @@ class ProductionBackendTester:
                 print("   ❌ Classrooms API not working")
             
             print(f"\n   Continue using preview backend:")
-            print(f"   REACT_APP_BACKEND_URL=https://lms-media-display.preview.emergentagent.com")
+            print(f"   REACT_APP_BACKEND_URL=https://deploy-fixer-9.preview.emergentagent.com")
         
         return readiness_success
 

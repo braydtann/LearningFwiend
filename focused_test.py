@@ -7,7 +7,7 @@ import requests
 import json
 import sys
 
-BACKEND_URL = "https://lms-media-display.preview.emergentagent.com/api"
+BACKEND_URL = "https://deploy-fixer-9.preview.emergentagent.com/api"
 TEST_TIMEOUT = 10
 
 def test_quiz_creation():

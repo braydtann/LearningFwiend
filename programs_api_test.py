@@ -10,7 +10,7 @@ import sys
 from datetime import datetime
 
 # Configuration
-BACKEND_URL = "https://lms-media-display.preview.emergentagent.com/api"
+BACKEND_URL = "https://deploy-fixer-9.preview.emergentagent.com/api"
 TEST_TIMEOUT = 10
 
 class ProgramsAPITester:

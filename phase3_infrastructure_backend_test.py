@@ -18,7 +18,7 @@ from datetime import datetime
 import time
 
 # Configuration - Use the correct backend URL from frontend/.env
-BACKEND_URL = "https://lms-media-display.preview.emergentagent.com/api"
+BACKEND_URL = "https://deploy-fixer-9.preview.emergentagent.com/api"
 
 # Test credentials from review request
 ADMIN_CREDENTIALS = {
