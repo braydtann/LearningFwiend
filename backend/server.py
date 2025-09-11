@@ -5596,12 +5596,18 @@ async def get_submission_grade(
 # Include the router in the main app
 app.include_router(api_router)
 
-# Health check endpoint for deployment
-@app.get("/health")
+# =============================================================================
+# HEALTH CHECK ENDPOINT
+# =============================================================================
+
+@api_router.get("/health")
 async def health_check():
+    """Health check endpoint for deployment verification."""
     try:
         # Test database connection
         await client.admin.command('ping')
+        logger.info("Health check: Database connection successful")
+        
         return {
             "status": "healthy",
             "database": "connected",
