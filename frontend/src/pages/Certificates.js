@@ -48,7 +48,7 @@ const Certificates = () => {
   const handleDownload = async (certificateId) => {
     try {
       const token = localStorage.getItem('auth_token');
-      const backendUrl = process.env.REACT_APP_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL;
+      const backendUrl = process.env.REACT_APP_BACKEND_URL;
       
       const response = await fetch(`${backendUrl}/api/certificates/${certificateId}/download`, {
         method: 'GET',
