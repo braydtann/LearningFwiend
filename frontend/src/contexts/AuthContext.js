@@ -27,7 +27,7 @@ export const AuthProvider = ({ children }) => {
   const [requiresPasswordChange, setRequiresPasswordChange] = useState(false);
 
   const backendUrl = useMemo(() => 
-    process.env.REACT_APP_BACKEND_URL || 'https://lms-evolution.emergent.host', 
+    process.env.REACT_APP_BACKEND_URL || 'https://lms-chronology.emergent.host', 
     []
   );
   console.log('AUTH CONTEXT DEBUG - Backend URL:', backendUrl);
