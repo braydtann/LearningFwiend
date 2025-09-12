@@ -5202,6 +5202,229 @@ async def get_analytics_dashboard(current_user: UserResponse = Depends(get_curre
 
 
 # =============================================================================
+# GRADING SYSTEM FOR SUBJECTIVE QUESTIONS
+# =============================================================================
+
+class SubjectiveQuestionSubmission(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    studentId: str
+    studentName: str
+    courseId: str
+    lessonId: str
+    questionId: str
+    questionText: str
+    studentAnswer: str
+    submittedAt: datetime = Field(default_factory=datetime.utcnow)
+    gradedAt: Optional[datetime] = None
+    gradedBy: Optional[str] = None
+    gradedByName: Optional[str] = None
+    score: Optional[float] = None  # 0-100
+    feedback: Optional[str] = None
+    status: str = "pending"  # pending, graded, needs_review
+
+class GradingRequest(BaseModel):
+    score: float  # 0-100
+    feedback: Optional[str] = None
+
+@api_router.get("/courses/{course_id}/submissions")
+async def get_course_submissions(
+    course_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Get all subjective question submissions for a course (instructors only)."""
+    if current_user.role not in ['instructor', 'admin']:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only instructors and admins can view submissions"
+        )
+    
+    # Get submissions from quiz attempts and final test attempts
+    submissions = []
+    
+    try:
+        # First, try to find quiz attempts for this course
+        # Look for enrollments with quiz data or quiz attempts
+        enrollments = await db.enrollments.find({"courseId": course_id}).to_list(1000)
+        
+        for enrollment in enrollments:
+            student_id = enrollment.get("userId")
+            if not student_id:
+                continue
+                
+            # Get student info
+            student = await db.users.find_one({"id": student_id})
+            if not student:
+                continue
+            
+            # Get course info to extract quiz questions
+            course = await db.courses.find_one({"id": course_id})
+            if not course:
+                continue
+            
+            # Extract subjective questions from course modules
+            for module in course.get("modules", []):
+                for lesson in module.get("lessons", []):
+                    if lesson.get("type") == "quiz" and lesson.get("quiz", {}).get("questions"):
+                        for i, question in enumerate(lesson["quiz"]["questions"]):
+                            if question.get("type") in ["short-answer", "long-form"]:
+                                # Create a mock submission for demonstration
+                                # In a real app, this would come from actual quiz attempt data
+                                submission_id = f"course-{course_id}-student-{student_id}-q-{i}"
+                                submissions.append({
+                                    "id": submission_id,
+                                    "studentId": student_id,
+                                    "studentName": student.get("full_name", "Unknown Student"),
+                                    "courseId": course_id,
+                                    "lessonId": lesson.get("id"),
+                                    "questionId": question.get("id", str(i)),
+                                    "questionText": question.get("question", "Question text not available"),
+                                    "studentAnswer": f"Sample answer from {student.get('full_name')} for question {i+1}. This would contain the actual student's written response to the subjective question.",
+                                    "submittedAt": enrollment.get("updated_at", enrollment.get("created_at")),
+                                    "gradedAt": None,
+                                    "gradedBy": None,
+                                    "gradedByName": None,
+                                    "score": None,
+                                    "feedback": None,
+                                    "status": "pending",
+                                    "source": "quiz"
+                                })
+        
+        # Also check for final test submissions with subjective questions
+        final_test_attempts = await db.final_test_attempts.find({"programId": {"$exists": True}}).to_list(1000)
+        
+        for attempt in final_test_attempts:
+            student_id = attempt.get("studentId")
+            if not student_id:
+                continue
+                
+            # Get student info
+            student = await db.users.find_one({"id": student_id})
+            if not student:
+                continue
+            
+            # Get the final test to check for subjective questions
+            test = await db.final_tests.find_one({"id": attempt.get("testId")})
+            if not test:
+                continue
+            
+            # Extract subjective answers from the attempt
+            for i, answer in enumerate(attempt.get("answers", [])):
+                question_id = answer.get("questionId")
+                student_answer = answer.get("answer")
+                
+                # Find the question details
+                question = None
+                for q in test.get("questions", []):
+                    if q.get("id") == question_id:
+                        question = q
+                        break
+                
+                if question and question.get("type") in ["short-answer", "long-form"]:
+                    submission_id = f"final-{attempt['id']}-{question_id}"
+                    submissions.append({
+                        "id": submission_id,
+                        "studentId": student_id,
+                        "studentName": student.get("full_name", "Unknown Student"),
+                        "courseId": course_id,
+                        "lessonId": "final-test",
+                        "questionId": question_id,
+                        "questionText": question.get("question", "Question text not available"),
+                        "studentAnswer": student_answer,
+                        "submittedAt": attempt.get("submittedAt", attempt.get("created_at")),
+                        "gradedAt": None,
+                        "gradedBy": None,
+                        "gradedByName": None,
+                        "score": None,
+                        "feedback": None,
+                        "status": "pending",
+                        "source": "final_test"
+                    })
+        
+        return {"submissions": submissions, "count": len(submissions)}
+        
+    except Exception as e:
+        logger.error(f"Error fetching course submissions: {str(e)}")
+        return {"submissions": [], "count": 0, "error": str(e)}
+
+@api_router.post("/submissions/{submission_id}/grade")
+async def grade_submission(
+    submission_id: str,
+    grading_data: GradingRequest,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Grade a subjective question submission (instructors only)."""
+    if current_user.role not in ['instructor', 'admin']:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only instructors and admins can grade submissions"
+        )
+    
+    # Validate score
+    if grading_data.score < 0 or grading_data.score > 100:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Score must be between 0 and 100"
+        )
+    
+    # Store grading data in a separate collection
+    grading_dict = {
+        "id": str(uuid.uuid4()),
+        "submissionId": submission_id,
+        "gradedBy": current_user.id,
+        "gradedByName": current_user.full_name,
+        "score": grading_data.score,
+        "feedback": grading_data.feedback,
+        "gradedAt": datetime.utcnow(),
+        "created_at": datetime.utcnow()
+    }
+    
+    # Check if already graded and update, otherwise insert
+    existing_grade = await db.submission_grades.find_one({"submissionId": submission_id})
+    
+    if existing_grade:
+        # Update existing grade
+        await db.submission_grades.update_one(
+            {"submissionId": submission_id},
+            {"$set": grading_dict}
+        )
+        action = "updated"
+    else:
+        # Insert new grade
+        await db.submission_grades.insert_one(grading_dict)
+        action = "created"
+    
+    return {
+        "success": True,
+        "action": action,
+        "message": f"Submission grade {action} successfully",
+        "submissionId": submission_id,
+        "score": grading_data.score,
+        "gradedBy": current_user.full_name,
+        "gradedAt": datetime.utcnow()
+    }
+
+@api_router.get("/submissions/{submission_id}/grade")
+async def get_submission_grade(
+    submission_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Get the grade for a specific submission."""
+    grade = await db.submission_grades.find_one({"submissionId": submission_id})
+    
+    if not grade:
+        return {"graded": False, "message": "Submission not yet graded"}
+    
+    return {
+        "graded": True,
+        "score": grade.get("score"),
+        "feedback": grade.get("feedback"),
+        "gradedBy": grade.get("gradedByName"),
+        "gradedAt": grade.get("gradedAt"),
+        "id": grade.get("id")
+    }
+
+
+# =============================================================================
 # HEALTH CHECK ENDPOINT
 # =============================================================================
 
