@@ -5673,9 +5673,14 @@ async def health_check():
 # Include the router in the main app
 app.include_router(api_router)
 
-# Root endpoint
-@app.get("/")
-async def root():
+# Health check endpoint for deployment systems
+@app.get("/health")
+async def health_check():
+    return {"message": "LMS API is running", "status": "active"}
+
+# API status endpoint (backward compatibility)
+@app.get("/api/status")
+async def api_status():
     return {"message": "LMS API is running", "status": "active"}
 
 app.add_middleware(
