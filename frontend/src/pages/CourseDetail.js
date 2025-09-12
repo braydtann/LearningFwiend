@@ -785,34 +785,53 @@ const CourseDetail = () => {
 
     // Find which module contains this quiz
     let quizModuleIndex = -1;
+    let quizLessonIndex = -1;
+    
     for (let i = 0; i < course.modules.length; i++) {
       const module = course.modules[i];
-      if (module.lessons?.some(lesson => lesson.id === quiz.id)) {
-        quizModuleIndex = i;
-        break;
+      if (module.lessons) {
+        for (let j = 0; j < module.lessons.length; j++) {
+          if (module.lessons[j].id === quiz.id) {
+            quizModuleIndex = i;
+            quizLessonIndex = j;
+            break;
+          }
+        }
+        if (quizModuleIndex !== -1) break;
       }
     }
 
-    if (quizModuleIndex === -1) {
+    if (quizModuleIndex === -1 || quizLessonIndex === -1) {
       return false; // Quiz module not found
     }
 
-    // Check if student has reached this module
+    const quizModule = course.modules[quizModuleIndex];
     const moduleProgress = currentEnrollment.moduleProgress;
     
-    // Allow access if:
-    // 1. All previous modules are completed, OR
-    // 2. This is the current module the student is working on
+    // Check if all previous modules are completed
     for (let i = 0; i < quizModuleIndex; i++) {
       const prevModuleProgress = moduleProgress.find(mp => mp.moduleId === course.modules[i].id);
       if (!prevModuleProgress || !prevModuleProgress.completed) {
-        // Previous module not completed - check if this is current working module
-        const currentModuleProgress = moduleProgress.find(mp => mp.moduleId === course.modules[quizModuleIndex].id);
-        return currentModuleProgress && currentModuleProgress.lessons.length > 0;
+        return false; // Previous module not completed
+      }
+    }
+    
+    // Check if student has reached the quiz lesson within the current module
+    const currentModuleProgress = moduleProgress.find(mp => mp.moduleId === quizModule.id);
+    if (!currentModuleProgress) {
+      return false; // No progress on current module
+    }
+    
+    // Allow quiz access only if student has completed all lessons before the quiz in the same module
+    const lessonsBeforeQuiz = quizModule.lessons.slice(0, quizLessonIndex);
+    for (const lesson of lessonsBeforeQuiz) {
+      const lessonProgress = currentModuleProgress.lessons.find(lp => lp.lessonId === lesson.id);
+      if (!lessonProgress || !lessonProgress.completed) {
+        return false; // Previous lesson in module not completed
       }
     }
 
-    return true; // All previous modules completed or this is current module
+    return true; // All prerequisites completed
   };
 
   return (
