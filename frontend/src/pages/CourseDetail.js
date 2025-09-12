@@ -234,16 +234,13 @@ const CourseDetail = () => {
         }
       }
       
-      // If this course completion would complete the program
-      const willCompleteProgram = (completedCourses === totalCourses - 1 && 
-                                  program.courseIds.includes(id));
-      
+      // Only consider program completed when ALL courses are 100% complete
       const isProgramCompleted = completedCourses === totalCourses;
       
-      setProgramCompleted(isProgramCompleted || willCompleteProgram);
+      setProgramCompleted(isProgramCompleted);
       
-      // Check if final exam exists for this program
-      if (isProgramCompleted || willCompleteProgram) {
+      // Check if final exam exists for this program - only when actually completed
+      if (isProgramCompleted) {
         const finalTestsResult = await getAllFinalTests({ 
           program_id: program.id, 
           published_only: true 
