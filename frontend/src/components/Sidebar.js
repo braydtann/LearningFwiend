@@ -18,7 +18,8 @@ import {
   Shield,
   Building2,
   FolderOpen,
-  Wrench
+  Wrench,
+  GraduationCap
 } from 'lucide-react';
 
 const Sidebar = () => {
