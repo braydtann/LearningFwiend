@@ -902,6 +902,18 @@ const CourseDetail = () => {
     return true; // All prerequisites completed
   };
 
+  // Helper function to get next course in program
+  const getNextCourseInProgram = () => {
+    if (!currentProgram || !currentProgram.courseIds) return null;
+    
+    const currentCourseIndex = currentProgram.courseIds.indexOf(id);
+    if (currentCourseIndex === -1 || currentCourseIndex >= currentProgram.courseIds.length - 1) {
+      return null; // No next course
+    }
+    
+    return currentProgram.courseIds[currentCourseIndex + 1];
+  };
+
   return (
     <div className="space-y-8">
       {/* Header */}
