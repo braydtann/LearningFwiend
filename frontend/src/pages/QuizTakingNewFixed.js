@@ -966,10 +966,18 @@ const QuizTakingNewFixed = () => {
               duration: hasSubjectiveQuestions ? 5000 : 3000, // Longer duration for warning message
             });
 
-            // Navigate to course after delay
+            // Navigate back to course with lesson context preserved
             setTimeout(() => {
               if (isMountedRef.current) {
-                navigate(`/course/${courseId}`);
+                // Navigate back to course and set the completed lesson as selected
+                // This preserves the user's position in the course rather than resetting to overview
+                navigate(`/course/${courseId}`, { 
+                  state: { 
+                    returnFromQuiz: true, 
+                    lessonId: lessonId,
+                    message: passed ? "Quiz completed successfully!" : "Quiz completed"
+                  }
+                });
               }
             }, 2000);
           }
