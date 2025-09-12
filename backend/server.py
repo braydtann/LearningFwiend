@@ -4785,31 +4785,65 @@ async def get_system_stats(current_user: UserResponse = Depends(get_current_user
             enrollmentStats={"total": total_enrollments, "thisMonth": enrollments_this_month}
         )
         
-        # Quiz Statistics
-        total_quizzes = await db.quizzes.count_documents({"isActive": True})
-        published_quizzes = await db.quizzes.count_documents({"isPublished": True, "isActive": True})
-        quizzes_this_month = await db.quizzes.count_documents({
-            "created_at": {"$gte": start_of_month},
-            "isActive": True
+        # Quiz Statistics - Read from enrollments instead of quiz_attempts
+        # Count courses with quiz lessons as total quizzes
+        quiz_courses_pipeline = [
+            {"$match": {"is_active": True}},
+            {"$unwind": {"path": "$modules", "preserveNullAndEmptyArrays": True}},
+            {"$unwind": {"path": "$modules.lessons", "preserveNullAndEmptyArrays": True}},
+            {"$match": {"modules.lessons.type": "quiz"}},
+            {"$group": {"_id": "$id"}}
+        ]
+        quiz_courses_cursor = db.courses.aggregate(quiz_courses_pipeline)
+        quiz_courses = await quiz_courses_cursor.to_list(None)
+        total_quizzes = len(quiz_courses)
+        
+        # Published quizzes (courses with quiz lessons that are published)
+        published_quiz_courses_pipeline = [
+            {"$match": {"is_active": True, "status": "published"}},
+            {"$unwind": {"path": "$modules", "preserveNullAndEmptyArrays": True}},
+            {"$unwind": {"path": "$modules.lessons", "preserveNullAndEmptyArrays": True}},
+            {"$match": {"modules.lessons.type": "quiz"}},
+            {"$group": {"_id": "$id"}}
+        ]
+        published_quiz_courses_cursor = db.courses.aggregate(published_quiz_courses_pipeline)
+        published_quiz_courses = await published_quiz_courses_cursor.to_list(None)
+        published_quizzes = len(published_quiz_courses)
+        
+        # Quiz courses created this month
+        quiz_courses_month_pipeline = [
+            {"$match": {"is_active": True, "created_at": {"$gte": start_of_month}}},
+            {"$unwind": {"path": "$modules", "preserveNullAndEmptyArrays": True}},
+            {"$unwind": {"path": "$modules.lessons", "preserveNullAndEmptyArrays": True}},
+            {"$match": {"modules.lessons.type": "quiz"}},
+            {"$group": {"_id": "$id"}}
+        ]
+        quiz_courses_month_cursor = db.courses.aggregate(quiz_courses_month_pipeline)
+        quiz_courses_month = await quiz_courses_month_cursor.to_list(None)
+        quizzes_this_month = len(quiz_courses_month)
+        
+        # Get quiz completion data from enrollments (progress >= 100 indicates quiz completion)
+        total_attempts = await db.enrollments.count_documents({
+            "isActive": True, 
+            "progress": {"$gte": 100}
         })
         
-        total_attempts = await db.quiz_attempts.count_documents({"isActive": True})
-        
-        # Calculate average score and pass rate
-        score_pipeline = [
-            {"$match": {"isActive": True}},
+        # Calculate average score and pass rate from enrollment progress
+        # In this system, progress of 100% means quiz passed, anything less means failed
+        enrollment_stats_pipeline = [
+            {"$match": {"isActive": True, "progress": {"$gt": 0}}},
             {"$group": {
                 "_id": None,
-                "avgScore": {"$avg": "$score"},
-                "totalPassed": {"$sum": {"$cond": ["$isPassed", 1, 0]}},
+                "avgProgress": {"$avg": "$progress"},
+                "totalPassed": {"$sum": {"$cond": [{"$gte": ["$progress", 100]}, 1, 0]}},
                 "totalAttempts": {"$sum": 1}
             }}
         ]
-        score_stats_cursor = db.quiz_attempts.aggregate(score_pipeline)
-        score_stats = await score_stats_cursor.to_list(1)
+        enrollment_stats_cursor = db.enrollments.aggregate(enrollment_stats_pipeline)
+        enrollment_stats = await enrollment_stats_cursor.to_list(1)
         
-        average_score = score_stats[0]["avgScore"] if score_stats else 0.0
-        pass_rate = (score_stats[0]["totalPassed"] / score_stats[0]["totalAttempts"] * 100) if score_stats and score_stats[0]["totalAttempts"] > 0 else 0.0
+        average_score = enrollment_stats[0]["avgProgress"] if enrollment_stats else 0.0
+        pass_rate = (enrollment_stats[0]["totalPassed"] / enrollment_stats[0]["totalAttempts"] * 100) if enrollment_stats and enrollment_stats[0]["totalAttempts"] > 0 else 0.0
         
         quiz_stats = QuizStatsResponse(
             totalQuizzes=total_quizzes,
