@@ -5418,6 +5418,19 @@ async def grade_submission(
         await db.submission_grades.insert_one(grading_dict)
         action = "created"
     
+    # Also update the submission status in subjective_submissions collection
+    await db.subjective_submissions.update_one(
+        {"id": submission_id},
+        {"$set": {
+            "status": "graded",
+            "score": grading_data.score,
+            "feedback": grading_data.feedback,
+            "gradedAt": datetime.utcnow().isoformat(),
+            "gradedBy": current_user.id,
+            "gradedByName": current_user.full_name
+        }}
+    )
+    
     return {
         "success": True,
         "action": action,
