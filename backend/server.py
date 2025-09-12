@@ -5193,9 +5193,11 @@ async def get_analytics_dashboard(current_user: UserResponse = Depends(get_curre
                 "instructor_id": current_user.id,
                 "is_active": True
             })
-            created_quizzes = await db.quizzes.count_documents({
-                "createdBy": current_user.id,
-                "isActive": True
+            # Count courses with quiz lessons created by this instructor
+            instructor_quiz_courses = await db.courses.count_documents({
+                "instructor_id": current_user.id,
+                "is_active": True,
+                "modules.lessons.type": "quiz"
             })
             
             # Students taught (unique students enrolled in instructor's courses)
@@ -5212,7 +5214,7 @@ async def get_analytics_dashboard(current_user: UserResponse = Depends(get_curre
             
             dashboard_data = {
                 "createdCourses": created_courses,
-                "createdQuizzes": created_quizzes,
+                "createdQuizzes": instructor_quiz_courses,
                 "studentsTaught": students_taught,
                 "courseIds": course_ids
             }
