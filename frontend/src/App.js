@@ -185,6 +185,12 @@ function App() {
               </ProtectedRoute>
             } />
             
+            <Route path="/grading" element={
+              <ProtectedRoute>
+                <GradingCenter />
+              </ProtectedRoute>
+            } />
+            
             <Route path="/admin/utilities" element={
               <ProtectedRoute>
                 <AdminUtilities />
