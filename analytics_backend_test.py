@@ -418,21 +418,33 @@ class AnalyticsDataInvestigation:
             
             print(f"   📊 Found {len(quiz_courses)} courses with quiz lessons")
             
-            # Step 2: Check enrollments for these quiz courses
-            enrollments_response = self.session.get(f"{API_BASE}/enrollments")
-            if enrollments_response.status_code == 200:
-                enrollments = enrollments_response.json()
+            # Step 2: Check enrollments using student token (since enrollments are user-specific)
+            if self.student_token:
+                student_session = requests.Session()
+                student_session.headers.update({
+                    'Authorization': f'Bearer {self.student_token}'
+                })
                 
-                quiz_course_ids = [c['courseId'] for c in quiz_courses]
-                quiz_enrollments = [e for e in enrollments if e.get('courseId') in quiz_course_ids]
-                
-                completed_quiz_enrollments = [
-                    e for e in quiz_enrollments 
-                    if e.get('progress', 0) >= 100 or e.get('status') == 'completed'
-                ]
-                
-                print(f"   📈 Quiz Course Enrollments: {len(quiz_enrollments)}")
-                print(f"   ✅ Completed Quiz Enrollments: {len(completed_quiz_enrollments)}")
+                enrollments_response = student_session.get(f"{API_BASE}/enrollments")
+                if enrollments_response.status_code == 200:
+                    enrollments = enrollments_response.json()
+                    
+                    quiz_course_ids = [c['courseId'] for c in quiz_courses]
+                    quiz_enrollments = [e for e in enrollments if e.get('courseId') in quiz_course_ids]
+                    
+                    completed_quiz_enrollments = [
+                        e for e in quiz_enrollments 
+                        if e.get('progress', 0) >= 100 or e.get('status') == 'completed'
+                    ]
+                    
+                    print(f"   📈 Quiz Course Enrollments: {len(quiz_enrollments)}")
+                    print(f"   ✅ Completed Quiz Enrollments: {len(completed_quiz_enrollments)}")
+                else:
+                    completed_quiz_enrollments = []
+                    print(f"   ❌ Could not get student enrollments: {enrollments_response.status_code}")
+            else:
+                completed_quiz_enrollments = []
+                print(f"   ❌ No student token available for enrollment check")
             
             # Step 3: Check what analytics endpoints return for quiz data
             system_stats_response = self.session.get(f"{API_BASE}/analytics/system-stats")
@@ -444,6 +456,9 @@ class AnalyticsDataInvestigation:
                 print(f"      - Total Attempts: {quiz_stats.get('totalAttempts', 0)}")
                 print(f"      - Average Score: {quiz_stats.get('averageScore', 0)}")
                 print(f"      - Pass Rate: {quiz_stats.get('passRate', 0)}%")
+            else:
+                quiz_stats = {}
+                print(f"   ❌ Could not get analytics stats: {system_stats_response.status_code}")
             
             # Step 4: Identify the disconnect
             disconnect_analysis = []
