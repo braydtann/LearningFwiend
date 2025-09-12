@@ -150,20 +150,37 @@ const QuizAndTestResults = () => {
 
       // CRITICAL FIX: Also load enrollment-based quiz data which contains actual scores
       try {
+        console.log('=== STARTING ENROLLMENT QUIZ SYNTHESIS DEBUG ===');
         const enrollmentsResult = await getAllEnrollments();
+        console.log('Enrollments API result:', enrollmentsResult);
+        
         if (enrollmentsResult.success) {
           const enrollmentQuizAttempts = [];
+          console.log(`Processing ${enrollmentsResult.enrollments.length} enrollments for quiz synthesis`);
           
           for (const enrollment of enrollmentsResult.enrollments) {
+            console.log(`Processing enrollment:`, {
+              id: enrollment.id,
+              courseId: enrollment.courseId,
+              progress: enrollment.progress,
+              status: enrollment.status
+            });
+            
             // Skip enrollments without progress or with 0% progress
-            if (!enrollment.progress || enrollment.progress <= 0) continue;
+            if (!enrollment.progress || enrollment.progress <= 0) {
+              console.log(`Skipping enrollment ${enrollment.id} - no progress (${enrollment.progress})`);
+              continue;
+            }
             
             // Find the corresponding course using the just-loaded courses data
             const course = (courseResult.success ? courseResult.courses : []).find(c => c.id === enrollment.courseId);
             if (!course) {
               console.log(`Course not found for enrollment with courseId: ${enrollment.courseId}`);
+              console.log('Available courses:', (courseResult.success ? courseResult.courses : []).map(c => ({id: c.id, title: c.title})));
               continue;
             }
+            
+            console.log(`Found course for enrollment: ${course.title}`);
             
             // Check if course has quiz content (be more flexible)
             let hasQuizContent = false;
@@ -197,6 +214,12 @@ const QuizAndTestResults = () => {
               console.log(`Assuming course "${course.title}" had assessment content based on ${enrollment.progress}% progress`);
             }
             
+            // Fourth check: for any progress, assume there was some form of assessment
+            if (!hasQuizContent && enrollment.progress > 0) {
+              hasQuizContent = true;
+              console.log(`Assuming course "${course.title}" had some assessment based on ${enrollment.progress}% progress`);
+            }
+            
             // If course has quiz content and student has progress, create quiz attempt record
             if (hasQuizContent) {
               const syntheticAttempt = {
@@ -218,7 +241,10 @@ const QuizAndTestResults = () => {
                 status: enrollment.progress >= 100 ? 'completed' : 'in_progress'
               };
               enrollmentQuizAttempts.push(syntheticAttempt);
-              console.log(`Created synthetic quiz attempt for course "${course.title}" with ${enrollment.progress}% progress`);
+              console.log(`✅ Created synthetic quiz attempt for course "${course.title}" with ${enrollment.progress}% progress`);
+              console.log('Synthetic attempt details:', syntheticAttempt);
+            } else {
+              console.log(`❌ No quiz content detected for course "${course.title}"`);
             }
           }
           
