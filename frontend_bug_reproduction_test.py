@@ -8,7 +8,7 @@ import requests
 import json
 
 # Configuration
-BACKEND_URL = "https://deploy-fixer-9.preview.emergentagent.com/api"
+BACKEND_URL = "https://coursemate-14.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 # Student credentials

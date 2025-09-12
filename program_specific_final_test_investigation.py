@@ -12,7 +12,7 @@ from datetime import datetime
 import time
 
 # Configuration
-BACKEND_URL = "https://deploy-fixer-9.preview.emergentagent.com/api"
+BACKEND_URL = "https://coursemate-14.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_CREDENTIALS = {

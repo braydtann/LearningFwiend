@@ -22,7 +22,7 @@ import time
 import uuid
 
 # Configuration - Using frontend/.env REACT_APP_BACKEND_URL
-BACKEND_URL = "https://deploy-fixer-9.preview.emergentagent.com/api"
+BACKEND_URL = "https://coursemate-14.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 # Test credentials from review request
