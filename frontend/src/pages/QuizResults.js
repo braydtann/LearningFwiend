@@ -158,9 +158,12 @@ const QuizAndTestResults = () => {
             // Skip enrollments without progress or with 0% progress
             if (!enrollment.progress || enrollment.progress <= 0) continue;
             
-            // Find the corresponding course
-            const course = courses.find(c => c.id === enrollment.courseId);
-            if (!course) continue;
+            // Find the corresponding course using the just-loaded courses data
+            const course = (courseResult.success ? courseResult.courses : []).find(c => c.id === enrollment.courseId);
+            if (!course) {
+              console.log(`Course not found for enrollment with courseId: ${enrollment.courseId}`);
+              continue;
+            }
             
             // Check if course has quiz content (be more flexible)
             let hasQuizContent = false;
@@ -215,6 +218,7 @@ const QuizAndTestResults = () => {
                 status: enrollment.progress >= 100 ? 'completed' : 'in_progress'
               };
               enrollmentQuizAttempts.push(syntheticAttempt);
+              console.log(`Created synthetic quiz attempt for course "${course.title}" with ${enrollment.progress}% progress`);
             }
           }
           
