@@ -627,6 +627,52 @@ const QuizTakingNewFixed = () => {
     }
   }, [courseId, lessonId, getCourseById]);
 
+  // Submit subjective answers for grading
+  const submitSubjectiveAnswers = async () => {
+    try {
+      const backendUrl = process.env.REACT_APP_BACKEND_URL;
+      const token = localStorage.getItem('token');
+      
+      if (!quiz?.questions) return;
+      
+      // Extract subjective questions and their answers
+      const subjectiveSubmissions = [];
+      
+      for (const question of quiz.questions) {
+        if (question.type === 'short-answer' || question.type === 'long-form-answer') {
+          const userAnswer = answers[question.id];
+          if (userAnswer && userAnswer.trim() !== '') {
+            subjectiveSubmissions.push({
+              questionId: question.id,
+              questionText: question.question,
+              studentAnswer: userAnswer,
+              courseId: courseId,
+              lessonId: lessonId,
+              questionType: question.type
+            });
+          }
+        }
+      }
+      
+      // Submit to backend if there are subjective answers
+      if (subjectiveSubmissions.length > 0) {
+        await fetch(`${backendUrl}/api/quiz-submissions/subjective`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            submissions: subjectiveSubmissions
+          })
+        });
+      }
+    } catch (error) {
+      console.error('Error submitting subjective answers:', error);
+      // Don't throw error as this shouldn't block quiz completion
+    }
+  };
+
   // Submit quiz - MOVED UP to prevent temporal dead zone
   const handleSubmitQuiz = useCallback(async () => {
     if (!isMountedRef.current || submitting || quizCompleted) return;
