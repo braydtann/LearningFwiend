@@ -318,18 +318,29 @@ const QuizAndTestResults = () => {
 
   // Get recent quiz attempts with enhanced details from real backend data
   const recentQuizAttempts = filteredQuizAttempts
-    .filter(attempt => attempt.status === 'completed')
-    .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt))
+    .filter(attempt => attempt.status === 'completed' || attempt.completedAt)
+    .sort((a, b) => {
+      const dateA = new Date(a.completedAt || a.created_at);
+      const dateB = new Date(b.completedAt || b.created_at);
+      return dateB - dateA;
+    })
     .slice(0, 10)
     .map(attempt => {
-      // Find corresponding quiz and course for this attempt
-      const quiz = quizzes.find(q => q.id === attempt.quizId);
-      const course = courses.find(c => c.id === quiz?.courseId);
+      // For synthetic quiz attempts, extract course info from the quiz title
+      let courseName = 'Unknown Course';
+      if (attempt.quizTitle && attempt.quizTitle.includes(' - Course Quiz')) {
+        courseName = attempt.quizTitle.replace(' - Course Quiz', '');
+      } else if (attempt.quizId && attempt.quizId.startsWith('course-quiz-')) {
+        const courseId = attempt.quizId.replace('course-quiz-', '');
+        const course = courses.find(c => c.id === courseId);
+        courseName = course?.title || 'Unknown Course';
+      }
+      
       return {
         ...attempt,
         studentName: attempt.studentName || 'Unknown Student',
-        courseName: course?.title || 'Unknown Course',
-        quizTitle: quiz?.title || attempt.quizTitle || 'Unknown Quiz'
+        courseName: courseName,
+        quizTitle: attempt.quizTitle || 'Course Quiz'
       };
     });
 
