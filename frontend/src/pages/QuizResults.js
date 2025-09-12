@@ -281,8 +281,16 @@ const QuizAndTestResults = () => {
     return true;
   });
 
-  // Calculate quiz statistics
-  const quizStats = {
+  // Calculate quiz statistics - use system stats if available (corrected data)
+  const quizStats = systemStats ? {
+    totalQuizzes: systemStats.quizzes?.totalQuizzes || 0,
+    totalAttempts: systemStats.quizzes?.totalAttempts || 0,
+    averageScore: systemStats.quizzes?.averageScore || 0,
+    passRate: systemStats.quizzes?.passRate || 0,
+    completedAttempts: systemStats.quizzes?.totalAttempts || 0,
+    inProgressAttempts: 0
+  } : {
+    // Fallback to old calculation if system stats not available
     totalQuizzes: quizzes.length,
     totalAttempts: filteredQuizAttempts.length,
     averageScore: filteredQuizAttempts.length > 0 
