@@ -31,6 +31,7 @@ const QuizAndTestResults = () => {
     getAllFinalTests,
     getFinalTestAttempts,
     getAllEnrollments,
+    getAllEnrollmentsForAnalytics,
     getSystemStats
   } = useAuth();
   const { toast } = useToast();
