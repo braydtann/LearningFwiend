@@ -5713,6 +5713,30 @@ async def shutdown_db_client():
     logger.info("Shutting down database client")
     client.close()
 
+# Mount static files for production frontend serving (must be after API routes)
+frontend_build_path = Path(__file__).parent.parent / "frontend" / "build"
+if frontend_build_path.exists():
+    logger.info(f"Mounting static files from {frontend_build_path}")
+    app.mount("/static", StaticFiles(directory=str(frontend_build_path / "static")), name="static")
+    
+    # Serve the React app for all non-API and non-health routes
+    @app.get("/{full_path:path}")
+    async def serve_frontend(full_path: str):
+        """Serve React app for all non-API routes"""        
+        # For all frontend routes, serve the React app
+        index_file = frontend_build_path / "index.html"
+        if index_file.exists():
+            return FileResponse(str(index_file))
+        else:
+            raise HTTPException(status_code=404, detail="Frontend not built")
+else:
+    logger.warning("Frontend build directory not found, static file serving disabled")
+
+    # Fallback root route if no frontend build
+    @app.get("/")
+    async def root_fallback():
+        return {"message": "LMS API is running", "status": "active", "note": "Frontend not available"}
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("server:app", host="0.0.0.0", port=8001, reload=DEBUG)
