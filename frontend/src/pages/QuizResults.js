@@ -332,8 +332,25 @@ const QuizAndTestResults = () => {
     return true;
   });
 
-  // Calculate quiz statistics - use system stats if available (corrected data)
-  const quizStats = systemStats ? {
+  // Calculate quiz statistics - responsive to filters
+  const hasFiltersApplied = selectedCourse !== 'all' || selectedClassroom !== 'all';
+  
+  const quizStats = hasFiltersApplied ? {
+    // When filters are applied, calculate from filtered attempts (responsive to filters)
+    totalQuizzes: selectedCourse !== 'all' ? 
+      courses.filter(course => course.id === selectedCourse).length : 
+      courses.length,
+    totalAttempts: filteredQuizAttempts.length,
+    averageScore: filteredQuizAttempts.length > 0 
+      ? Math.round(filteredQuizAttempts.reduce((sum, attempt) => sum + (attempt.score || 0), 0) / filteredQuizAttempts.length)
+      : 0,
+    passRate: filteredQuizAttempts.length > 0 
+      ? Math.round((filteredQuizAttempts.filter(attempt => attempt.isPassed).length / filteredQuizAttempts.length) * 100)
+      : 0,
+    completedAttempts: filteredQuizAttempts.filter(attempt => attempt.status === 'completed').length,
+    inProgressAttempts: filteredQuizAttempts.filter(attempt => attempt.status === 'in_progress' || !attempt.status).length
+  } : (systemStats ? {
+    // When no filters applied, use global system stats for better performance
     totalQuizzes: systemStats.quizzes?.totalQuizzes || 0,
     totalAttempts: systemStats.quizzes?.totalAttempts || 0,
     averageScore: systemStats.quizzes?.averageScore || 0,
@@ -341,7 +358,7 @@ const QuizAndTestResults = () => {
     completedAttempts: systemStats.quizzes?.totalAttempts || 0,
     inProgressAttempts: 0
   } : {
-    // Fallback to old calculation if system stats not available
+    // Fallback calculation when no system stats and no filters
     totalQuizzes: quizzes.length,
     totalAttempts: filteredQuizAttempts.length,
     averageScore: filteredQuizAttempts.length > 0 
@@ -352,7 +369,7 @@ const QuizAndTestResults = () => {
       : 0,
     completedAttempts: filteredQuizAttempts.filter(attempt => attempt.status === 'completed').length,
     inProgressAttempts: filteredQuizAttempts.filter(attempt => attempt.status === 'in_progress' || !attempt.status).length
-  };
+  });
 
   // Calculate final test statistics
   const finalTestStats = {
