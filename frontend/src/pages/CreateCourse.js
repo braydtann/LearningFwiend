@@ -1334,13 +1334,42 @@ const CreateCourse = () => {
                                   type="file"
                                   accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.xls,.xlsx"
                                   className="mt-2"
-                                  onChange={(e) => {
+                                  onChange={async (e) => {
                                     const file = e.target.files?.[0];
                                     if (file) {
-                                      // In a real app, you would upload the file and get a URL
-                                      const fakeUrl = `https://example.com/documents/${file.name}`;
-                                      handleLessonChange(moduleIndex, lessonIndex, 'documentUrl', fakeUrl);
-                                      handleLessonChange(moduleIndex, lessonIndex, 'documentName', file.name);
+                                      try {
+                                        // Show upload progress
+                                        handleLessonChange(moduleIndex, lessonIndex, 'documentName', `Uploading ${file.name}...`);
+                                        handleLessonChange(moduleIndex, lessonIndex, 'documentUrl', '');
+                                        
+                                        // Upload file using the new uploadFile function
+                                        const uploadResult = await uploadFile(file);
+                                        
+                                        if (uploadResult.success) {
+                                          handleLessonChange(moduleIndex, lessonIndex, 'documentUrl', uploadResult.fileUrl);
+                                          handleLessonChange(moduleIndex, lessonIndex, 'documentName', uploadResult.fileName);
+                                          toast({
+                                            title: "File uploaded successfully",
+                                            description: `${file.name} has been uploaded and will be available to students.`,
+                                          });
+                                        } else {
+                                          handleLessonChange(moduleIndex, lessonIndex, 'documentName', '');
+                                          handleLessonChange(moduleIndex, lessonIndex, 'documentUrl', '');
+                                          toast({
+                                            title: "Upload failed",
+                                            description: uploadResult.error || "Failed to upload file. Please try again.",
+                                            variant: "destructive",
+                                          });
+                                        }
+                                      } catch (error) {
+                                        handleLessonChange(moduleIndex, lessonIndex, 'documentName', '');
+                                        handleLessonChange(moduleIndex, lessonIndex, 'documentUrl', '');
+                                        toast({
+                                          title: "Upload error",
+                                          description: "An error occurred while uploading the file.",
+                                          variant: "destructive",
+                                        });
+                                      }
                                     }
                                   }}
                                 />
