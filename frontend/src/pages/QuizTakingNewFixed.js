@@ -963,9 +963,7 @@ const QuizTakingNewFixed = () => {
 
         if (progressResult.success) {
           // Submit subjective questions for grading if any exist
-          console.log('Quiz completed, hasSubjectiveQuestions:', hasSubjectiveQuestions);
           if (hasSubjectiveQuestions) {
-            console.log('Calling submitSubjectiveAnswers...');
             await submitSubjectiveAnswers();
           }
           
