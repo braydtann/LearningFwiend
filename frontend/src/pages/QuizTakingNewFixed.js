@@ -642,7 +642,7 @@ const QuizTakingNewFixed = () => {
       const subjectiveSubmissions = [];
       
       for (const question of quiz.questions) {
-        if (question.type === 'short-answer' || question.type === 'long-form-answer') {
+        if (question.type === 'short-answer' || question.type === 'long-form-answer' || question.type === 'long-form') {
           const userAnswer = answers[question.id];
           console.log(`Checking subjective question ${question.id}:`, {
             type: question.type,
