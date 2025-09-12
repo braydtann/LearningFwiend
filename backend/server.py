@@ -5205,6 +5205,18 @@ async def get_analytics_dashboard(current_user: UserResponse = Depends(get_curre
 # GRADING SYSTEM FOR SUBJECTIVE QUESTIONS
 # =============================================================================
 
+# Pydantic models for grading endpoints
+class SubjectiveSubmissionRequest(BaseModel):
+    questionId: str
+    questionText: str
+    studentAnswer: str
+    courseId: str
+    lessonId: str
+    questionType: str
+
+class SubjectiveSubmissionsRequest(BaseModel):
+    submissions: List[SubjectiveSubmissionRequest]
+
 class SubjectiveQuestionSubmission(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     studentId: str
