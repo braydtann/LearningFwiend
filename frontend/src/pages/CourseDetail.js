@@ -75,6 +75,38 @@ const CourseDetail = () => {
     }
   }, [course, currentEnrollment, selectedLesson]);
 
+  // Handle return from quiz - restore lesson context
+  useEffect(() => {
+    if (location.state?.returnFromQuiz && location.state?.lessonId && course) {
+      // Find the lesson that was just completed
+      let foundLesson = null;
+      
+      for (const module of course.modules || []) {
+        if (module.lessons) {
+          foundLesson = module.lessons.find(l => l.id === location.state.lessonId);
+          if (foundLesson) break;
+        }
+      }
+      
+      if (foundLesson) {
+        console.log(`Returning from quiz to lesson: ${foundLesson.title}`);
+        setSelectedLesson(foundLesson);
+        
+        // Show completion message if provided
+        if (location.state.message) {
+          toast({
+            title: "Quiz Completed",
+            description: location.state.message,
+            duration: 3000,
+          });
+        }
+        
+        // Clear the navigation state to prevent re-triggering
+        navigate(location.pathname, { replace: true, state: {} });
+      }
+    }
+  }, [location.state, course, navigate, toast]);
+
   // Update progress when enrollment changes - THIS IS THE KEY FIX
   useEffect(() => {
     if (course && currentEnrollment) {
