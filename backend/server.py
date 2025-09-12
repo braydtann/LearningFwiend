@@ -5078,17 +5078,23 @@ async def get_user_analytics(
             "isActive": True
         })
         
-        # Quiz performance
-        total_quiz_attempts = await db.quiz_attempts.count_documents({
+        # Quiz performance - count completed enrollments as quiz attempts
+        total_quiz_attempts = await db.enrollments.count_documents({
             "studentId": user_id,
-            "isActive": True
+            "isActive": True,
+            "progress": {"$gte": 100}
         })
         
+        # Calculate average score from enrollment progress
         avg_score_pipeline = [
-            {"$match": {"studentId": user_id, "isActive": True}},
-            {"$group": {"_id": None, "avgScore": {"$avg": "$score"}}}
+            {"$match": {
+                "studentId": user_id, 
+                "isActive": True, 
+                "progress": {"$gt": 0}
+            }},
+            {"$group": {"_id": None, "avgScore": {"$avg": "$progress"}}}
         ]
-        avg_score_cursor = db.quiz_attempts.aggregate(avg_score_pipeline)
+        avg_score_cursor = db.enrollments.aggregate(avg_score_pipeline)
         avg_score_stats = await avg_score_cursor.to_list(1)
         average_score = avg_score_stats[0]["avgScore"] if avg_score_stats else 0.0
         
