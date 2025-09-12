@@ -5268,7 +5268,9 @@ async def submit_subjective_answers(
             }
             
             await db.subjective_submissions.insert_one(submission_doc)
+            logger.info(f"Stored submission: {submission_doc['id']} for question {submission_doc['questionId']}")
         
+        logger.info(f"Successfully stored {len(submission_request.submissions)} submissions")
         return {"success": True, "message": f"Submitted {len(submission_request.submissions)} subjective answers for grading"}
         
     except Exception as e:
