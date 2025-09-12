@@ -10,7 +10,7 @@ import sys
 from datetime import datetime
 
 # Backend URL from environment
-BACKEND_URL = "https://task-summary-5.preview.emergentagent.com/api"
+BACKEND_URL = "https://learning-analytics-2.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_CREDENTIALS = {

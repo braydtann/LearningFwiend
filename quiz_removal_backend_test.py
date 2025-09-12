@@ -22,7 +22,7 @@ import time
 import uuid
 
 # Configuration - Using frontend/.env REACT_APP_BACKEND_URL
-BACKEND_URL = "https://task-summary-5.preview.emergentagent.com/api"
+BACKEND_URL = "https://learning-analytics-2.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 # Test credentials from review request

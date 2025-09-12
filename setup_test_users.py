@@ -6,7 +6,7 @@ Setup test users for comprehensive testing
 import requests
 import json
 
-BACKEND_URL = "https://task-summary-5.preview.emergentagent.com/api"
+BACKEND_URL = "https://learning-analytics-2.preview.emergentagent.com/api"
 TEST_TIMEOUT = 10
 
 def setup_test_users():
