@@ -634,7 +634,6 @@ const QuizTakingNewFixed = () => {
       const token = localStorage.getItem('token');
       
       if (!quiz?.questions) {
-        console.log('No quiz questions found');
         return;
       }
       
@@ -644,11 +643,6 @@ const QuizTakingNewFixed = () => {
       for (const question of quiz.questions) {
         if (question.type === 'short-answer' || question.type === 'long-form-answer' || question.type === 'long-form') {
           const userAnswer = answers[question.id];
-          console.log(`Checking subjective question ${question.id}:`, {
-            type: question.type,
-            hasAnswer: !!userAnswer,
-            answerLength: userAnswer ? userAnswer.length : 0
-          });
           
           if (userAnswer && userAnswer.trim() !== '') {
             subjectiveSubmissions.push({
@@ -663,12 +657,8 @@ const QuizTakingNewFixed = () => {
         }
       }
       
-      console.log(`Found ${subjectiveSubmissions.length} subjective submissions to send`);
-      
       // Submit to backend if there are subjective answers
       if (subjectiveSubmissions.length > 0) {
-        console.log('Sending subjective submissions to backend:', subjectiveSubmissions);
-        
         const response = await fetch(`${backendUrl}/api/quiz-submissions/subjective`, {
           method: 'POST',
           headers: {
@@ -680,14 +670,9 @@ const QuizTakingNewFixed = () => {
           })
         });
         
-        if (response.ok) {
-          const result = await response.json();
-          console.log('Subjective submissions sent successfully:', result);
-        } else {
+        if (!response.ok) {
           console.error('Failed to send subjective submissions:', response.status, await response.text());
         }
-      } else {
-        console.log('No subjective submissions to send');
       }
     } catch (error) {
       console.error('Error submitting subjective answers:', error);
