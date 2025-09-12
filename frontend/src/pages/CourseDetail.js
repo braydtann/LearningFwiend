@@ -1255,7 +1255,15 @@ const CourseDetail = () => {
             )}
             
             {/* Final Exam Button - Show when program is completed */}
-            {programCompleted && showFinalExamOption && currentProgram && (
+            {(() => {
+              console.log('Final exam button conditions:', {
+                programCompleted,
+                showFinalExamOption,
+                currentProgram: currentProgram?.title,
+                shouldShow: programCompleted && showFinalExamOption && currentProgram
+              });
+              return programCompleted && showFinalExamOption && currentProgram;
+            })() && (
               <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-lg mb-6 border border-green-200">
                 <div className="flex items-center justify-between">
                   <div>
