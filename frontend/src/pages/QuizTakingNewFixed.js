@@ -660,6 +660,7 @@ const QuizTakingNewFixed = () => {
       
       // Submit to backend if there are subjective answers
       if (subjectiveSubmissions.length > 0) {
+        console.log(`🚀 Submitting ${subjectiveSubmissions.length} subjective answers to grading center`);
         const response = await fetch(`${backendUrl}/api/quiz-submissions/subjective`, {
           method: 'POST',
           headers: {
