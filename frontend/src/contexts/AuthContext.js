@@ -2807,6 +2807,7 @@ export const AuthProvider = ({ children }) => {
     createEnrollment,
     createBulkEnrollments,
     getAllEnrollments,
+    getAllEnrollmentsForAnalytics,
     getMyEnrollments,
     getCourseEnrollments,
     getStudentEnrollments,
