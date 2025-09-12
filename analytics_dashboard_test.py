@@ -131,23 +131,32 @@ class AnalyticsDashboardTestSuite:
     def verify_quiz_data_structure(self) -> Dict:
         """Verify that quiz attempts are properly created from enrollments"""
         try:
+            # Use analytics dashboard endpoint to get system-wide data
             headers = {"Authorization": f"Bearer {self.admin_token}"}
             
-            # Get all enrollments to analyze quiz data structure
-            response = requests.get(f"{self.base_url}/enrollments", headers=headers, timeout=10)
+            # Get analytics dashboard data
+            dashboard_response = requests.get(f"{self.base_url}/analytics/dashboard", headers=headers, timeout=10)
             
-            if response.status_code != 200:
+            if dashboard_response.status_code != 200:
                 self.log_test(
                     "Quiz Data Structure Verification",
                     False,
-                    f"HTTP {response.status_code}: {response.text}"
+                    f"Analytics dashboard HTTP {dashboard_response.status_code}: {dashboard_response.text}"
                 )
                 return {}
             
-            enrollments = response.json()
+            dashboard_data = dashboard_response.json().get('data', {})
+            
+            # Also get student enrollments to analyze quiz scores
+            student_headers = {"Authorization": f"Bearer {self.student_token}"}
+            student_response = requests.get(f"{self.base_url}/enrollments", headers=student_headers, timeout=10)
+            
+            enrollments = []
+            if student_response.status_code == 200:
+                enrollments = student_response.json()
             
             quiz_analysis = {
-                "total_enrollments": len(enrollments),
+                "total_enrollments": dashboard_data.get('totalEnrollments', len(enrollments)),
                 "enrollments_with_quiz_scores": 0,
                 "quiz_score_distribution": {},
                 "courses_with_quizzes": set(),
@@ -187,6 +196,7 @@ class AnalyticsDashboardTestSuite:
                         })
             
             quiz_analysis["unique_courses_with_quizzes"] = len(quiz_analysis["courses_with_quizzes"])
+            quiz_analysis["dashboard_data"] = dashboard_data
             
             success = quiz_analysis["enrollments_with_quiz_scores"] > 0
             details = f"Found {quiz_analysis['enrollments_with_quiz_scores']} enrollments with quiz scores across {quiz_analysis['unique_courses_with_quizzes']} courses"
