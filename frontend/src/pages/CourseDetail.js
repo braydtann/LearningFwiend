@@ -853,10 +853,18 @@ const CourseDetail = () => {
         <Button 
           variant="outline" 
           size="sm"
-          onClick={() => navigate('/courses')}
+          onClick={() => {
+            if (selectedLesson) {
+              // If viewing a lesson, go back to course overview
+              setSelectedLesson(null);
+            } else {
+              // If on course overview, go back to courses list
+              navigate('/courses');
+            }
+          }}
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
+          {selectedLesson ? 'Back to Course Overview' : 'Back'}
         </Button>
         <div className="h-6 border-l border-gray-300"></div>
         <nav className="text-sm text-gray-500">
