@@ -321,7 +321,7 @@ class FinalExamSetupTester:
             # If no instructor found, create one
             if not instructor_user:
                 instructor_data = {
-                    "email": "test.instructor@finalexam.test",
+                    "email": "test.instructor@example.com",
                     "username": "test_instructor",
                     "full_name": "Test Instructor",
                     "role": "instructor",
