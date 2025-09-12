@@ -393,10 +393,9 @@ class AnalyticsDashboardTestSuite:
     def test_score_accuracy_validation(self) -> Dict:
         """Confirm average scores reflect actual quiz results (e.g., 50% vs 100%)"""
         try:
-            headers = {"Authorization": f"Bearer {self.admin_token}"}
-            
-            # Get all enrollments with progress data
-            response = requests.get(f"{self.base_url}/enrollments", headers=headers, timeout=10)
+            # Get student enrollments with progress data
+            student_headers = {"Authorization": f"Bearer {self.student_token}"}
+            response = requests.get(f"{self.base_url}/enrollments", headers=student_headers, timeout=10)
             
             if response.status_code != 200:
                 self.log_test(
@@ -436,7 +435,8 @@ class AnalyticsDashboardTestSuite:
                 },
                 "has_variety": len(set(scores)) > 1,
                 "not_all_perfect": not all(s == 100 for s in scores),
-                "sample_scores": sorted(list(set(scores)))[:10]
+                "sample_scores": sorted(list(set(scores)))[:10],
+                "enrollments_analyzed": len(enrollments)
             }
             
             # Check for realistic score distribution
