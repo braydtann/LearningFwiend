@@ -7,7 +7,7 @@ import requests
 import json
 import uuid
 
-BACKEND_URL = "https://coursemate-14.preview.emergentagent.com/api"
+BACKEND_URL = "https://task-summary-5.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 def setup_test_users():

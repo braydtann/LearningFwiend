@@ -23,7 +23,7 @@ import sys
 from datetime import datetime
 
 # Configuration - Use frontend env URL
-BACKEND_URL = "https://coursemate-14.preview.emergentagent.com/api"
+BACKEND_URL = "https://task-summary-5.preview.emergentagent.com/api"
 
 # Test credentials from review request
 STUDENT_EMAIL = "brayden.student@learningfwiend.com"
