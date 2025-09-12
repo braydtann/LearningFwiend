@@ -32,6 +32,7 @@ import { useToast } from '../hooks/use-toast';
 const CourseDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { 
     user, 
     isLearner, 
