@@ -1,28 +1,15 @@
 #!/usr/bin/env python3
 """
-🎯 QUIZRESULTS COMPONENT BACKEND TESTING - FILTERING AND RECENT QUIZ ATTEMPTS
-
-TESTING OBJECTIVES FROM REVIEW REQUEST:
-1. **Admin Authentication** - Login with admin credentials (brayden.t@covesmart.com / Hawaii2020!)
-2. **Course Filtering Verification** - Test that selecting a specific course (like "testy test test") updates the statistics to show only that course's data
-3. **Recent Quiz Attempts Display** - Verify that recent quiz attempts section now shows actual quiz submissions instead of "No quiz attempts yet"
-4. **Data Consistency** - Ensure filtering works correctly with synthetic quiz attempts created from enrollments
-5. **Attempt Status Logic** - Confirm that both completed and in-progress quiz attempts appear in recent attempts
-
-SPECIFIC TESTS:
-- Verify course filtering updates Total Attempts, Average Score, and Pass Rate when a specific course is selected
-- Check that Recent Quiz Attempts section displays student names, course names, scores, and dates
-- Test that synthetic quiz attempts (course-quiz-{courseId} format) are properly filtered by course selection
-- Validate that quiz attempts with any progress (>0%) appear in recent attempts, not just 100% completed ones
-
-This should resolve the user's issues with course filtering not working and recent quiz attempts showing empty.
+Comprehensive Backend Testing for File Upload Endpoints
+Testing the new file upload functionality as requested in review.
 """
 
 import requests
 import json
-import sys
+import os
+import tempfile
 from datetime import datetime
-from typing import Dict, List, Any, Optional
+from pathlib import Path
 
 class QuizImageProgressTestSuite:
     def __init__(self):
