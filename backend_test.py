@@ -12,7 +12,7 @@ from datetime import datetime
 from pathlib import Path
 
 # Configuration
-BACKEND_URL = "https://quiz-analytics-fix.preview.emergentagent.com/api"
+BACKEND_URL = "https://fixfriend.preview.emergentagent.com/api"
 ADMIN_CREDENTIALS = {
     "username_or_email": "brayden.t@covesmart.com",
     "password": "Hawaii2020!"

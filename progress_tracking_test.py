@@ -922,7 +922,7 @@ import time
 from datetime import datetime
 
 # Configuration
-BACKEND_URL = "https://quiz-analytics-fix.preview.emergentagent.com/api"
+BACKEND_URL = "https://fixfriend.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 class ProgressTrackingTester:

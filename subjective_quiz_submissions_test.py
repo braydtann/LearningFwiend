@@ -45,7 +45,7 @@ from typing import Dict, List, Any, Optional
 class SubjectiveQuizSubmissionsTestSuite:
     def __init__(self):
         # Use the correct backend URL from frontend/.env
-        self.base_url = "https://quiz-analytics-fix.preview.emergentagent.com/api"
+        self.base_url = "https://fixfriend.preview.emergentagent.com/api"
         self.admin_token = None
         self.student_token = None
         self.test_results = []

@@ -22,7 +22,7 @@ from datetime import datetime
 from typing import Dict, List, Optional
 
 # Configuration
-BACKEND_URL = "https://quiz-analytics-fix.preview.emergentagent.com/api"
+BACKEND_URL = "https://fixfriend.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_CREDENTIALS = {
