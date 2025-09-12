@@ -128,6 +128,12 @@ const Sidebar = () => {
       roles: ['admin', 'instructor'] 
     },
     { 
+      path: '/grading', 
+      icon: GraduationCap, 
+      label: 'Grading Center', 
+      roles: ['instructor', 'admin'] 
+    },
+    { 
       path: '/admin/utilities', 
       icon: Wrench, 
       label: 'Admin Utilities', 
