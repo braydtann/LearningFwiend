@@ -253,14 +253,22 @@ const QuizAndTestResults = () => {
   // Filter quiz attempts based on selected filters
   const filteredQuizAttempts = quizAttempts.filter(attempt => {
     if (selectedCourse !== 'all') {
-      const quiz = quizzes.find(q => q.id === attempt.quizId);
-      if (!quiz || quiz.courseId !== selectedCourse) return false;
+      // For synthetic quiz attempts, extract courseId from quizId
+      if (attempt.quizId && attempt.quizId.startsWith('course-quiz-')) {
+        const courseId = attempt.quizId.replace('course-quiz-', '');
+        if (courseId !== selectedCourse) return false;
+      } else {
+        // For regular quiz attempts, use the old logic
+        const quiz = quizzes.find(q => q.id === attempt.quizId);
+        if (!quiz || quiz.courseId !== selectedCourse) return false;
+      }
     }
     
     if (selectedClassroom !== 'all') {
-      // For now, we don't have direct classroom-quiz relationship
-      // This would need to be enhanced based on your classroom-course relationship
-      return true;
+      // Enhanced classroom filtering logic
+      // For synthetic quiz attempts, we can check if the student is enrolled in the classroom
+      // This would need classroom-student relationship data
+      return true; // For now, return true until classroom-student data is available
     }
     
     return true;
