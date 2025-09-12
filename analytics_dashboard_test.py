@@ -27,7 +27,7 @@ from typing import Dict, List, Any, Optional
 class AnalyticsDashboardTestSuite:
     def __init__(self):
         # Use the correct backend URL from frontend/.env
-        self.base_url = "https://learning-analytics-2.preview.emergentagent.com/api"
+        self.base_url = "https://quiz-analytics-fix.preview.emergentagent.com/api"
         self.admin_token = None
         self.student_token = None
         self.test_results = []

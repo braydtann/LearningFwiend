@@ -8,7 +8,7 @@ import json
 import sys
 
 def create_quiz_test_data():
-    base_url = "https://learning-analytics-2.preview.emergentagent.com/api"
+    base_url = "https://quiz-analytics-fix.preview.emergentagent.com/api"
     
     # Login as admin
     admin_creds = {'username_or_email': 'brayden.t@covesmart.com', 'password': 'Hawaii2020!'}
