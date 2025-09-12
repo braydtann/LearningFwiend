@@ -243,19 +243,14 @@ const CourseDetail = () => {
       
       // Check if final exam exists for this program - only when actually completed
       if (isProgramCompleted) {
-        console.log('Program completed, checking for final tests...');
         const finalTestsResult = await getAllFinalTests({ 
           program_id: program.id, 
           published_only: true 
         });
         
-        console.log('Final tests result:', finalTestsResult);
-        
         if (finalTestsResult.success && finalTestsResult.tests.length > 0) {
-          console.log('Final exam option enabled');
           setShowFinalExamOption(true);
         } else {
-          console.log('No final tests available');
           setShowFinalExamOption(false);
         }
       } else {
