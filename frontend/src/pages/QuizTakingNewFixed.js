@@ -849,10 +849,16 @@ const QuizTakingNewFixed = () => {
           if (isMountedRef.current) {
             setQuizCompleted(true);
             
+            // Show different message based on whether subjective questions need grading
+            const baseMessage = `Your score: ${score}% ${passed ? '(Passed)' : '(Below passing score)'}`;
+            const subjectiveWarning = hasSubjectiveQuestions 
+              ? " Note: Your score is subject to change once subjective questions are graded by an instructor."
+              : "";
+            
             toast({
               title: passed ? "🎉 Quiz Passed!" : "📝 Quiz Completed",
-              description: `Your score: ${score}% ${passed ? '(Passed)' : '(Below passing score)'}`,
-              duration: 3000,
+              description: baseMessage + subjectiveWarning,
+              duration: hasSubjectiveQuestions ? 5000 : 3000, // Longer duration for warning message
             });
 
             // Navigate to course after delay
