@@ -815,6 +815,9 @@ const QuizTakingNewFixed = () => {
                 });
               }
             } else if (question.type === 'short-answer' || question.type === 'long-form-answer') {
+              // Mark quiz as containing subjective questions that need manual grading
+              hasSubjectiveQuestions = true;
+              
               // For text answers, basic string comparison (case-insensitive)
               scorableQuestions++;
               const correctAnswer = question.correctAnswer || '';
