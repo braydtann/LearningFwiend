@@ -402,7 +402,7 @@ class SubjectiveQuizSubmissionsTestSuite:
                             self.log_test(
                                 "Admin Get Course Submissions",
                                 True,
-                                f"Retrieved {len(submissions)} total submissions ({total_test_submissions} from our tests). All required fields present."
+                                f"Retrieved {len(submissions)} total submissions ({total_test_submissions} from our tests). Count: {submission_count}. All required fields present."
                             )
                             return True
                         else:
