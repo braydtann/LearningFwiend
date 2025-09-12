@@ -846,6 +846,11 @@ const QuizTakingNewFixed = () => {
         });
 
         if (progressResult.success) {
+          // Submit subjective questions for grading if any exist
+          if (hasSubjectiveQuestions) {
+            await submitSubjectiveAnswers();
+          }
+          
           if (isMountedRef.current) {
             setQuizCompleted(true);
             
