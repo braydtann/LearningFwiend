@@ -18,7 +18,7 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 const CreateCourse = () => {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { user, createCourse, updateCourse, getCourseById, getAllCategories } = useAuth();
+  const { user, createCourse, updateCourse, getCourseById, getAllCategories, uploadFile } = useAuth();
   const { toast } = useToast();
   
   const isEditing = Boolean(id);
