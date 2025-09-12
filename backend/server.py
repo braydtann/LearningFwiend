@@ -5228,6 +5228,7 @@ async def health_check():
         }
 
 # Include the router in the main app
+app.include_router(api_router)
 
 # Root endpoint
 @app.get("/")
