@@ -5201,9 +5201,6 @@ async def get_analytics_dashboard(current_user: UserResponse = Depends(get_curre
         )
 
 
-# Include the router in the main app
-app.include_router(api_router)
-
 # =============================================================================
 # HEALTH CHECK ENDPOINT
 # =============================================================================
@@ -5229,6 +5226,8 @@ async def health_check():
             "error": str(e),
             "timestamp": datetime.utcnow().isoformat()
         }
+
+# Include the router in the main app
 
 # Root endpoint
 @app.get("/")
