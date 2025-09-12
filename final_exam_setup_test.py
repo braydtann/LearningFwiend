@@ -339,7 +339,9 @@ class FinalExamSetupTester:
                     instructor_user = create_instructor_response.json()
                     print(f"  ✅ Created instructor user: {instructor_user['full_name']}")
                 else:
-                    self.log_result("Create Classroom", False, f"Failed to create instructor: {create_instructor_response.status_code}")
+                    print(f"  ❌ Failed to create instructor: {create_instructor_response.status_code}")
+                    print(f"     Error: {create_instructor_response.json()}")
+                    self.log_result("Create Classroom", False, f"Failed to create instructor: {create_instructor_response.status_code}", create_instructor_response.json())
                     return False
             
             classroom_data = {
