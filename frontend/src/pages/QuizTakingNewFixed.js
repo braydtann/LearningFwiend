@@ -660,57 +660,20 @@ const QuizTakingNewFixed = () => {
       
       // Submit to backend if there are subjective answers
       if (subjectiveSubmissions.length > 0) {
-        console.log('Sending submissions to:', `${backendUrl}/api/quiz-submissions/subjective`);
+        const response = await fetch(`${backendUrl}/api/quiz-submissions/subjective`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            submissions: subjectiveSubmissions
+          })
+        });
         
-        try {
-          // Try with current token first
-          let response = await fetch(`${backendUrl}/api/quiz-submissions/subjective`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              submissions: subjectiveSubmissions
-            })
-          });
-          
-          // If token is expired (401), try to get a fresh token
-          if (response.status === 401) {
-            console.log('Token expired, attempting to get fresh token...');
-            const freshToken = localStorage.getItem('token');
-            if (freshToken && freshToken !== token) {
-              console.log('Found different token in localStorage, retrying...');
-              response = await fetch(`${backendUrl}/api/quiz-submissions/subjective`, {
-                method: 'POST',
-                headers: {
-                  'Authorization': `Bearer ${freshToken}`,
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                  submissions: subjectiveSubmissions
-                })
-              });
-            }
-          }
-          
-          if (response.ok) {
-            const result = await response.json();
-            console.log('Successfully sent submissions:', result);
-          } else {
-            const errorText = await response.text();
-            console.error('Failed to send subjective submissions:', response.status, errorText);
-            
-            // If still failing, show a user-friendly message
-            if (response.status === 401) {
-              console.warn('Authentication failed - submissions may not be saved for manual grading');
-            }
-          }
-        } catch (fetchError) {
-          console.error('Network error sending submissions:', fetchError);
+        if (!response.ok) {
+          console.error('Failed to send subjective submissions:', response.status, await response.text());
         }
-      } else {
-        console.log('No subjective submissions to send');
       }
     } catch (error) {
       console.error('Error submitting subjective answers:', error);
