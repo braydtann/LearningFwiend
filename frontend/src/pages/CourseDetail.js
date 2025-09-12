@@ -1038,6 +1038,50 @@ const CourseDetail = () => {
                           }}
                         />
                       </div>
+                      
+                      {/* Document attachment display */}
+                      {selectedLesson.documentUrl && selectedLesson.documentName && (
+                        <div className="mt-8 p-6 bg-blue-50 border border-blue-200 rounded-lg">
+                          <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                            <FileText className="w-5 h-5 mr-2 text-blue-600" />
+                            Course Documents
+                          </h3>
+                          <div className="bg-white p-4 rounded-lg border border-blue-200">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                  <FileText className="w-5 h-5 text-blue-600" />
+                                </div>
+                                <div>
+                                  <p className="font-medium text-gray-900">{selectedLesson.documentName}</p>
+                                  <p className="text-sm text-gray-500">Click to view or download</p>
+                                </div>
+                              </div>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  // Check if it's a fake URL (old courses)
+                                  if (selectedLesson.documentUrl.includes('example.com')) {
+                                    toast({
+                                      title: "Document not available",
+                                      description: "This document was uploaded before our new system. Please contact your instructor.",
+                                      variant: "destructive",
+                                    });
+                                  } else {
+                                    // Open document in new tab for viewing/downloading
+                                    window.open(selectedLesson.documentUrl, '_blank');
+                                  }
+                                }}
+                                className="flex items-center space-x-2"
+                              >
+                                <Download className="w-4 h-4" />
+                                <span>View Document</span>
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
