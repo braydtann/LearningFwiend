@@ -544,11 +544,31 @@ const QuizAndTestResults = () => {
               <CardContent>
                 <div className="space-y-4">
                   {courses.map(course => {
-                    const courseQuizzes = quizzes.filter(quiz => quiz.courseId === course.id);
+                    // Count quizzes in course modules/lessons instead of separate quizzes collection
+                    let courseQuizCount = 0;
+                    const courseModules = course.modules || [];
+                    for (const module of courseModules) {
+                      const lessons = module.lessons || [];
+                      for (const lesson of lessons) {
+                        if (lesson.type === 'quiz' || 
+                            lesson.questions?.length > 0 ||
+                            lesson.quiz?.questions?.length > 0 ||
+                            (lesson.type && lesson.type.toLowerCase().includes('quiz'))) {
+                          courseQuizCount++;
+                        }
+                      }
+                    }
+                    
+                    // Filter attempts for this specific course using corrected logic
                     const courseAttempts = quizAttempts.filter(attempt => {
-                      const quiz = quizzes.find(q => q.id === attempt.quizId);
-                      return quiz && quiz.courseId === course.id;
+                      // Match synthetic quiz attempts created from enrollments
+                      return attempt.quizId === `course-quiz-${course.id}` || 
+                             // Also match any attempts where we can find the courseId
+                             (attempt.courseId === course.id) ||
+                             // Match based on quiz title containing course title
+                             (attempt.quizTitle && attempt.quizTitle.includes(course.title));
                     });
+                    
                     const avgScore = courseAttempts.length > 0 
                       ? Math.round(courseAttempts.reduce((sum, attempt) => sum + (attempt.score || 0), 0) / courseAttempts.length)
                       : 0;
@@ -560,7 +580,7 @@ const QuizAndTestResults = () => {
                       <div key={course.id} className="border rounded-lg p-4">
                         <div className="flex items-center justify-between mb-2">
                           <h4 className="font-medium text-sm">{course.title}</h4>
-                          <Badge variant="outline">{courseQuizzes.length} quiz{courseQuizzes.length !== 1 ? 'zes' : ''}</Badge>
+                          <Badge variant="outline">{courseQuizCount} quiz{courseQuizCount !== 1 ? 'zes' : ''}</Badge>
                         </div>
                         <div className="grid grid-cols-2 gap-4 text-sm">
                           <div>
