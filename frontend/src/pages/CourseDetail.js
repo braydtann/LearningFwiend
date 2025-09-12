@@ -1003,6 +1003,15 @@ const CourseDetail = () => {
                   <div className="p-8">
                     <div className="max-w-4xl mx-auto">
                       <div className="mb-6">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setSelectedLesson(null)}
+                          className="mb-4"
+                        >
+                          <ArrowLeft className="w-4 h-4 mr-2" />
+                          Back to Course Overview
+                        </Button>
                         <Badge variant="outline" className="mb-2">
                           Text Lesson
                         </Badge>
