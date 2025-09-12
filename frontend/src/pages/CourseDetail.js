@@ -780,6 +780,15 @@ const CourseDetail = () => {
       return false; // No progress data available
     }
 
+    // Check if student has actually started the course (has any lesson progress)
+    const hasAnyProgress = currentEnrollment.moduleProgress.some(mp => 
+      mp.lessons && mp.lessons.length > 0 && mp.lessons.some(l => l.completed)
+    );
+    
+    if (!hasAnyProgress) {
+      return false; // Student hasn't started the course yet
+    }
+
     // Find which module contains this quiz
     let quizModuleIndex = -1;
     let quizLessonIndex = -1;
