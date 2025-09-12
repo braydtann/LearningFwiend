@@ -665,6 +665,7 @@ const QuizTakingNewFixed = () => {
       // Calculate score
       let correctAnswers = 0;
       let scorableQuestions = 0; // Track questions that can actually be scored
+      let hasSubjectiveQuestions = false; // Track if quiz contains subjective questions
 
       // Safely iterate through questions
       if (quiz?.questions && Array.isArray(quiz.questions)) {
