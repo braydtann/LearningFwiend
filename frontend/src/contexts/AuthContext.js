@@ -1380,6 +1380,35 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // New method for admin/instructor analytics - gets ALL enrollments
+  const getAllEnrollmentsForAnalytics = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/admin/enrollments`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const enrollments = await response.json();
+        return { success: true, enrollments };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to fetch all enrollments' 
+        };
+      }
+    } catch (error) {
+      console.error('Fetch all enrollments error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
   const getMyEnrollments = async () => {
     try {
       const token = localStorage.getItem('auth_token');
