@@ -160,14 +160,14 @@ const GradingCenter = () => {
     return submissions.filter(sub => sub.status === 'graded').length;
   };
 
-  if (user?.role !== 'instructor') {
+  if (user?.role !== 'instructor' && user?.role !== 'admin') {
     return (
       <div className="max-w-4xl mx-auto p-6">
         <Card>
           <CardContent className="text-center py-12">
             <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
-            <p className="text-gray-600">Only instructors can access the grading center.</p>
+            <p className="text-gray-600">Only instructors and admins can access the grading center.</p>
           </CardContent>
         </Card>
       </div>
