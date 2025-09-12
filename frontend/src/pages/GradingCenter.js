@@ -40,11 +40,11 @@ const GradingCenter = () => {
     try {
       const result = await getAllCourses();
       if (result.success) {
-        // Filter courses created by this instructor
-        const instructorCourses = result.courses.filter(course => 
-          course.instructorId === user.id
-        );
-        setCourses(instructorCourses);
+        // Filter courses - admins can see all courses, instructors only see their own
+        const accessibleCourses = user.role === 'admin' 
+          ? result.courses 
+          : result.courses.filter(course => course.instructorId === user.id);
+        setCourses(accessibleCourses);
         
         if (instructorCourses.length > 0) {
           setSelectedCourse(instructorCourses[0]);
