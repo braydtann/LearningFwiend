@@ -5244,6 +5244,7 @@ async def submit_subjective_answers(
     current_user: UserResponse = Depends(get_current_user)
 ):
     """Store subjective question submissions for grading."""
+    logger.info(f"Received subjective submissions from user {current_user.id}: {len(submission_request.submissions)} submissions")
     try:
         # Store each submission in the database
         for submission_data in submission_request.submissions:
