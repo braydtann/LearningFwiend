@@ -2851,6 +2851,7 @@ export const AuthProvider = ({ children }) => {
     getStudentEnrollments,
     updateEnrollment,
     updateEnrollmentProgress,
+    uploadFile,
     migrateEnrollmentProgress,
     deleteEnrollment,
     cleanupOrphanedEnrollments,
