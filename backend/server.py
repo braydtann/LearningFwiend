@@ -5184,15 +5184,7 @@ async def get_analytics_dashboard(current_user: UserResponse = Depends(get_curre
                 "enrolledCourses": enrolled_courses,
                 "completedCourses": completed_courses,
                 "certificatesEarned": certificates_earned,
-                "recentQuizAttempts": [
-                    {
-                        "quizTitle": attempt["quizTitle"],
-                        "score": attempt["score"],
-                        "isPassed": attempt["isPassed"],
-                        "completedAt": attempt.get("completedAt")
-                    }
-                    for attempt in recent_attempts
-                ]
+                "recentQuizAttempts": recent_attempts
             }
             
         elif current_user.role == 'instructor':
