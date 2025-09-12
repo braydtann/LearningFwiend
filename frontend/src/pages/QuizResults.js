@@ -138,6 +138,16 @@ const QuizAndTestResults = () => {
         console.log('Could not load quiz attempts:', attemptsResult.error);
       }
 
+      // CRITICAL FIX: Load system stats with corrected quiz analytics
+      const statsResult = await getSystemStats();
+      if (statsResult.success) {
+        setSystemStats(statsResult.stats);
+        console.log('Loaded system stats with quiz data:', statsResult.stats.quizzes);
+      } else {
+        console.log('Could not load system stats:', statsResult.error);
+        setSystemStats(null);
+      }
+
       // CRITICAL FIX: Also load enrollment-based quiz data which contains actual scores
       try {
         const enrollmentsResult = await getAllEnrollments();
