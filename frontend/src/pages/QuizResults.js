@@ -250,14 +250,25 @@ const QuizAndTestResults = () => {
           
           // Combine standalone quiz attempts with enrollment-based attempts
           allQuizAttempts = [...allQuizAttempts, ...enrollmentQuizAttempts];
-          console.log(`Added ${enrollmentQuizAttempts.length} enrollment-based quiz attempts`);
-          console.log(`Total quiz attempts: ${allQuizAttempts.length}`);
+          console.log(`🔄 Added ${enrollmentQuizAttempts.length} enrollment-based quiz attempts`);
+          console.log(`📊 Total quiz attempts combined: ${allQuizAttempts.length}`);
+          console.log('🔍 All quiz attempts summary:', allQuizAttempts.map(attempt => ({
+            id: attempt.id,
+            quizId: attempt.quizId,
+            quizTitle: attempt.quizTitle,
+            score: attempt.score,
+            status: attempt.status
+          })));
+        } else {
+          console.log('❌ Failed to load enrollments:', enrollmentsResult.error);
         }
       } catch (enrollmentError) {
-        console.error('Error loading enrollment-based quiz data:', enrollmentError);
+        console.error('💥 Error loading enrollment-based quiz data:', enrollmentError);
       }
       
+      console.log(`🎯 Setting quizAttempts state with ${allQuizAttempts.length} attempts`);
       setQuizAttempts(allQuizAttempts);
+      console.log('=== ENROLLMENT QUIZ SYNTHESIS DEBUG COMPLETE ===');
 
       // Load final test attempts from backend
       const finalTestAttemptsResult = await getFinalTestAttempts();
