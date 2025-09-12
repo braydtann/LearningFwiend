@@ -5161,11 +5161,24 @@ async def get_analytics_dashboard(current_user: UserResponse = Depends(get_curre
                 "isActive": True
             })
             
-            # Recent quiz attempts
-            recent_attempts = await db.quiz_attempts.find({
+            # Recent quiz completions from enrollments (progress >= 100)
+            recent_completions = await db.enrollments.find({
                 "studentId": current_user.id,
-                "isActive": True
-            }).sort("created_at", -1).limit(5).to_list(5)
+                "isActive": True,
+                "progress": {"$gte": 100}
+            }).sort("completedAt", -1).limit(5).to_list(5)
+            
+            # Get course names for recent completions
+            recent_attempts = []
+            for completion in recent_completions:
+                course = await db.courses.find_one({"id": completion["courseId"]})
+                if course:
+                    recent_attempts.append({
+                        "quizTitle": f"Quiz - {course.get('title', 'Unknown Course')}",
+                        "score": completion["progress"],
+                        "isPassed": completion["progress"] >= 100,
+                        "completedAt": completion.get("completedAt")
+                    })
             
             dashboard_data = {
                 "enrolledCourses": enrolled_courses,
