@@ -1001,6 +1001,31 @@ async def get_my_enrollments(current_user: UserResponse = Depends(get_current_us
     enrollments = await db.enrollments.find({"userId": current_user.id}).to_list(1000)
     return [EnrollmentResponse(**enrollment) for enrollment in enrollments]
 
+@api_router.get("/admin/enrollments", response_model=List[EnrollmentResponse])
+async def get_all_enrollments_admin(current_user: UserResponse = Depends(get_current_user)):
+    """Get all course enrollments (admin and instructor only) for analytics."""
+    if current_user.role not in ['admin', 'instructor']:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admins and instructors can access all enrollments"
+        )
+    
+    # For instructors, filter to only their courses
+    if current_user.role == 'instructor':
+        # Get courses created by this instructor
+        instructor_courses = await db.courses.find({"instructor_id": current_user.id}).to_list(1000)
+        course_ids = [course["id"] for course in instructor_courses]
+        
+        if course_ids:
+            enrollments = await db.enrollments.find({"courseId": {"$in": course_ids}}).to_list(10000)
+        else:
+            enrollments = []
+    else:
+        # Admin gets all enrollments
+        enrollments = await db.enrollments.find({}).to_list(10000)
+    
+    return [EnrollmentResponse(**enrollment) for enrollment in enrollments]
+
 @api_router.delete("/enrollments/{course_id}")
 async def unenroll_from_course(
     course_id: str,
