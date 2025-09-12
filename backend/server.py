@@ -5542,6 +5542,108 @@ async def get_submission_grade(
 
 
 # =============================================================================
+# FILE UPLOAD ENDPOINTS
+# =============================================================================
+
+# File upload directory
+UPLOAD_DIR = Path("/app/uploads")
+UPLOAD_DIR.mkdir(exist_ok=True)
+
+@api_router.post("/files/upload")
+async def upload_file(
+    file: UploadFile = File(...),
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Upload a file for course documents."""
+    
+    # Validate file type
+    allowed_extensions = {'.pdf', '.doc', '.docx', '.ppt', '.pptx', '.txt', '.xls', '.xlsx'}
+    file_extension = Path(file.filename).suffix.lower()
+    
+    if file_extension not in allowed_extensions:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="File type not allowed. Supported formats: PDF, Word, PowerPoint, Excel, Text files"
+        )
+    
+    # Validate file size (max 10MB)
+    if file.size and file.size > 10 * 1024 * 1024:  # 10MB
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="File size too large. Maximum size is 10MB."
+        )
+    
+    try:
+        # Generate unique filename
+        file_id = str(uuid.uuid4())
+        file_extension = Path(file.filename).suffix
+        unique_filename = f"{file_id}{file_extension}"
+        file_path = UPLOAD_DIR / unique_filename
+        
+        # Save file
+        async with aiofiles.open(file_path, 'wb') as buffer:
+            content = await file.read()
+            await buffer.write(content)
+        
+        # Create file record in database
+        file_record = {
+            "id": file_id,
+            "original_filename": file.filename,
+            "stored_filename": unique_filename,
+            "file_path": str(file_path),
+            "file_size": len(content),
+            "mime_type": file.content_type,
+            "uploaded_by": current_user.id,
+            "uploaded_at": datetime.utcnow(),
+            "file_type": file_extension
+        }
+        
+        await db.files.insert_one(file_record)
+        
+        return {
+            "success": True,
+            "file_id": file_id,
+            "filename": file.filename,
+            "file_url": f"/api/files/{file_id}",
+            "size": len(content)
+        }
+        
+    except Exception as e:
+        logger.error(f"File upload failed: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="File upload failed"
+        )
+
+@api_router.get("/files/{file_id}")
+async def download_file(
+    file_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Download a file by ID."""
+    
+    # Get file record from database
+    file_record = await db.files.find_one({"id": file_id})
+    if not file_record:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="File not found"
+        )
+    
+    file_path = Path(file_record["file_path"])
+    if not file_path.exists():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="File not found on disk"
+        )
+    
+    return FileResponse(
+        path=file_path,
+        filename=file_record["original_filename"],
+        media_type=file_record.get("mime_type", "application/octet-stream")
+    )
+
+# =============================================================================
 # HEALTH CHECK ENDPOINT
 # =============================================================================
 
