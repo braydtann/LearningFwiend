@@ -631,8 +631,8 @@ const QuizTakingNewFixed = () => {
   const submitSubjectiveAnswers = async () => {
     try {
       const backendUrl = process.env.REACT_APP_BACKEND_URL;
-      // Get fresh token from localStorage each time
-      const token = localStorage.getItem('token');
+      // Get fresh token from localStorage each time (using correct key)
+      const token = localStorage.getItem('auth_token');
       
       if (!quiz?.questions) {
         return;
