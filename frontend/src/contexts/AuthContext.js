@@ -1555,6 +1555,44 @@ export const AuthProvider = ({ children }) => {
     }
   }, [backendUrl]);
 
+  const uploadFile = async (file) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await fetch(`${backendUrl}/api/files/upload`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        return { 
+          success: true, 
+          fileUrl: `${backendUrl}${result.file_url}`,
+          fileName: result.filename,
+          fileId: result.file_id
+        };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'File upload failed' 
+        };
+      }
+    } catch (error) {
+      console.error('File upload error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
   const migrateEnrollmentProgress = async (enrollmentId) => {
     try {
       const token = localStorage.getItem('auth_token');
