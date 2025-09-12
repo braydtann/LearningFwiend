@@ -30,7 +30,8 @@ const QuizAndTestResults = () => {
     getAllPrograms,
     getAllFinalTests,
     getFinalTestAttempts,
-    getAllEnrollments
+    getAllEnrollments,
+    getSystemStats
   } = useAuth();
   const { toast } = useToast();
   
@@ -44,6 +45,7 @@ const QuizAndTestResults = () => {
   const [finalTests, setFinalTests] = useState([]);
   const [quizAttempts, setQuizAttempts] = useState([]);
   const [finalTestAttempts, setFinalTestAttempts] = useState([]);
+  const [systemStats, setSystemStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeView, setActiveView] = useState('quizzes'); // 'quizzes' or 'tests'
 
