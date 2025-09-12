@@ -310,6 +310,7 @@ class FinalExamSetupTester:
                 "programIds": [program['id']],
                 "studentIds": [self.student_user['id']],
                 "instructorId": self.admin_user['id'],
+                "trainerId": self.admin_user['id'],  # Required field
                 "startDate": datetime.now().isoformat(),
                 "endDate": None,
                 "isActive": True
