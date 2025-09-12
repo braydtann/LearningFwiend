@@ -111,7 +111,7 @@ const GradingCenter = () => {
 
     try {
       const backendUrl = process.env.REACT_APP_BACKEND_URL;
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       
       const response = await fetch(`${backendUrl}/api/submissions/${gradingSubmission.id}/grade`, {
         method: 'POST',
