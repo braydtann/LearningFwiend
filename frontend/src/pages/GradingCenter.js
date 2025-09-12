@@ -46,9 +46,9 @@ const GradingCenter = () => {
           : result.courses.filter(course => course.instructorId === user.id);
         setCourses(accessibleCourses);
         
-        if (instructorCourses.length > 0) {
-          setSelectedCourse(instructorCourses[0]);
-          await loadCourseSubmissions(instructorCourses[0].id);
+        if (accessibleCourses.length > 0) {
+          setSelectedCourse(accessibleCourses[0]);
+          await loadCourseSubmissions(accessibleCourses[0].id);
         }
       }
     } catch (error) {
