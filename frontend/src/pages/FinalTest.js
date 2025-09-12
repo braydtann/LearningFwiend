@@ -156,27 +156,35 @@ const FinalTest = () => {
             }
           } else {
             console.error('No final tests found for program:', testsResult);
+            console.error('DEBUG - Program ID being searched:', programId);
+            
             // Try to get all final tests to see if any are available
             const allTestsResult = await getAllFinalTests({ published_only: true });
             console.log('All available final tests:', allTestsResult);
             
             if (allTestsResult.success && allTestsResult.tests.length > 0) {
-              // There are final tests available, but not for this specific program
+              console.log('DEBUG - Available final test program IDs:', allTestsResult.tests.map(t => ({ title: t.title, programId: t.programId })));
+              
               // Check if the program exists first
               const programCheck = await getProgramById(programId);
               
               if (!programCheck.success) {
                 // Program doesn't exist - offer to show available tests
-                setError(`The program ID in the URL doesn't exist. However, you have access to ${allTestsResult.tests.length} final test(s). Would you like to see available final exams?`);
+                setError(`⚠️ DEBUG INFO: The program ID "${programId}" doesn't exist in the system.\n\nHowever, you have access to ${allTestsResult.tests.length} final test(s). This suggests a program ID mismatch between course completion and final exam creation.`);
                 
                 // Set available tests for user to choose from
                 setAvailableTests(allTestsResult.tests);
               } else {
-                // Program exists but has no final tests - offer available tests as alternative
-                setError(`No final test has been created for "${programCheck.program?.title || 'this program'}" yet. However, you have access to ${allTestsResult.tests.length} other final test(s). Would you like to see available final exams?`);
-                
-                // Set available tests for user to choose from  
-                setAvailableTests(allTestsResult.tests);
+                // Program exists but has no final tests - check for ID mismatch
+                const exactMatch = allTestsResult.tests.find(test => test.programId === programId);
+                if (!exactMatch) {
+                  setError(`⚠️ DEBUG INFO: Program "${programCheck.program?.title || 'this program'}" exists (ID: ${programId}) but no final exam was created for this exact program ID.\n\nAvailable final exams are for different program IDs:\n${allTestsResult.tests.map(t => `• ${t.title} (Program ID: ${t.programId})`).join('\n')}\n\nThis indicates a program ID mismatch. Please contact your instructor to resolve this issue.`);
+                  
+                  // Set available tests for user to choose from  
+                  setAvailableTests(allTestsResult.tests);
+                } else {
+                  setError(`No final test has been created for "${programCheck.program?.title || 'this program'}" yet.`);
+                }
               }
             } else {
               setError(`No final tests are available to you at this time. Please contact your instructor.`);
