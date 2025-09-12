@@ -626,34 +626,57 @@ const CourseDetail = () => {
             await checkProgramCompletion(currentProgram);
           }
           
-          // Show different messages based on program completion
+          // Show completion modal with options based on context
           if (programCompleted && showFinalExamOption) {
-            toast({
-              title: "🎉 Program Completed!",
-              description: "Congratulations! You've completed all courses in this program. Ready to take the final exam?",
-              duration: 5000,
-            });
-            // Don't navigate away - show final exam option
-          } else if (currentProgram) {
-            toast({
-              title: "🎉 Course Completed!",
-              description: "Great job! Continue with other courses in your program to unlock the final exam.",
-              duration: 3000,
-            });
-            // Navigate back to program course list
-            setTimeout(() => {
-              navigate(`/program/${currentProgram.id}`);
-            }, 2000);
+            // Program completed - offer final exam or dashboard
+            const shouldTakeFinalExam = window.confirm(
+              "🎉 Congratulations! You've completed all courses in this program!\n\nWould you like to take the final exam now, or return to your dashboard?\n\nClick 'OK' to take the final exam, or 'Cancel' to return to dashboard."
+            );
+            
+            if (shouldTakeFinalExam) {
+              navigate(`/final-test/program/${currentProgram.id}`);
+            } else {
+              navigate('/dashboard');
+            }
+          } else if (currentProgram && currentProgram.courseIds) {
+            // Check if there are more courses in the program
+            const currentCourseIndex = currentProgram.courseIds.indexOf(id);
+            const hasNextCourse = currentCourseIndex !== -1 && currentCourseIndex < currentProgram.courseIds.length - 1;
+            
+            if (hasNextCourse) {
+              // Ask if user wants to start next course
+              const shouldStartNextCourse = window.confirm(
+                "🎉 Course completed! Great job!\n\nThere are more courses in this program. Would you like to start the next course, or return to your dashboard?\n\nClick 'OK' to continue with the next course, or 'Cancel' to return to dashboard."
+              );
+              
+              if (shouldStartNextCourse) {
+                const nextCourseId = currentProgram.courseIds[currentCourseIndex + 1];
+                navigate(`/course/${nextCourseId}`);
+              } else {
+                navigate('/dashboard');
+              }
+            } else {
+              // No more courses in program
+              toast({
+                title: "🎉 Course Completed!",
+                description: "Great job! Continue with other courses in your program to unlock the final exam.",
+                duration: 3000,
+              });
+              setTimeout(() => {
+                navigate('/dashboard');
+              }, 2000);
+            }
           } else {
-            toast({
-              title: "🎉 Course Completed!",
-              description: "Congratulations! You've successfully completed the entire course.",
-              duration: 3000,
-            });
-            // Navigate to certificates page after a short delay
-            setTimeout(() => {
+            // Standalone course - offer certificates or dashboard
+            const shouldViewCertificates = window.confirm(
+              "🎉 Congratulations! You've completed the entire course!\n\nWould you like to view your certificates, or return to your dashboard?\n\nClick 'OK' to view certificates, or 'Cancel' to return to dashboard."
+            );
+            
+            if (shouldViewCertificates) {
               navigate('/certificates');
-            }, 2000);
+            } else {
+              navigate('/dashboard');
+            }
           }
         }
       } else {
