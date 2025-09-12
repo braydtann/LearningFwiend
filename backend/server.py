@@ -5678,10 +5678,43 @@ app.include_router(api_router)
 async def health_check():
     return {"message": "LMS API is running", "status": "active"}
 
-# API status endpoint (backward compatibility)
-@app.get("/api/status")
-async def api_status():
-    return {"message": "LMS API is running", "status": "active"}
+# Mount static files for production frontend serving (must be after API routes)
+frontend_build_path = Path(__file__).parent.parent / "frontend" / "build"
+if frontend_build_path.exists():
+    logger.info(f"Mounting static files from {frontend_build_path}")
+    app.mount("/static", StaticFiles(directory=str(frontend_build_path / "static")), name="static")
+    
+    # Serve the React app for root and non-API routes
+    @app.get("/")
+    async def serve_root():
+        """Serve React app for root route"""
+        index_file = frontend_build_path / "index.html"
+        if index_file.exists():
+            return FileResponse(str(index_file))
+        else:
+            raise HTTPException(status_code=404, detail="Frontend not built")
+    
+    # Catch-all for React Router (only for paths that don't start with /api or /health)
+    @app.get("/{full_path:path}")
+    async def serve_frontend(full_path: str):
+        """Serve React app for frontend routes"""
+        # Skip API and health routes
+        if full_path.startswith("api/") or full_path.startswith("health") or full_path.startswith("docs") or full_path.startswith("openapi.json"):
+            raise HTTPException(status_code=404, detail="Not found")
+        
+        # For all other routes, serve the React app (for React Router)
+        index_file = frontend_build_path / "index.html"
+        if index_file.exists():
+            return FileResponse(str(index_file))
+        else:
+            raise HTTPException(status_code=404, detail="Frontend not built")
+else:
+    logger.warning("Frontend build directory not found, static file serving disabled")
+    
+    # Fallback root route if no frontend build
+    @app.get("/")
+    async def root_fallback():
+        return {"message": "LMS API is running", "status": "active", "note": "Frontend not available"}
 
 app.add_middleware(
     CORSMiddleware,
