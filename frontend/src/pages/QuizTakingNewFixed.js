@@ -672,8 +672,10 @@ const QuizTakingNewFixed = () => {
           })
         });
         
-        if (!response.ok) {
-          console.error('Failed to send subjective submissions:', response.status, await response.text());
+        if (response.ok) {
+          console.log('✅ Subjective submissions sent successfully to grading center');
+        } else {
+          console.error('❌ Failed to send subjective submissions:', response.status, await response.text());
         }
       }
     } catch (error) {
