@@ -237,13 +237,7 @@ const CourseDetail = () => {
       // Only consider program completed when ALL courses are 100% complete
       const isProgramCompleted = completedCourses === totalCourses;
       
-      console.log(`Program completion check:`, {
-        programTitle: program.title,
-        completedCourses,
-        totalCourses,
-        isProgramCompleted,
-        currentCourseId: id
-      });
+
       
       setProgramCompleted(isProgramCompleted);
       
