@@ -326,10 +326,17 @@ const QuizAndTestResults = () => {
 
   // Get recent quiz attempts with enhanced details from real backend data
   const recentQuizAttempts = filteredQuizAttempts
-    .filter(attempt => attempt.status === 'completed' || attempt.completedAt)
+    .filter(attempt => {
+      // Show attempts that are completed OR have been attempted (score > 0)
+      return (attempt.status === 'completed' || 
+              attempt.completedAt || 
+              (attempt.score && attempt.score > 0) ||
+              attempt.status === 'in_progress');
+    })
     .sort((a, b) => {
-      const dateA = new Date(a.completedAt || a.created_at);
-      const dateB = new Date(b.completedAt || b.created_at);
+      // Sort by completedAt first, then by created_at
+      const dateA = new Date(a.completedAt || a.created_at || a.startedAt);
+      const dateB = new Date(b.completedAt || b.created_at || b.startedAt);
       return dateB - dateA;
     })
     .slice(0, 10)
