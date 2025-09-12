@@ -671,7 +671,7 @@ const QuizTakingNewFixed = () => {
         });
         
         // Try to get fresh token from localStorage
-        const freshToken = localStorage.getItem('token');
+        const freshToken = localStorage.getItem('auth_token');
         const tokenToUse = freshToken || token;
         
         console.log('🔄 Using token:', {
