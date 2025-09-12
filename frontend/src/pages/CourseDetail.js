@@ -791,16 +791,7 @@ const CourseDetail = () => {
       mp.lessons && mp.lessons.length > 0 && mp.lessons.some(l => l.completed)
     );
     
-    console.log(`Quiz access check for ${quiz.title}:`, {
-      hasEnrollment: !!currentEnrollment,
-      hasModuleProgress: !!currentEnrollment.moduleProgress,
-      moduleProgressLength: currentEnrollment.moduleProgress?.length,
-      hasAnyProgress,
-      moduleProgress: currentEnrollment.moduleProgress
-    });
-    
     if (!hasAnyProgress) {
-      console.log('Quiz access denied: Student hasn\'t started the course yet');
       return false; // Student hasn't started the course yet
     }
 
