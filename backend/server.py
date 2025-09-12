@@ -5238,6 +5238,42 @@ class GradingRequest(BaseModel):
     score: float  # 0-100
     feedback: Optional[str] = None
 
+@api_router.post("/quiz-submissions/subjective")
+async def submit_subjective_answers(
+    submission_request: SubjectiveSubmissionsRequest,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Store subjective question submissions for grading."""
+    try:
+        # Store each submission in the database
+        for submission_data in submission_request.submissions:
+            submission_doc = {
+                "id": str(uuid.uuid4()),
+                "studentId": current_user.id,
+                "studentName": current_user.full_name,
+                "courseId": submission_data.courseId,
+                "lessonId": submission_data.lessonId,
+                "questionId": submission_data.questionId,
+                "questionText": submission_data.questionText,
+                "studentAnswer": submission_data.studentAnswer,
+                "questionType": submission_data.questionType,
+                "submittedAt": datetime.now(timezone.utc).isoformat(),
+                "status": "pending",
+                "score": None,
+                "feedback": None,
+                "gradedAt": None,
+                "gradedBy": None,
+                "gradedByName": None
+            }
+            
+            await db.subjective_submissions.insert_one(submission_doc)
+        
+        return {"success": True, "message": f"Submitted {len(submission_request.submissions)} subjective answers for grading"}
+        
+    except Exception as e:
+        logger.error(f"Error storing subjective submissions: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to store submissions")
+
 @api_router.get("/courses/{course_id}/submissions")
 async def get_course_submissions(
     course_id: str,
