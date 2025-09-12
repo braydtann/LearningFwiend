@@ -303,6 +303,45 @@ class FinalExamSetupTester:
             
             program = self.created_data['programs'][0]
             
+            # First, get all users to find an instructor
+            users_response = requests.get(f"{BACKEND_URL}/auth/admin/users", headers=headers)
+            if users_response.status_code != 200:
+                self.log_result("Create Classroom", False, "Could not retrieve users list")
+                return False
+            
+            users = users_response.json()
+            instructor_user = None
+            
+            # Look for an instructor user
+            for user in users:
+                if user.get('role') == 'instructor':
+                    instructor_user = user
+                    break
+            
+            # If no instructor found, create one
+            if not instructor_user:
+                instructor_data = {
+                    "email": "test.instructor@finalexam.test",
+                    "username": "test_instructor",
+                    "full_name": "Test Instructor",
+                    "role": "instructor",
+                    "department": "Testing",
+                    "temporary_password": "TestInstructor123!"
+                }
+                
+                create_instructor_response = requests.post(
+                    f"{BACKEND_URL}/auth/admin/create-user", 
+                    json=instructor_data, 
+                    headers=headers
+                )
+                
+                if create_instructor_response.status_code == 200:
+                    instructor_user = create_instructor_response.json()
+                    print(f"  ✅ Created instructor user: {instructor_user['full_name']}")
+                else:
+                    self.log_result("Create Classroom", False, f"Failed to create instructor: {create_instructor_response.status_code}")
+                    return False
+            
             classroom_data = {
                 "name": "Final Exam Test Classroom",
                 "description": "Test classroom for debugging final exam access",
@@ -310,7 +349,7 @@ class FinalExamSetupTester:
                 "programIds": [program['id']],
                 "studentIds": [self.student_user['id']],
                 "instructorId": self.admin_user['id'],
-                "trainerId": self.admin_user['id'],  # Required field
+                "trainerId": instructor_user['id'],  # Use instructor user
                 "startDate": datetime.now().isoformat(),
                 "endDate": None,
                 "isActive": True
@@ -327,6 +366,7 @@ class FinalExamSetupTester:
                 print(f"     Program IDs: {classroom.get('programIds', [])}")
                 print(f"     Course IDs: {classroom.get('courseIds', [])}")
                 print(f"     Student Count: {len(classroom.get('studentIds', []))}")
+                print(f"     Trainer: {instructor_user['full_name']}")
                 
                 self.log_result("Create Classroom", True, f"Successfully created classroom with student enrolled")
                 return True
