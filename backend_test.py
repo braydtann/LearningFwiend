@@ -1,35 +1,21 @@
 #!/usr/bin/env python3
 """
-🧪 VERIFICATION TEST: Quiz Image Display & Progressive Quiz Access Features
+🎯 QUIZRESULTS COMPONENT BACKEND TESTING - FILTERING AND RECENT QUIZ ATTEMPTS
 
-TESTING OBJECTIVES:
-1. **Verify Quiz Image Data**: Test if there are courses with quiz questions that have image URLs to validate image display fix
-2. **Verify Progressive Access Logic**: Test student enrollment data to confirm progressive quiz access will work correctly
-3. **Backend API Functionality**: Ensure all required APIs are working for both features
+TESTING OBJECTIVES FROM REVIEW REQUEST:
+1. **Admin Authentication** - Login with admin credentials (brayden.t@covesmart.com / Hawaii2020!)
+2. **Course Filtering Verification** - Test that selecting a specific course (like "testy test test") updates the statistics to show only that course's data
+3. **Recent Quiz Attempts Display** - Verify that recent quiz attempts section now shows actual quiz submissions instead of "No quiz attempts yet"
+4. **Data Consistency** - Ensure filtering works correctly with synthetic quiz attempts created from enrollments
+5. **Attempt Status Logic** - Confirm that both completed and in-progress quiz attempts appear in recent attempts
 
-SPECIFIC TESTS NEEDED:
-1. **Image Display Verification**:
-   - GET /api/courses/{id} for courses with quiz questions
-   - Look for questions with mixed option formats (strings vs objects with images)
-   - Verify image URLs are accessible in quiz data
+SPECIFIC TESTS:
+- Verify course filtering updates Total Attempts, Average Score, and Pass Rate when a specific course is selected
+- Check that Recent Quiz Attempts section displays student names, course names, scores, and dates
+- Test that synthetic quiz attempts (course-quiz-{courseId} format) are properly filtered by course selection
+- Validate that quiz attempts with any progress (>0%) appear in recent attempts, not just 100% completed ones
 
-2. **Progressive Access Verification**:
-   - Login as student (karlo.student@alder.com / StudentPermanent123!)
-   - GET /api/enrollments - Check moduleProgress data structure
-   - Verify enrollment data has the fields needed for progressive access logic
-
-3. **Course Structure Analysis**:
-   - Analyze course modules and lesson ordering
-   - Confirm quiz lessons are properly positioned within modules
-
-CREDENTIALS TO USE:
-- Admin: brayden.t@covesmart.com / Hawaii2020!
-- Student: karlo.student@alder.com / StudentPermanent123!
-
-SUCCESS CRITERIA:
-- Find at least 1 course with quiz questions that have image options
-- Confirm student enrollment data contains moduleProgress with completion tracking
-- All required backend APIs working correctly for both features
+This should resolve the user's issues with course filtering not working and recent quiz attempts showing empty.
 """
 
 import requests
