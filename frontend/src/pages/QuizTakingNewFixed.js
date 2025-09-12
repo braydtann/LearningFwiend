@@ -636,6 +636,8 @@ const QuizTakingNewFixed = () => {
       console.log('submitSubjectiveAnswers called with:', {
         backendUrl,
         hasToken: !!token,
+        tokenLength: token ? token.length : 0,
+        tokenPreview: token ? token.substring(0, 20) + '...' : 'none',
         hasQuiz: !!quiz,
         questionsCount: quiz?.questions?.length
       });
