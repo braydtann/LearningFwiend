@@ -888,6 +888,18 @@ const CourseDetail = () => {
               {(selectedLesson?.type === 'video' || selectedLesson?.type === 'presentation') && 
                (selectedLesson.videoUrl || selectedLesson.presentationUrl || selectedLesson.embedCode) && (
                 <div className="absolute inset-0 bg-black">
+                  {/* Back button for video/presentation */}
+                  <div className="absolute top-4 left-4 z-10">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => setSelectedLesson(null)}
+                      className="bg-black/50 border-white/20 text-white hover:bg-black/70"
+                    >
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Back to Course Overview
+                    </Button>
+                  </div>
                   {(() => {
                     // Handle Canva presentations with embed code (priority)
                     if (selectedLesson.type === 'presentation' && selectedLesson.embedCode) {
