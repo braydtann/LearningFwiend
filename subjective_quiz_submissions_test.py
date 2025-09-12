@@ -365,7 +365,21 @@ class SubjectiveQuizSubmissionsTestSuite:
             )
             
             if response.status_code == 200:
-                submissions = response.json()
+                response_data = response.json()
+                
+                if isinstance(response_data, dict) and "submissions" in response_data:
+                    submissions = response_data["submissions"]
+                    submission_count = response_data.get("count", len(submissions))
+                elif isinstance(response_data, list):
+                    submissions = response_data
+                    submission_count = len(submissions)
+                else:
+                    self.log_test(
+                        "Admin Get Course Submissions",
+                        False,
+                        f"Unexpected response format: {type(response_data)}"
+                    )
+                    return False
                 
                 if isinstance(submissions, list):
                     # Check if we have submissions from our tests
