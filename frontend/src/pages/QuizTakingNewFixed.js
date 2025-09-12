@@ -633,7 +633,10 @@ const QuizTakingNewFixed = () => {
       const backendUrl = process.env.REACT_APP_BACKEND_URL;
       const token = localStorage.getItem('token');
       
-      if (!quiz?.questions) return;
+      if (!quiz?.questions) {
+        console.log('No quiz questions found');
+        return;
+      }
       
       // Extract subjective questions and their answers
       const subjectiveSubmissions = [];
@@ -641,6 +644,12 @@ const QuizTakingNewFixed = () => {
       for (const question of quiz.questions) {
         if (question.type === 'short-answer' || question.type === 'long-form-answer') {
           const userAnswer = answers[question.id];
+          console.log(`Checking subjective question ${question.id}:`, {
+            type: question.type,
+            hasAnswer: !!userAnswer,
+            answerLength: userAnswer ? userAnswer.length : 0
+          });
+          
           if (userAnswer && userAnswer.trim() !== '') {
             subjectiveSubmissions.push({
               questionId: question.id,
@@ -654,9 +663,13 @@ const QuizTakingNewFixed = () => {
         }
       }
       
+      console.log(`Found ${subjectiveSubmissions.length} subjective submissions to send`);
+      
       // Submit to backend if there are subjective answers
       if (subjectiveSubmissions.length > 0) {
-        await fetch(`${backendUrl}/api/quiz-submissions/subjective`, {
+        console.log('Sending subjective submissions to backend:', subjectiveSubmissions);
+        
+        const response = await fetch(`${backendUrl}/api/quiz-submissions/subjective`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -666,6 +679,15 @@ const QuizTakingNewFixed = () => {
             submissions: subjectiveSubmissions
           })
         });
+        
+        if (response.ok) {
+          const result = await response.json();
+          console.log('Subjective submissions sent successfully:', result);
+        } else {
+          console.error('Failed to send subjective submissions:', response.status, await response.text());
+        }
+      } else {
+        console.log('No subjective submissions to send');
       }
     } catch (error) {
       console.error('Error submitting subjective answers:', error);
