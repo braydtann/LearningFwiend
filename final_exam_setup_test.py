@@ -230,32 +230,32 @@ class FinalExamSetupTester:
                 "programId": program['id'],
                 "questions": [
                     {
-                        "type": "multiple-choice",
+                        "type": "multiple_choice",
                         "question": "What is the main purpose of this test?",
                         "options": ["To debug final exam access", "To test functionality", "To verify program completion", "All of the above"],
-                        "correctAnswer": 3,
+                        "correctAnswer": "All of the above",
                         "points": 25,
                         "explanation": "This test covers all aspects of final exam functionality"
                     },
                     {
-                        "type": "true-false",
+                        "type": "true_false",
                         "question": "Final exams should be accessible to students who complete all program courses.",
-                        "correctAnswer": True,
+                        "correctAnswer": "true",
                         "points": 25,
                         "explanation": "Students should have access to final exams upon program completion"
                     },
                     {
-                        "type": "short-answer",
+                        "type": "short_answer",
                         "question": "Describe the expected flow for final exam access.",
                         "correctAnswer": "Student completes all courses in program, then gains access to final exam",
                         "points": 25,
                         "explanation": "The flow should be: course completion → program completion → final exam access"
                     },
                     {
-                        "type": "multiple-choice",
+                        "type": "multiple_choice",
                         "question": "What should happen if a student hasn't completed all program courses?",
                         "options": ["Show final exam anyway", "Show 'no final exam' message", "Show 'complete courses first' message", "Redirect to courses"],
-                        "correctAnswer": 2,
+                        "correctAnswer": "Show 'complete courses first' message",
                         "points": 25,
                         "explanation": "Students should be guided to complete remaining courses first"
                     }
