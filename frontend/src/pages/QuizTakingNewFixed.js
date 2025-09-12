@@ -661,10 +661,29 @@ const QuizTakingNewFixed = () => {
       // Submit to backend if there are subjective answers
       if (subjectiveSubmissions.length > 0) {
         console.log(`🚀 Submitting ${subjectiveSubmissions.length} subjective answers to grading center`);
+        
+        // Debug token information
+        console.log('🔑 Token debug:', {
+          hasToken: !!token,
+          tokenLength: token ? token.length : 0,
+          tokenStart: token ? token.substring(0, 10) + '...' : 'none',
+          backendUrl
+        });
+        
+        // Try to get fresh token from localStorage
+        const freshToken = localStorage.getItem('token');
+        const tokenToUse = freshToken || token;
+        
+        console.log('🔄 Using token:', {
+          originalToken: token ? token.substring(0, 10) + '...' : 'none',
+          freshToken: freshToken ? freshToken.substring(0, 10) + '...' : 'none',
+          usingFresh: freshToken !== token
+        });
+        
         const response = await fetch(`${backendUrl}/api/quiz-submissions/subjective`, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${token}`,
+            'Authorization': `Bearer ${tokenToUse}`,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
@@ -675,7 +694,31 @@ const QuizTakingNewFixed = () => {
         if (response.ok) {
           console.log('✅ Subjective submissions sent successfully to grading center');
         } else {
-          console.error('❌ Failed to send subjective submissions:', response.status, await response.text());
+          const errorText = await response.text();
+          console.error('❌ Failed to send subjective submissions:', response.status, errorText);
+          
+          // Try with user context token if available
+          if (response.status === 401 && user) {
+            console.log('🔄 Trying alternative authentication approach...');
+            
+            // Make a test API call to see if our current authentication is working
+            try {
+              const testResponse = await fetch(`${backendUrl}/api/enrollments`, {
+                headers: {
+                  'Authorization': `Bearer ${tokenToUse}`,
+                  'Content-Type': 'application/json'
+                }
+              });
+              
+              if (testResponse.ok) {
+                console.log('✅ Regular API calls work, submission endpoint might have different auth requirements');
+              } else {
+                console.log('❌ All API calls failing, token is invalid:', testResponse.status);
+              }
+            } catch (testError) {
+              console.log('❌ Test API call failed:', testError);
+            }
+          }
         }
       }
     } catch (error) {
