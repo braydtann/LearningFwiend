@@ -640,17 +640,15 @@ const CourseDetail = () => {
             }
           } else if (currentProgram && currentProgram.courseIds) {
             // Check if there are more courses in the program
-            const currentCourseIndex = currentProgram.courseIds.indexOf(id);
-            const hasNextCourse = currentCourseIndex !== -1 && currentCourseIndex < currentProgram.courseIds.length - 1;
+            const nextCourseId = getNextCourseInProgram();
             
-            if (hasNextCourse) {
+            if (nextCourseId) {
               // Ask if user wants to start next course
               const shouldStartNextCourse = window.confirm(
                 "🎉 Course completed! Great job!\n\nThere are more courses in this program. Would you like to start the next course, or return to your dashboard?\n\nClick 'OK' to continue with the next course, or 'Cancel' to return to dashboard."
               );
               
               if (shouldStartNextCourse) {
-                const nextCourseId = currentProgram.courseIds[currentCourseIndex + 1];
                 navigate(`/course/${nextCourseId}`);
               } else {
                 navigate('/dashboard');
