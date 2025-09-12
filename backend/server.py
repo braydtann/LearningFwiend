@@ -5286,56 +5286,33 @@ async def get_course_submissions(
             detail="Only instructors and admins can view submissions"
         )
     
-    # Get submissions from quiz attempts and final test attempts
+    # Get actual submissions from the database
     submissions = []
     
     try:
-        # First, try to find quiz attempts for this course
-        # Look for enrollments with quiz data or quiz attempts
-        enrollments = await db.enrollments.find({"courseId": course_id}).to_list(1000)
+        # Get submissions from the subjective_submissions collection
+        submission_docs = await db.subjective_submissions.find({"courseId": course_id}).to_list(1000)
         
-        for enrollment in enrollments:
-            student_id = enrollment.get("userId")
-            if not student_id:
-                continue
-                
-            # Get student info
-            student = await db.users.find_one({"id": student_id})
-            if not student:
-                continue
-            
-            # Get course info to extract quiz questions
-            course = await db.courses.find_one({"id": course_id})
-            if not course:
-                continue
-            
-            # Extract subjective questions from course modules
-            for module in course.get("modules", []):
-                for lesson in module.get("lessons", []):
-                    if lesson.get("type") == "quiz" and lesson.get("quiz", {}).get("questions"):
-                        for i, question in enumerate(lesson["quiz"]["questions"]):
-                            if question.get("type") in ["short-answer", "long-form"]:
-                                # Create a mock submission for demonstration
-                                # In a real app, this would come from actual quiz attempt data
-                                submission_id = f"course-{course_id}-student-{student_id}-q-{i}"
-                                submissions.append({
-                                    "id": submission_id,
-                                    "studentId": student_id,
-                                    "studentName": student.get("full_name", "Unknown Student"),
-                                    "courseId": course_id,
-                                    "lessonId": lesson.get("id"),
-                                    "questionId": question.get("id", str(i)),
-                                    "questionText": question.get("question", "Question text not available"),
-                                    "studentAnswer": f"Sample answer from {student.get('full_name')} for question {i+1}. This would contain the actual student's written response to the subjective question.",
-                                    "submittedAt": enrollment.get("updated_at", enrollment.get("created_at")),
-                                    "gradedAt": None,
-                                    "gradedBy": None,
-                                    "gradedByName": None,
-                                    "score": None,
-                                    "feedback": None,
-                                    "status": "pending",
-                                    "source": "quiz"
-                                })
+        for doc in submission_docs:
+            submissions.append({
+                "id": doc.get("id"),
+                "studentId": doc.get("studentId"),
+                "studentName": doc.get("studentName", "Unknown Student"),
+                "courseId": doc.get("courseId"),
+                "lessonId": doc.get("lessonId"),
+                "questionId": doc.get("questionId"),
+                "questionText": doc.get("questionText"),
+                "studentAnswer": doc.get("studentAnswer"),
+                "questionType": doc.get("questionType"),
+                "submittedAt": doc.get("submittedAt"),
+                "gradedAt": doc.get("gradedAt"),
+                "gradedBy": doc.get("gradedBy"),
+                "gradedByName": doc.get("gradedByName"),
+                "score": doc.get("score"),
+                "feedback": doc.get("feedback"),
+                "status": doc.get("status", "pending"),
+                "source": "quiz"
+            })
         
         # Also check for final test submissions with subjective questions
         final_test_attempts = await db.final_test_attempts.find({"programId": {"$exists": True}}).to_list(1000)
