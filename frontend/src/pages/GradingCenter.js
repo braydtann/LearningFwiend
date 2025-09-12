@@ -30,7 +30,7 @@ const GradingCenter = () => {
   const [gradeFeedback, setGradeFeedback] = useState('');
 
   useEffect(() => {
-    if (user && user.role === 'instructor') {
+    if (user && (user.role === 'instructor' || user.role === 'admin')) {
       loadInstructorCourses();
     }
   }, [user]);
