@@ -634,17 +634,7 @@ const QuizTakingNewFixed = () => {
       // Get fresh token from localStorage each time
       const token = localStorage.getItem('token');
       
-      console.log('submitSubjectiveAnswers called with:', {
-        backendUrl,
-        hasToken: !!token,
-        tokenLength: token ? token.length : 0,
-        tokenPreview: token ? token.substring(0, 20) + '...' : 'none',
-        hasQuiz: !!quiz,
-        questionsCount: quiz?.questions?.length
-      });
-      
       if (!quiz?.questions) {
-        console.log('No quiz questions found');
         return;
       }
       
@@ -652,21 +642,8 @@ const QuizTakingNewFixed = () => {
       const subjectiveSubmissions = [];
       
       for (const question of quiz.questions) {
-        console.log('Checking question:', {
-          id: question.id,
-          type: question.type,
-          isSubjective: ['short-answer', 'long-form-answer', 'long-form'].includes(question.type)
-        });
-        
         if (question.type === 'short-answer' || question.type === 'long-form-answer' || question.type === 'long-form') {
           const userAnswer = answers[question.id];
-          console.log('Found subjective question:', {
-            questionId: question.id,
-            type: question.type,
-            hasAnswer: !!userAnswer,
-            answerLength: userAnswer ? userAnswer.length : 0,
-            answer: userAnswer
-          });
           
           if (userAnswer && userAnswer.trim() !== '') {
             subjectiveSubmissions.push({
@@ -680,8 +657,6 @@ const QuizTakingNewFixed = () => {
           }
         }
       }
-      
-      console.log(`Prepared ${subjectiveSubmissions.length} subjective submissions:`, subjectiveSubmissions);
       
       // Submit to backend if there are subjective answers
       if (subjectiveSubmissions.length > 0) {
