@@ -5104,15 +5104,16 @@ async def get_user_analytics(
             "isActive": True
         }).sort("created_at", -1).limit(1).to_list(1)
         
-        last_quiz_attempt = await db.quiz_attempts.find({
+        last_quiz_completion = await db.enrollments.find({
             "studentId": user_id,
-            "isActive": True
-        }).sort("created_at", -1).limit(1).to_list(1)
+            "isActive": True,
+            "progress": {"$gte": 100}
+        }).sort("completedAt", -1).limit(1).to_list(1)
         
         last_activity = None
-        if last_enrollment or last_quiz_attempt:
+        if last_enrollment or last_quiz_completion:
             enrollment_date = last_enrollment[0]["created_at"] if last_enrollment else datetime.min
-            quiz_date = last_quiz_attempt[0]["created_at"] if last_quiz_attempt else datetime.min
+            quiz_date = last_quiz_completion[0]["completedAt"] if last_quiz_completion else datetime.min
             last_activity = max(enrollment_date, quiz_date)
         
         return UserAnalyticsResponse(
