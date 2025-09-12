@@ -533,14 +533,25 @@ const FinalTest = () => {
           <CardContent className="text-center py-12">
             <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              {error || 'Exam not found'}
+              {error?.includes('DEBUG INFO') ? 'Program ID Mismatch Detected' : 'Exam not found'}
             </h1>
-            <p className="text-gray-600 mb-6">
-              {isProgram 
-                ? "The program exam you're looking for could not be found."
-                : "The course exam you're looking for could not be found."
-              }
-            </p>
+            <div className="text-gray-600 mb-6 max-w-2xl mx-auto">
+              {error?.includes('DEBUG INFO') ? (
+                <div className="text-left bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <pre className="whitespace-pre-wrap text-sm font-mono">{error}</pre>
+                  <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded">
+                    <p className="text-sm font-semibold text-blue-800 mb-2">How to fix this:</p>
+                    <ol className="text-sm text-blue-700 list-decimal list-inside space-y-1">
+                      <li>Ask your admin to check which program ID was used when creating the final exam</li>
+                      <li>Compare it with the program ID shown above</li>
+                      <li>Either recreate the final exam with the correct program ID, or fix the program assignments</li>
+                    </ol>
+                  </div>
+                </div>
+              ) : (
+                <p>{error}</p>
+              )}
+            </div>
             
             {/* Show available tests if program doesn't exist but tests are available */}
             {availableTests.length > 0 && (
