@@ -149,11 +149,12 @@ const QuizAndTestResults = () => {
         setSystemStats(null);
       }
 
-      // CRITICAL FIX: Also load enrollment-based quiz data which contains actual scores
+      // CRITICAL FIX: Load enrollment-based quiz data using admin endpoint for analytics
       try {
         console.log('=== STARTING ENROLLMENT QUIZ SYNTHESIS DEBUG ===');
-        const enrollmentsResult = await getAllEnrollments();
-        console.log('Enrollments API result:', enrollmentsResult);
+        // Use the admin endpoint to get ALL enrollments for analytics
+        const enrollmentsResult = await getAllEnrollmentsForAnalytics();
+        console.log('Admin Enrollments API result:', enrollmentsResult);
         
         if (enrollmentsResult.success) {
           const enrollmentQuizAttempts = [];
