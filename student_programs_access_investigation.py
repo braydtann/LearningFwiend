@@ -27,7 +27,7 @@ import sys
 from datetime import datetime
 
 # Configuration
-BACKEND_URL = "https://fixfriend.preview.emergentagent.com/api"
+BACKEND_URL = "https://quiz-analytics-lms.preview.emergentagent.com/api"
 
 # Test credentials
 STUDENT_EMAIL = "brayden.student@learningfwiend.com"
