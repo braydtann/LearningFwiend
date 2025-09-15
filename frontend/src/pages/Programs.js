@@ -143,16 +143,51 @@ const Programs = () => {
       const result = await createProgram(programData);
       
       if (result.success) {
+        let finalTestCreated = true;
+        let finalTestError = null;
+        
+        // Create final test if questions are provided
+        if (newProgram.finalTest.questions && newProgram.finalTest.questions.length > 0) {
+          const finalTestData = {
+            title: newProgram.finalTest.title || `${newProgram.title} Final Assessment`,
+            description: newProgram.finalTest.description || `Comprehensive final test for ${newProgram.title}`,
+            programId: result.program.id,
+            questions: newProgram.finalTest.questions,
+            timeLimit: newProgram.finalTest.timeLimit || 90,
+            maxAttempts: newProgram.finalTest.maxAttempts || 2,
+            passingScore: newProgram.finalTest.passingScore || 75,
+            shuffleQuestions: false,
+            showResults: true,
+            isPublished: true
+          };
+
+          const finalTestResult = await createFinalTest(finalTestData);
+          if (!finalTestResult.success) {
+            finalTestCreated = false;
+            finalTestError = finalTestResult.error;
+            console.error('Failed to create final test:', finalTestResult.error);
+          }
+        }
+        
         // Refresh programs list
         const programsResult = await getAllPrograms();
         if (programsResult.success) {
           setPrograms(programsResult.programs);
         }
 
-        toast({
-          title: "Program created successfully!",
-          description: `${newProgram.title} has been created with ${newProgram.courseIds.length} courses.`,
-        });
+        // Show appropriate success message
+        if (finalTestCreated) {
+          toast({
+            title: "Program created successfully!",
+            description: `${newProgram.title} has been created with ${newProgram.courseIds.length} courses${newProgram.finalTest.questions.length > 0 ? ` and final test with ${newProgram.finalTest.questions.length} questions` : ''}.`,
+          });
+        } else {
+          toast({
+            title: "Program created with issues",
+            description: `${newProgram.title} was created, but final test creation failed: ${finalTestError}`,
+            variant: "destructive",
+          });
+        }
 
         // Reset form
         setNewProgram({
