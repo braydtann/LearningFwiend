@@ -642,27 +642,49 @@ const CourseDetail = () => {
             // Check if there are more courses in the program
             const nextCourseId = getNextCourseInProgram();
             
+            console.log('Linear navigation debug:', {
+              currentProgram: currentProgram.title,
+              currentCourseId: id,
+              currentCourseIndex: currentProgram.courseIds.indexOf(id),
+              nextCourseId,
+              totalCourses: currentProgram.courseIds.length
+            });
+            
             if (nextCourseId) {
-              // Ask if user wants to start next course
+              // More intuitive modal for continuing to next course
               const shouldStartNextCourse = window.confirm(
-                "🎉 Course completed! Great job!\n\nThere are more courses in this program. Would you like to start the next course, or return to your dashboard?\n\nClick 'OK' to continue with the next course, or 'Cancel' to return to dashboard."
+                `🎉 Course completed! Great job!\n\n📚 This is part of the "${currentProgram.title}" program.\n\nNext up: Continue to the next course in your learning path!\n\n▶️ Click 'OK' to start the next course immediately\n🏠 Click 'Cancel' to return to your dashboard`
               );
               
               if (shouldStartNextCourse) {
-                navigate(`/course/${nextCourseId}`);
+                toast({
+                  title: "🚀 Continuing to next course!",
+                  description: "Taking you to the next course in your program...",
+                  duration: 2000,
+                });
+                // Navigate immediately to next course
+                setTimeout(() => {
+                  navigate(`/course/${nextCourseId}`);
+                }, 1000);
               } else {
-                navigate('/dashboard');
+                toast({
+                  title: "Course completed!",
+                  description: "Return to your dashboard to continue your learning journey.",
+                  duration: 2000,
+                });
+                setTimeout(() => {
+                  navigate('/dashboard');
+                }, 1500);
               }
             } else {
-              // No more courses in program
-              toast({
-                title: "🎉 Course Completed!",
-                description: "Great job! Continue with other courses in your program to unlock the final exam.",
-                duration: 3000,
-              });
-              setTimeout(() => {
+              // No more courses in program - but still enrolled in program
+              const shouldGoToDashboard = window.confirm(
+                `🎉 Course completed! Great job!\n\n✅ You've finished this course in the "${currentProgram.title}" program.\n\nReturn to your dashboard to see your program progress and unlock the final exam when all courses are complete.\n\nClick 'OK' to go to dashboard.`
+              );
+              
+              if (shouldGoToDashboard) {
                 navigate('/dashboard');
-              }, 2000);
+              }
             }
           } else {
             // Standalone course - offer certificates or dashboard
