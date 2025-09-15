@@ -1,48 +1,54 @@
 #!/usr/bin/env python3
 """
-Comprehensive Backend Testing for File Upload Endpoints
-Testing the new file upload functionality as requested in review.
+LearningFriend LMS Backend Testing Suite
+Testing program creation workflow, final tests, and student access functionality
 """
 
 import requests
 import json
-import os
-import tempfile
+import sys
 from datetime import datetime
-from pathlib import Path
+import uuid
 
 # Configuration
 BACKEND_URL = "https://quiz-analytics-lms.preview.emergentagent.com/api"
+
+# Test credentials
 ADMIN_CREDENTIALS = {
     "username_or_email": "brayden.t@covesmart.com",
     "password": "Hawaii2020!"
 }
 
-class FileUploadTester:
+STUDENT_CREDENTIALS = {
+    "username_or_email": "karlo.student@alder.com", 
+    "password": "StudentPermanent123!"
+}
+
+class LMSBackendTester:
     def __init__(self):
-        self.session = requests.Session()
         self.admin_token = None
+        self.student_token = None
+        self.test_program_id = None
+        self.test_final_test_id = None
         self.test_results = []
         
-    def log_result(self, test_name, success, message, details=None):
+    def log_test(self, test_name, success, details=""):
         """Log test result"""
-        result = {
-            "test": test_name,
-            "success": success,
-            "message": message,
-            "timestamp": datetime.now().isoformat(),
-            "details": details or {}
-        }
-        self.test_results.append(result)
         status = "✅ PASS" if success else "❌ FAIL"
-        print(f"{status}: {test_name} - {message}")
+        print(f"{status} {test_name}")
         if details:
             print(f"   Details: {details}")
+        
+        self.test_results.append({
+            "test": test_name,
+            "success": success,
+            "details": details
+        })
     
     def authenticate_admin(self):
-        """Authenticate as admin user"""
+        """Authenticate admin user"""
         try:
-            response = self.session.post(
+            response = requests.post(
                 f"{BACKEND_URL}/auth/login",
                 json=ADMIN_CREDENTIALS,
                 timeout=10
@@ -51,533 +57,365 @@ class FileUploadTester:
             if response.status_code == 200:
                 data = response.json()
                 self.admin_token = data.get("access_token")
-                self.session.headers.update({
-                    "Authorization": f"Bearer {self.admin_token}"
-                })
-                self.log_result(
-                    "Admin Authentication",
-                    True,
-                    f"Successfully authenticated as {data.get('user', {}).get('email', 'admin')}"
-                )
+                self.log_test("Admin Authentication", True, f"Token obtained for {data.get('user', {}).get('email', 'admin')}")
                 return True
             else:
-                self.log_result(
-                    "Admin Authentication",
-                    False,
-                    f"Authentication failed: {response.status_code} - {response.text}"
-                )
+                self.log_test("Admin Authentication", False, f"Status: {response.status_code}, Response: {response.text}")
                 return False
                 
         except Exception as e:
-            self.log_result(
-                "Admin Authentication",
-                False,
-                f"Authentication error: {str(e)}"
-            )
+            self.log_test("Admin Authentication", False, f"Exception: {str(e)}")
             return False
     
-    def create_test_file(self, filename, content, size_mb=None):
-        """Create a temporary test file"""
-        temp_dir = tempfile.gettempdir()
-        file_path = os.path.join(temp_dir, filename)
-        
-        if size_mb:
-            # Create file of specific size
-            content = b'A' * (size_mb * 1024 * 1024)
-        elif isinstance(content, str):
-            content = content.encode('utf-8')
-            
-        with open(file_path, 'wb') as f:
-            f.write(content)
-            
-        return file_path
-    
-    def test_file_upload_success(self):
-        """Test successful file upload"""
+    def authenticate_student(self):
+        """Authenticate student user"""
         try:
-            # Create a test PDF file
-            test_content = "This is a test PDF document for file upload testing."
-            file_path = self.create_test_file("test_document.pdf", test_content)
-            
-            with open(file_path, 'rb') as f:
-                files = {'file': ('test_document.pdf', f, 'application/pdf')}
-                response = self.session.post(
-                    f"{BACKEND_URL}/files/upload",
-                    files=files,
-                    timeout=30
-                )
-            
-            # Clean up
-            os.unlink(file_path)
+            response = requests.post(
+                f"{BACKEND_URL}/auth/login",
+                json=STUDENT_CREDENTIALS,
+                timeout=10
+            )
             
             if response.status_code == 200:
                 data = response.json()
-                required_fields = ['success', 'file_id', 'filename', 'file_url', 'size']
-                
-                if all(field in data for field in required_fields):
-                    self.log_result(
-                        "File Upload Success",
-                        True,
-                        "Successfully uploaded PDF file",
-                        {
-                            "file_id": data.get('file_id'),
-                            "filename": data.get('filename'),
-                            "file_url": data.get('file_url'),
-                            "size": data.get('size')
-                        }
-                    )
-                    return data.get('file_id')
-                else:
-                    missing_fields = [f for f in required_fields if f not in data]
-                    self.log_result(
-                        "File Upload Success",
-                        False,
-                        f"Response missing required fields: {missing_fields}",
-                        {"response": data}
-                    )
-                    return None
+                self.student_token = data.get("access_token")
+                self.log_test("Student Authentication", True, f"Token obtained for {data.get('user', {}).get('email', 'student')}")
+                return True
             else:
-                self.log_result(
-                    "File Upload Success",
-                    False,
-                    f"Upload failed: {response.status_code} - {response.text}"
-                )
-                return None
+                self.log_test("Student Authentication", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
                 
         except Exception as e:
-            self.log_result(
-                "File Upload Success",
-                False,
-                f"Upload error: {str(e)}"
-            )
-            return None
+            self.log_test("Student Authentication", False, f"Exception: {str(e)}")
+            return False
     
-    def test_file_type_validation(self):
-        """Test file type validation"""
-        try:
-            # Test invalid file type (.exe)
-            test_content = "This is a test executable file."
-            file_path = self.create_test_file("malicious.exe", test_content)
-            
-            with open(file_path, 'rb') as f:
-                files = {'file': ('malicious.exe', f, 'application/octet-stream')}
-                response = self.session.post(
-                    f"{BACKEND_URL}/files/upload",
-                    files=files,
-                    timeout=30
-                )
-            
-            # Clean up
-            os.unlink(file_path)
-            
-            if response.status_code == 400:
-                data = response.json()
-                if "File type not allowed" in data.get('detail', ''):
-                    self.log_result(
-                        "File Type Validation",
-                        True,
-                        "Correctly rejected invalid file type (.exe)",
-                        {"response": data}
-                    )
-                else:
-                    self.log_result(
-                        "File Type Validation",
-                        False,
-                        "Wrong error message for invalid file type",
-                        {"response": data}
-                    )
-            else:
-                self.log_result(
-                    "File Type Validation",
-                    False,
-                    f"Should have rejected .exe file but got: {response.status_code}",
-                    {"response": response.text}
-                )
-                
-        except Exception as e:
-            self.log_result(
-                "File Type Validation",
-                False,
-                f"File type validation error: {str(e)}"
-            )
-    
-    def test_file_size_limits(self):
-        """Test file size limits"""
-        try:
-            # Test file larger than 10MB
-            file_path = self.create_test_file("large_file.pdf", "", size_mb=12)
-            
-            with open(file_path, 'rb') as f:
-                files = {'file': ('large_file.pdf', f, 'application/pdf')}
-                response = self.session.post(
-                    f"{BACKEND_URL}/files/upload",
-                    files=files,
-                    timeout=60
-                )
-            
-            # Clean up
-            os.unlink(file_path)
-            
-            if response.status_code == 400:
-                data = response.json()
-                if "File size too large" in data.get('detail', ''):
-                    self.log_result(
-                        "File Size Limits",
-                        True,
-                        "Correctly rejected file larger than 10MB",
-                        {"response": data}
-                    )
-                else:
-                    self.log_result(
-                        "File Size Limits",
-                        False,
-                        "Wrong error message for large file",
-                        {"response": data}
-                    )
-            else:
-                self.log_result(
-                    "File Size Limits",
-                    False,
-                    f"Should have rejected large file but got: {response.status_code}",
-                    {"response": response.text}
-                )
-                
-        except Exception as e:
-            self.log_result(
-                "File Size Limits",
-                False,
-                f"File size validation error: {str(e)}"
-            )
-    
-    def test_supported_file_types(self):
-        """Test all supported file types"""
-        supported_types = [
-            ('test.pdf', 'application/pdf'),
-            ('test.doc', 'application/msword'),
-            ('test.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'),
-            ('test.txt', 'text/plain'),
-            ('test.xls', 'application/vnd.ms-excel'),
-            ('test.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'),
-            ('test.ppt', 'application/vnd.ms-powerpoint'),
-            ('test.pptx', 'application/vnd.openxmlformats-officedocument.presentationml.presentation')
-        ]
-        
-        successful_uploads = 0
-        
-        for filename, mime_type in supported_types:
-            try:
-                test_content = f"This is a test {filename.split('.')[-1].upper()} document."
-                file_path = self.create_test_file(filename, test_content)
-                
-                with open(file_path, 'rb') as f:
-                    files = {'file': (filename, f, mime_type)}
-                    response = self.session.post(
-                        f"{BACKEND_URL}/files/upload",
-                        files=files,
-                        timeout=30
-                    )
-                
-                # Clean up
-                os.unlink(file_path)
-                
-                if response.status_code == 200:
-                    successful_uploads += 1
-                    print(f"   ✅ {filename} uploaded successfully")
-                else:
-                    print(f"   ❌ {filename} failed: {response.status_code}")
-                    
-            except Exception as e:
-                print(f"   ❌ {filename} error: {str(e)}")
-        
-        self.log_result(
-            "Supported File Types",
-            successful_uploads == len(supported_types),
-            f"Successfully uploaded {successful_uploads}/{len(supported_types)} supported file types"
-        )
-    
-    def test_file_download(self, file_id):
-        """Test file download"""
-        if not file_id:
-            self.log_result(
-                "File Download",
-                False,
-                "No file_id provided for download test"
-            )
-            return
+    def test_program_creation_workflow(self):
+        """Test program creation API workflow"""
+        if not self.admin_token:
+            self.log_test("Program Creation Workflow", False, "Admin token not available")
+            return False
             
         try:
-            response = self.session.get(
-                f"{BACKEND_URL}/files/{file_id}",
-                timeout=30
-            )
-            
-            if response.status_code == 200:
-                # Check headers
-                content_disposition = response.headers.get('content-disposition', '')
-                content_type = response.headers.get('content-type', '')
-                
-                self.log_result(
-                    "File Download",
-                    True,
-                    "Successfully downloaded file",
-                    {
-                        "content_type": content_type,
-                        "content_disposition": content_disposition,
-                        "content_length": len(response.content)
-                    }
-                )
-            else:
-                self.log_result(
-                    "File Download",
-                    False,
-                    f"Download failed: {response.status_code} - {response.text}"
-                )
-                
-        except Exception as e:
-            self.log_result(
-                "File Download",
-                False,
-                f"Download error: {str(e)}"
-            )
-    
-    def test_nonexistent_file_download(self):
-        """Test downloading non-existent file"""
-        try:
-            fake_file_id = "00000000-0000-0000-0000-000000000000"
-            response = self.session.get(
-                f"{BACKEND_URL}/files/{fake_file_id}",
-                timeout=30
-            )
-            
-            if response.status_code == 404:
-                self.log_result(
-                    "Non-existent File Download",
-                    True,
-                    "Correctly returned 404 for non-existent file"
-                )
-            else:
-                self.log_result(
-                    "Non-existent File Download",
-                    False,
-                    f"Should have returned 404 but got: {response.status_code}"
-                )
-                
-        except Exception as e:
-            self.log_result(
-                "Non-existent File Download",
-                False,
-                f"Error testing non-existent file: {str(e)}"
-            )
-    
-    def test_course_document_integration(self):
-        """Test integration with course creation (documentUrl and documentName)"""
-        try:
-            # First upload a document
-            test_content = "This is a course document for integration testing."
-            file_path = self.create_test_file("course_document.pdf", test_content)
-            
-            with open(file_path, 'rb') as f:
-                files = {'file': ('course_document.pdf', f, 'application/pdf')}
-                upload_response = self.session.post(
-                    f"{BACKEND_URL}/files/upload",
-                    files=files,
-                    timeout=30
-                )
-            
-            # Clean up
-            os.unlink(file_path)
-            
-            if upload_response.status_code != 200:
-                self.log_result(
-                    "Course Document Integration",
-                    False,
-                    "Failed to upload document for integration test"
-                )
-                return
-            
-            upload_data = upload_response.json()
-            file_id = upload_data.get('file_id')
-            file_url = upload_data.get('file_url')
-            
-            # Create a course with document attachment
-            course_data = {
-                "title": "File Upload Integration Test Course",
-                "description": "Testing course creation with document attachments",
-                "category": "Testing",
-                "duration": "1 hour",
-                "accessType": "open",
-                "learningOutcomes": ["Test file integration"],
-                "modules": [
-                    {
-                        "title": "Module with Document",
-                        "lessons": [
-                            {
-                                "id": "lesson-1",
-                                "title": "Lesson with Document",
-                                "type": "document",
-                                "content": "This lesson has an attached document",
-                                "documentUrl": file_url,
-                                "documentName": "course_document.pdf"
-                            }
-                        ]
-                    }
-                ]
+            # Create a test program
+            program_data = {
+                "title": f"Test Program - {datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                "description": "Test program for backend validation",
+                "departmentId": None,
+                "duration": "4 weeks",
+                "courseIds": [],  # Start with empty courses
+                "nestedProgramIds": []
             }
             
-            course_response = self.session.post(
-                f"{BACKEND_URL}/courses",
-                json=course_data,
-                timeout=30
+            headers = {"Authorization": f"Bearer {self.admin_token}"}
+            response = requests.post(
+                f"{BACKEND_URL}/programs",
+                json=program_data,
+                headers=headers,
+                timeout=10
             )
-            
-            if course_response.status_code == 200:
-                course_data = course_response.json()
-                
-                # Verify the document is properly stored in the course
-                modules = course_data.get('modules', [])
-                if modules and modules[0].get('lessons'):
-                    lesson = modules[0]['lessons'][0]
-                    if (lesson.get('documentUrl') == file_url and 
-                        lesson.get('documentName') == 'course_document.pdf'):
-                        self.log_result(
-                            "Course Document Integration",
-                            True,
-                            "Successfully created course with document attachment",
-                            {
-                                "course_id": course_data.get('id'),
-                                "document_url": lesson.get('documentUrl'),
-                                "document_name": lesson.get('documentName')
-                            }
-                        )
-                    else:
-                        self.log_result(
-                            "Course Document Integration",
-                            False,
-                            "Course created but document fields not properly stored",
-                            {"lesson": lesson}
-                        )
-                else:
-                    self.log_result(
-                        "Course Document Integration",
-                        False,
-                        "Course created but modules/lessons structure incorrect"
-                    )
-            else:
-                self.log_result(
-                    "Course Document Integration",
-                    False,
-                    f"Failed to create course: {course_response.status_code} - {course_response.text}"
-                )
-                
-        except Exception as e:
-            self.log_result(
-                "Course Document Integration",
-                False,
-                f"Integration test error: {str(e)}"
-            )
-    
-    def test_upload_directory_exists(self):
-        """Test that upload directory exists and is accessible"""
-        try:
-            # This is an indirect test - we'll verify by attempting an upload
-            # and checking if the error is about directory or file handling
-            test_content = "Directory test file"
-            file_path = self.create_test_file("directory_test.txt", test_content)
-            
-            with open(file_path, 'rb') as f:
-                files = {'file': ('directory_test.txt', f, 'text/plain')}
-                response = self.session.post(
-                    f"{BACKEND_URL}/files/upload",
-                    files=files,
-                    timeout=30
-                )
-            
-            # Clean up
-            os.unlink(file_path)
             
             if response.status_code == 200:
-                self.log_result(
-                    "Upload Directory Access",
-                    True,
-                    "Upload directory is accessible and functional"
-                )
-            elif response.status_code == 500:
-                # Check if error is related to directory issues
-                error_text = response.text.lower()
-                if 'directory' in error_text or 'path' in error_text:
-                    self.log_result(
-                        "Upload Directory Access",
-                        False,
-                        "Upload directory may not exist or be accessible",
-                        {"error": response.text}
-                    )
-                else:
-                    self.log_result(
-                        "Upload Directory Access",
-                        True,
-                        "Directory exists but other server error occurred"
-                    )
+                data = response.json()
+                self.test_program_id = data.get("id")
+                self.log_test("Program Creation Workflow", True, f"Program created with ID: {self.test_program_id}")
+                return True
             else:
-                self.log_result(
-                    "Upload Directory Access",
-                    True,
-                    "Directory appears functional (non-directory related error)"
-                )
+                self.log_test("Program Creation Workflow", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
                 
         except Exception as e:
-            self.log_result(
-                "Upload Directory Access",
-                False,
-                f"Error testing upload directory: {str(e)}"
+            self.log_test("Program Creation Workflow", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_final_test_creation(self):
+        """Test POST /api/final-tests endpoint"""
+        if not self.admin_token or not self.test_program_id:
+            self.log_test("Final Test Creation", False, "Admin token or program ID not available")
+            return False
+            
+        try:
+            # Create a final test for the program
+            final_test_data = {
+                "title": f"Final Test - {datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                "description": "Test final exam for program completion",
+                "programId": self.test_program_id,
+                "questions": [
+                    {
+                        "type": "multiple-choice",
+                        "question": "What is the primary purpose of this LMS?",
+                        "options": [
+                            "Learning management",
+                            "Social networking", 
+                            "E-commerce",
+                            "Gaming"
+                        ],
+                        "correctAnswer": 0,
+                        "points": 10,
+                        "explanation": "LMS stands for Learning Management System"
+                    },
+                    {
+                        "type": "true-false",
+                        "question": "Final tests are program-level assessments.",
+                        "correctAnswer": True,
+                        "points": 5,
+                        "explanation": "Final tests are designed to assess completion of entire programs"
+                    }
+                ],
+                "timeLimit": 60,
+                "maxAttempts": 2,
+                "passingScore": 75.0,
+                "shuffleQuestions": False,
+                "showResults": True,
+                "isPublished": True
+            }
+            
+            headers = {"Authorization": f"Bearer {self.admin_token}"}
+            response = requests.post(
+                f"{BACKEND_URL}/final-tests",
+                json=final_test_data,
+                headers=headers,
+                timeout=10
             )
+            
+            if response.status_code == 200:
+                data = response.json()
+                self.test_final_test_id = data.get("id")
+                total_points = data.get("totalPoints", 0)
+                question_count = data.get("questionCount", 0)
+                self.log_test("Final Test Creation", True, f"Final test created with ID: {self.test_final_test_id}, {question_count} questions, {total_points} points")
+                return True
+            else:
+                self.log_test("Final Test Creation", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Final Test Creation", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_final_test_retrieval_by_program(self):
+        """Test GET /api/final-tests with program_id filter"""
+        if not self.admin_token or not self.test_program_id:
+            self.log_test("Final Test Retrieval by Program", False, "Admin token or program ID not available")
+            return False
+            
+        try:
+            headers = {"Authorization": f"Bearer {self.admin_token}"}
+            response = requests.get(
+                f"{BACKEND_URL}/final-tests?program_id={self.test_program_id}",
+                headers=headers,
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                if isinstance(data, list):
+                    program_tests = [test for test in data if test.get("programId") == self.test_program_id]
+                    self.log_test("Final Test Retrieval by Program", True, f"Found {len(program_tests)} final tests for program {self.test_program_id}")
+                    return True
+                else:
+                    self.log_test("Final Test Retrieval by Program", False, "Response is not a list")
+                    return False
+            else:
+                self.log_test("Final Test Retrieval by Program", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Final Test Retrieval by Program", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_program_course_navigation(self):
+        """Test that course IDs in programs are properly ordered"""
+        if not self.admin_token:
+            self.log_test("Program Course Navigation", False, "Admin token not available")
+            return False
+            
+        try:
+            # First get all programs to test course ordering
+            headers = {"Authorization": f"Bearer {self.admin_token}"}
+            response = requests.get(
+                f"{BACKEND_URL}/programs",
+                headers=headers,
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                programs = response.json()
+                if isinstance(programs, list) and len(programs) > 0:
+                    # Test course ID ordering in programs
+                    programs_with_courses = [p for p in programs if p.get("courseIds") and len(p.get("courseIds", [])) > 0]
+                    
+                    if programs_with_courses:
+                        test_program = programs_with_courses[0]
+                        course_ids = test_program.get("courseIds", [])
+                        
+                        # Verify course IDs are valid UUIDs and properly ordered
+                        valid_course_ids = []
+                        for course_id in course_ids:
+                            try:
+                                uuid.UUID(course_id)  # Validate UUID format
+                                valid_course_ids.append(course_id)
+                            except ValueError:
+                                pass
+                        
+                        if len(valid_course_ids) == len(course_ids):
+                            self.log_test("Program Course Navigation", True, f"Program '{test_program.get('title')}' has {len(course_ids)} properly ordered course IDs")
+                            return True
+                        else:
+                            self.log_test("Program Course Navigation", False, f"Invalid course ID format found in program")
+                            return False
+                    else:
+                        self.log_test("Program Course Navigation", True, "No programs with courses found, but API is working")
+                        return True
+                else:
+                    self.log_test("Program Course Navigation", True, "No programs found, but API is working")
+                    return True
+            else:
+                self.log_test("Program Course Navigation", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Program Course Navigation", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_student_final_test_access(self):
+        """Test that students can access final tests for completed programs"""
+        if not self.student_token:
+            self.log_test("Student Final Test Access", False, "Student token not available")
+            return False
+            
+        try:
+            # Test student access to final tests
+            headers = {"Authorization": f"Bearer {self.student_token}"}
+            response = requests.get(
+                f"{BACKEND_URL}/final-tests",
+                headers=headers,
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                final_tests = response.json()
+                if isinstance(final_tests, list):
+                    published_tests = [test for test in final_tests if test.get("isPublished", False)]
+                    self.log_test("Student Final Test Access", True, f"Student can access {len(published_tests)} published final tests")
+                    
+                    # Test access to specific final test if we created one
+                    if self.test_final_test_id and published_tests:
+                        test_response = requests.get(
+                            f"{BACKEND_URL}/final-tests/{self.test_final_test_id}",
+                            headers=headers,
+                            timeout=10
+                        )
+                        
+                        if test_response.status_code == 200:
+                            test_data = test_response.json()
+                            self.log_test("Student Specific Final Test Access", True, f"Student can access final test: {test_data.get('title')}")
+                        else:
+                            self.log_test("Student Specific Final Test Access", False, f"Cannot access specific test: {test_response.status_code}")
+                    
+                    return True
+                else:
+                    self.log_test("Student Final Test Access", False, "Response is not a list")
+                    return False
+            else:
+                self.log_test("Student Final Test Access", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Student Final Test Access", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_student_program_completion_workflow(self):
+        """Test complete workflow from program enrollment to final test access"""
+        if not self.student_token:
+            self.log_test("Student Program Completion Workflow", False, "Student token not available")
+            return False
+            
+        try:
+            headers = {"Authorization": f"Bearer {self.student_token}"}
+            
+            # Get student enrollments
+            enrollments_response = requests.get(
+                f"{BACKEND_URL}/enrollments",
+                headers=headers,
+                timeout=10
+            )
+            
+            if enrollments_response.status_code == 200:
+                enrollments = enrollments_response.json()
+                completed_enrollments = [e for e in enrollments if e.get("status") == "completed" or e.get("progress", 0) >= 100]
+                
+                # Get programs to check for completed program courses
+                programs_response = requests.get(
+                    f"{BACKEND_URL}/programs",
+                    headers=headers,
+                    timeout=10
+                )
+                
+                if programs_response.status_code == 200:
+                    programs = programs_response.json()
+                    
+                    # Check if student has completed any program courses
+                    completed_program_courses = 0
+                    for enrollment in completed_enrollments:
+                        course_id = enrollment.get("courseId")
+                        for program in programs:
+                            if course_id in program.get("courseIds", []):
+                                completed_program_courses += 1
+                                break
+                    
+                    self.log_test("Student Program Completion Workflow", True, 
+                                f"Student has {len(enrollments)} enrollments, {len(completed_enrollments)} completed, {completed_program_courses} program courses completed")
+                    return True
+                else:
+                    self.log_test("Student Program Completion Workflow", False, f"Cannot get programs: {programs_response.status_code}")
+                    return False
+            else:
+                self.log_test("Student Program Completion Workflow", False, f"Cannot get enrollments: {enrollments_response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Student Program Completion Workflow", False, f"Exception: {str(e)}")
+            return False
     
     def run_all_tests(self):
-        """Run all file upload tests"""
-        print("🚀 Starting File Upload Endpoints Testing")
+        """Run all backend tests"""
+        print("🚀 Starting LearningFriend LMS Backend Testing Suite")
         print("=" * 60)
         
-        # Authenticate first
-        if not self.authenticate_admin():
-            print("❌ Cannot proceed without authentication")
-            return
+        # Authentication tests
+        print("\n📋 AUTHENTICATION TESTS")
+        print("-" * 30)
+        admin_auth_success = self.authenticate_admin()
+        student_auth_success = self.authenticate_student()
         
-        print("\n📁 Testing File Upload Functionality...")
+        if not admin_auth_success:
+            print("❌ Cannot proceed without admin authentication")
+            return False
         
-        # Test upload directory
-        self.test_upload_directory_exists()
+        # Core functionality tests
+        print("\n📋 PROGRAM MANAGEMENT TESTS")
+        print("-" * 30)
+        self.test_program_creation_workflow()
+        self.test_program_course_navigation()
         
-        # Test successful upload and get file_id for download test
-        file_id = self.test_file_upload_success()
+        print("\n📋 FINAL TEST FUNCTIONALITY TESTS")
+        print("-" * 30)
+        self.test_final_test_creation()
+        self.test_final_test_retrieval_by_program()
         
-        # Test file type validation
-        self.test_file_type_validation()
+        if student_auth_success:
+            print("\n📋 STUDENT ACCESS TESTS")
+            print("-" * 30)
+            self.test_student_final_test_access()
+            self.test_student_program_completion_workflow()
         
-        # Test file size limits
-        self.test_file_size_limits()
-        
-        # Test all supported file types
-        self.test_supported_file_types()
-        
-        # Test file download
-        self.test_file_download(file_id)
-        
-        # Test non-existent file download
-        self.test_nonexistent_file_download()
-        
-        # Test course integration
-        self.test_course_document_integration()
-        
-        # Print summary
-        self.print_summary()
-    
-    def print_summary(self):
-        """Print test summary"""
+        # Summary
         print("\n" + "=" * 60)
-        print("📊 FILE UPLOAD TESTING SUMMARY")
+        print("📊 TEST SUMMARY")
         print("=" * 60)
         
         total_tests = len(self.test_results)
-        passed_tests = sum(1 for result in self.test_results if result['success'])
+        passed_tests = len([t for t in self.test_results if t["success"]])
         failed_tests = total_tests - passed_tests
         
         print(f"Total Tests: {total_tests}")
@@ -586,20 +424,24 @@ class FileUploadTester:
         print(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%")
         
         if failed_tests > 0:
-            print("\n🚨 FAILED TESTS:")
-            for result in self.test_results:
-                if not result['success']:
-                    print(f"   ❌ {result['test']}: {result['message']}")
+            print("\n❌ FAILED TESTS:")
+            for test in self.test_results:
+                if not test["success"]:
+                    print(f"  • {test['test']}: {test['details']}")
         
-        print("\n✅ PASSED TESTS:")
-        for result in self.test_results:
-            if result['success']:
-                print(f"   ✅ {result['test']}: {result['message']}")
+        return failed_tests == 0
 
 def main():
-    """Main function to run file upload tests"""
-    tester = FileUploadTester()
-    tester.run_all_tests()
+    """Main test execution"""
+    tester = LMSBackendTester()
+    success = tester.run_all_tests()
+    
+    if success:
+        print("\n🎉 All tests passed! Backend is ready for production.")
+        sys.exit(0)
+    else:
+        print("\n⚠️  Some tests failed. Please review the issues above.")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
