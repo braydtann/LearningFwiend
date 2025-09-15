@@ -141,7 +141,7 @@ class LMSBackendTester:
                 "programId": self.test_program_id,
                 "questions": [
                     {
-                        "type": "multiple-choice",
+                        "type": "multiple_choice",
                         "question": "What is the primary purpose of this LMS?",
                         "options": [
                             "Learning management",
@@ -149,14 +149,14 @@ class LMSBackendTester:
                             "E-commerce",
                             "Gaming"
                         ],
-                        "correctAnswer": 0,
+                        "correctAnswer": "0",
                         "points": 10,
                         "explanation": "LMS stands for Learning Management System"
                     },
                     {
-                        "type": "true-false",
+                        "type": "true_false",
                         "question": "Final tests are program-level assessments.",
-                        "correctAnswer": True,
+                        "correctAnswer": "true",
                         "points": 5,
                         "explanation": "Final tests are designed to assess completion of entire programs"
                     }
