@@ -122,10 +122,57 @@ const EditProgram = () => {
       const result = await updateProgram(id, programData);
       
       if (result.success) {
-        toast({
-          title: "Program updated successfully!",
-          description: `${program?.title} has been updated.`,
-        });
+        let finalTestSaved = true;
+        let finalTestError = null;
+        
+        // Handle final test creation/update if questions are provided
+        if (program?.finalTest?.questions && program.finalTest.questions.length > 0) {
+          const finalTestData = {
+            title: program.finalTest.title || `${program.title} Final Assessment`,
+            description: program.finalTest.description || `Comprehensive final test for ${program.title}`,
+            programId: id,
+            questions: program.finalTest.questions,
+            timeLimit: program.finalTest.timeLimit || 90,
+            maxAttempts: program.finalTest.maxAttempts || 2,
+            passingScore: program.finalTest.passingScore || 75,
+            shuffleQuestions: false,
+            showResults: true,
+            isPublished: true
+          };
+
+          if (program.finalTest.id) {
+            // Update existing final test
+            const finalTestResult = await updateFinalTest(program.finalTest.id, finalTestData);
+            if (!finalTestResult.success) {
+              finalTestSaved = false;
+              finalTestError = finalTestResult.error;
+              console.error('Failed to update final test:', finalTestResult.error);
+            }
+          } else {
+            // Create new final test
+            const finalTestResult = await createFinalTest(finalTestData);
+            if (!finalTestResult.success) {
+              finalTestSaved = false;
+              finalTestError = finalTestResult.error;
+              console.error('Failed to create final test:', finalTestResult.error);
+            }
+          }
+        }
+        
+        // Show appropriate success message
+        if (finalTestSaved) {
+          toast({
+            title: "Program updated successfully!",
+            description: `${program?.title} has been updated${program?.finalTest?.questions?.length > 0 ? ` with final test containing ${program.finalTest.questions.length} questions` : ''}.`,
+          });
+        } else {
+          toast({
+            title: "Program updated with issues",
+            description: `${program?.title} was updated, but final test changes failed: ${finalTestError}`,
+            variant: "destructive",
+          });
+        }
+        
         navigate(`/program/${id}`);
       } else {
         toast({
