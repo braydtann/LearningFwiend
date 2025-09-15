@@ -22,7 +22,7 @@ import { useToast } from '../hooks/use-toast';
 const EditProgram = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user, getProgramById, updateProgram, getAllCourses } = useAuth();
+  const { user, getProgramById, updateProgram, getAllCourses, createFinalTest, updateFinalTest, getFinalTestById, getAllFinalTests } = useAuth();
   const { toast } = useToast();
   
   const [program, setProgram] = useState(null);
