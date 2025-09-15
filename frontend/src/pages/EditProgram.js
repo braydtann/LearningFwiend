@@ -40,7 +40,7 @@ const EditProgram = () => {
         // Load program details
         const programResult = await getProgramById(id);
         if (programResult.success) {
-          setProgram({
+          const programData = {
             ...programResult.program,
             courseOrder: programResult.program.courseIds || [],
             finalTest: {
@@ -51,7 +51,26 @@ const EditProgram = () => {
               maxAttempts: 2,
               questions: []
             }
-          });
+          };
+          
+          // Load existing final test for this program
+          const finalTestsResult = await getAllFinalTests({ program_id: id });
+          if (finalTestsResult.success && finalTestsResult.tests.length > 0) {
+            const existingFinalTest = finalTestsResult.tests[0]; // Get the first (should be only one)
+            programData.finalTest = {
+              id: existingFinalTest.id,
+              title: existingFinalTest.title || '',
+              description: existingFinalTest.description || '',
+              timeLimit: existingFinalTest.timeLimit || 90,
+              passingScore: existingFinalTest.passingScore || 75,
+              maxAttempts: existingFinalTest.maxAttempts || 2,
+              questions: existingFinalTest.questions || []
+            };
+            
+            console.log('Loaded existing final test:', programData.finalTest);
+          }
+          
+          setProgram(programData);
         } else {
           setError(programResult.error);
         }
@@ -78,7 +97,7 @@ const EditProgram = () => {
     if (id) {
       loadProgramAndCourses();
     }
-  }, [id, getProgramById, getAllCourses, toast]);
+  }, [id, getProgramById, getAllCourses, getAllFinalTests, toast]);
 
   const handleSaveProgram = async () => {
     if (!program?.title || !program?.description || !program?.courseIds?.length) {
