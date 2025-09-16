@@ -121,7 +121,7 @@ const FinalTestQuestionInterface = ({
           )}
 
           {/* Multiple Choice Questions */}
-          {(question.type === 'multiple-choice' || !question.type) && (
+          {(question.type === 'multiple_choice' || !question.type) && (
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <Label className="text-sm">Answer Options</Label>
