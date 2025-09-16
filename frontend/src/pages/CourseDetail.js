@@ -625,8 +625,39 @@ const CourseDetail = () => {
         console.log(`Forced progress update after lesson completion: ${newProgress}%`);
         setProgressValue(newProgress);
         
+        // Check if course is fully completed (100% progress)
+        if (overallProgress >= 100) {
+          // Check quiz requirements before allowing course completion
+          const quizCheck = await checkQuizRequirements();
+          
+          if (!quizCheck.passed) {
+            // Reset progress to 99% if quiz requirements not met
+            const restrictedResult = await updateEnrollmentProgress(id, {
+              progress: 99,
+              currentLessonId: lessonId,
+              currentModuleId: moduleId,
+              moduleProgress: moduleProgress,
+              lastAccessedAt: new Date().toISOString()
+            });
+            
+            if (restrictedResult.success) {
+              setCurrentEnrollment(restrictedResult.enrollment);
+              setProgressValue(99);
+            }
+            
+            toast({
+              title: "Quiz Requirements Not Met",
+              description: quizCheck.message,
+              variant: "destructive",
+              duration: 8000,
+            });
+            
+            return; // Exit early without showing course completion
+          }
+        }
+        
         // Force recalculation of next action with updated enrollment
-        setTimeout(() => {
+        setTimeout(async () => {
           console.log('Recalculating next action after lesson completion...');
           calculateNextAction();
           
@@ -636,9 +667,67 @@ const CourseDetail = () => {
             console.log(`Secondary progress verification: ${recomputedProgress}%`);
             setProgressValue(recomputedProgress);
           }
+          
+          // If course is 100% complete and quiz requirements are met, trigger linear navigation
+          if (overallProgress >= 100) {
+            console.log('Course 100% complete with quiz requirements met, checking linear navigation...');
+            
+            // Check if this course is part of a program and has next course
+            if (currentProgram && currentProgram.courseIds) {
+              const nextCourseId = getNextCourseInProgram();
+              
+              console.log('Linear navigation debug:', {
+                currentProgram: currentProgram.title,
+                currentCourseId: id,
+                currentCourseIndex: currentProgram.courseIds.indexOf(id),
+                nextCourseId,
+                totalCourses: currentProgram.courseIds.length
+              });
+              
+              if (nextCourseId) {
+                // Show linear navigation dialog
+                const shouldStartNextCourse = window.confirm(
+                  `🎉 Course completed! Great job!\n\n📚 This is part of the "${currentProgram.title}" program.\n\nNext up: Continue to the next course in your learning path!\n\n▶️ Click 'OK' to start the next course immediately\n🏠 Click 'Cancel' to return to your learning path`
+                );
+                
+                if (shouldStartNextCourse) {
+                  toast({
+                    title: "🚀 Continuing to next course!",
+                    description: "Taking you to the next course in your program...",
+                    duration: 2000,
+                  });
+                  // Navigate immediately to next course
+                  setTimeout(() => {
+                    navigate(`/course/${nextCourseId}`);
+                  }, 1000);
+                } else {
+                  toast({
+                    title: "Course completed!",
+                    description: "Return to your learning path to continue.",
+                    duration: 2000,
+                  });
+                  // Navigate to program detail (learning path view)
+                  setTimeout(() => {
+                    navigate(`/program/${currentProgram.id}`);
+                  }, 1500);
+                }
+              } else {
+                // All courses in program completed
+                const shouldGoToProgram = window.confirm(
+                  `🎉 Course completed! Great job!\n\n✅ You've finished this course in the "${currentProgram.title}" program.\n\nReturn to your learning path to see your program progress and take the final exam if available.\n\nClick 'OK' to go to your learning path.`
+                );
+                
+                if (shouldGoToProgram) {
+                  setTimeout(() => {
+                    navigate(`/program/${currentProgram.id}`);
+                  }, 1500);
+                }
+              }
+            }
+          }
         }, 100);
         
-        // Show success message with progress update
+        // Show success message with progress update  
         const completionMessage = overallProgress >= 100 
           ? "🎉 Congratulations! You've completed the entire course!"
           : `Great job! Course progress: ${Math.round(newProgress)}%`;
