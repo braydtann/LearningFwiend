@@ -151,7 +151,7 @@ const Programs = () => {
           const finalTestData = {
             title: newProgram.finalTest.title || `${newProgram.title} Final Assessment`,
             description: newProgram.finalTest.description || `Comprehensive final test for ${newProgram.title}`,
-            programId: result.program.id,
+            programId: result.program?.id || result.id, // Handle both response formats
             questions: newProgram.finalTest.questions,
             timeLimit: newProgram.finalTest.timeLimit || 90,
             maxAttempts: newProgram.finalTest.maxAttempts || 2,
@@ -161,11 +161,16 @@ const Programs = () => {
             isPublished: true
           };
 
+          console.log('Creating final test with data:', finalTestData);
           const finalTestResult = await createFinalTest(finalTestData);
+          console.log('Final test creation result:', finalTestResult);
+          
           if (!finalTestResult.success) {
             finalTestCreated = false;
             finalTestError = finalTestResult.error;
             console.error('Failed to create final test:', finalTestResult.error);
+          } else {
+            console.log('Final test created successfully:', finalTestResult.test);
           }
         }
         
