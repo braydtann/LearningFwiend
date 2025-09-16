@@ -42,7 +42,9 @@ const CourseDetail = () => {
     migrateEnrollmentProgress,
     getAllPrograms,
     getAllClassrooms,
-    getAllFinalTests
+    getAllFinalTests,
+    getQuizAttempts,
+    getCourseQuizzes
   } = useAuth();
   const { toast } = useToast();
   const [selectedLesson, setSelectedLesson] = useState(null);
