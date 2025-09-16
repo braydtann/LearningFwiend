@@ -486,7 +486,7 @@ const Programs = () => {
           index === questionIndex 
             ? { 
                 ...question, 
-                items: [...question.items, { text: '', image: '', audio: '' }]
+                items: [...question.items, '']  // Add empty string, not object
               } 
             : question
         )
