@@ -148,7 +148,7 @@ const FinalTestQuestionInterface = ({
                     />
                     <Input
                       placeholder={`Option ${optionIndex + 1} text`}
-                      value={option?.text || ''}
+                      value={option || ''}
                       onChange={(e) => onOptionChange(questionIndex, optionIndex, e.target.value)}
                     />
                     {(question.options || []).length > 2 && (
