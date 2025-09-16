@@ -392,7 +392,7 @@ const Programs = () => {
             ? {
                 ...question,
                 options: question.options.map((option, oIndex) =>
-                  oIndex === optionIndex ? { ...option, text: value } : option
+                  oIndex === optionIndex ? value : option  // Direct string assignment
                 )
               }
             : question
