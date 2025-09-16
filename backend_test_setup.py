@@ -7,7 +7,7 @@ import requests
 import json
 import uuid
 
-BACKEND_URL = "https://quiz-analytics-lms.preview.emergentagent.com/api"
+BACKEND_URL = "https://lms-chronology-1.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 def setup_test_users():
