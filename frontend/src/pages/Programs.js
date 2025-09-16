@@ -340,26 +340,13 @@ const Programs = () => {
   const addFinalTestQuestion = () => {
     const newQuestion = {
       id: `ftq_${Date.now()}`,
-      type: 'multiple-choice',
+      type: 'multiple_choice', // Backend expects underscore, not hyphen
       question: '',
-      questionImage: '',
-      questionAudio: '',
-      options: [
-        { text: '', image: '', audio: '' },
-        { text: '', image: '', audio: '' },
-        { text: '', image: '', audio: '' },
-        { text: '', image: '', audio: '' }
-      ],
-      correctAnswer: 0,
+      options: ['', '', '', ''], // Backend expects array of strings, not objects
+      correctAnswer: '0', // Backend expects string, not integer
       correctAnswers: [],
-      items: [
-        { text: '', image: '', audio: '' },
-        { text: '', image: '', audio: '' },
-        { text: '', image: '', audio: '' }
-      ],
-      correctOrder: [0, 1, 2],
-      sampleAnswer: '',
-      wordLimit: null,
+      items: [],
+      correctOrder: [],
       points: 10,
       explanation: ''
     };
