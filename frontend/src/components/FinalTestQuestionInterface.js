@@ -204,7 +204,7 @@ const FinalTestQuestionInterface = ({
           )}
 
           {/* Select All That Apply Questions */}
-          {question.type === 'select-all-that-apply' && (
+          {question.type === 'select_all_that_apply' && (
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <Label className="text-sm">Answer Options (Select all correct answers)</Label>
