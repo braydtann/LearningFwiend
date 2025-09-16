@@ -146,6 +146,10 @@ const Programs = () => {
         let finalTestCreated = true;
         let finalTestError = null;
         
+        console.log('Program created successfully:', result);
+        console.log('Final test questions:', newProgram.finalTest.questions);
+        console.log('Questions length:', newProgram.finalTest.questions?.length);
+        
         // Create final test if questions are provided
         if (newProgram.finalTest.questions && newProgram.finalTest.questions.length > 0) {
           const finalTestData = {
@@ -172,6 +176,8 @@ const Programs = () => {
           } else {
             console.log('Final test created successfully:', finalTestResult.test);
           }
+        } else {
+          console.log('No final test questions provided, skipping final test creation');
         }
         
         // Refresh programs list
