@@ -53,11 +53,12 @@ const FinalTestQuestionInterface = ({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="multiple_choice">Multiple Choice</SelectItem>
-                  <SelectItem value="select_all_that_apply">Select All That Apply</SelectItem>
+                  <SelectItem value="select-all-that-apply">Select All That Apply</SelectItem>
                   <SelectItem value="true_false">True/False</SelectItem>
                   <SelectItem value="short_answer">Short Answer</SelectItem>
                   <SelectItem value="essay">Long Form Answer</SelectItem>
-                  <SelectItem value="chronological_order">Chronological Order</SelectItem>
+                  <SelectItem value="chronological-order">Chronological Order</SelectItem>
+                  <SelectItem value="record-screen">Record Screen</SelectItem>
                 </SelectContent>
               </Select>
             </div>
