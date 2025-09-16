@@ -3665,7 +3665,7 @@ class FinalTestCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=200, description="Final test title")
     description: Optional[str] = Field(None, max_length=1000)
     programId: str = Field(..., description="Program ID this test belongs to")
-    questions: List[QuestionCreate] = Field(..., min_items=1, description="Test must have at least one question")
+    questions: List[QuestionCreate] = Field(default=[], description="Test questions (can be empty for initial creation)")
     timeLimit: Optional[int] = Field(None, ge=1, le=480, description="Time limit in minutes (1-480)")
     maxAttempts: int = Field(2, ge=1, le=5, description="Maximum attempts allowed (1-5)")
     passingScore: float = Field(75.0, ge=0.0, le=100.0, description="Passing score percentage")
