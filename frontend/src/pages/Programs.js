@@ -199,14 +199,19 @@ const Programs = () => {
 
         // Show appropriate success message
         if (finalTestCreated) {
+          const questionCount = newProgram.finalTest.questions?.length || 0;
+          const finalTestMessage = questionCount > 0 
+            ? ` and final test with ${questionCount} questions`
+            : ' and empty final test (you can add questions by editing the program)';
+            
           toast({
             title: "Program created successfully!",
-            description: `${newProgram.title} has been created with ${newProgram.courseIds.length} courses${newProgram.finalTest.questions.length > 0 ? ` and final test with ${newProgram.finalTest.questions.length} questions` : ''}.`,
+            description: `${newProgram.title} has been created with ${newProgram.courseIds.length} courses${hasFinalTestContent ? finalTestMessage : ''}.`,
           });
         } else {
           toast({
             title: "Program created with issues",
-            description: `${newProgram.title} was created, but final test creation failed: ${finalTestError}`,
+            description: `${newProgram.title} was created, but final test creation failed: ${finalTestError}. You can add the final test by editing the program.`,
             variant: "destructive",
           });
         }
