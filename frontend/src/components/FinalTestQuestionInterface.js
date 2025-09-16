@@ -45,20 +45,19 @@ const FinalTestQuestionInterface = ({
             <div>
               <Label className="text-sm">Question Type</Label>
               <Select 
-                value={question.type || 'multiple-choice'} 
+                value={question.type || 'multiple_choice'} 
                 onValueChange={(value) => onQuestionChange(questionIndex, 'type', value)}
               >
                 <SelectTrigger className="border-purple-300 focus:border-purple-500">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="multiple-choice">Multiple Choice</SelectItem>
-                  <SelectItem value="select-all-that-apply">Select All That Apply</SelectItem>
-                  <SelectItem value="true-false">True/False</SelectItem>
-                  <SelectItem value="short-answer">Short Answer</SelectItem>
-                  <SelectItem value="long-form-answer">Long Form Answer</SelectItem>
-                  <SelectItem value="chronological-order">Chronological Order</SelectItem>
-                  <SelectItem value="record-screen">Record Screen</SelectItem>
+                  <SelectItem value="multiple_choice">Multiple Choice</SelectItem>
+                  <SelectItem value="select_all_that_apply">Select All That Apply</SelectItem>
+                  <SelectItem value="true_false">True/False</SelectItem>
+                  <SelectItem value="short_answer">Short Answer</SelectItem>
+                  <SelectItem value="essay">Long Form Answer</SelectItem>
+                  <SelectItem value="chronological_order">Chronological Order</SelectItem>
                 </SelectContent>
               </Select>
             </div>
