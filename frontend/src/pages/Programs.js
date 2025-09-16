@@ -429,7 +429,7 @@ const Programs = () => {
           index === questionIndex 
             ? { 
                 ...question, 
-                options: [...question.options, { text: '', image: '', audio: '' }]
+                options: [...question.options, '']  // Add empty string, not object
               } 
             : question
         )
@@ -447,7 +447,7 @@ const Programs = () => {
             ? { 
                 ...question, 
                 options: question.options.filter((_, oIdx) => oIdx !== optionIndex),
-                correctAnswer: question.correctAnswer > optionIndex ? question.correctAnswer - 1 : question.correctAnswer,
+                correctAnswer: parseInt(question.correctAnswer) > optionIndex ? String(parseInt(question.correctAnswer) - 1) : question.correctAnswer,
                 correctAnswers: (question.correctAnswers || [])
                   .map(idx => idx > optionIndex ? idx - 1 : idx)
                   .filter(idx => idx !== optionIndex)
