@@ -321,7 +321,7 @@ const FinalTestQuestionInterface = ({
           )}
 
           {/* Short Answer Questions */}
-          {question.type === 'short-answer' && (
+          {question.type === 'short_answer' && (
             <div className="space-y-2">
               <Label className="text-sm">Sample Answer (for instructor reference)</Label>
               <Input
