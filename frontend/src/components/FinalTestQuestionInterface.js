@@ -163,43 +163,8 @@ const FinalTestQuestionInterface = ({
                       </Button>
                     )}
                   </div>
-                  
-                  {/* Option Media */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 ml-6">
-                    <div className="space-y-1">
-                      <Label className="text-xs">Option Image URL</Label>
-                      <Input
-                        placeholder="https://example.com/option-image.jpg"
-                        value={option?.image || ''}
-                        onChange={(e) => onOptionMediaChange(questionIndex, optionIndex, 'image', e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">Option Audio URL</Label>
-                      <Input
-                        placeholder="https://example.com/option-audio.mp3"
-                        value={option?.audio || ''}
-                        onChange={(e) => onOptionMediaChange(questionIndex, optionIndex, 'audio', e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  
-                  {/* Media Preview */}
-                  {option?.image && (
-                    <div className="ml-6">
-                      <img src={option.image} alt={`Option ${optionIndex + 1}`} className="max-w-xs h-20 object-cover rounded border" />
-                    </div>
-                  )}
-                  {option?.audio && (
-                    <div className="ml-6">
-                      <audio controls className="w-full max-w-xs">
-                        <source src={option.audio} type="audio/mpeg" />
-                      </audio>
-                    </div>
-                  )}
                 </div>
               ))}
-              <p className="text-xs text-purple-600">Select the radio button next to the correct answer. Add images or audio to enhance your options.</p>
             </div>
           )}
 
