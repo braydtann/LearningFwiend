@@ -1,13 +1,20 @@
 #!/usr/bin/env python3
 """
-Backend Testing Script for LearningFriend LMS
-Focus: Final Test Creation and bcrypt Authentication Issues
+Comprehensive Backend Testing for Final Test Creation Workflow
+Testing the complete program creation workflow after fixing data structure issues
+in the FinalTestQuestionInterface component.
 
-Review Request Testing:
-1. Test final test creation endpoint: POST /api/final-tests with empty questions array
-2. Test program creation with final test workflow 
-3. Verify that bcrypt authentication errors are resolved
-4. Check if 422 errors during final test creation are still occurring
+Focus Areas:
+1. Create a program with a final test containing multiple choice questions
+2. Verify question data is sent in correct format to backend
+3. Ensure no 422 errors during final test creation
+4. Test with different question types (multiple_choice, true_false, chronological_order)
+
+Data Structure Fixes Tested:
+- Fixed question type values from hyphens to underscores (multiple-choice → multiple_choice, etc.)
+- Fixed option rendering from option.text to direct string access
+- Fixed item rendering from item.text to direct string access
+- Removed media sections that don't match backend schema
 
 Admin credentials: brayden.t@covesmart.com / Hawaii2020!
 """
@@ -19,7 +26,7 @@ from datetime import datetime
 import uuid
 
 # Configuration - Using correct backend URL from frontend/.env
-BACKEND_URL = "https://lms-chronology.emergent.host/api"
+BACKEND_URL = "https://lms-chronology-1.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_EMAIL = "brayden.t@covesmart.com"
