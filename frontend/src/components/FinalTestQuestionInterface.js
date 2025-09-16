@@ -347,67 +347,9 @@ const FinalTestQuestionInterface = ({
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
-                  
-                  {/* Item Media */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 ml-20">
-                    <div className="space-y-1">
-                      <Label className="text-xs">Item Image URL</Label>
-                      <Input
-                        placeholder="https://example.com/item-image.jpg"
-                        value={item?.image || ''}
-                        onChange={(e) => onItemChange(questionIndex, itemIndex, 'image', e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">Item Audio URL</Label>
-                      <Input
-                        placeholder="https://example.com/item-audio.mp3"
-                        value={item?.audio || ''}
-                        onChange={(e) => onItemChange(questionIndex, itemIndex, 'audio', e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  
-                  {/* Media Preview */}
-                  {item?.image && (
-                    <div className="ml-20">
-                      <img src={item.image} alt={`Item ${itemIndex + 1}`} className="max-w-xs h-20 object-cover rounded border" />
-                    </div>
-                  )}
-                  {item?.audio && (
-                    <div className="ml-20">
-                      <audio controls className="w-full max-w-xs">
-                        <source src={item.audio} type="audio/mpeg" />
-                      </audio>
-                    </div>
-                  )}
                 </div>
               ))}
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => onAddItem(questionIndex)}
-                className="border-purple-300 text-purple-700 hover:bg-purple-50"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Item
-              </Button>
-              <div className="space-y-2">
-                <Label className="text-sm">Correct Order</Label>
-                <p className="text-xs text-purple-600 mb-2">
-                  Specify the correct chronological order by entering the position numbers (1, 2, 3, etc.)
-                </p>
-                <Input
-                  placeholder="e.g., 2,1,4,3 (comma-separated position numbers)"
-                  value={question.correctOrder ? question.correctOrder.map(i => i + 1).join(',') : ''}
-                  onChange={(e) => {
-                    const order = e.target.value.split(',').map(num => parseInt(num.trim()) - 1).filter(num => !isNaN(num));
-                    onQuestionChange(questionIndex, 'correctOrder', order);
-                  }}
-                />
-              </div>
-              <p className="text-xs text-purple-600">Students will drag and drop these items into the correct chronological order. Add images or audio to enhance the items.</p>
+              <p className="text-xs text-purple-600">Drag to reorder the items to show the correct chronological sequence. Students will need to arrange them correctly.</p>
             </div>
           )}
 
