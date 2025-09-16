@@ -299,7 +299,7 @@ const FinalTestQuestionInterface = ({
                 <label className="flex items-center space-x-2">
                   <input
                     type="radio"
-                    name={`true-false-${question.id}`}
+                    name={`true_false-${question.id}`}
                     checked={question.correctAnswer === 0}
                     onChange={() => onQuestionChange(questionIndex, 'correctAnswer', 0)}
                     className="text-purple-600"
