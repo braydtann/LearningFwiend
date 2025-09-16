@@ -359,7 +359,7 @@ const FinalTestQuestionInterface = ({
           )}
 
           {/* Chronological Order Questions */}
-          {question.type === 'chronological-order' && (
+          {question.type === 'chronological_order' && (
             <div className="space-y-3">
               <Label className="text-sm">Items to Order</Label>
               {(question.items || []).map((item, itemIndex) => (
