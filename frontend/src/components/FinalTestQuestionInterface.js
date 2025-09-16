@@ -334,7 +334,7 @@ const FinalTestQuestionInterface = ({
           )}
 
           {/* Long Form Answer Questions */}
-          {question.type === 'long-form-answer' && (
+          {question.type === 'essay' && (
             <div className="space-y-2">
               <Label className="text-sm">Sample Answer (for instructor reference)</Label>
               <Textarea
