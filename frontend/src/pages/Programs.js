@@ -147,11 +147,22 @@ const Programs = () => {
         let finalTestError = null;
         
         console.log('Program created successfully:', result);
+        console.log('Final test data:', newProgram.finalTest);
         console.log('Final test questions:', newProgram.finalTest.questions);
         console.log('Questions length:', newProgram.finalTest.questions?.length);
+        console.log('Final test title:', newProgram.finalTest.title);
+        console.log('Final test description:', newProgram.finalTest.description);
         
-        // Create final test if questions are provided
-        if (newProgram.finalTest.questions && newProgram.finalTest.questions.length > 0) {
+        // Create final test if questions are provided OR if any final test fields are filled
+        const hasFinalTestContent = (
+          (newProgram.finalTest.questions && newProgram.finalTest.questions.length > 0) ||
+          (newProgram.finalTest.title && newProgram.finalTest.title.trim() !== '') ||
+          (newProgram.finalTest.description && newProgram.finalTest.description.trim() !== '')
+        );
+        
+        console.log('Has final test content:', hasFinalTestContent);
+        
+        if (hasFinalTestContent) {
           const finalTestData = {
             title: newProgram.finalTest.title || `${newProgram.title} Final Assessment`,
             description: newProgram.finalTest.description || `Comprehensive final test for ${newProgram.title}`,
