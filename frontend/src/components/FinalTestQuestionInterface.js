@@ -333,7 +333,7 @@ const FinalTestQuestionInterface = ({
                     <span className="text-sm text-purple-700 min-w-[80px]">Position {itemIndex + 1}:</span>
                     <Input
                       placeholder={`Item ${itemIndex + 1} text`}
-                      value={item?.text || ''}
+                      value={item || ''}
                       onChange={(e) => onItemChange(questionIndex, itemIndex, 'text', e.target.value)}
                     />
                     <Button
