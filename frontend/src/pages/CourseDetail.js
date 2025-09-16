@@ -457,6 +457,73 @@ const CourseDetail = () => {
   const canAccessCourse = !isLearner || isEnrolled;
 
   // Mark lesson as complete and update progress
+  // Check if student has passed required quizzes for course completion
+  const checkQuizRequirements = async () => {
+    try {
+      // Get all quizzes for this course
+      const quizzesResult = await getCourseQuizzes(id);
+      if (!quizzesResult.success) {
+        console.error('Failed to fetch course quizzes:', quizzesResult.error);
+        return { passed: true, message: 'Could not verify quiz requirements' }; // Default to allow completion
+      }
+      
+      const courseQuizzes = quizzesResult.quizzes || [];
+      console.log('Course quizzes found:', courseQuizzes.length);
+      
+      if (courseQuizzes.length === 0) {
+        return { passed: true, message: 'No quizzes required for this course' };
+      }
+      
+      // Get student's quiz attempts
+      const attemptsResult = await getQuizAttempts(user.id);
+      if (!attemptsResult.success) {
+        console.error('Failed to fetch quiz attempts:', attemptsResult.error);
+        return { passed: false, message: 'Could not verify quiz completion' };
+      }
+      
+      const userAttempts = attemptsResult.attempts || [];
+      console.log('User quiz attempts:', userAttempts.length);
+      
+      // Check each quiz requirement
+      const failedQuizzes = [];
+      
+      for (const quiz of courseQuizzes) {
+        // Find the best attempt for this quiz
+        const quizAttempts = userAttempts.filter(attempt => attempt.quizId === quiz.id);
+        const bestAttempt = quizAttempts.reduce((best, current) => {
+          return (!best || current.score > best.score) ? current : best;
+        }, null);
+        
+        console.log(`Quiz "${quiz.title}": Best score = ${bestAttempt?.score || 0}%, Passing score = ${quiz.passingScore}%`);
+        
+        if (!bestAttempt || bestAttempt.score < quiz.passingScore) {
+          failedQuizzes.push({
+            title: quiz.title,
+            bestScore: bestAttempt?.score || 0,
+            passingScore: quiz.passingScore
+          });
+        }
+      }
+      
+      if (failedQuizzes.length > 0) {
+        const failedList = failedQuizzes.map(quiz => 
+          `• ${quiz.title} (Scored: ${quiz.bestScore}%, Required: ${quiz.passingScore}%)`
+        ).join('\n');
+        
+        return {
+          passed: false,
+          message: `You must pass all quizzes before completing this course:\n\n${failedList}\n\nPlease retake the failed quizzes and achieve the passing score.`
+        };
+      }
+      
+      return { passed: true, message: 'All quiz requirements met!' };
+      
+    } catch (error) {
+      console.error('Error checking quiz requirements:', error);
+      return { passed: false, message: 'Error verifying quiz requirements. Please try again.' };
+    }
+  };
+
   const markLessonComplete = async (lessonId) => {
     if (!currentEnrollment || !course) return;
     
