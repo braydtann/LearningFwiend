@@ -292,7 +292,7 @@ const FinalTestQuestionInterface = ({
           )}
 
           {/* True/False Questions */}
-          {question.type === 'true-false' && (
+          {question.type === 'true_false' && (
             <div className="space-y-2">
               <Label className="text-sm">Correct Answer</Label>
               <div className="flex items-center space-x-4">
