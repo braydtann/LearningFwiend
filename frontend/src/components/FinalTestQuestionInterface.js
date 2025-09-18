@@ -335,7 +335,7 @@ const FinalTestQuestionInterface = ({
                     <Input
                       placeholder={`Item ${itemIndex + 1} text`}
                       value={item || ''}
-                      onChange={(e) => onItemChange(questionIndex, itemIndex, 'text', e.target.value)}
+                      onChange={(e) => onItemChange(questionIndex, itemIndex, e.target.value)}
                     />
                     <Button
                       type="button"
