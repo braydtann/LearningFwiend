@@ -350,6 +350,16 @@ const FinalTestQuestionInterface = ({
                   </div>
                 </div>
               ))}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => onAddItem(questionIndex)}
+                className="border-purple-300 text-purple-700 hover:bg-purple-50"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Item
+              </Button>
               <p className="text-xs text-purple-600">Drag to reorder the items to show the correct chronological sequence. Students will need to arrange them correctly.</p>
             </div>
           )}
