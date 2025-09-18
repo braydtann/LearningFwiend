@@ -42,7 +42,7 @@ def main():
     # Find our test
     target_test = None
     for test in tests:
-        if "Data Structure Validation" in test.get("title", ""):
+        if "Comprehensive Final Test - All Question Types" in test.get("title", ""):
             target_test = test
             break
     
