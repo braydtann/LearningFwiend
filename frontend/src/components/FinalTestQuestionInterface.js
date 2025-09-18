@@ -81,7 +81,14 @@ const FinalTestQuestionInterface = ({
               placeholder="Enter your comprehensive question here..."
               rows={3}
               value={question.question}
-              onChange={(e) => onQuestionChange(questionIndex, 'question', e.target.value)}
+              onChange={(e) => {
+                console.log(`🔍 [DEBUG] Question text input changed:`, {
+                  questionIndex,
+                  value: e.target.value,
+                  currentQuestionText: question.question
+                });
+                onQuestionChange(questionIndex, 'question', e.target.value)
+              }}
               className="border-purple-300 focus:border-purple-500"
             />
           </div>
