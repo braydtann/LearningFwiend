@@ -131,7 +131,7 @@ class FinalComprehensiveTester:
                         "type": "multiple_choice",  # Using underscore format for backend
                         "question": "What is the capital of France?",
                         "options": ["London", "Berlin", "Paris", "Madrid"],
-                        "correctAnswer": 2,
+                        "correctAnswer": "2",  # String representation of index
                         "points": 10
                     },
                     {
@@ -146,7 +146,7 @@ class FinalComprehensiveTester:
                         "id": str(uuid.uuid4()),
                         "type": "true_false",
                         "question": "The Earth is flat.",
-                        "correctAnswer": False,
+                        "correctAnswer": "false",  # String representation of boolean
                         "points": 5
                     },
                     {
