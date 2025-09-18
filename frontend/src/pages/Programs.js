@@ -375,9 +375,40 @@ const Programs = () => {
       ...prev,
       finalTest: {
         ...prev.finalTest,
-        questions: prev.finalTest.questions.map((question, index) =>
-          index === questionIndex ? { ...question, [field]: value } : question
-        )
+        questions: prev.finalTest.questions.map((question, index) => {
+          if (index !== questionIndex) return question;
+          
+          const updatedQuestion = { ...question, [field]: value };
+          
+          // Initialize appropriate arrays when question type changes
+          if (field === 'type') {
+            switch (value) {
+              case 'multiple_choice':
+              case 'select-all-that-apply':
+              case 'true_false':
+                // Ensure options array exists
+                if (!updatedQuestion.options || updatedQuestion.options.length === 0) {
+                  updatedQuestion.options = ['', '', '', ''];
+                }
+                updatedQuestion.correctAnswer = '0';
+                break;
+              case 'chronological-order':
+                // Ensure items array exists for chronological order
+                if (!updatedQuestion.items || updatedQuestion.items.length === 0) {
+                  updatedQuestion.items = ['', '', ''];
+                }
+                updatedQuestion.correctOrder = [0, 1, 2];
+                break;
+              case 'short_answer':
+              case 'essay':
+                // These don't need special arrays
+                updatedQuestion.correctAnswer = '';
+                break;
+            }
+          }
+          
+          return updatedQuestion;
+        })
       }
     }));
   };
