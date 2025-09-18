@@ -278,13 +278,15 @@ class FinalComprehensiveTester:
                 "type": "select-all-that-apply",  # Hyphen format (should work per review)
                 "question": "Test question",
                 "options": ["A", "B", "C"],
-                "correctAnswers": [0, 1]
+                "correctAnswers": [0, 1],
+                "points": 10
             },
             {
                 "type": "chronological-order",  # Hyphen format (should work per review)
                 "question": "Test chronological question",
                 "items": ["First", "Second", "Third"],
-                "correctOrder": [0, 1, 2]
+                "correctOrder": [0, 1, 2],
+                "points": 10
             }
         ]
         
