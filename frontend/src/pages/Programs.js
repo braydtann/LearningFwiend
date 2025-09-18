@@ -432,22 +432,34 @@ const Programs = () => {
   };
 
   const handleFinalTestOptionChange = (questionIndex, optionIndex, value) => {
-    setNewProgram(prev => ({
-      ...prev,
-      finalTest: {
-        ...prev.finalTest,
-        questions: prev.finalTest.questions.map((question, index) =>
-          index === questionIndex 
-            ? {
-                ...question,
-                options: question.options.map((option, oIndex) =>
-                  oIndex === optionIndex ? value : option  // Direct string assignment
-                )
-              }
-            : question
-        )
-      }
-    }));
+    console.log(`🔍 [DEBUG] handleFinalTestOptionChange called:`, {
+      questionIndex,
+      optionIndex,
+      value,
+      valueType: typeof value
+    });
+    
+    setNewProgram(prev => {
+      const updatedProgram = {
+        ...prev,
+        finalTest: {
+          ...prev.finalTest,
+          questions: prev.finalTest.questions.map((question, index) =>
+            index === questionIndex 
+              ? {
+                  ...question,
+                  options: question.options.map((option, oIndex) =>
+                    oIndex === optionIndex ? value : option  // Direct string assignment
+                  )
+                }
+              : question
+          )
+        }
+      };
+      
+      console.log(`🔍 [DEBUG] Updated question options:`, updatedProgram.finalTest.questions[questionIndex].options);
+      return updatedProgram;
+    });
   };
 
   const handleFinalTestOptionMediaChange = (questionIndex, optionIndex, mediaType, value) => {
