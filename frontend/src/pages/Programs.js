@@ -367,10 +367,10 @@ const Programs = () => {
   const addFinalTestQuestion = () => {
     const newQuestion = {
       id: `ftq_${Date.now()}`,
-      type: 'multiple_choice', // Backend expects this exact format
+      type: 'multiple_choice',
       question: '',
-      options: ['', '', '', ''], // Backend expects array of strings
-      correctAnswer: '0', // Backend expects string
+      options: ['', '', '', ''],
+      correctAnswer: '0',
       correctAnswers: [],
       items: [],
       correctOrder: [],
