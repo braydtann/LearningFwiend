@@ -503,36 +503,23 @@ const Programs = () => {
     }));
   };
 
-  const handleFinalTestItemChange = (questionIndex, itemIndex, field, value) => {
-    console.log(`🔍 [DEBUG] handleFinalTestItemChange called:`, {
-      questionIndex,
-      itemIndex,
-      field,
-      value,
-      valueType: typeof value
-    });
-    
-    setNewProgram(prev => {
-      const updatedProgram = {
-        ...prev,
-        finalTest: {
-          ...prev.finalTest,
-          questions: prev.finalTest.questions.map((question, index) =>
-            index === questionIndex 
-              ? {
-                  ...question,
-                  items: question.items.map((item, iIndex) =>
-                    iIndex === itemIndex ? value : item  // Direct string assignment
-                  )
-                }
-              : question
-          )
-        }
-      };
-      
-      console.log(`🔍 [DEBUG] Updated question items:`, updatedProgram.finalTest.questions[questionIndex].items);
-      return updatedProgram;
-    });
+  const handleFinalTestItemChange = (questionIndex, itemIndex, value) => {
+    setNewProgram(prev => ({
+      ...prev,
+      finalTest: {
+        ...prev.finalTest,
+        questions: prev.finalTest.questions.map((question, index) =>
+          index === questionIndex 
+            ? {
+                ...question,
+                items: question.items.map((item, iIndex) =>
+                  iIndex === itemIndex ? value : item  // Direct string assignment
+                )
+              }
+            : question
+        )
+      }
+    }));
   };
 
   const addFinalTestOrderItem = (questionIndex) => {
