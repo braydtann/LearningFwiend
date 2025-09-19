@@ -201,10 +201,10 @@ class DataSanitizationTester:
                     question = final_test["questions"][0]
                     # Verify all options are strings
                     options_are_strings = all(isinstance(opt, str) for opt in question["options"])
-                    # Verify correctAnswers are strings
-                    correct_answers_are_strings = all(isinstance(ans, str) for ans in question["correctAnswers"])
+                    # Verify correctAnswers are integers as expected by backend
+                    correct_answers_are_integers = all(isinstance(ans, int) for ans in question["correctAnswers"])
                     
-                    if options_are_strings and correct_answers_are_strings:
+                    if options_are_strings and correct_answers_are_integers:
                         self.log_test("Select All That Apply String Sanitization", True, 
                                     f"Created test with proper string sanitization - options: {question['options']}, correctAnswers: {question['correctAnswers']}")
                         return final_test
