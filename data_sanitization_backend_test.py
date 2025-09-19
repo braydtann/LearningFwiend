@@ -548,7 +548,7 @@ class DataSanitizationTester:
                             validation_results.append(answer_valid)
                         elif question["type"] == "select-all-that-apply":
                             options_valid = all(isinstance(opt, str) for opt in question["options"])
-                            answers_valid = all(isinstance(ans, str) for ans in question["correctAnswers"])
+                            answers_valid = all(isinstance(ans, int) for ans in question["correctAnswers"])
                             validation_results.append(options_valid and answers_valid)
                         elif question["type"] == "chronological-order":
                             items_valid = all(isinstance(item, str) for item in question["items"])
