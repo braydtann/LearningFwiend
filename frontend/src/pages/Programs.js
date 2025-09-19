@@ -559,7 +559,7 @@ const Programs = () => {
           index === questionIndex 
             ? { 
                 ...question, 
-                items: [...question.items, '']  // Add empty string, not object
+                items: [...(question.items || []).map(item => String(item || '')), '']
               } 
             : question
         )
