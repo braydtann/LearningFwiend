@@ -526,7 +526,7 @@ const Programs = () => {
             ? {
                 ...question,
                 items: question.items.map((item, iIndex) =>
-                  iIndex === itemIndex ? value : item  // Direct string assignment
+                  iIndex === itemIndex ? String(value) : String(item || '')
                 )
               }
             : question
