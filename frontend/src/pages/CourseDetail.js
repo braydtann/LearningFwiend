@@ -669,7 +669,7 @@ const CourseDetail = () => {
           }
           
           // If course is 100% complete and quiz requirements are met, trigger linear navigation
-          if (overallProgress >= 100) {
+          if (recomputedProgress >= 100) {
             console.log('Course 100% complete with quiz requirements met, checking linear navigation...');
             
             // Check if this course is part of a program and has next course
