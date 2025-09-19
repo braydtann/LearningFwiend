@@ -326,7 +326,7 @@ const FinalTestQuestionInterface = ({
           {/* Chronological Order Questions */}
           {question.type === 'chronological-order' && (
             <div className="space-y-3">
-              <Label className="text-sm">Items to Order</Label>
+              <Label className="text-sm">Items to Order (Use arrows to set correct chronological sequence)</Label>
               {(question.items || []).map((item, itemIndex) => (
                 <div key={itemIndex} className="border border-purple-200 rounded-lg p-3 space-y-3 bg-purple-50/50">
                   <div className="flex items-center space-x-2">
@@ -336,16 +336,41 @@ const FinalTestQuestionInterface = ({
                       value={item || ''}
                       onChange={(e) => onItemChange(questionIndex, itemIndex, e.target.value)}
                     />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onRemoveItem(questionIndex, itemIndex)}
-                      disabled={(question.items || []).length <= 2}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    <div className="flex items-center space-x-1">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onMoveItemUp && onMoveItemUp(questionIndex, itemIndex)}
+                        disabled={itemIndex === 0}
+                        className="text-blue-600 hover:text-blue-700"
+                        title="Move item up"
+                      >
+                        <ArrowUp className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onMoveItemDown && onMoveItemDown(questionIndex, itemIndex)}
+                        disabled={itemIndex === (question.items || []).length - 1}
+                        className="text-blue-600 hover:text-blue-700"
+                        title="Move item down"
+                      >
+                        <ArrowDown className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onRemoveItem(questionIndex, itemIndex)}
+                        disabled={(question.items || []).length <= 2}
+                        className="text-red-600 hover:text-red-700"
+                        title="Remove item"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -359,7 +384,7 @@ const FinalTestQuestionInterface = ({
                 <Plus className="w-4 h-4 mr-2" />
                 Add Item
               </Button>
-              <p className="text-xs text-purple-600">Drag to reorder the items to show the correct chronological sequence. Students will need to arrange them correctly.</p>
+              <p className="text-xs text-purple-600">Use the arrow buttons to arrange items in the correct chronological order. Students will need to arrange them correctly.</p>
             </div>
           )}
 
