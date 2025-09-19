@@ -43,8 +43,7 @@ const CourseDetail = () => {
     getAllPrograms,
     getAllClassrooms,
     getAllFinalTests,
-    getQuizAttempts,
-    getCourseQuizzes
+    getQuizAttempts
   } = useAuth();
   const { toast } = useToast();
   const [selectedLesson, setSelectedLesson] = useState(null);
