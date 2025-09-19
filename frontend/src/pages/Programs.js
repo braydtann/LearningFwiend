@@ -413,25 +413,40 @@ const Programs = () => {
               case 'multiple_choice':
               case 'select-all-that-apply':
               case 'true_false':
-                // Ensure options array exists
+                // Ensure options array exists with strings
                 if (!updatedQuestion.options || updatedQuestion.options.length === 0) {
                   updatedQuestion.options = ['', '', '', ''];
                 }
-                updatedQuestion.correctAnswer = '0';
+                // Ensure all options are strings
+                updatedQuestion.options = updatedQuestion.options.map(opt => String(opt || ''));
+                updatedQuestion.correctAnswer = String(updatedQuestion.correctAnswer || '0');
                 break;
               case 'chronological-order':
-                // Ensure items array exists for chronological order
+                // Ensure items array exists with strings
                 if (!updatedQuestion.items || updatedQuestion.items.length === 0) {
                   updatedQuestion.items = ['', '', ''];
                 }
+                // Ensure all items are strings
+                updatedQuestion.items = updatedQuestion.items.map(item => String(item || ''));
                 updatedQuestion.correctOrder = [0, 1, 2];
                 break;
               case 'short_answer':
               case 'essay':
-                // These don't need special arrays
-                updatedQuestion.correctAnswer = '';
+                // Ensure correctAnswer is string
+                updatedQuestion.correctAnswer = String(updatedQuestion.correctAnswer || '');
                 break;
             }
+          }
+          
+          // Ensure specific fields are always strings when updated
+          if (field === 'question') {
+            updatedQuestion.question = String(value || '');
+          }
+          if (field === 'correctAnswer') {
+            updatedQuestion.correctAnswer = String(value || '0');
+          }
+          if (field === 'explanation') {
+            updatedQuestion.explanation = String(value || '');
           }
           
           return updatedQuestion;
