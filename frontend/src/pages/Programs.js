@@ -584,6 +584,55 @@ const Programs = () => {
     }));
   };
 
+  const moveFinalTestOrderItemUp = (questionIndex, itemIndex) => {
+    if (itemIndex === 0) return;
+    
+    setNewProgram(prev => ({
+      ...prev,
+      finalTest: {
+        ...prev.finalTest,
+        questions: prev.finalTest.questions.map((question, index) =>
+          index === questionIndex 
+            ? {
+                ...question,
+                items: question.items.map((item, iIdx) => {
+                  if (iIdx === itemIndex) return question.items[itemIndex - 1];
+                  if (iIdx === itemIndex - 1) return question.items[itemIndex];
+                  return item;
+                })
+              } 
+            : question
+        )
+      }
+    }));
+  };
+
+  const moveFinalTestOrderItemDown = (questionIndex, itemIndex) => {
+    setNewProgram(prev => {
+      const currentQuestion = prev.finalTest.questions[questionIndex];
+      if (!currentQuestion || itemIndex >= currentQuestion.items.length - 1) return prev;
+      
+      return {
+        ...prev,
+        finalTest: {
+          ...prev.finalTest,
+          questions: prev.finalTest.questions.map((question, index) =>
+            index === questionIndex 
+              ? {
+                  ...question,
+                  items: question.items.map((item, iIdx) => {
+                    if (iIdx === itemIndex) return question.items[itemIndex + 1];
+                    if (iIdx === itemIndex + 1) return question.items[itemIndex];
+                    return item;
+                  })
+                } 
+              : question
+          )
+        }
+      };
+    });
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
