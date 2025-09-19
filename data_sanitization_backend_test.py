@@ -175,7 +175,7 @@ class DataSanitizationTester:
                         "type": "select-all-that-apply",  # Backend expects hyphen format
                         "question": "Which of the following are benefits of data sanitization?",
                         "options": ["Prevents injection attacks", "Ensures data consistency", "Improves performance", "Reduces storage costs"],  # Array of strings
-                        "correctAnswers": ["0", "1"],  # Array of strings, not integers
+                        "correctAnswers": [0, 1],  # Array of integers as expected by backend
                         "points": 15,
                         "explanation": "Data sanitization prevents attacks and ensures consistency"
                     }
