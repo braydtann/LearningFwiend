@@ -502,7 +502,7 @@ const Programs = () => {
           index === questionIndex 
             ? { 
                 ...question, 
-                options: [...question.options, '']  // Add empty string, not object
+                options: [...(question.options || []).map(opt => String(opt || '')), '']
               } 
             : question
         )
