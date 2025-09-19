@@ -385,13 +385,6 @@ const Programs = () => {
   };
 
   const handleFinalTestQuestionChange = (questionIndex, field, value) => {
-    console.log(`🔍 [DEBUG] handleFinalTestQuestionChange called:`, {
-      questionIndex,
-      field,
-      value,
-      valueType: typeof value
-    });
-    
     setNewProgram(prev => ({
       ...prev,
       finalTest: {
@@ -401,13 +394,8 @@ const Programs = () => {
           
           const updatedQuestion = { ...question, [field]: value };
           
-          console.log(`🔍 [DEBUG] Question before update:`, question);
-          console.log(`🔍 [DEBUG] Question after field update:`, updatedQuestion);
-          
           // Initialize appropriate arrays when question type changes
           if (field === 'type') {
-            console.log(`🔍 [DEBUG] Question type changed to: ${value}`);
-            
             switch (value) {
               case 'multiple_choice':
               case 'select-all-that-apply':
@@ -415,30 +403,24 @@ const Programs = () => {
                 // Ensure options array exists
                 if (!updatedQuestion.options || updatedQuestion.options.length === 0) {
                   updatedQuestion.options = ['', '', '', ''];
-                  console.log(`🔍 [DEBUG] Initialized options array:`, updatedQuestion.options);
                 }
                 updatedQuestion.correctAnswer = '0';
-                console.log(`🔍 [DEBUG] Set correctAnswer to: ${updatedQuestion.correctAnswer}`);
                 break;
               case 'chronological-order':
                 // Ensure items array exists for chronological order
                 if (!updatedQuestion.items || updatedQuestion.items.length === 0) {
                   updatedQuestion.items = ['', '', ''];
-                  console.log(`🔍 [DEBUG] Initialized items array:`, updatedQuestion.items);
                 }
                 updatedQuestion.correctOrder = [0, 1, 2];
-                console.log(`🔍 [DEBUG] Set correctOrder to:`, updatedQuestion.correctOrder);
                 break;
               case 'short_answer':
               case 'essay':
                 // These don't need special arrays
                 updatedQuestion.correctAnswer = '';
-                console.log(`🔍 [DEBUG] Set correctAnswer to empty string`);
                 break;
             }
           }
           
-          console.log(`🔍 [DEBUG] Final updated question:`, updatedQuestion);
           return updatedQuestion;
         })
       }
