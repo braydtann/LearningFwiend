@@ -626,7 +626,7 @@ const CourseDetail = () => {
         setProgressValue(newProgress);
         
         // Check if course is fully completed (100% progress)
-        if (overallProgress >= 100) {
+        if (newProgress >= 100) {
           // Check quiz requirements before allowing course completion
           const quizCheck = await checkQuizRequirements();
           
