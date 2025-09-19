@@ -903,6 +903,8 @@ const Programs = () => {
                         onRemoveOption={removeFinalTestAnswerOption}
                         onAddItem={addFinalTestOrderItem}
                         onRemoveItem={removeFinalTestOrderItem}
+                        onMoveItemUp={moveFinalTestOrderItemUp}
+                        onMoveItemDown={moveFinalTestOrderItemDown}
                       />
                     ))}
 
