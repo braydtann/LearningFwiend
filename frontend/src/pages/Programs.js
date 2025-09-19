@@ -161,11 +161,45 @@ const Programs = () => {
         );
         
         if (hasFinalTestContent) {
+          // Sanitize and validate all question data before sending to backend
+          const sanitizedQuestions = newProgram.finalTest.questions.map(question => {
+            const sanitized = {
+              type: String(question.type || 'multiple_choice'),
+              question: String(question.question || ''),
+              points: Number(question.points) || 10,
+              explanation: String(question.explanation || '')
+            };
+
+            // Handle options for multiple choice and select-all-that-apply questions
+            if (['multiple_choice', 'select-all-that-apply', 'true_false'].includes(sanitized.type)) {
+              sanitized.options = (question.options || []).map(option => String(option || ''));
+              sanitized.correctAnswer = String(question.correctAnswer || '0');
+            }
+
+            // Handle correctAnswers for select-all-that-apply questions  
+            if (sanitized.type === 'select-all-that-apply') {
+              sanitized.correctAnswers = (question.correctAnswers || []).map(answer => String(answer));
+            }
+
+            // Handle items for chronological-order questions
+            if (sanitized.type === 'chronological-order') {
+              sanitized.items = (question.items || []).map(item => String(item || ''));
+              sanitized.correctOrder = (question.correctOrder || []).map(order => Number(order));
+            }
+
+            // Handle short_answer and essay questions
+            if (['short_answer', 'essay'].includes(sanitized.type)) {
+              sanitized.correctAnswer = String(question.correctAnswer || '');
+            }
+
+            return sanitized;
+          });
+
           const finalTestData = {
             title: newProgram.finalTest.title || `${newProgram.title} Final Assessment`,
             description: newProgram.finalTest.description || `Comprehensive final test for ${newProgram.title}`,
-            programId: result.program?.id || result.id, // Handle both response formats
-            questions: newProgram.finalTest.questions,
+            programId: result.program?.id || result.id,
+            questions: sanitizedQuestions,
             timeLimit: newProgram.finalTest.timeLimit || 90,
             maxAttempts: newProgram.finalTest.maxAttempts || 2,
             passingScore: newProgram.finalTest.passingScore || 75,
