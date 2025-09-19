@@ -160,10 +160,6 @@ const Programs = () => {
           (newProgram.finalTest.description && newProgram.finalTest.description.trim() !== '')
         );
         
-        console.log('🔍 [DEBUG] Has final test content:', hasFinalTestContent);
-        console.log('🔍 [DEBUG] Final test questions:', newProgram.finalTest.questions);
-        console.log('🔍 [DEBUG] Final test questions length:', newProgram.finalTest.questions.length);
-        
         if (hasFinalTestContent) {
           const finalTestData = {
             title: newProgram.finalTest.title || `${newProgram.title} Final Assessment`,
@@ -178,28 +174,11 @@ const Programs = () => {
             isPublished: true
           };
 
-          console.log('🔍 [DEBUG] Final test data before sending:', JSON.stringify(finalTestData, null, 2));
-          console.log('🔍 [DEBUG] Final test questions detailed:', finalTestData.questions.map((q, i) => ({
-            index: i,
-            type: q.type,
-            question: q.question.substring(0, 50),
-            options: q.options,
-            items: q.items,
-            correctAnswer: q.correctAnswer,
-            correctAnswers: q.correctAnswers,
-            correctOrder: q.correctOrder
-          })));
-          
           const finalTestResult = await createFinalTest(finalTestData);
-          console.log('🔍 [DEBUG] Final test creation result:', finalTestResult);
           
           if (!finalTestResult.success) {
             finalTestCreated = false;
             finalTestError = finalTestResult.error;
-            console.error('🚨 [DEBUG] Failed to create final test:', finalTestResult.error);
-            console.error('🚨 [DEBUG] Error details:', typeof finalTestResult.error === 'object' ? JSON.stringify(finalTestResult.error, null, 2) : finalTestResult.error);
-          } else {
-            console.log('✅ [DEBUG] Final test created successfully:', finalTestResult.test);
           }
         } else {
           console.log('No final test questions provided, skipping final test creation');
