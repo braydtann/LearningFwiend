@@ -491,7 +491,7 @@ class DataSanitizationTester:
                         "type": "select-all-that-apply",
                         "question": "Which fields require string sanitization?",
                         "options": ["Options arrays", "Items arrays", "CorrectAnswer fields", "Question text"],  # Strings only
-                        "correctAnswers": ["0", "1", "2", "3"],  # Strings, not integers
+                        "correctAnswers": [0, 1, 2, 3],  # Integers as expected by backend
                         "points": 15,
                         "explanation": "All these fields require proper string sanitization"
                     },
