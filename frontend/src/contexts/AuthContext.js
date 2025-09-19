@@ -2364,14 +2364,8 @@ export const AuthProvider = ({ children }) => {
   // =============================================================================
 
   const createFinalTest = async (testData) => {
-    console.log('🔍 [DEBUG] createFinalTest called with data:', testData);
-    console.log('🔍 [DEBUG] testData.questions:', testData.questions);
-    console.log('🔍 [DEBUG] testData.questions detailed:', JSON.stringify(testData.questions, null, 2));
-    
     try {
       const token = localStorage.getItem('auth_token');
-      console.log('🔍 [DEBUG] Auth token exists:', !!token);
-      
       const response = await fetch(`${backendUrl}/api/final-tests`, {
         method: 'POST',
         headers: {
@@ -2381,27 +2375,18 @@ export const AuthProvider = ({ children }) => {
         body: JSON.stringify(testData),
       });
 
-      console.log('🔍 [DEBUG] Response status:', response.status);
-      console.log('🔍 [DEBUG] Response headers:', Object.fromEntries(response.headers.entries()));
-
       if (response.ok) {
         const newTest = await response.json();
-        console.log('✅ [DEBUG] Final test created successfully:', newTest);
         return { success: true, test: newTest };
       } else {
         const errorData = await response.json();
-        console.error('🚨 [DEBUG] Final test creation failed with status:', response.status);
-        console.error('🚨 [DEBUG] Error data:', errorData);
-        console.error('🚨 [DEBUG] Error data type:', typeof errorData);
-        console.error('🚨 [DEBUG] Error data stringified:', JSON.stringify(errorData, null, 2));
-        
         return { 
           success: false, 
           error: errorData.detail || 'Failed to create final test' 
         };
       }
     } catch (error) {
-      console.error('🚨 [DEBUG] Create final test network error:', error);
+      console.error('Create final test error:', error);
       return { 
         success: false, 
         error: 'Network error. Please try again.' 
