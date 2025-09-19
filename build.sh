@@ -9,12 +9,12 @@ cd /app/frontend
 # Install dependencies if needed
 if [ ! -d "node_modules" ]; then
     echo "📥 Installing frontend dependencies..."
-    npm install
+    yarn install
 fi
 
 # Build for production
 echo "⚙️  Building production bundle..."
-npm run build
+yarn build
 
 if [ $? -ne 0 ]; then
     echo "❌ Frontend build failed!"
