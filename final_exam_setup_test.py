@@ -22,7 +22,7 @@ from datetime import datetime
 from typing import Dict, List, Optional
 
 # Configuration
-BACKEND_URL = "https://lms-chronology-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://lms-debugfix.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_CREDENTIALS = {

@@ -19,7 +19,7 @@ import sys
 from datetime import datetime
 import uuid
 
-BACKEND_URL = "https://lms-chronology-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://lms-debugfix.preview.emergentagent.com/api"
 ADMIN_EMAIL = "brayden.t@covesmart.com"
 ADMIN_PASSWORD = "Hawaii2020!"
 
