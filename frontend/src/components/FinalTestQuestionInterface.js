@@ -266,7 +266,7 @@ const FinalTestQuestionInterface = ({
                   <input
                     type="radio"
                     name={`true_false-${question.id}`}
-                    checked={question.correctAnswer === 0}
+                    checked={String(question.correctAnswer) === '0'}
                     onChange={() => onQuestionChange(questionIndex, 'correctAnswer', 0)}
                     className="text-purple-600"
                   />
@@ -276,7 +276,7 @@ const FinalTestQuestionInterface = ({
                   <input
                     type="radio"
                     name={`true_false-${question.id}`}
-                    checked={question.correctAnswer === 1}
+                    checked={String(question.correctAnswer) === '1'}
                     onChange={() => onQuestionChange(questionIndex, 'correctAnswer', 1)}
                     className="text-purple-600"
                   />
