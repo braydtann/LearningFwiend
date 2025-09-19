@@ -150,15 +150,7 @@ const FinalTestQuestionInterface = ({
                     <Input
                       placeholder={`Option ${optionIndex + 1} text`}
                       value={option || ''}
-                      onChange={(e) => {
-                        console.log(`🔍 [DEBUG] Option input changed:`, {
-                          questionIndex,
-                          optionIndex,
-                          value: e.target.value,
-                          currentOption: option
-                        });
-                        onOptionChange(questionIndex, optionIndex, e.target.value)
-                      }}
+                      onChange={(e) => onOptionChange(questionIndex, optionIndex, e.target.value)}
                     />
                     {(question.options || []).length > 2 && (
                       <Button
