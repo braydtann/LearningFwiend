@@ -19,7 +19,9 @@ const FinalTestQuestionInterface = ({
   onAddOption,
   onRemoveOption,
   onAddItem,
-  onRemoveItem
+  onRemoveItem,
+  onMoveItemUp,
+  onMoveItemDown
 }) => {
   return (
     <Card key={question.id} className="border-purple-200 bg-purple-50/30">
