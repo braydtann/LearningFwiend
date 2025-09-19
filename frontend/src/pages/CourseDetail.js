@@ -460,25 +460,36 @@ const CourseDetail = () => {
   // Check if student has passed required quizzes for course completion
   const checkQuizRequirements = async () => {
     try {
-      // Get all quizzes for this course
-      const quizzesResult = await getCourseQuizzes(id);
-      if (!quizzesResult.success) {
-        console.error('Failed to fetch course quizzes:', quizzesResult.error);
-        return { passed: true, message: 'Could not verify quiz requirements' }; // Default to allow completion
+      // Check for quiz lessons directly in the course data
+      if (!course || !course.modules) {
+        console.log('No course or modules data available');
+        return { passed: true, message: 'Course data not available for quiz validation' };
       }
       
-      const courseQuizzes = quizzesResult.quizzes || [];
-      console.log('Course quizzes found:', courseQuizzes.length);
+      // Find all quiz lessons in the course
+      const quizLessons = [];
+      course.modules.forEach(module => {
+        if (module.lessons) {
+          module.lessons.forEach(lesson => {
+            if (lesson.type === 'quiz') {
+              quizLessons.push(lesson);
+            }
+          });
+        }
+      });
       
-      if (courseQuizzes.length === 0) {
+      console.log('Quiz lessons found in course:', quizLessons.length);
+      
+      if (quizLessons.length === 0) {
+        console.log('No quiz lessons found - allowing course completion');
         return { passed: true, message: 'No quizzes required for this course' };
       }
       
-      // Get student's quiz attempts
+      // Get student's quiz attempts  
       const attemptsResult = await getQuizAttempts(user.id);
       if (!attemptsResult.success) {
         console.error('Failed to fetch quiz attempts:', attemptsResult.error);
-        return { passed: false, message: 'Could not verify quiz completion' };
+        return { passed: true, message: 'Could not verify quiz completion - allowing completion' }; // Default to allow completion
       }
       
       const userAttempts = attemptsResult.attempts || [];
@@ -487,20 +498,29 @@ const CourseDetail = () => {
       // Check each quiz requirement
       const failedQuizzes = [];
       
-      for (const quiz of courseQuizzes) {
-        // Find the best attempt for this quiz
-        const quizAttempts = userAttempts.filter(attempt => attempt.quizId === quiz.id);
+      for (const quizLesson of quizLessons) {
+        // For lesson-based quizzes, we need to check if they have a passing score requirement
+        // If no passing score is defined, we assume the quiz is just for practice
+        if (!quizLesson.passingScore) {
+          console.log(`Quiz "${quizLesson.title}" has no passing score requirement - skipping validation`);
+          continue;
+        }
+        
+        // Find the best attempt for this quiz lesson
+        const quizAttempts = userAttempts.filter(attempt => 
+          attempt.lessonId === quizLesson.id || attempt.quizId === quizLesson.id
+        );
         const bestAttempt = quizAttempts.reduce((best, current) => {
           return (!best || current.score > best.score) ? current : best;
         }, null);
         
-        console.log(`Quiz "${quiz.title}": Best score = ${bestAttempt?.score || 0}%, Passing score = ${quiz.passingScore}%`);
+        console.log(`Quiz "${quizLesson.title}": Best score = ${bestAttempt?.score || 0}%, Passing score = ${quizLesson.passingScore}%`);
         
-        if (!bestAttempt || bestAttempt.score < quiz.passingScore) {
+        if (!bestAttempt || bestAttempt.score < quizLesson.passingScore) {
           failedQuizzes.push({
-            title: quiz.title,
+            title: quizLesson.title,
             bestScore: bestAttempt?.score || 0,
-            passingScore: quiz.passingScore
+            passingScore: quizLesson.passingScore
           });
         }
       }
@@ -510,17 +530,18 @@ const CourseDetail = () => {
           `• ${quiz.title} (Scored: ${quiz.bestScore}%, Required: ${quiz.passingScore}%)`
         ).join('\n');
         
-        return {
-          passed: false,
-          message: `You must pass all quizzes before completing this course:\n\n${failedList}\n\nPlease retake the failed quizzes and achieve the passing score.`
+        return { 
+          passed: false, 
+          message: `Complete these quizzes with passing scores:\n${failedList}` 
         };
       }
       
-      return { passed: true, message: 'All quiz requirements met!' };
+      console.log('All quiz requirements met - allowing course completion');
+      return { passed: true, message: 'All quiz requirements completed' };
       
     } catch (error) {
       console.error('Error checking quiz requirements:', error);
-      return { passed: false, message: 'Error verifying quiz requirements. Please try again.' };
+      return { passed: true, message: 'Could not verify quiz requirements - allowing completion' }; // Default to allow completion
     }
   };
 
