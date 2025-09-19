@@ -335,15 +335,7 @@ const FinalTestQuestionInterface = ({
                     <Input
                       placeholder={`Item ${itemIndex + 1} text`}
                       value={item || ''}
-                      onChange={(e) => {
-                        console.log(`🔍 [DEBUG] Chronological order item input changed:`, {
-                          questionIndex,
-                          itemIndex,
-                          value: e.target.value,
-                          currentItem: item
-                        });
-                        onItemChange(questionIndex, itemIndex, e.target.value)
-                      }}
+                      onChange={(e) => onItemChange(questionIndex, itemIndex, e.target.value)}
                     />
                     <Button
                       type="button"
