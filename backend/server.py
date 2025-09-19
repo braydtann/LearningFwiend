@@ -50,10 +50,15 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
 
 # MongoDB connection
-mongo_url = os.environ['MONGO_URL']
-db_name = os.environ.get('DB_NAME', 'test_database')
+mongo_url = os.environ.get('MONGO_URL')
+if not mongo_url:
+    logger.error("MONGO_URL environment variable is required")
+    raise ValueError("MONGO_URL environment variable must be set")
 
-logger.info(f"Connecting to MongoDB: {mongo_url[:20]}...")
+db_name = os.environ.get('DB_NAME', 'learningfriend_lms')
+
+logger.info(f"Connecting to MongoDB database: {db_name}")
+logger.info(f"MongoDB URL configured: {mongo_url[:50]}..." if len(mongo_url) > 50 else f"MongoDB URL configured: {mongo_url}")
 logger.info(f"Database name: {db_name}")
 
 # Add additional connection options for Atlas MongoDB if needed
