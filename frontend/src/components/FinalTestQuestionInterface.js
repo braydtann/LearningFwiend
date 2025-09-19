@@ -143,7 +143,7 @@ const FinalTestQuestionInterface = ({
                     <input
                       type="radio"
                       name={`final-correct-${question.id}`}
-                      checked={question.correctAnswer === optionIndex}
+                      checked={String(question.correctAnswer) === String(optionIndex)}
                       onChange={() => onQuestionChange(questionIndex, 'correctAnswer', optionIndex)}
                       className="text-purple-600"
                     />
