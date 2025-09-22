@@ -7,7 +7,7 @@ import requests
 import json
 import sys
 
-BACKEND_URL = "https://lms-debugfix.preview.emergentagent.com/api"
+BACKEND_URL = "https://lms-bug-fixes.preview.emergentagent.com/api"
 TEST_TIMEOUT = 10
 
 class FixTester:

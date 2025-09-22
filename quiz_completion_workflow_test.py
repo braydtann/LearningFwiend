@@ -14,7 +14,7 @@ from datetime import datetime
 from pathlib import Path
 
 # Configuration
-BACKEND_URL = "https://lms-debugfix.preview.emergentagent.com/api"
+BACKEND_URL = "https://lms-bug-fixes.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_CREDENTIALS = {

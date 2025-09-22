@@ -12,7 +12,7 @@ import requests
 import json
 from datetime import datetime
 
-BACKEND_URL = "https://lms-debugfix.preview.emergentagent.com/api"
+BACKEND_URL = "https://lms-bug-fixes.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 def authenticate_admin():

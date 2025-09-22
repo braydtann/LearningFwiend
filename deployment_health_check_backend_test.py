@@ -26,7 +26,7 @@ from pathlib import Path
 import uuid
 
 # Configuration
-BACKEND_URL = "https://lms-debugfix.preview.emergentagent.com/api"
+BACKEND_URL = "https://lms-bug-fixes.preview.emergentagent.com/api"
 ADMIN_CREDENTIALS = {
     "username_or_email": "brayden.t@covesmart.com",
     "password": "Hawaii2020!"
