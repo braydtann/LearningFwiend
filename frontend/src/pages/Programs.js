@@ -233,6 +233,17 @@ const Programs = () => {
             isPublished: true
           };
 
+          console.log('🚀 DEBUG: Final test data being sent to API:', {
+            title: finalTestData.title,
+            questionsCount: finalTestData.questions.length,
+            questions: finalTestData.questions.map(q => ({
+              id: q.id,
+              type: q.type,
+              correctAnswer: q.correctAnswer,
+              correctAnswerType: typeof q.correctAnswer
+            }))
+          });
+
           const finalTestResult = await createFinalTest(finalTestData);
           
           if (!finalTestResult.success) {
