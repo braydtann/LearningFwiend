@@ -276,7 +276,15 @@ const FinalTestQuestionInterface = ({
                     type="radio"
                     name={`true_false-${question.id}`}
                     checked={String(question.correctAnswer) === 'true'}
-                    onChange={() => onQuestionChange(questionIndex, 'correctAnswer', 'true')}
+                    onChange={() => {
+                      console.log('🔴 TRUE/FALSE RADIO CLICKED:', {
+                        questionIndex,
+                        value: 'true',
+                        questionId: question.id,
+                        currentCorrectAnswer: question.correctAnswer
+                      });
+                      onQuestionChange(questionIndex, 'correctAnswer', 'true');
+                    }}
                     className="text-purple-600"
                   />
                   <span>True</span>
@@ -286,7 +294,15 @@ const FinalTestQuestionInterface = ({
                     type="radio"
                     name={`true_false-${question.id}`}
                     checked={String(question.correctAnswer) === 'false'}
-                    onChange={() => onQuestionChange(questionIndex, 'correctAnswer', 'false')}
+                    onChange={() => {
+                      console.log('🔴 TRUE/FALSE RADIO CLICKED:', {
+                        questionIndex,
+                        value: 'false', 
+                        questionId: question.id,
+                        currentCorrectAnswer: question.correctAnswer
+                      });
+                      onQuestionChange(questionIndex, 'correctAnswer', 'false');
+                    }}
                     className="text-purple-600"
                   />
                   <span>False</span>
