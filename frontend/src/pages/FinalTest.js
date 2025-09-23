@@ -353,7 +353,17 @@ const FinalTest = () => {
           <div className="space-y-4">
             <RadioGroup
               value={currentAnswer || ''}
-              onValueChange={(value) => handleAnswerChange(question.id, value)}
+              onValueChange={(value) => {
+                // For multiple choice, we need to store the index, not the option text
+                const selectedIndex = question.options?.findIndex(option => option === value);
+                console.log('🔍 DEBUG: Multiple Choice answer change:', {
+                  questionId: question.id,
+                  selectedOption: value,
+                  selectedIndex: selectedIndex,
+                  allOptions: question.options
+                });
+                handleAnswerChange(question.id, selectedIndex !== -1 ? selectedIndex : value);
+              }}
             >
               {question.options?.map((option, index) => (
                 <div key={index} className="flex items-center space-x-2">
