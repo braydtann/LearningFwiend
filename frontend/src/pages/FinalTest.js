@@ -292,6 +292,16 @@ const FinalTest = () => {
         timeSpent: finalTest.timeLimit ? (finalTest.timeLimit * 60 - (timeRemaining || 0)) : null
       };
 
+      console.log('🔍 DEBUG: Final exam submission data:', {
+        testId: attemptData.testId,
+        answersCount: attemptData.answers.length,
+        answers: attemptData.answers.map(a => ({
+          questionId: a.questionId,
+          answer: a.answer,
+          answerType: typeof a.answer
+        }))
+      });
+
       const result = await submitFinalTestAttempt(attemptData);
       
       if (result.success) {
