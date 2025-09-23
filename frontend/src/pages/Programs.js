@@ -411,61 +411,101 @@ const Programs = () => {
   };
 
   const handleFinalTestQuestionChange = (questionIndex, field, value) => {
-    setNewProgram(prev => ({
-      ...prev,
-      finalTest: {
-        ...prev.finalTest,
-        questions: prev.finalTest.questions.map((question, index) => {
-          if (index !== questionIndex) return question;
-          
-          const updatedQuestion = { ...question, [field]: value };
-          
-          // Initialize appropriate arrays when question type changes
-          if (field === 'type') {
-            switch (value) {
-              case 'multiple_choice':
-              case 'select-all-that-apply':
-              case 'true_false':
-                // Ensure options array exists with strings
-                if (!updatedQuestion.options || updatedQuestion.options.length === 0) {
-                  updatedQuestion.options = ['', '', '', ''];
-                }
-                // Ensure all options are strings
-                updatedQuestion.options = updatedQuestion.options.map(opt => String(opt || ''));
-                updatedQuestion.correctAnswer = String(updatedQuestion.correctAnswer || '0');
-                break;
-              case 'chronological-order':
-                // Ensure items array exists with strings
-                if (!updatedQuestion.items || updatedQuestion.items.length === 0) {
-                  updatedQuestion.items = ['', '', ''];
-                }
-                // Ensure all items are strings
-                updatedQuestion.items = updatedQuestion.items.map(item => String(item || ''));
-                updatedQuestion.correctOrder = [0, 1, 2];
-                break;
-              case 'short_answer':
-              case 'essay':
-                // Ensure correctAnswer is string
-                updatedQuestion.correctAnswer = String(updatedQuestion.correctAnswer || '');
-                break;
+    console.log('🔍 DEBUG: handleFinalTestQuestionChange called:', {
+      questionIndex,
+      field,
+      value,
+      valueType: typeof value
+    });
+    
+    setNewProgram(prev => {
+      const currentQuestion = prev.finalTest.questions[questionIndex];
+      console.log('🔍 DEBUG: Current question before update:', {
+        id: currentQuestion?.id,
+        type: currentQuestion?.type,
+        correctAnswer: currentQuestion?.correctAnswer,
+        correctAnswerType: typeof currentQuestion?.correctAnswer
+      });
+      
+      const updated = {
+        ...prev,
+        finalTest: {
+          ...prev.finalTest,
+          questions: prev.finalTest.questions.map((question, index) => {
+            if (index !== questionIndex) return question;
+            
+            const updatedQuestion = { ...question, [field]: value };
+            
+            console.log('🔍 DEBUG: Question after field update:', {
+              id: updatedQuestion.id,
+              field: field,
+              value: value,
+              updatedCorrectAnswer: updatedQuestion.correctAnswer,
+              updatedCorrectAnswerType: typeof updatedQuestion.correctAnswer
+            });
+            
+            // Initialize appropriate arrays when question type changes
+            if (field === 'type') {
+              switch (value) {
+                case 'multiple_choice':
+                case 'select-all-that-apply':
+                case 'true_false':
+                  // Ensure options array exists with strings
+                  if (!updatedQuestion.options || updatedQuestion.options.length === 0) {
+                    updatedQuestion.options = ['', '', '', ''];
+                  }
+                  // Ensure all options are strings
+                  updatedQuestion.options = updatedQuestion.options.map(opt => String(opt || ''));
+                  updatedQuestion.correctAnswer = String(updatedQuestion.correctAnswer || '0');
+                  break;
+                case 'chronological-order':
+                  // Ensure items array exists with strings
+                  if (!updatedQuestion.items || updatedQuestion.items.length === 0) {
+                    updatedQuestion.items = ['', '', ''];
+                  }
+                  // Ensure all items are strings
+                  updatedQuestion.items = updatedQuestion.items.map(item => String(item || ''));
+                  updatedQuestion.correctOrder = [0, 1, 2];
+                  break;
+                case 'short_answer':
+                case 'essay':
+                  // Ensure correctAnswer is string
+                  updatedQuestion.correctAnswer = String(updatedQuestion.correctAnswer || '');
+                  break;
+              }
             }
-          }
-          
-          // Ensure specific fields are always strings when updated
-          if (field === 'question') {
-            updatedQuestion.question = String(value || '');
-          }
-          if (field === 'correctAnswer') {
-            updatedQuestion.correctAnswer = String(value || '0');
-          }
-          if (field === 'explanation') {
-            updatedQuestion.explanation = String(value || '');
-          }
-          
-          return updatedQuestion;
-        })
-      }
-    }));
+            
+            // Ensure specific fields are always strings when updated
+            if (field === 'question') {
+              updatedQuestion.question = String(value || '');
+            }
+            if (field === 'correctAnswer') {
+              updatedQuestion.correctAnswer = String(value || '0');
+              console.log('🔍 DEBUG: Explicitly set correctAnswer to:', updatedQuestion.correctAnswer);
+            }
+            if (field === 'explanation') {
+              updatedQuestion.explanation = String(value || '');
+            }
+            
+            console.log('🔍 DEBUG: Final question after all processing:', {
+              id: updatedQuestion.id,
+              correctAnswer: updatedQuestion.correctAnswer,
+              correctAnswerType: typeof updatedQuestion.correctAnswer
+            });
+            
+            return updatedQuestion;
+          })
+        }
+      };
+      
+      console.log('🔍 DEBUG: Full updated state questions:', updated.finalTest.questions.map(q => ({
+        id: q.id,
+        type: q.type,
+        correctAnswer: q.correctAnswer
+      })));
+      
+      return updated;
+    });
   };
 
   const handleFinalTestOptionChange = (questionIndex, optionIndex, value) => {
