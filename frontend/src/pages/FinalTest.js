@@ -382,8 +382,8 @@ const FinalTest = () => {
         return (
           <div className="space-y-4">
             {question.options?.map((option, index) => {
-              const selectedOptions = currentAnswer || [];
-              const isChecked = selectedOptions.includes(option);
+              const selectedIndices = Array.isArray(currentAnswer) ? currentAnswer : [];
+              const isChecked = selectedIndices.includes(index);
               
               return (
                 <div key={index} className="flex items-center space-x-2">
@@ -391,12 +391,19 @@ const FinalTest = () => {
                     id={`option-${index}`}
                     checked={isChecked}
                     onCheckedChange={(checked) => {
-                      let newSelection = [...selectedOptions];
+                      let newSelection = [...selectedIndices];
                       if (checked && !isChecked) {
-                        newSelection.push(option);
+                        newSelection.push(index);  // Store index, not option text
                       } else if (!checked && isChecked) {
-                        newSelection = newSelection.filter(item => item !== option);
+                        newSelection = newSelection.filter(idx => idx !== index);
                       }
+                      console.log('🔍 DEBUG: Select All That Apply answer change:', {
+                        questionId: question.id,
+                        selectedOption: option,
+                        selectedIndex: index,
+                        newSelection: newSelection,
+                        allOptions: question.options
+                      });
                       handleAnswerChange(question.id, newSelection);
                     }}
                   />
