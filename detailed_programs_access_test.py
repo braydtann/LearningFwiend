@@ -17,7 +17,7 @@ import sys
 from datetime import datetime
 
 # Configuration
-BACKEND_URL = "https://lms-bug-fixes.preview.emergentagent.com/api"
+BACKEND_URL = "https://learning-score-fix.preview.emergentagent.com/api"
 
 # Test credentials
 STUDENT_EMAIL = "brayden.student@learningfwiend.com"

@@ -13,7 +13,7 @@ import time
 import uuid
 
 # Configuration
-BACKEND_URL = "https://lms-bug-fixes.preview.emergentagent.com/api"
+BACKEND_URL = "https://learning-score-fix.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 # Admin credentials

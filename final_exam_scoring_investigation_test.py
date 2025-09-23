@@ -20,7 +20,7 @@ from datetime import datetime
 import uuid
 
 # Configuration
-BACKEND_URL = "https://lms-bug-fixes.preview.emergentagent.com/api"
+BACKEND_URL = "https://learning-score-fix.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_EMAIL = "brayden.t@covesmart.com"

@@ -21,7 +21,7 @@ from datetime import datetime
 import uuid
 
 # Configuration
-BACKEND_URL = "https://lms-bug-fixes.preview.emergentagent.com"
+BACKEND_URL = "https://learning-score-fix.preview.emergentagent.com"
 API_BASE = f"{BACKEND_URL}/api"
 
 # Test credentials from review request
