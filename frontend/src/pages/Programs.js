@@ -181,11 +181,24 @@ const Programs = () => {
             if (['multiple_choice', 'select-all-that-apply'].includes(sanitized.type)) {
               sanitized.options = (question.options || []).map(option => String(option || ''));
               sanitized.correctAnswer = String(question.correctAnswer || '0');
+              
+              console.log('🔍 DEBUG: Multiple choice sanitized:', {
+                questionId: question.id,
+                originalCorrectAnswer: question.correctAnswer,
+                sanitizedCorrectAnswer: sanitized.correctAnswer,
+                options: sanitized.options
+              });
             }
 
             // Handle true/false questions (use string values, not indices)
             if (sanitized.type === 'true_false') {
               sanitized.correctAnswer = String(question.correctAnswer || 'true');
+              
+              console.log('🔍 DEBUG: True/false sanitized:', {
+                questionId: question.id,
+                originalCorrectAnswer: question.correctAnswer,
+                sanitizedCorrectAnswer: sanitized.correctAnswer
+              });
             }
 
             // Handle correctAnswers for select-all-that-apply questions  
