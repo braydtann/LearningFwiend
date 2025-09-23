@@ -267,8 +267,8 @@ const FinalTestQuestionInterface = ({
                   <input
                     type="radio"
                     name={`true_false-${question.id}`}
-                    checked={String(question.correctAnswer) === '0'}
-                    onChange={() => onQuestionChange(questionIndex, 'correctAnswer', 0)}
+                    checked={String(question.correctAnswer) === 'true'}
+                    onChange={() => onQuestionChange(questionIndex, 'correctAnswer', 'true')}
                     className="text-purple-600"
                   />
                   <span>True</span>
@@ -277,8 +277,8 @@ const FinalTestQuestionInterface = ({
                   <input
                     type="radio"
                     name={`true_false-${question.id}`}
-                    checked={String(question.correctAnswer) === '1'}
-                    onChange={() => onQuestionChange(questionIndex, 'correctAnswer', 1)}
+                    checked={String(question.correctAnswer) === 'false'}
+                    onChange={() => onQuestionChange(questionIndex, 'correctAnswer', 'false')}
                     className="text-purple-600"
                   />
                   <span>False</span>
