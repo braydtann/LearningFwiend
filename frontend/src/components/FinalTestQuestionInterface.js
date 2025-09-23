@@ -145,7 +145,15 @@ const FinalTestQuestionInterface = ({
                       type="radio"
                       name={`final-correct-${question.id}`}
                       checked={String(question.correctAnswer) === String(optionIndex)}
-                      onChange={() => onQuestionChange(questionIndex, 'correctAnswer', optionIndex)}
+                      onChange={() => {
+                        console.log('🔴 RADIO BUTTON CLICKED:', {
+                          questionIndex,
+                          optionIndex,
+                          questionId: question.id,
+                          currentCorrectAnswer: question.correctAnswer
+                        });
+                        onQuestionChange(questionIndex, 'correctAnswer', optionIndex);
+                      }}
                       className="text-purple-600"
                     />
                     <Input
