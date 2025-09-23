@@ -221,7 +221,7 @@ class FinalExamDataFormatTester:
             print(f"   Data: {json.dumps(answers_dict, indent=2)}")
             
             attempt_data = {
-                "finalTestId": self.test_final_test_id,
+                "testId": self.test_final_test_id,  # Use testId, not finalTestId
                 "answers": answers_dict  # Dictionary format
             }
             
