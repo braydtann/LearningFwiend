@@ -449,7 +449,6 @@ const Programs = () => {
               switch (value) {
                 case 'multiple_choice':
                 case 'select-all-that-apply':
-                case 'true_false':
                   // Ensure options array exists with strings
                   if (!updatedQuestion.options || updatedQuestion.options.length === 0) {
                     updatedQuestion.options = ['', '', '', ''];
@@ -457,6 +456,10 @@ const Programs = () => {
                   // Ensure all options are strings
                   updatedQuestion.options = updatedQuestion.options.map(opt => String(opt || ''));
                   updatedQuestion.correctAnswer = String(updatedQuestion.correctAnswer || '0');
+                  break;
+                case 'true_false':
+                  // For true/false, use string values "true"/"false" not indices
+                  updatedQuestion.correctAnswer = 'true'; // Default to true
                   break;
                 case 'chronological-order':
                   // Ensure items array exists with strings
