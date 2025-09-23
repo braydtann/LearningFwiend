@@ -157,6 +157,16 @@ class FinalExamDataFormatTester:
                 print(f"   Final Test ID: {self.test_final_test_id}")
                 print(f"   Questions: {len(data['questions'])}")
                 print(f"   Total Points: {data['totalPoints']}")
+                
+                # Publish the final exam so students can access it
+                publish_data = {"status": "published"}
+                publish_response = self.session.put(f"{BASE_URL}/final-tests/{self.test_final_test_id}", 
+                                                  json=publish_data, headers=headers)
+                if publish_response.status_code == 200:
+                    print(f"✅ Final exam published successfully")
+                else:
+                    print(f"⚠️  Final exam publish failed: {publish_response.status_code} - {publish_response.text}")
+                
                 return True
             else:
                 print(f"❌ Final exam creation failed: {response.status_code} - {response.text}")
