@@ -352,7 +352,7 @@ const FinalTest = () => {
         return (
           <div className="space-y-4">
             <RadioGroup
-              value={currentAnswer || ''}
+              value={typeof currentAnswer === 'number' ? question.options?.[currentAnswer] || '' : currentAnswer || ''}
               onValueChange={(value) => {
                 // For multiple choice, we need to store the index, not the option text
                 const selectedIndex = question.options?.findIndex(option => option === value);
@@ -362,7 +362,8 @@ const FinalTest = () => {
                   selectedIndex: selectedIndex,
                   allOptions: question.options
                 });
-                handleAnswerChange(question.id, selectedIndex !== -1 ? selectedIndex : value);
+                // Store the index for backend compatibility
+                handleAnswerChange(question.id, selectedIndex);
               }}
             >
               {question.options?.map((option, index) => (
