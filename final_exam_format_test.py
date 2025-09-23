@@ -117,6 +117,7 @@ class FinalExamDataFormatTester:
                 "passingScore": 75.0,
                 "maxAttempts": 3,
                 "timeLimit": 60,
+                "isPublished": True,  # Make it accessible to students
                 "questions": [
                     {
                         "type": "multiple_choice",
