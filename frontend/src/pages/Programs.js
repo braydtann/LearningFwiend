@@ -163,6 +163,13 @@ const Programs = () => {
         if (hasFinalTestContent) {
           // Sanitize and validate all question data before sending to backend
           const sanitizedQuestions = newProgram.finalTest.questions.map(question => {
+            console.log('🔍 DEBUG: Processing question for sanitization:', {
+              id: question.id,
+              type: question.type,
+              correctAnswer: question.correctAnswer,
+              correctAnswerType: typeof question.correctAnswer
+            });
+            
             const sanitized = {
               type: String(question.type || 'multiple_choice'),
               question: String(question.question || ''),
@@ -174,6 +181,12 @@ const Programs = () => {
             if (['multiple_choice', 'select-all-that-apply', 'true_false'].includes(sanitized.type)) {
               sanitized.options = (question.options || []).map(option => String(option || ''));
               sanitized.correctAnswer = String(question.correctAnswer || '0');
+              
+              console.log('🔍 DEBUG: After sanitization:', {
+                questionId: question.id,
+                originalCorrectAnswer: question.correctAnswer,
+                sanitizedCorrectAnswer: sanitized.correctAnswer
+              });
             }
 
             // Handle correctAnswers for select-all-that-apply questions  
