@@ -4807,7 +4807,47 @@ async def get_final_test_attempts(
     
     attempts = await db.final_test_attempts.find(query).sort("created_at", -1).to_list(1000)
     
-    return [FinalTestAttemptResponse(**attempt) for attempt in attempts]
+    # Convert to response objects with proper field mapping
+    response_attempts = []
+    for attempt in attempts:
+        # Get test and program information
+        test_title = "Unknown Test"
+        program_id = ""
+        program_name = "Unknown Program"
+        
+        if attempt.get('testId'):
+            test = await db.final_tests.find_one({"id": attempt['testId']})
+            if test:
+                test_title = test.get('title', 'Unknown Test')
+                program_id = test.get('programId', '')
+                if program_id:
+                    program = await db.programs.find_one({"id": program_id})
+                    if program:
+                        program_name = program.get('title', 'Unknown Program')
+        
+        response_attempt = FinalTestAttemptResponse(
+            id=attempt['id'],
+            testId=attempt.get('testId', ''),
+            testTitle=test_title,
+            programId=program_id,
+            programName=program_name,
+            studentId=attempt.get('studentId', ''),
+            studentName=attempt.get('studentName', 'Unknown Student'),
+            score=attempt.get('score', 0.0),
+            pointsEarned=attempt.get('pointsEarned', 0),
+            totalPoints=attempt.get('totalPoints', 0),
+            isPassed=attempt.get('isPassed', False),
+            timeSpent=attempt.get('timeSpent'),
+            startedAt=attempt.get('startedAt', attempt.get('created_at', datetime.utcnow())),
+            completedAt=attempt.get('completedAt'),
+            attemptNumber=attempt.get('attemptNumber', 1),
+            status=attempt.get('status', 'completed'),
+            isActive=attempt.get('isActive', True),
+            created_at=attempt.get('created_at', datetime.utcnow())
+        )
+        response_attempts.append(response_attempt)
+    
+    return response_attempts
 
 @api_router.get("/final-test-attempts/{attempt_id}", response_model=FinalTestAttemptWithAnswersResponse)
 async def get_final_test_attempt(
