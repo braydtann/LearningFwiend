@@ -236,11 +236,50 @@ const GradingCenter = () => {
           <h1 className="text-3xl font-bold text-gray-900">Grading Center</h1>
           <p className="text-gray-600">Review and grade student submissions</p>
         </div>
-        <Badge variant="secondary" className="text-lg px-3 py-1">
-          <Users className="w-4 h-4 mr-1" />
-          {courses.length} Courses
-        </Badge>
+        <div className="flex items-center space-x-4">
+          <Badge variant="secondary" className="text-lg px-3 py-1">
+            <Users className="w-4 h-4 mr-1" />
+            {courses.length} Courses
+          </Badge>
+        </div>
       </div>
+
+      {/* View Mode Toggle */}
+      <Card>
+        <CardHeader>
+          <CardTitle>View Submissions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <input
+                type="radio"
+                id="course-view"
+                name="viewMode"
+                checked={viewMode === 'course'}
+                onChange={() => handleViewModeChange('course')}
+                className="text-blue-600"
+              />
+              <label htmlFor="course-view" className="text-sm font-medium text-gray-700">
+                By Course
+              </label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="radio"
+                id="all-view"
+                name="viewMode"
+                checked={viewMode === 'all'}
+                onChange={() => handleViewModeChange('all')}
+                className="text-blue-600"
+              />
+              <label htmlFor="all-view" className="text-sm font-medium text-gray-700">
+                All Submissions (Including Final Exams)
+              </label>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Course Selection */}
       <Card>
