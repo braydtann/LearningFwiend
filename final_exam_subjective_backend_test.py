@@ -317,7 +317,7 @@ These cultural influences have created modern Hawaii's distinctive identity - a 
                 max_points = submission.get("questionPoints", 10)
                 
                 # Grade based on question type
-                if question_type == "short-answer":
+                if question_type == "short_answer":
                     # Give partial credit for short answer
                     grade_data = {
                         "score": 12,  # 12 out of 15 points
