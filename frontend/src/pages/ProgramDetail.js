@@ -258,6 +258,63 @@ const ProgramDetail = () => {
               </div>
             </div>
           </div>
+
+          {/* Take Final Exam Section for Students */}
+          {isLearner && courses.length > 0 && (
+            <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-6 rounded-lg border border-purple-200">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-purple-900 mb-2 flex items-center">
+                    <Trophy className="w-5 h-5 mr-2" />
+                    Program Completion
+                  </h3>
+                  <p className="text-purple-700 mb-4">
+                    Complete all courses to unlock the final examination
+                  </p>
+                  
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-purple-600">Courses completed: {coursesCompleted} / {courses.length}</span>
+                      <span className="text-purple-600">{programProgress}%</span>
+                    </div>
+                    <div className="w-full bg-purple-200 rounded-full h-2">
+                      <div 
+                        className="bg-purple-600 h-2 rounded-full transition-all duration-300" 
+                        style={{ width: `${programProgress}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="ml-6">
+                  {programProgress >= 100 ? (
+                    <Button 
+                      onClick={() => navigate(`/final-test/program/${id}`)}
+                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium px-6 py-3"
+                      size="lg"
+                    >
+                      <Award className="w-5 h-5 mr-2" />
+                      Take Final Exam
+                    </Button>
+                  ) : (
+                    <div className="text-center">
+                      <Button 
+                        disabled
+                        variant="outline"
+                        className="cursor-not-allowed opacity-50 px-6 py-3"
+                      >
+                        <Lock className="w-5 h-5 mr-2" />
+                        Final Exam Locked
+                      </Button>
+                      <p className="text-xs text-gray-500 mt-2">
+                        Complete all courses first
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
