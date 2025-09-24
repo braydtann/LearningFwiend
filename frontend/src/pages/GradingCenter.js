@@ -100,10 +100,11 @@ const GradingCenter = () => {
   };
 
   const submitGrade = async () => {
-    if (!gradeScore || gradeScore < 0 || gradeScore > 100) {
+    const maxPoints = gradingSubmission.questionPoints || 100;
+    if (!gradeScore || gradeScore < 0 || gradeScore > maxPoints) {
       toast({
         title: "Invalid Score",
-        description: "Please enter a score between 0 and 100.",
+        description: `Please enter a score between 0 and ${maxPoints}.`,
         variant: "destructive",
       });
       return;
