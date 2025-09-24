@@ -28,6 +28,7 @@ const GradingCenter = () => {
   const [gradingSubmission, setGradingSubmission] = useState(null);
   const [gradeScore, setGradeScore] = useState('');
   const [gradeFeedback, setGradeFeedback] = useState('');
+  const [viewMode, setViewMode] = useState('course'); // 'course' or 'all'
 
   useEffect(() => {
     if (user && (user.role === 'instructor' || user.role === 'admin')) {
