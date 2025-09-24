@@ -103,7 +103,7 @@ const ProgramDetail = () => {
     if (id) {
       loadProgramDetails();
     }
-  }, [id, getProgramById, getAllCourses, checkProgramAccess, isLearner]);
+  }, [id, getProgramById, getAllCourses, checkProgramAccess, isLearner, getMyEnrollments]);
 
   if (loading) {
     return (
