@@ -5604,7 +5604,8 @@ async def get_course_submissions(
                                             question_points = question.get("points", 1)
                                             break
             
-            submissions.append({
+            # Create submission object with final test info if applicable
+            submission_obj = {
                 "id": doc.get("id"),
                 "studentId": doc.get("studentId"),
                 "studentName": doc.get("studentName", "Unknown Student"),
@@ -5622,8 +5623,19 @@ async def get_course_submissions(
                 "score": doc.get("score"),
                 "feedback": doc.get("feedback"),
                 "status": doc.get("status", "pending"),
-                "source": "quiz"
-            })
+                "source": "final_test" if doc.get("testId") else "quiz"
+            }
+            
+            # Add final test specific fields if applicable
+            if doc.get("testId"):
+                submission_obj.update({
+                    "testId": doc.get("testId"),
+                    "testTitle": doc.get("testTitle"),
+                    "programId": doc.get("programId"),
+                    "programName": doc.get("programName")
+                })
+            
+            submissions.append(submission_obj)
         
         # Also check for final test submissions with subjective questions
         final_test_attempts = await db.final_test_attempts.find({"programId": {"$exists": True}}).to_list(1000)
