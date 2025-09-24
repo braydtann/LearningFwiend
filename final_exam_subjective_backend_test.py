@@ -160,7 +160,7 @@ class FinalExamSubjectiveTestRunner:
                     },
                     {
                         "id": str(uuid.uuid4()),
-                        "type": "short_answer",
+                        "type": "short-answer",
                         "question": "Explain the significance of Pearl Harbor in World War II. (Short answer)",
                         "correctAnswer": "Pearl Harbor attack led to US entry into WWII",
                         "points": 15,
