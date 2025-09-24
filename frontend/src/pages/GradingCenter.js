@@ -353,8 +353,12 @@ const GradingCenter = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-purple-600 text-sm font-medium">Course</p>
-                    <p className="text-lg font-bold text-purple-700 truncate">{selectedCourse.title}</p>
+                    <p className="text-purple-600 text-sm font-medium">
+                      {viewMode === 'course' ? 'Course' : 'View Mode'}
+                    </p>
+                    <p className="text-lg font-bold text-purple-700 truncate">
+                      {viewMode === 'course' ? selectedCourse?.title : 'All Submissions'}
+                    </p>
                   </div>
                   <BookOpen className="h-8 w-8 text-purple-600" />
                 </div>
