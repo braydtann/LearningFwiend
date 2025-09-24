@@ -412,7 +412,7 @@ class FinalExamGradingDebugSuite:
     def test_select_all_scoring_logic(self):
         """Test the scoring logic for select-all-that-apply questions"""
         try:
-            if not self.problematic_submissions.get("select_all_zero_scores"):
+            if not self.problematic_submissions or not self.problematic_submissions.get("select_all_zero_scores"):
                 self.log_test(
                     "Test Select All Scoring Logic",
                     True,
@@ -465,7 +465,7 @@ class FinalExamGradingDebugSuite:
     def test_manual_grading_endpoint(self):
         """Test the manual grading endpoint with actual submission data"""
         try:
-            if not self.problematic_submissions.get("subjective_ungraded"):
+            if not self.problematic_submissions or not self.problematic_submissions.get("subjective_ungraded"):
                 self.log_test(
                     "Test Manual Grading Endpoint",
                     True,
