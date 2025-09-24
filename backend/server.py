@@ -4701,6 +4701,43 @@ async def submit_final_test_attempt(
     # Insert attempt into database
     await db.final_test_attempts.insert_one(attempt_dict)
     
+    # Create subjective submissions for manual grading
+    for question in test['questions']:
+        if question['type'] in ['short-answer', 'long-form', 'essay']:
+            question_id = question.get('id')
+            student_answer = answer_map.get(question_id)
+            
+            if student_answer:  # Only create submission if student provided an answer
+                subjective_submission = {
+                    "id": f"final-{attempt_dict['id']}-{question_id}",
+                    "studentId": current_user.id,
+                    "studentName": current_user.full_name,
+                    "courseId": None,  # Final tests are not course-specific
+                    "lessonId": "final-test",
+                    "questionId": question_id,
+                    "questionText": question.get('question', 'Question text not available'),
+                    "questionType": question['type'],
+                    "studentAnswer": student_answer,
+                    "submittedAt": datetime.utcnow(),
+                    "gradedAt": None,
+                    "gradedBy": None,
+                    "gradedByName": None,
+                    "score": None,
+                    "feedback": None,
+                    "status": "pending",
+                    "isActive": True,
+                    "created_at": datetime.utcnow(),
+                    # Final test specific fields
+                    "testId": attempt_data.testId,
+                    "testTitle": test['title'],
+                    "programId": test['programId'],
+                    "programName": program_name,
+                    "attemptId": attempt_dict['id']
+                }
+                
+                # Insert subjective submission for manual grading
+                await db.subjective_submissions.insert_one(subjective_submission)
+    
     return FinalTestAttemptResponse(**attempt_dict)
 
 @api_router.get("/final-test-attempts", response_model=List[FinalTestAttemptResponse])
