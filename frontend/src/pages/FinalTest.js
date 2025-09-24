@@ -63,7 +63,8 @@ const FinalTest = () => {
     getAllFinalTests,
     getFinalTestById,
     submitFinalTestAttempt,
-    getFinalTestAttempts
+    getFinalTestAttempts,
+    checkFinalTestAttemptAvailability
   } = useAuth();
   const { toast } = useToast();
 
