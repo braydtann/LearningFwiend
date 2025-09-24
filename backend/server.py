@@ -5582,7 +5582,17 @@ async def get_course_submissions(
         for doc in submission_docs:
             # Find the question to get its points
             question_points = 1  # Default
-            if doc.get("courseId") and doc.get("lessonId") and doc.get("questionId"):
+            
+            if doc.get("testId"):
+                # This is a final test submission
+                test = await db.final_tests.find_one({"id": doc.get("testId")})
+                if test and test.get("questions"):
+                    for question in test["questions"]:
+                        if question.get("id") == doc.get("questionId"):
+                            question_points = question.get("points", 1)
+                            break
+            elif doc.get("courseId") and doc.get("lessonId") and doc.get("questionId"):
+                # This is a regular course quiz submission
                 course = await db.courses.find_one({"id": doc.get("courseId")})
                 if course and course.get("modules"):
                     for module in course["modules"]:
