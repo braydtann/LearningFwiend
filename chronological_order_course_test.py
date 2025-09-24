@@ -22,7 +22,7 @@ from datetime import datetime
 import time
 
 # Configuration - Use the correct backend URL from frontend/.env
-BACKEND_URL = "https://learning-score-fix.preview.emergentagent.com/api"
+BACKEND_URL = "https://test-grading-fix.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_CREDENTIALS = {

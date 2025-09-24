@@ -7,7 +7,7 @@ import requests
 import json
 import sys
 
-BACKEND_URL = "https://learning-score-fix.preview.emergentagent.com/api"
+BACKEND_URL = "https://test-grading-fix.preview.emergentagent.com/api"
 TEST_TIMEOUT = 10
 
 def test_quiz_creation():

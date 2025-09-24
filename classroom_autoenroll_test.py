@@ -12,7 +12,7 @@ from datetime import datetime
 import time
 
 # Configuration
-BACKEND_URL = "https://learning-score-fix.preview.emergentagent.com/api"
+BACKEND_URL = "https://test-grading-fix.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 class ClassroomAutoEnrollmentTester:

@@ -20,7 +20,7 @@ import sys
 from datetime import datetime
 
 # Backend URL from environment
-BACKEND_URL = "https://learning-score-fix.preview.emergentagent.com/api"
+BACKEND_URL = "https://test-grading-fix.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_EMAIL = "brayden.t@covesmart.com"

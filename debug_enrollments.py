@@ -7,7 +7,7 @@ import requests
 import json
 
 # Configuration
-BASE_URL = "https://learning-score-fix.preview.emergentagent.com/api"
+BASE_URL = "https://test-grading-fix.preview.emergentagent.com/api"
 
 # Credentials
 admin_creds = {"username_or_email": "brayden.t@covesmart.com", "password": "Hawaii2020!"}

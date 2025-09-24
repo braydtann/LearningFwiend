@@ -13,7 +13,7 @@ Critical Investigation Areas:
 User Issue: Created 4 programs with final exams (True/False, Multiple Choice, 
 Select All That Apply, Chronological Order), answered all correctly but got 0% scores.
 
-Test Environment: https://learning-score-fix.preview.emergentagent.com
+Test Environment: https://test-grading-fix.preview.emergentagent.com
 Admin: brayden.t@covesmart.com / Hawaii2020!
 Student: karlo.student@alder.com / StudentPermanent123!
 """
@@ -25,7 +25,7 @@ from datetime import datetime
 import uuid
 
 # Configuration - Using deployed URL
-BACKEND_URL = "https://learning-score-fix.preview.emergentagent.com/api"
+BACKEND_URL = "https://test-grading-fix.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_EMAIL = "brayden.t@covesmart.com"
@@ -547,7 +547,7 @@ class FinalExamScoringDebugger:
         print("🚨 URGENT: Final Exam Scoring Debug - 0% Score Investigation")
         print("=" * 80)
         print("Issue: Users getting 0% scores despite answering correctly")
-        print("Environment: https://learning-score-fix.preview.emergentagent.com")
+        print("Environment: https://test-grading-fix.preview.emergentagent.com")
         print("=" * 80)
         
         # Step 1: Authenticate both admin and student

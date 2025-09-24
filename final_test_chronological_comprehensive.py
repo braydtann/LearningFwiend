@@ -13,7 +13,7 @@ import uuid
 class FinalTestChronologicalTester:
     def __init__(self):
         # Use the production URL from frontend/.env
-        self.base_url = "https://learning-score-fix.preview.emergentagent.com/api"
+        self.base_url = "https://test-grading-fix.preview.emergentagent.com/api"
         self.admin_token = None
         self.student_token = None
         self.test_results = []

@@ -16,7 +16,7 @@ import uuid
 import time
 
 # Configuration
-BACKEND_URL = "https://learning-score-fix.preview.emergentagent.com/api"
+BACKEND_URL = "https://test-grading-fix.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_EMAIL = "brayden.t@covesmart.com"

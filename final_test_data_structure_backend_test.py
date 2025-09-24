@@ -26,7 +26,7 @@ from datetime import datetime
 import uuid
 
 # Configuration
-BASE_URL = "https://learning-score-fix.preview.emergentagent.com/api"
+BASE_URL = "https://test-grading-fix.preview.emergentagent.com/api"
 ADMIN_EMAIL = "brayden.t@covesmart.com"
 ADMIN_PASSWORD = "Hawaii2020!"
 

@@ -9,7 +9,7 @@ Critical Investigation Areas:
 3. Actual Submission Debug - Test exact workflow user followed
 4. Question ID Mismatch Investigation - Most likely root cause
 
-Environment: https://learning-score-fix.preview.emergentagent.com
+Environment: https://test-grading-fix.preview.emergentagent.com
 Admin: brayden.t@covesmart.com / Hawaii2020!
 Student: karlo.student@alder.com / StudentPermanent123!
 """
@@ -21,7 +21,7 @@ from datetime import datetime, timedelta
 import uuid
 
 # Configuration
-BACKEND_URL = "https://learning-score-fix.preview.emergentagent.com/api"
+BACKEND_URL = "https://test-grading-fix.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_EMAIL = "brayden.t@covesmart.com"
