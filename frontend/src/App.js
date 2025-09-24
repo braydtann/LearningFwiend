@@ -107,12 +107,6 @@ function App() {
               </ProtectedRoute>
             } />
             
-            <Route path="/quiz-results" element={
-              <ProtectedRoute>
-                <QuizResults />
-              </ProtectedRoute>
-            } />
-            
             <Route path="/final-test/:courseId" element={
               <ProtectedRoute>
                 <FinalTest />
