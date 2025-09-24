@@ -4481,6 +4481,46 @@ async def delete_final_test(
     
     return {"message": f"Final test '{test['title']}' has been successfully deleted"}
 
+@api_router.get("/final-tests/{test_id}/attempt-check")
+async def check_final_test_attempt_availability(
+    test_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Check if the current user can attempt the final test."""
+    if current_user.role != 'learner':
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only learners can attempt tests"
+        )
+    
+    # Find the test
+    test = await db.final_tests.find_one({"id": test_id, "isActive": True})
+    if not test:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Final test not found"
+        )
+    
+    # Count existing attempts by this student for this test
+    existing_attempts = await db.final_test_attempts.count_documents({
+        "testId": test_id,
+        "studentId": current_user.id,
+        "isActive": True
+    })
+    
+    max_attempts = test.get('maxAttempts', 2)
+    can_attempt = existing_attempts < max_attempts
+    remaining_attempts = max(0, max_attempts - existing_attempts)
+    
+    return {
+        "canAttempt": can_attempt,
+        "existingAttempts": existing_attempts,
+        "maxAttempts": max_attempts,
+        "remainingAttempts": remaining_attempts,
+        "testTitle": test.get('title', 'Final Test'),
+        "message": f"You have {remaining_attempts} attempt(s) remaining" if can_attempt else f"You have reached the maximum number of attempts ({max_attempts})"
+    }
+
 @api_router.post("/final-test-attempts", response_model=FinalTestAttemptResponse)
 async def submit_final_test_attempt(
     attempt_data: FinalTestAttemptCreate,
