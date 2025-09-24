@@ -56,6 +56,17 @@ const Analytics = () => {
   const [users, setUsers] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [activeView, setActiveView] = useState('overview');
+  
+  // Quiz and Test Analytics states
+  const [selectedCourse, setSelectedCourse] = useState('all');
+  const [selectedProgram, setSelectedProgram] = useState('all');
+  const [selectedClassroom, setSelectedClassroom] = useState('all');
+  const [programs, setPrograms] = useState([]);
+  const [classrooms, setClassrooms] = useState([]);
+  const [quizzes, setQuizzes] = useState([]);
+  const [finalTests, setFinalTests] = useState([]);
+  const [quizAttempts, setQuizAttempts] = useState([]);
+  const [finalTestAttempts, setFinalTestAttempts] = useState([]);
 
   useEffect(() => {
     loadAnalyticsData();
