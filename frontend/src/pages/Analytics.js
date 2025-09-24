@@ -102,6 +102,9 @@ const Analytics = () => {
         if (coursesResult.success) setCourses(coursesResult.courses || []);
         if (usersResult.success) setUsers(usersResult.users || []);
         if (depsResult.success) setDepartments(depsResult.departments || []);
+
+        // Load Quiz and Test Analytics data
+        await loadQuizAndTestData();
       }
     } catch (error) {
       console.error('Error loading analytics data:', error);
@@ -112,6 +115,125 @@ const Analytics = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadQuizAndTestData = async () => {
+    try {
+      // Load programs from backend
+      const programResult = await getAllPrograms();
+      if (programResult.success) {
+        let filteredPrograms = programResult.programs;
+        if (isInstructor && !isAdmin) {
+          filteredPrograms = programResult.programs.filter(program => 
+            program.instructorId === user?.id
+          );
+        }
+        setPrograms(filteredPrograms);
+      }
+
+      // Load classrooms from backend
+      const classroomResult = await getAllClassrooms();
+      if (classroomResult.success) {
+        let filteredClassrooms = classroomResult.classrooms;
+        if (isInstructor && !isAdmin) {
+          filteredClassrooms = classroomResult.classrooms.filter(classroom => 
+            classroom.trainerId === user?.id
+          );
+        }
+        setClassrooms(filteredClassrooms);
+      }
+
+      // Load quizzes from backend
+      const quizResult = await getAllQuizzes();
+      if (quizResult.success) {
+        setQuizzes(quizResult.quizzes);
+      }
+
+      // Load final tests from backend
+      const finalTestResult = await getAllFinalTests();
+      if (finalTestResult.success) {
+        setFinalTests(finalTestResult.tests);
+      }
+
+      // Load quiz attempts
+      const attemptsResult = await getQuizAttempts();
+      let allQuizAttempts = [];
+      if (attemptsResult.success) {
+        allQuizAttempts = [...attemptsResult.attempts];
+      }
+
+      // Load enrollment-based quiz data
+      const enrollmentsResult = await getAllEnrollmentsForAnalytics();
+      if (enrollmentsResult.success) {
+        const enrollmentQuizAttempts = [];
+        
+        for (const enrollment of enrollmentsResult.enrollments) {
+          if (!enrollment.progress || enrollment.progress <= 0) {
+            continue;
+          }
+          
+          const course = courses.find(c => c.id === enrollment.courseId);
+          if (!course) continue;
+          
+          // Check if course has quiz content
+          let hasQuizContent = false;
+          const courseModules = course.modules || [];
+          
+          for (const module of courseModules) {
+            const lessons = module.lessons || [];
+            for (const lesson of lessons) {
+              if (lesson.type === 'quiz' || 
+                  lesson.questions?.length > 0 ||
+                  lesson.quiz?.questions?.length > 0 ||
+                  (lesson.type && lesson.type.toLowerCase().includes('quiz'))) {
+                hasQuizContent = true;
+                break;
+              }
+            }
+            if (hasQuizContent) break;
+          }
+          
+          if (!hasQuizContent && enrollment.progress > 0) {
+            hasQuizContent = true;
+          }
+          
+          if (hasQuizContent) {
+            const syntheticAttempt = {
+              id: `enrollment-${enrollment.id}`,
+              quizId: `course-quiz-${course.id}`,
+              quizTitle: `${course.title} - Course Quiz`,
+              studentId: enrollment.userId || enrollment.studentId,
+              studentName: enrollment.studentName || 'Unknown Student',
+              score: enrollment.progress,
+              pointsEarned: Math.round(enrollment.progress),
+              totalPoints: 100,
+              isPassed: enrollment.progress >= 70,
+              timeSpent: null,
+              startedAt: new Date(enrollment.enrolledAt || enrollment.created_at),
+              completedAt: enrollment.progress >= 100 ? new Date(enrollment.updated_at || enrollment.created_at) : null,
+              attemptNumber: 1,
+              isActive: true,
+              created_at: new Date(enrollment.created_at),
+              status: enrollment.progress >= 100 ? 'completed' : 'in_progress'
+            };
+            enrollmentQuizAttempts.push(syntheticAttempt);
+          }
+        }
+        
+        allQuizAttempts = [...allQuizAttempts, ...enrollmentQuizAttempts];
+      }
+      
+      setQuizAttempts(allQuizAttempts);
+
+      // Load final test attempts
+      const finalTestAttemptsResult = await getFinalTestAttempts();
+      if (finalTestAttemptsResult.success) {
+        setFinalTestAttempts(finalTestAttemptsResult.attempts);
+      }
+
+    } catch (error) {
+      console.error('Error loading quiz and test data:', error);
     }
   };
 
