@@ -5565,11 +5565,33 @@ async def grade_submission(
             detail="Only instructors and admins can grade submissions"
         )
     
-    # Validate score
-    if grading_data.score < 0 or grading_data.score > 100:
+    # Get the submission to find the question points
+    submission = await db.subjective_submissions.find_one({"id": submission_id})
+    if not submission:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Submission not found"
+        )
+    
+    # Find the question to get its max points
+    max_points = 1  # Default
+    if submission.get("courseId") and submission.get("lessonId") and submission.get("questionId"):
+        course = await db.courses.find_one({"id": submission.get("courseId")})
+        if course and course.get("modules"):
+            for module in course["modules"]:
+                if module.get("lessons"):
+                    for lesson in module["lessons"]:
+                        if lesson.get("id") == submission.get("lessonId") and lesson.get("quiz", {}).get("questions"):
+                            for question in lesson["quiz"]["questions"]:
+                                if question.get("id") == submission.get("questionId"):
+                                    max_points = question.get("points", 1)
+                                    break
+    
+    # Validate score against question points
+    if grading_data.score < 0 or grading_data.score > max_points:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Score must be between 0 and 100"
+            detail=f"Score must be between 0 and {max_points} (question points)"
         )
     
     # Store grading data in a separate collection
