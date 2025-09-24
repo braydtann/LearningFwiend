@@ -308,7 +308,8 @@ const GradingCenter = () => {
         </Card>
       )}
 
-      {selectedCourse && (
+      {/* Show submissions when either course is selected (in course mode) or in all mode */}
+      {((viewMode === 'course' && selectedCourse) || viewMode === 'all') && (
         <>
           {/* Statistics Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
