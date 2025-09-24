@@ -2947,6 +2947,8 @@ export const AuthProvider = ({ children }) => {
     submitFinalTestAttempt,
     getFinalTestAttempts,
     getFinalTestAttemptById,
+    checkFinalTestAttemptAvailability,
+    checkQuizAttemptAvailability,
     // Analytics management
     getSystemStats,
     getCourseAnalytics,
