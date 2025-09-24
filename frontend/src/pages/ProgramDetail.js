@@ -16,7 +16,8 @@ import {
   CheckCircle,
   Play,
   Lock,
-  UnlockIcon
+  UnlockIcon,
+  Trophy
 } from 'lucide-react';
 
 const ProgramDetail = () => {
