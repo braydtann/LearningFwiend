@@ -14,11 +14,9 @@ import {
   Timer,
   BookOpen,
   ChevronRight,
-  ChevronLeft,
-  GripVertical
+  ChevronLeft
 } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
 // Utility function to convert Google Drive URLs to direct image URLs
 const convertGoogleDriveUrl = (url) => {
