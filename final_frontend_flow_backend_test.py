@@ -8,7 +8,7 @@ This test validates the specific scenario mentioned in the review request:
 2. Student login and test taking workflow
 3. API format verification and error capture
 
-Environment: https://test-grading-fix.preview.emergentagent.com
+Environment: https://lms-analytics-hub.preview.emergentagent.com
 Admin: brayden.t@covesmart.com / Hawaii2020!
 Student: karlo.student@alder.com / StudentPermanent123!
 
@@ -27,7 +27,7 @@ from datetime import datetime
 import uuid
 
 # Configuration - Using correct backend URL from frontend/.env
-BACKEND_URL = "https://test-grading-fix.preview.emergentagent.com/api"
+BACKEND_URL = "https://lms-analytics-hub.preview.emergentagent.com/api"
 
 # Test credentials from review request
 ADMIN_EMAIL = "brayden.t@covesmart.com"

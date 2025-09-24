@@ -7,7 +7,7 @@ import requests
 import json
 import uuid
 
-BACKEND_URL = "https://test-grading-fix.preview.emergentagent.com/api"
+BACKEND_URL = "https://lms-analytics-hub.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 def setup_test_users():

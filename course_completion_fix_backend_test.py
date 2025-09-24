@@ -22,7 +22,7 @@ import sys
 from datetime import datetime
 
 # Backend URL from environment
-BACKEND_URL = "https://test-grading-fix.preview.emergentagent.com/api"
+BACKEND_URL = "https://lms-analytics-hub.preview.emergentagent.com/api"
 
 class CourseCompletionTester:
     def __init__(self):

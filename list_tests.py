@@ -2,7 +2,7 @@
 import requests
 import json
 
-BACKEND_URL = "https://test-grading-fix.preview.emergentagent.com/api"
+BACKEND_URL = "https://lms-analytics-hub.preview.emergentagent.com/api"
 ADMIN_EMAIL = "brayden.t@covesmart.com"
 ADMIN_PASSWORD = "Hawaii2020!"
 
