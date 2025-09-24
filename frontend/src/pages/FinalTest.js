@@ -464,6 +464,35 @@ const FinalTest = () => {
         const items = question.items || [];
         const currentOrder = Array.isArray(currentAnswer) ? currentAnswer : [];
         
+        // Shuffle items for display to make it more challenging
+        // Create a consistent shuffle based on question ID so it's the same each time
+        const shuffleArray = (arr, seed) => {
+          const shuffled = [...arr];
+          let currentIndex = shuffled.length;
+          let randomIndex;
+          
+          // Simple seeded random function
+          const seededRandom = () => {
+            const x = Math.sin(seed++) * 10000;
+            return x - Math.floor(x);
+          };
+        
+          while (currentIndex !== 0) {
+            randomIndex = Math.floor(seededRandom() * currentIndex);
+            currentIndex--;
+            [shuffled[currentIndex], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[currentIndex]];
+          }
+          
+          return shuffled;
+        };
+        
+        // Create seed from question ID for consistent shuffling
+        const seed = question.id ? question.id.split('').reduce((a, b) => a + b.charCodeAt(0), 0) : 12345;
+        const shuffledItemsWithIndices = shuffleArray(
+          items.map((item, index) => ({ text: item, originalIndex: index })), 
+          seed
+        );
+        
         return (
           <div className="space-y-4">
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
@@ -472,16 +501,17 @@ const FinalTest = () => {
               </p>
             </div>
             
-            {/* Display items for ordering */}
+            {/* Display shuffled items for ordering */}
             <div className="space-y-2">
-              {items.map((item, index) => {
-                const itemText = typeof item === 'string' ? item : (item?.text || `Item ${index + 1}`);
-                const itemPosition = currentOrder.indexOf(index);
+              {shuffledItemsWithIndices.map((itemData, displayIndex) => {
+                const itemText = typeof itemData.text === 'string' ? itemData.text : (itemData.text?.text || `Item ${displayIndex + 1}`);
+                const originalIndex = itemData.originalIndex;
+                const itemPosition = currentOrder.indexOf(originalIndex);
                 const isOrdered = itemPosition !== -1;
                 
                 return (
                   <div
-                    key={index}
+                    key={`${originalIndex}-${displayIndex}`}
                     className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
                       isOrdered 
                         ? 'border-blue-500 bg-blue-50' 
@@ -491,26 +521,27 @@ const FinalTest = () => {
                       console.log('🔍 DEBUG: Chronological Order click:', {
                         questionId: question.id,
                         clickedItem: itemText,
-                        clickedIndex: index,
+                        clickedIndex: originalIndex,
+                        displayIndex: displayIndex,
                         currentOrder: currentOrder,
                         isOrdered: isOrdered
                       });
                       
                       if (isOrdered) {
                         // Remove from order
-                        const newOrder = currentOrder.filter(idx => idx !== index);
+                        const newOrder = currentOrder.filter(idx => idx !== originalIndex);
                         console.log('🔍 DEBUG: Chronological Order - Removing item:', {
                           questionId: question.id,
-                          removedIndex: index,
+                          removedIndex: originalIndex,
                           newOrder: newOrder
                         });
                         handleAnswerChange(question.id, newOrder);
                       } else {
                         // Add to end of order
-                        const newOrder = [...currentOrder, index];
+                        const newOrder = [...currentOrder, originalIndex];
                         console.log('🔍 DEBUG: Chronological Order - Adding item:', {
                           questionId: question.id,
-                          addedIndex: index,
+                          addedIndex: originalIndex,
                           newOrder: newOrder
                         });
                         handleAnswerChange(question.id, newOrder);
@@ -537,10 +568,10 @@ const FinalTest = () => {
                   <strong>Current Order:</strong>
                 </p>
                 <div className="space-y-1">
-                  {currentOrder.map((itemIndex, position) => (
+                  {currentOrder.map((originalIndex, position) => (
                     <div key={position} className="flex items-center text-sm">
                       <span className="font-medium mr-2">{position + 1}.</span>
-                      <span>{typeof items[itemIndex] === 'string' ? items[itemIndex] : items[itemIndex]?.text}</span>
+                      <span>{typeof items[originalIndex] === 'string' ? items[originalIndex] : items[originalIndex]?.text}</span>
                     </div>
                   ))}
                 </div>
