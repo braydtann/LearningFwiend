@@ -602,7 +602,7 @@ class FinalExamGradingDebugSuite:
         
         # Core debug tests
         test_methods = [
-            self.find_fresh_test_program_092425,
+            self.find_test_program_with_final_exam,
             self.get_final_test_for_program,
             self.analyze_select_all_that_apply_questions,
             self.get_final_test_submissions,
