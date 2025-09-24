@@ -152,6 +152,12 @@ const FinalTest = () => {
               if (attemptsResult.success) {
                 setPreviousAttempts(attemptsResult.attempts);
               }
+              
+              // Check attempt availability
+              const attemptCheckResult = await checkFinalTestAttemptAvailability(testId);
+              if (attemptCheckResult.success) {
+                setAttemptCheck(attemptCheckResult);
+              }
             } else {
               console.error('Failed to get final test details:', testDetailResult);
               setError(`Final test not found for this program. Error: ${testDetailResult.error}`);
