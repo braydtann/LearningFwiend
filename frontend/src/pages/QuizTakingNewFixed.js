@@ -1612,11 +1612,11 @@ const QuizTakingNewFixed = () => {
               </div>
             )}
 
-            {/* Chronological Order Questions with Drag & Drop */}  
+            {/* Chronological Order Questions with Click Interface (simplified from final exam) */}  
             {currentQuestion?.type === 'chronological-order' && (
               <div className="space-y-6">
                 {(() => {
-                  console.log(`🔍 CHRONOLOGICAL ORDER DRAG-DROP RENDERING - Question ${currentQuestion.id}:`, {
+                  console.log(`🔍 CHRONOLOGICAL ORDER CLICK RENDERING - Question ${currentQuestion.id}:`, {
                     questionText: currentQuestion.question,
                     hasItems: !!(currentQuestion.items),
                     isItemsArray: Array.isArray(currentQuestion.items),
@@ -1629,202 +1629,127 @@ const QuizTakingNewFixed = () => {
                 
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <p className="text-blue-800 text-sm font-medium mb-2">
-                    🎯 <strong>Instructions:</strong> Drag items from the "Available Items" area into the "Your Answer" area in the correct chronological order.
+                    📋 <strong>Instructions:</strong> Click items in the correct chronological order to arrange them.
                   </p>
                   <p className="text-blue-700 text-xs">
-                    • Items in "Your Answer" will be your final sequence
-                    • You can reorder items within "Your Answer" by dragging
-                    • Drag items back to "Available Items" to remove them from your answer
+                    Click items to add them to your answer sequence. Click again to remove them.
                   </p>
                 </div>
                 
-                <DragDropContext
-                  onDragEnd={(result) => {
-                    const availableItems = getShuffledAvailableItems(currentQuestion, answers[currentQuestion.id]);
-                    handleChronologicalDragEnd(result, currentQuestion.id, availableItems);
-                  }}
-                >
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Available Items Area */}
-                    <div className="space-y-3">
-                      <h4 className="font-medium text-gray-700 flex items-center">
-                        <div className="w-3 h-3 bg-gray-400 rounded-full mr-2"></div>
-                        Available Items
-                      </h4>
-                      <Droppable droppableId={`available-${currentQuestion.id}`}>
-                        {(provided, snapshot) => (
-                          <div
-                            {...provided.droppableProps}
-                            ref={provided.innerRef}
-                            className={`min-h-[120px] border-2 border-dashed rounded-lg p-3 space-y-2 transition-colors ${
-                              snapshot.isDraggingOver ? 'border-blue-400 bg-blue-50' : 'border-gray-300 bg-gray-50'
-                            }`}
-                          >
-                            {(() => {
-                              const availableItems = getShuffledAvailableItems(currentQuestion, answers[currentQuestion.id]);
-                              return availableItems.map((item, index) => (
-                                <Draggable
-                                  key={`available-${item.originalIndex}`}
-                                  draggableId={`available-${currentQuestion.id}-${item.originalIndex}`}
-                                  index={index}
-                                >
-                                  {(provided, snapshot) => (
-                                    <div
-                                      ref={provided.innerRef}
-                                      {...provided.draggableProps}
-                                      {...provided.dragHandleProps}
-                                      className={`p-3 bg-white border rounded-lg shadow-sm cursor-move transition-all ${
-                                        snapshot.isDragging ? 'shadow-lg rotate-1 bg-blue-50' : 'hover:shadow-md'
-                                      }`}
-                                    >
-                                      <div className="flex items-center space-x-2">
-                                        <GripVertical className="w-4 h-4 text-gray-400" />
-                                        <span className="flex-1 text-sm">
-                                          {typeof item === 'string' ? item : (item?.text || `Item ${item.originalIndex + 1}`)}
-                                        </span>
-                                      </div>
-                                      
-                                      {/* Display item media if available */}
-                                      {(typeof item === 'object' && item?.image) && (
-                                        <div className="mt-2">
-                                          <img 
-                                            src={convertGoogleDriveUrl(item.image)} 
-                                            alt={`Item ${item.originalIndex + 1}`} 
-                                            className="max-w-xs h-20 object-cover rounded border" 
-                                          />
-                                        </div>
-                                      )}
-                                      {(typeof item === 'object' && item?.audio) && (
-                                        <div className="mt-2">
-                                          <audio controls className="w-full max-w-xs">
-                                            <source src={item.audio} type="audio/mpeg" />
-                                            Your browser does not support the audio element.
-                                          </audio>
-                                        </div>
-                                      )}
-                                    </div>
-                                  )}
-                                </Draggable>
-                              ));
-                            })()}
-                            
-                            {getShuffledAvailableItems(currentQuestion, answers[currentQuestion.id]).length === 0 && (
-                              <div className="flex items-center justify-center py-8 text-gray-500">
-                                <p className="text-sm">All items have been placed in your answer</p>
-                              </div>
-                            )}
-                            {provided.placeholder}
-                          </div>
-                        )}
-                      </Droppable>
-                    </div>
+                {(() => {
+                  const items = currentQuestion.items || [];
+                  const currentOrder = Array.isArray(answers[currentQuestion.id]) ? answers[currentQuestion.id] : [];
+                  
+                  // Shuffle items for display to make it more challenging
+                  // Create a consistent shuffle based on question ID so it's the same each time
+                  const shuffleArray = (arr, seed) => {
+                    const shuffled = [...arr];
+                    let currentIndex = shuffled.length;
+                    let randomIndex;
                     
-                    {/* Answer Area */}
-                    <div className="space-y-3">
-                      <h4 className="font-medium text-gray-700 flex items-center">
-                        <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                        Your Answer ({Array.isArray(answers[currentQuestion.id]) ? answers[currentQuestion.id].length : 0} items)
-                      </h4>
-                      <Droppable droppableId={`answer-${currentQuestion.id}`}>
-                        {(provided, snapshot) => (
-                          <div
-                            {...provided.droppableProps}
-                            ref={provided.innerRef}
-                            className={`min-h-[120px] border-2 border-dashed rounded-lg p-3 space-y-2 transition-colors ${
-                              snapshot.isDraggingOver ? 'border-green-400 bg-green-50' : 'border-green-300 bg-green-50'
-                            }`}
-                          >
-                            {(() => {
-                              const currentAnswer = Array.isArray(answers[currentQuestion.id]) ? answers[currentQuestion.id] : [];
-                              return currentAnswer.map((itemIndex, position) => {
-                                const item = currentQuestion.items[itemIndex];
-                                return (
-                                  <Draggable
-                                    key={`answer-${itemIndex}`}
-                                    draggableId={`answer-${currentQuestion.id}-${itemIndex}`}
-                                    index={position}
-                                  >
-                                    {(provided, snapshot) => (
-                                      <div
-                                        ref={provided.innerRef}
-                                        {...provided.draggableProps}
-                                        {...provided.dragHandleProps}
-                                        className={`p-3 bg-white border rounded-lg shadow-sm cursor-move transition-all ${
-                                          snapshot.isDragging ? 'shadow-lg rotate-1 bg-green-100' : 'hover:shadow-md'
-                                        }`}
-                                      >
-                                        <div className="flex items-center space-x-2">
-                                          <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
-                                            #{position + 1}
-                                          </Badge>
-                                          <GripVertical className="w-4 h-4 text-gray-400" />
-                                          <span className="flex-1 text-sm">
-                                            {typeof item === 'string' ? item : (item?.text || `Item ${itemIndex + 1}`)}
-                                          </span>
-                                        </div>
-                                        
-                                        {/* Display item media if available */}
-                                        {(typeof item === 'object' && item?.image) && (
-                                          <div className="mt-2">
-                                            <img 
-                                              src={convertGoogleDriveUrl(item.image)} 
-                                              alt={`Item ${itemIndex + 1}`} 
-                                              className="max-w-xs h-20 object-cover rounded border" 
-                                            />
-                                          </div>
-                                        )}
-                                        {(typeof item === 'object' && item?.audio) && (
-                                          <div className="mt-2">
-                                            <audio controls className="w-full max-w-xs">
-                                              <source src={item.audio} type="audio/mpeg" />
-                                              Your browser does not support the audio element.
-                                            </audio>
-                                          </div>
-                                        )}
-                                      </div>
-                                    )}
-                                  </Draggable>
-                                );
-                              });
-                            })()}
-                            
-                            {(!Array.isArray(answers[currentQuestion.id]) || answers[currentQuestion.id].length === 0) && (
-                              <div className="flex items-center justify-center py-8 text-gray-500">
-                                <p className="text-sm">Drag items here to create your chronological sequence</p>
+                    // Simple seeded random function
+                    const seededRandom = () => {
+                      const x = Math.sin(seed++) * 10000;
+                      return x - Math.floor(x);
+                    };
+                  
+                    while (currentIndex !== 0) {
+                      randomIndex = Math.floor(seededRandom() * currentIndex);
+                      currentIndex--;
+                      [shuffled[currentIndex], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[currentIndex]];
+                    }
+                    
+                    return shuffled;
+                  };
+                  
+                  // Create seed from question ID for consistent shuffling
+                  const seed = currentQuestion.id ? currentQuestion.id.split('').reduce((a, b) => a + b.charCodeAt(0), 0) : 12345;
+                  const shuffledItemsWithIndices = shuffleArray(
+                    items.map((item, index) => ({ text: item, originalIndex: index })), 
+                    seed
+                  );
+                  
+                  return (
+                    <div className="space-y-4">
+                      {/* Display shuffled items for ordering */}
+                      <div className="space-y-2">
+                        {shuffledItemsWithIndices.map((itemData, displayIndex) => {
+                          const itemText = typeof itemData.text === 'string' ? itemData.text : (itemData.text?.text || `Item ${displayIndex + 1}`);
+                          const originalIndex = itemData.originalIndex;
+                          const itemPosition = currentOrder.indexOf(originalIndex);
+                          const isOrdered = itemPosition !== -1;
+                          
+                          return (
+                            <div
+                              key={`${originalIndex}-${displayIndex}`}
+                              className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                                isOrdered 
+                                  ? 'border-blue-500 bg-blue-50' 
+                                  : 'border-gray-200 bg-white hover:border-gray-300'
+                              }`}
+                              onClick={() => {
+                                console.log('🔍 DEBUG: Chronological Order click:', {
+                                  questionId: currentQuestion.id,
+                                  clickedItem: itemText,
+                                  clickedIndex: originalIndex,
+                                  displayIndex: displayIndex,
+                                  currentOrder: currentOrder,
+                                  isOrdered: isOrdered
+                                });
+                                
+                                if (isOrdered) {
+                                  // Remove from order
+                                  const newOrder = currentOrder.filter(idx => idx !== originalIndex);
+                                  console.log('🔍 DEBUG: Chronological Order - Removing item:', {
+                                    questionId: currentQuestion.id,
+                                    removedIndex: originalIndex,
+                                    newOrder: newOrder
+                                  });
+                                  handleAnswerChange(currentQuestion.id, newOrder);
+                                } else {
+                                  // Add to end of order
+                                  const newOrder = [...currentOrder, originalIndex];
+                                  console.log('🔍 DEBUG: Chronological Order - Adding item:', {
+                                    questionId: currentQuestion.id,
+                                    addedIndex: originalIndex,
+                                    newOrder: newOrder
+                                  });
+                                  handleAnswerChange(currentQuestion.id, newOrder);
+                                }
+                              }}
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className="flex-1">{itemText}</span>
+                                {isOrdered && (
+                                  <Badge variant="default" className="ml-2">
+                                    {itemPosition + 1}
+                                  </Badge>
+                                )}
                               </div>
-                            )}
-                            {provided.placeholder}
+                            </div>
+                          );
+                        })}
+                      </div>
+                      
+                      {/* Show current order summary */}
+                      {currentOrder.length > 0 && (
+                        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                          <p className="text-blue-800 text-sm mb-2">
+                            <strong>Current Order:</strong>
+                          </p>
+                          <div className="space-y-1">
+                            {currentOrder.map((originalIndex, position) => (
+                              <div key={position} className="flex items-center text-sm">
+                                <span className="font-medium mr-2">{position + 1}.</span>
+                                <span>{typeof items[originalIndex] === 'string' ? items[originalIndex] : items[originalIndex]?.text}</span>
+                              </div>
+                            ))}
                           </div>
-                        )}
-                      </Droppable>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                </DragDropContext>
-                
-                {/* Answer Summary */}
-                {Array.isArray(answers[currentQuestion.id]) && answers[currentQuestion.id].length > 0 && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <h5 className="font-medium text-green-800 mb-2">Your Current Sequence:</h5>
-                    <div className="flex flex-wrap gap-2">
-                      {answers[currentQuestion.id].map((itemIndex, position) => {
-                        const item = currentQuestion.items[itemIndex];
-                        const itemText = typeof item === 'string' ? item : (item?.text || `Item ${itemIndex + 1}`);
-                        return (
-                          <Badge key={position} variant="outline" className="bg-green-100 text-green-800 border-green-300">
-                            {position + 1}. {itemText.length > 25 ? itemText.substring(0, 25) + '...' : itemText}
-                          </Badge>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-                
-                {/* Fallback if no items available */}
-                {(!currentQuestion.items || !Array.isArray(currentQuestion.items) || currentQuestion.items.length === 0) && (
-                  <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-red-800">No items available for this chronological order question.</p>
-                  </div>
-                )}
+                  );
+                })()}
               </div>
             )}
 
