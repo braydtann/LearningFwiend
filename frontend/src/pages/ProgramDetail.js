@@ -29,6 +29,9 @@ const ProgramDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [accessStatus, setAccessStatus] = useState(null);
+  const [enrollments, setEnrollments] = useState([]);
+  const [programProgress, setProgramProgress] = useState(0);
+  const [coursesCompleted, setCoursesCompleted] = useState(0);
 
   useEffect(() => {
     const loadProgramDetails = async () => {
