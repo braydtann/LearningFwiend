@@ -5460,6 +5460,20 @@ async def get_course_submissions(
         submission_docs = await db.subjective_submissions.find({"courseId": course_id}).to_list(1000)
         
         for doc in submission_docs:
+            # Find the question to get its points
+            question_points = 1  # Default
+            if doc.get("courseId") and doc.get("lessonId") and doc.get("questionId"):
+                course = await db.courses.find_one({"id": doc.get("courseId")})
+                if course and course.get("modules"):
+                    for module in course["modules"]:
+                        if module.get("lessons"):
+                            for lesson in module["lessons"]:
+                                if lesson.get("id") == doc.get("lessonId") and lesson.get("quiz", {}).get("questions"):
+                                    for question in lesson["quiz"]["questions"]:
+                                        if question.get("id") == doc.get("questionId"):
+                                            question_points = question.get("points", 1)
+                                            break
+            
             submissions.append({
                 "id": doc.get("id"),
                 "studentId": doc.get("studentId"),
@@ -5470,6 +5484,7 @@ async def get_course_submissions(
                 "questionText": doc.get("questionText"),
                 "studentAnswer": doc.get("studentAnswer"),
                 "questionType": doc.get("questionType"),
+                "questionPoints": question_points,
                 "submittedAt": doc.get("submittedAt"),
                 "gradedAt": doc.get("gradedAt"),
                 "gradedBy": doc.get("gradedBy"),
