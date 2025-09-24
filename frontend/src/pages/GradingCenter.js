@@ -122,7 +122,18 @@ const GradingCenter = () => {
 
   const handleCourseChange = async (course) => {
     setSelectedCourse(course);
-    await loadCourseSubmissions(course.id);
+    if (viewMode === 'course') {
+      await loadCourseSubmissions(course.id);
+    }
+  };
+
+  const handleViewModeChange = async (mode) => {
+    setViewMode(mode);
+    if (mode === 'all') {
+      await loadAllSubmissions();
+    } else if (mode === 'course' && selectedCourse) {
+      await loadCourseSubmissions(selectedCourse.id);
+    }
   };
 
   const startGrading = (submission) => {
