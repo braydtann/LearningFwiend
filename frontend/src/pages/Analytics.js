@@ -37,7 +37,15 @@ const Analytics = () => {
     getAnalyticsDashboard,
     getAllCourses,
     getAllUsers,
-    getAllDepartments 
+    getAllDepartments,
+    getAllClassrooms,
+    getAllQuizzes,
+    getQuizAttempts,
+    getAllPrograms,
+    getAllFinalTests,
+    getFinalTestAttempts,
+    getAllEnrollments,
+    getAllEnrollmentsForAnalytics
   } = useAuth();
   const { toast } = useToast();
 
