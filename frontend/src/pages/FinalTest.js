@@ -243,6 +243,16 @@ const FinalTest = () => {
       return;
     }
 
+    // Check if user has attempts remaining
+    if (attemptCheck && !attemptCheck.canAttempt) {
+      toast({
+        title: "Maximum Attempts Reached",
+        description: attemptCheck.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setTestStarted(true);
     setCurrentQuestionIndex(0);
     setAnswers({});
@@ -254,7 +264,7 @@ const FinalTest = () => {
 
     toast({
       title: "Final Exam Started",
-      description: "You are now taking the final exam. Good luck!",
+      description: `You are now taking the final exam. ${attemptCheck ? `Attempts remaining: ${attemptCheck.remainingAttempts - 1}` : ''}`,
     });
   };
 
