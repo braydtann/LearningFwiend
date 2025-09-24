@@ -2642,6 +2642,62 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const checkFinalTestAttemptAvailability = async (testId) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/final-tests/${testId}/attempt-check`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        return { success: true, ...result };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to check attempt availability' 
+        };
+      }
+    } catch (error) {
+      console.error('Check final test attempt availability error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
+  const checkQuizAttemptAvailability = async (quizId) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${backendUrl}/api/quizzes/${quizId}/attempt-check`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        return { success: true, ...result };
+      } else {
+        const errorData = await response.json();
+        return { 
+          success: false, 
+          error: errorData.detail || 'Failed to check attempt availability' 
+        };
+      }
+    } catch (error) {
+      console.error('Check quiz attempt availability error:', error);
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      };
+    }
+  };
+
   // =============================================================================
   // ANALYTICS MANAGEMENT FUNCTIONS  
   // =============================================================================
