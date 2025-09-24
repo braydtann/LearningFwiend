@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Progress } from '../components/ui/progress';
 import { Button } from '../components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { Label } from '../components/ui/label';
 import { useAuth } from '../contexts/AuthContext';
 import { 
   BarChart, 
+  BarChart3,
   TrendingUp, 
   Users, 
   BookOpen, 
@@ -18,7 +21,10 @@ import {
   Download,
   User,
   GraduationCap,
-  Building
+  Building,
+  CheckCircle,
+  XCircle,
+  Filter
 } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 
