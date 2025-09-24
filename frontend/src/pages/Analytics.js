@@ -266,6 +266,135 @@ const Analytics = () => {
 
   const metrics = getCalculatedMetrics();
 
+  // Filter quiz attempts based on selected filters
+  const filteredQuizAttempts = quizAttempts.filter(attempt => {
+    if (selectedCourse !== 'all') {
+      if (attempt.quizId && attempt.quizId.startsWith('course-quiz-')) {
+        const courseId = attempt.quizId.replace('course-quiz-', '');
+        if (courseId !== selectedCourse) return false;
+      } else {
+        const quiz = quizzes.find(q => q.id === attempt.quizId);
+        if (!quiz || quiz.courseId !== selectedCourse) return false;
+      }
+    }
+    
+    if (selectedClassroom !== 'all') {
+      return true; // For now, return true until classroom-student data is available
+    }
+    
+    return true;
+  });
+
+  // Filter final test attempts based on selected filters
+  const filteredFinalTestAttempts = finalTestAttempts.filter(attempt => {
+    if (selectedProgram !== 'all') {
+      if (attempt.programId !== selectedProgram) return false;
+    }
+    
+    if (selectedClassroom !== 'all') {
+      return true;
+    }
+    
+    return true;
+  });
+
+  // Calculate quiz statistics
+  const hasFiltersApplied = selectedCourse !== 'all' || selectedClassroom !== 'all';
+  
+  const quizStats = hasFiltersApplied ? {
+    totalQuizzes: selectedCourse !== 'all' ? 
+      courses.filter(course => course.id === selectedCourse).length : 
+      courses.length,
+    totalAttempts: filteredQuizAttempts.length,
+    averageScore: filteredQuizAttempts.length > 0 
+      ? Math.round(filteredQuizAttempts.reduce((sum, attempt) => sum + (attempt.score || 0), 0) / filteredQuizAttempts.length)
+      : 0,
+    passRate: filteredQuizAttempts.length > 0 
+      ? Math.round((filteredQuizAttempts.filter(attempt => attempt.isPassed).length / filteredQuizAttempts.length) * 100)
+      : 0,
+    completedAttempts: filteredQuizAttempts.filter(attempt => attempt.status === 'completed').length,
+    inProgressAttempts: filteredQuizAttempts.filter(attempt => attempt.status === 'in_progress' || !attempt.status).length
+  } : (systemStats ? {
+    totalQuizzes: systemStats.quizzes?.totalQuizzes || 0,
+    totalAttempts: systemStats.quizzes?.totalAttempts || 0,
+    averageScore: systemStats.quizzes?.averageScore || 0,
+    passRate: systemStats.quizzes?.passRate || 0,
+    completedAttempts: systemStats.quizzes?.totalAttempts || 0,
+    inProgressAttempts: 0
+  } : {
+    totalQuizzes: quizzes.length,
+    totalAttempts: filteredQuizAttempts.length,
+    averageScore: filteredQuizAttempts.length > 0 
+      ? Math.round(filteredQuizAttempts.reduce((sum, attempt) => sum + (attempt.score || 0), 0) / filteredQuizAttempts.length)
+      : 0,
+    passRate: filteredQuizAttempts.length > 0 
+      ? Math.round((filteredQuizAttempts.filter(attempt => attempt.isPassed).length / filteredQuizAttempts.length) * 100)
+      : 0,
+    completedAttempts: filteredQuizAttempts.filter(attempt => attempt.status === 'completed').length,
+    inProgressAttempts: filteredQuizAttempts.filter(attempt => attempt.status === 'in_progress' || !attempt.status).length
+  });
+
+  // Calculate final test statistics
+  const finalTestStats = {
+    totalTests: finalTests.length,
+    totalAttempts: filteredFinalTestAttempts.length,
+    averageScore: filteredFinalTestAttempts.length > 0 
+      ? Math.round(filteredFinalTestAttempts.reduce((sum, attempt) => sum + (attempt.score || 0), 0) / filteredFinalTestAttempts.length)
+      : 0,
+    passRate: filteredFinalTestAttempts.length > 0 
+      ? Math.round((filteredFinalTestAttempts.filter(attempt => attempt.isPassed).length / filteredFinalTestAttempts.length) * 100)
+      : 0,
+    completedAttempts: filteredFinalTestAttempts.filter(attempt => attempt.status === 'completed').length
+  };
+
+  // Get recent quiz attempts
+  const recentQuizAttempts = filteredQuizAttempts
+    .filter(attempt => {
+      return (attempt.status === 'completed' || 
+              attempt.completedAt || 
+              (attempt.score && attempt.score > 0) ||
+              attempt.status === 'in_progress');
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.completedAt || a.created_at || a.startedAt);
+      const dateB = new Date(b.completedAt || b.created_at || b.startedAt);
+      return dateB - dateA;
+    })
+    .slice(0, 10)
+    .map(attempt => {
+      let courseName = 'Unknown Course';
+      if (attempt.quizTitle && attempt.quizTitle.includes(' - Course Quiz')) {
+        courseName = attempt.quizTitle.replace(' - Course Quiz', '');
+      } else if (attempt.quizId && attempt.quizId.startsWith('course-quiz-')) {
+        const courseId = attempt.quizId.replace('course-quiz-', '');
+        const course = courses.find(c => c.id === courseId);
+        courseName = course?.title || 'Unknown Course';
+      }
+      
+      return {
+        ...attempt,
+        studentName: attempt.studentName || 'Unknown Student',
+        courseName: courseName,
+        quizTitle: attempt.quizTitle || 'Course Quiz'
+      };
+    });
+
+  // Get recent final test attempts
+  const recentFinalTestAttempts = filteredFinalTestAttempts
+    .filter(attempt => attempt.status === 'completed')
+    .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt))
+    .slice(0, 10)
+    .map(attempt => {
+      const test = finalTests.find(t => t.id === attempt.finalTestId);
+      const program = programs.find(p => p.id === attempt.programId);
+      return {
+        ...attempt,
+        studentName: attempt.studentName || 'Unknown Student',
+        programName: program?.title || attempt.programName || 'Unknown Program',
+        testTitle: test?.title || attempt.testTitle || 'Unknown Test'
+      };
+    });
+
   // Access control
   if (!isAdmin && !isInstructor) {
     return (
