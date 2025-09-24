@@ -360,16 +360,16 @@ const GradingCenter = () => {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Score (0-100)
+                  Score (0-{gradingSubmission.questionPoints || 100})
                 </label>
                 <input
                   type="number"
                   min="0"
-                  max="100"
+                  max={gradingSubmission.questionPoints || 100}
                   value={gradeScore}
                   onChange={(e) => setGradeScore(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter score"
+                  placeholder={`Enter score (max: ${gradingSubmission.questionPoints || 100})`}
                 />
               </div>
               
