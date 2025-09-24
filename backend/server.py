@@ -5569,25 +5569,46 @@ async def grade_submission(
     
     # Get the submission to find the question points
     submission = await db.subjective_submissions.find_one({"id": submission_id})
-    if not submission:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Submission not found"
-        )
-    
-    # Find the question to get its max points
     max_points = 1  # Default
-    if submission.get("courseId") and submission.get("lessonId") and submission.get("questionId"):
-        course = await db.courses.find_one({"id": submission.get("courseId")})
-        if course and course.get("modules"):
-            for module in course["modules"]:
-                if module.get("lessons"):
-                    for lesson in module["lessons"]:
-                        if lesson.get("id") == submission.get("lessonId") and lesson.get("quiz", {}).get("questions"):
-                            for question in lesson["quiz"]["questions"]:
-                                if question.get("id") == submission.get("questionId"):
-                                    max_points = question.get("points", 1)
-                                    break
+    
+    if submission:
+        # Regular quiz submission
+        if submission.get("courseId") and submission.get("lessonId") and submission.get("questionId"):
+            course = await db.courses.find_one({"id": submission.get("courseId")})
+            if course and course.get("modules"):
+                for module in course["modules"]:
+                    if module.get("lessons"):
+                        for lesson in module["lessons"]:
+                            if lesson.get("id") == submission.get("lessonId") and lesson.get("quiz", {}).get("questions"):
+                                for question in lesson["quiz"]["questions"]:
+                                    if question.get("id") == submission.get("questionId"):
+                                        max_points = question.get("points", 1)
+                                        break
+    else:
+        # Check if it's a final test submission
+        if submission_id.startswith("final-"):
+            parts = submission_id.split("-")
+            if len(parts) >= 3:
+                attempt_id = parts[1]
+                question_id = "-".join(parts[2:])
+                
+                # Find the final test attempt
+                attempt = await db.final_test_attempts.find_one({"id": attempt_id})
+                if attempt:
+                    # Find the final test
+                    test = await db.final_tests.find_one({"id": attempt.get("testId")})
+                    if test:
+                        # Find the specific question
+                        for question in test.get("questions", []):
+                            if question.get("id") == question_id:
+                                max_points = question.get("points", 1)
+                                break
+        
+        if max_points == 1:  # If not found, raise error
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Submission not found"
+            )
     
     # Validate score against question points
     if grading_data.score < 0 or grading_data.score > max_points:
