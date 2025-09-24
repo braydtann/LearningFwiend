@@ -5619,8 +5619,18 @@ async def grade_submission(
     max_points = 1  # Default
     
     if submission:
+        # Check if it's a final test submission first
+        if submission.get("testId") and submission.get("questionId"):
+            # This is a final test submission
+            test = await db.final_tests.find_one({"id": submission.get("testId")})
+            if test:
+                # Find the specific question
+                for question in test.get("questions", []):
+                    if question.get("id") == submission.get("questionId"):
+                        max_points = question.get("points", 1)
+                        break
         # Regular quiz submission
-        if submission.get("courseId") and submission.get("lessonId") and submission.get("questionId"):
+        elif submission.get("courseId") and submission.get("lessonId") and submission.get("questionId"):
             course = await db.courses.find_one({"id": submission.get("courseId")})
             if course and course.get("modules"):
                 for module in course["modules"]:
@@ -5632,7 +5642,7 @@ async def grade_submission(
                                         max_points = question.get("points", 1)
                                         break
     else:
-        # Check if it's a final test submission
+        # Check if it's an old format final test submission (fallback)
         if submission_id.startswith("final-"):
             parts = submission_id.split("-")
             if len(parts) >= 3:
