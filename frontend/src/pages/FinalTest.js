@@ -488,13 +488,31 @@ const FinalTest = () => {
                         : 'border-gray-200 bg-white hover:border-gray-300'
                     }`}
                     onClick={() => {
+                      console.log('🔍 DEBUG: Chronological Order click:', {
+                        questionId: question.id,
+                        clickedItem: itemText,
+                        clickedIndex: index,
+                        currentOrder: currentOrder,
+                        isOrdered: isOrdered
+                      });
+                      
                       if (isOrdered) {
                         // Remove from order
                         const newOrder = currentOrder.filter(idx => idx !== index);
+                        console.log('🔍 DEBUG: Chronological Order - Removing item:', {
+                          questionId: question.id,
+                          removedIndex: index,
+                          newOrder: newOrder
+                        });
                         handleAnswerChange(question.id, newOrder);
                       } else {
                         // Add to end of order
                         const newOrder = [...currentOrder, index];
+                        console.log('🔍 DEBUG: Chronological Order - Adding item:', {
+                          questionId: question.id,
+                          addedIndex: index,
+                          newOrder: newOrder
+                        });
                         handleAnswerChange(question.id, newOrder);
                       }
                     }}
