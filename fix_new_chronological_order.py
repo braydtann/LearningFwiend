@@ -24,40 +24,37 @@ async def fix_new_chronological_order():
         db = client[DB_NAME]
         print(f"✅ Connected to MongoDB: {DB_NAME}")
         
-        # Find the most recent final test with chronological order
-        tests = await db.final_tests.find({"questions.type": "chronological-order"}).sort("createdAt", -1).limit(5).to_list(length=5)
+        # Target test ID from user's logs  
+        test_id = "d68f0ce0-0d7b-4707-b06b-051062bd5e4a"
         
-        print(f"\n🔍 Found {len(tests)} tests with chronological order questions")
-        
-        for test in tests:
-            print(f"\nTest: {test.get('title', 'Unknown')} (ID: {test.get('id')})")
+        test = await db.final_tests.find_one({"id": test_id})
+        if not test:
+            print(f"❌ Test with ID {test_id} not found")
+            return False
             
-            for i, question in enumerate(test.get('questions', [])):
-                if question.get('type') == 'chronological-order':
-                    items = question.get('items', [])
-                    current_correct_order = question.get('correctOrder', [])
-                    
-                    print(f"  Question {i+1}: {question.get('question', 'No text')[:50]}...")
-                    print(f"    Items: {items}")
-                    print(f"    Current correctOrder: {current_correct_order}")
-                    
-                    # Check if this looks like the new test (items "1", "3", "2", "4")
-                    if items == ['1', '3', '2', '4']:
-                        print(f"    ✅ Found target question! Updating correctOrder...")
-                        
-                        # User says correct sequence is "1", "3", "2", "4" (original order)
-                        # This means correctOrder should be [0, 1, 2, 3]
-                        new_correct_order = [0, 1, 2, 3]
-                        
-                        update_result = await db.final_tests.update_one(
-                            {"id": test.get('id'), "questions.id": question.get('id')},
-                            {"$set": {"questions.$.correctOrder": new_correct_order}}
-                        )
-                        
-                        if update_result.modified_count > 0:
-                            print(f"    ✅ Successfully updated correctOrder to {new_correct_order}")
-                        else:
-                            print(f"    ❌ Failed to update correctOrder")
+        print(f"\n✅ Found test: {test.get('title', 'Unknown')}")
+        
+        for i, question in enumerate(test.get('questions', [])):
+            if question.get('type') == 'chronological-order':
+                items = question.get('items', [])
+                current_correct_order = question.get('correctOrder', [])
+                
+                print(f"  Question {i+1}: {question.get('question', 'No text')[:50]}...")
+                print(f"    Items: {items}")
+                print(f"    Current correctOrder: {current_correct_order}")
+                
+                # Update correctOrder to [0, 1, 2, 3] for sequence "1", "3", "2", "4"
+                new_correct_order = [0, 1, 2, 3]
+                
+                update_result = await db.final_tests.update_one(
+                    {"id": test_id, "questions.id": question.get('id')},
+                    {"$set": {"questions.$.correctOrder": new_correct_order}}
+                )
+                
+                if update_result.modified_count > 0:
+                    print(f"    ✅ Successfully updated correctOrder to {new_correct_order}")
+                else:
+                    print(f"    ❌ Failed to update correctOrder")
         
         client.close()
         print(f"\n🎉 Chronological Order fix completed!")
