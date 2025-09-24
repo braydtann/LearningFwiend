@@ -5536,6 +5536,8 @@ async def get_course_submissions(
                         "questionId": question_id,
                         "questionText": question.get("question", "Question text not available"),
                         "studentAnswer": student_answer,
+                        "questionType": question.get("type", "unknown"),
+                        "questionPoints": question.get("points", 1),
                         "submittedAt": attempt.get("submittedAt", attempt.get("created_at")),
                         "gradedAt": None,
                         "gradedBy": None,
