@@ -4634,10 +4634,20 @@ async def submit_final_test_attempt(
                 str(student_answer).lower().strip() == str(question['correctAnswer']).lower().strip()):
                 points_earned += question_points
                 
-        elif question['type'] in ['short_answer', 'essay']:
-            if (question['type'] == 'short_answer' and student_answer and question.get('correctAnswer') and
-                str(student_answer).lower().strip() == str(question['correctAnswer']).lower().strip()):
-                points_earned += question_points
+        elif question['type'] in ['short-answer', 'long-form', 'essay']:
+            # These question types require manual grading - don't auto-grade
+            # Auto-grading only happens if explicitly enabled and has a correct answer
+            if (question['type'] == 'short-answer' and 
+                question.get('enableAutoGrading', False) and 
+                student_answer and 
+                question.get('correctAnswer')):
+                # More flexible matching for short answers
+                student_clean = str(student_answer).lower().strip()
+                correct_clean = str(question['correctAnswer']).lower().strip()
+                if student_clean == correct_clean:
+                    points_earned += question_points
+            # For long-form/essay and non-auto-grading short-answer, points will be 0
+            # These will be available for manual grading
                 
         elif question['type'] == 'select-all-that-apply':
             # Student answer should be a list of indices
