@@ -958,23 +958,25 @@ const FinalTest = () => {
 
           <div className="text-center">
             {finalTest && finalTest.questions?.length > 0 ? (
-              <Button 
-                onClick={startFinalExam} 
-                size="lg" 
-                className="px-8"
-                disabled={attemptCheck && !attemptCheck.canAttempt}
-              >
-                <Play className="w-5 h-5 mr-2" />
-                {attemptCheck && !attemptCheck.canAttempt ? 'No Attempts Remaining' : 'Start Final Exam'}
-              </Button>
-              
-              {attemptCheck && !attemptCheck.canAttempt && (
-                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-red-800 text-center">
-                    {attemptCheck.message}
-                  </p>
-                </div>
-              )}
+              <>
+                <Button 
+                  onClick={startFinalExam} 
+                  size="lg" 
+                  className="px-8"
+                  disabled={attemptCheck && !attemptCheck.canAttempt}
+                >
+                  <Play className="w-5 h-5 mr-2" />
+                  {attemptCheck && !attemptCheck.canAttempt ? 'No Attempts Remaining' : 'Start Final Exam'}
+                </Button>
+                
+                {attemptCheck && !attemptCheck.canAttempt && (
+                  <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-red-800 text-center">
+                      {attemptCheck.message}
+                    </p>
+                  </div>
+                )}
+              </>
             ) : (
               <Button disabled size="lg" className="px-8">
                 <Play className="w-5 h-5 mr-2" />
