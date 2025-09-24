@@ -281,30 +281,32 @@ const GradingCenter = () => {
         </CardContent>
       </Card>
 
-      {/* Course Selection */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Select Course</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {courses.map((course) => (
-              <div
-                key={course.id}
-                className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                  selectedCourse?.id === course.id 
-                    ? 'border-blue-500 bg-blue-50' 
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-                onClick={() => handleCourseChange(course)}
-              >
-                <h3 className="font-medium text-gray-900">{course.title}</h3>
-                <p className="text-sm text-gray-600 mt-1">{course.enrolledStudents} students enrolled</p>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      {/* Course Selection - Only show in course view mode */}
+      {viewMode === 'course' && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Select Course</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {courses.map((course) => (
+                <div
+                  key={course.id}
+                  className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                    selectedCourse?.id === course.id 
+                      ? 'border-blue-500 bg-blue-50' 
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                  onClick={() => handleCourseChange(course)}
+                >
+                  <h3 className="font-medium text-gray-900">{course.title}</h3>
+                  <p className="text-sm text-gray-600 mt-1">{course.enrolledStudents} students enrolled</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {selectedCourse && (
         <>
