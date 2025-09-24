@@ -4366,7 +4366,40 @@ async def get_all_final_tests(
     # Admins can see all tests regardless of published status
     
     tests = await db.final_tests.find(query).sort("created_at", -1).to_list(1000)
-    return [FinalTestResponse(**test) for test in tests]
+    
+    # Convert to response objects with proper field mapping
+    response_tests = []
+    for test in tests:
+        # Get program name if programId exists
+        program_name = None
+        if test.get('programId'):
+            program = await db.programs.find_one({"id": test['programId']})
+            if program:
+                program_name = program.get('title', 'Unknown Program')
+        
+        response_test = FinalTestResponse(
+            id=test['id'],
+            title=test['title'],
+            description=test.get('description'),
+            programId=test.get('programId', ''),
+            programName=program_name,
+            timeLimit=test.get('timeLimit'),
+            maxAttempts=test.get('maxAttempts', 2),
+            passingScore=test.get('passingScore', 75.0),
+            shuffleQuestions=test.get('shuffleQuestions', False),
+            showResults=test.get('showResults', True),
+            isPublished=test.get('isPublished', True),
+            totalPoints=test.get('totalPoints', 0),
+            questionCount=len(test.get('questions', [])),
+            createdBy=test.get('createdBy', ''),
+            createdByName=test.get('createdByName', 'Unknown'),
+            isActive=test.get('isActive', True),
+            created_at=test.get('created_at', datetime.utcnow()),
+            updated_at=test.get('updated_at', datetime.utcnow())
+        )
+        response_tests.append(response_test)
+    
+    return response_tests
 
 @api_router.get("/final-tests/my-tests", response_model=List[FinalTestResponse])
 async def get_my_final_tests(current_user: UserResponse = Depends(get_current_user)):
