@@ -64,6 +64,29 @@ const ProgramDetail = () => {
                 programResult.program.courseIds.includes(course.id)
               );
               setCourses(programCourses);
+              
+              // For learners, calculate program progress
+              if (isLearner) {
+                const enrollmentsResult = await getMyEnrollments();
+                if (enrollmentsResult.success) {
+                  setEnrollments(enrollmentsResult.enrollments);
+                  
+                  // Calculate progress for this program
+                  const programEnrollments = enrollmentsResult.enrollments.filter(enrollment => 
+                    programResult.program.courseIds.includes(enrollment.courseId)
+                  );
+                  
+                  const totalCourses = programCourses.length;
+                  const completedCourses = programEnrollments.filter(enrollment => 
+                    enrollment.progress >= 100
+                  ).length;
+                  
+                  const overallProgress = totalCourses > 0 ? Math.round((completedCourses / totalCourses) * 100) : 0;
+                  
+                  setProgramProgress(overallProgress);
+                  setCoursesCompleted(completedCourses);
+                }
+              }
             }
           }
         } else {
