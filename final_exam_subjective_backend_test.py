@@ -214,7 +214,7 @@ class FinalExamSubjectiveTestRunner:
                 elif question["type"] == "true_false":
                     # Answer correctly (True = option 0)
                     answers.append({"questionId": question_id, "answer": "0"})
-                elif question["type"] == "short-answer":
+                elif question["type"] == "short_answer":
                     # Provide a short answer that should be manually graded
                     answers.append({"questionId": question_id, "answer": "Pearl Harbor was attacked by Japan on December 7, 1941, which led to the United States entering World War II."})
                 elif question["type"] == "essay":
