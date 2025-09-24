@@ -881,6 +881,12 @@ const FinalTest = () => {
                       <CheckCircle className="w-5 h-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
                       Total questions: {finalTest.questions?.length || 0}
                     </li>
+                    {attemptCheck && (
+                      <li className="flex items-start">
+                        <CheckCircle className="w-5 h-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
+                        Attempts remaining: {attemptCheck.remainingAttempts} of {attemptCheck.maxAttempts}
+                      </li>
+                    )}
                     <li className="flex items-start">
                       <CheckCircle className="w-5 h-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
                       Upon successful completion, you will receive a certificate
