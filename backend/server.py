@@ -5492,6 +5492,69 @@ async def submit_subjective_answers(
         logger.error(f"Error storing subjective submissions: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to store submissions")
 
+@api_router.get("/courses/all/submissions")
+async def get_all_submissions(
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Get all subjective question submissions including final test submissions (instructors and admins only)."""
+    if current_user.role not in ['instructor', 'admin']:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only instructors and admins can view submissions"
+        )
+    
+    try:
+        # Get all submissions from the subjective_submissions collection
+        submission_docs = await db.subjective_submissions.find({}).to_list(1000)
+        
+        submissions = []
+        for doc in submission_docs:
+            # Convert MongoDB document to response format
+            submission = {
+                "id": doc.get("id"),
+                "studentId": doc.get("studentId"),
+                "studentName": doc.get("studentName"),
+                "courseId": doc.get("courseId"),
+                "lessonId": doc.get("lessonId"),
+                "questionId": doc.get("questionId"),
+                "questionText": doc.get("questionText"),
+                "questionType": doc.get("questionType"),
+                "studentAnswer": doc.get("studentAnswer"),
+                "submittedAt": doc.get("submittedAt"),
+                "gradedAt": doc.get("gradedAt"),
+                "gradedBy": doc.get("gradedBy"),
+                "gradedByName": doc.get("gradedByName"),
+                "score": doc.get("score"),
+                "feedback": doc.get("feedback"),
+                "status": doc.get("status"),
+                "isActive": doc.get("isActive", True),
+                "created_at": doc.get("created_at"),
+                # Final test specific fields
+                "testId": doc.get("testId"),
+                "testTitle": doc.get("testTitle"),
+                "programId": doc.get("programId"),
+                "programName": doc.get("programName"),
+                "attemptId": doc.get("attemptId"),
+                "questionPoints": 10  # Default, will be updated if we can find the actual question
+            }
+            
+            # Try to get question points from final test if available
+            if doc.get("testId") and doc.get("questionId"):
+                test = await db.final_tests.find_one({"id": doc.get("testId")})
+                if test and test.get("questions"):
+                    for question in test["questions"]:
+                        if question.get("id") == doc.get("questionId"):
+                            submission["questionPoints"] = question.get("points", 10)
+                            break
+            
+            submissions.append(submission)
+        
+        return {"submissions": submissions, "count": len(submissions)}
+        
+    except Exception as e:
+        logger.error(f"Error fetching all submissions: {str(e)}")
+        return {"submissions": [], "count": 0, "error": str(e)}
+
 @api_router.get("/courses/{course_id}/submissions")
 async def get_course_submissions(
     course_id: str,
