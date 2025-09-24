@@ -4054,6 +4054,46 @@ async def delete_quiz(
     
     return {"message": f"Quiz '{quiz['title']}' has been successfully deleted"}
 
+@api_router.get("/quizzes/{quiz_id}/attempt-check")
+async def check_quiz_attempt_availability(
+    quiz_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Check if the current user can attempt the quiz."""
+    if current_user.role != 'learner':
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only learners can attempt quizzes"
+        )
+    
+    # Find the quiz
+    quiz = await db.quizzes.find_one({"id": quiz_id, "isActive": True})
+    if not quiz:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Quiz not found"
+        )
+    
+    # Count existing attempts by this student for this quiz
+    existing_attempts = await db.quiz_attempts.count_documents({
+        "quizId": quiz_id,
+        "studentId": current_user.id,
+        "isActive": True
+    })
+    
+    max_attempts = quiz.get('attempts', 3)  # Default to 3 attempts for quizzes
+    can_attempt = existing_attempts < max_attempts
+    remaining_attempts = max(0, max_attempts - existing_attempts)
+    
+    return {
+        "canAttempt": can_attempt,
+        "existingAttempts": existing_attempts,
+        "maxAttempts": max_attempts,
+        "remainingAttempts": remaining_attempts,
+        "quizTitle": quiz.get('title', 'Quiz'),
+        "message": f"You have {remaining_attempts} attempt(s) remaining" if can_attempt else f"You have reached the maximum number of attempts ({max_attempts})"
+    }
+
 @api_router.post("/quiz-attempts", response_model=QuizAttemptResponse)
 async def submit_quiz_attempt(
     attempt_data: QuizAttemptCreate,
