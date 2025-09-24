@@ -4541,7 +4541,34 @@ async def update_final_test(
     
     # Get updated test
     updated_test = await db.final_tests.find_one({"id": test_id})
-    return FinalTestResponse(**updated_test)
+    
+    # Convert to response object with proper field mapping
+    program_name = None
+    if updated_test.get('programId'):
+        program = await db.programs.find_one({"id": updated_test['programId']})
+        if program:
+            program_name = program.get('title', 'Unknown Program')
+    
+    return FinalTestResponse(
+        id=updated_test['id'],
+        title=updated_test['title'],
+        description=updated_test.get('description'),
+        programId=updated_test.get('programId', ''),
+        programName=program_name,
+        timeLimit=updated_test.get('timeLimit'),
+        maxAttempts=updated_test.get('maxAttempts', 2),
+        passingScore=updated_test.get('passingScore', 75.0),
+        shuffleQuestions=updated_test.get('shuffleQuestions', False),
+        showResults=updated_test.get('showResults', True),
+        isPublished=updated_test.get('isPublished', True),
+        totalPoints=updated_test.get('totalPoints', 0),
+        questionCount=len(updated_test.get('questions', [])),
+        createdBy=updated_test.get('createdBy', ''),
+        createdByName=updated_test.get('createdByName', 'Unknown'),
+        isActive=updated_test.get('isActive', True),
+        created_at=updated_test.get('created_at', datetime.utcnow()),
+        updated_at=updated_test.get('updated_at', datetime.utcnow())
+    )
 
 @api_router.delete("/final-tests/{test_id}")
 async def delete_final_test(
