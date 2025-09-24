@@ -5759,7 +5759,7 @@ async def update_final_test_attempt_score(attempt_id: str):
             question_id = question.get('id')
             question_points = question.get('points', 1)
             
-            if question['type'] in ['short-answer', 'long-form', 'essay']:
+            if question['type'] in ['short_answer', 'long_form', 'essay']:
                 # Use manual grading score if available
                 if question_id in submission_scores:
                     points_earned += submission_scores[question_id]
