@@ -95,6 +95,31 @@ const GradingCenter = () => {
     }
   };
 
+  const loadAllSubmissions = async () => {
+    try {
+      const backendUrl = process.env.REACT_APP_BACKEND_URL;
+      const token = localStorage.getItem('auth_token');
+      
+      const response = await fetch(`${backendUrl}/api/courses/all/submissions`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setSubmissions(data.submissions || []);
+      } else {
+        console.error('Failed to load all submissions');
+        setSubmissions([]);
+      }
+    } catch (error) {
+      console.error('Error loading all submissions:', error);
+      setSubmissions([]);
+    }
+  };
+
   const handleCourseChange = async (course) => {
     setSelectedCourse(course);
     await loadCourseSubmissions(course.id);
