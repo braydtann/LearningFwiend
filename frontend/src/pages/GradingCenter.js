@@ -495,8 +495,10 @@ const GradingCenter = () => {
 };
 
 const SubmissionCard = ({ submission, onGrade }) => {
+  const isFinalTest = submission.testId || submission.testTitle;
+  
   return (
-    <Card className="border-l-4 border-l-blue-500">
+    <Card className={`border-l-4 ${isFinalTest ? 'border-l-purple-500' : 'border-l-blue-500'}`}>
       <CardContent className="p-4">
         <div className="flex items-start justify-between">
           <div className="flex-1">
@@ -505,22 +507,52 @@ const SubmissionCard = ({ submission, onGrade }) => {
               <Badge variant={submission.status === 'pending' ? 'secondary' : 'default'}>
                 {submission.status === 'pending' ? 'Pending Review' : 'Graded'}
               </Badge>
+              {isFinalTest && (
+                <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-300">
+                  Final Exam
+                </Badge>
+              )}
               {submission.status === 'graded' && (
                 <Badge variant="outline">
-                  Score: {submission.score}%
+                  Score: {submission.score}/{submission.questionPoints || 100}
                 </Badge>
               )}
             </div>
+            
+            {/* Show context information */}
+            {isFinalTest ? (
+              <div className="text-xs text-gray-600 mb-2">
+                <p><strong>Program:</strong> {submission.programName || 'Unknown Program'}</p>
+                <p><strong>Test:</strong> {submission.testTitle || 'Final Test'}</p>
+              </div>
+            ) : (
+              <div className="text-xs text-gray-600 mb-2">
+                <p><strong>Course Quiz</strong></p>
+              </div>
+            )}
+            
             <p className="text-sm text-gray-600 mb-2">
               <strong>Question:</strong> {submission.questionText}
             </p>
-            <p className="text-sm text-gray-700 bg-gray-50 p-2 rounded">
-              <strong>Answer:</strong> {submission.studentAnswer?.slice(0, 200)}
-              {submission.studentAnswer?.length > 200 && '...'}
-            </p>
-            <p className="text-xs text-gray-500 mt-2">
-              Submitted: {new Date(submission.submittedAt).toLocaleDateString()}
-            </p>
+            <div className="text-sm text-gray-700 bg-gray-50 p-2 rounded mb-2">
+              <strong>Student Answer:</strong>
+              <p className="mt-1">{submission.studentAnswer?.slice(0, 300)}</p>
+              {submission.studentAnswer?.length > 300 && <span className="text-gray-500">... (truncated)</span>}
+            </div>
+            
+            {submission.feedback && (
+              <div className="text-sm text-green-700 bg-green-50 p-2 rounded mb-2">
+                <strong>Feedback:</strong>
+                <p className="mt-1">{submission.feedback}</p>
+              </div>
+            )}
+            
+            <div className="flex items-center justify-between text-xs text-gray-500 mt-2">
+              <span>Submitted: {new Date(submission.submittedAt).toLocaleDateString()}</span>
+              {submission.status === 'graded' && submission.gradedAt && (
+                <span>Graded: {new Date(submission.gradedAt).toLocaleDateString()}</span>
+              )}
+            </div>
           </div>
           <Button 
             variant={submission.status === 'pending' ? 'default' : 'outline'}
