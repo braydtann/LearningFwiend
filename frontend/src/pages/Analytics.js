@@ -435,10 +435,12 @@ const Analytics = () => {
       </div>
 
       <Tabs value={activeView} onValueChange={setActiveView} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="performance">Performance</TabsTrigger>
           <TabsTrigger value="engagement">Engagement</TabsTrigger>
+          <TabsTrigger value="quizzes">Quiz Analytics</TabsTrigger>
+          <TabsTrigger value="tests">Final Tests</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
