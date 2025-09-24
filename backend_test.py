@@ -1,13 +1,19 @@
 #!/usr/bin/env python3
 """
-Quality of Life Improvements Testing
-=====================================
+Final Exam Bug Fixes Testing
+=============================
 
-Testing the new attempt check endpoints and updated grading system:
-1. GET /api/final-tests/{test_id}/attempt-check
-2. GET /api/quizzes/{quiz_id}/attempt-check  
-3. GET /api/courses/{course_id}/submissions (should include questionPoints field)
-4. POST /api/submissions/{submission_id}/grade (should validate against question points)
+Testing the final exam bug fixes as requested in review:
+1. Manual Grading Fix Test:
+   - Test GET /api/courses/all/submissions to verify final test subjective submissions are included
+   - Test POST /api/submissions/{submission_id}/grade with a final test submission ID
+   - Verify the grading works and doesn't return 404 errors
+   - Test with submission ID like: "final-e5bde064-9277-4c94-8f0b-2fec2e3fc2c6-b5ec2256-6021-4a76-9ea7-b16467ed1b85"
+
+2. Select All That Apply Verification:
+   - Create a simple final test with only select-all-that-apply questions
+   - Submit correct answers (matching the correctAnswers array)
+   - Verify the scoring logic works properly
 
 Authentication credentials:
 - Admin: brayden.t@covesmart.com / Hawaii2020!
