@@ -266,28 +266,64 @@ class FinalExamBugFixesTestSuite:
     def create_select_all_that_apply_test(self):
         """Create a simple final test with select-all-that-apply questions"""
         try:
+            # First, get available programs to use one as programId
+            response = requests.get(
+                f"{BACKEND_URL}/programs",
+                headers=self.get_headers(self.admin_token)
+            )
+            
+            program_id = None
+            if response.status_code == 200:
+                programs = response.json()
+                if programs:
+                    program_id = programs[0]["id"]
+            
+            if not program_id:
+                # Create a test program if none exists
+                program_data = {
+                    "title": "Test Program for Final Exam Bug Fixes",
+                    "description": "Temporary program for testing final exam functionality",
+                    "courseIds": []
+                }
+                
+                response = requests.post(
+                    f"{BACKEND_URL}/programs",
+                    json=program_data,
+                    headers=self.get_headers(self.admin_token)
+                )
+                
+                if response.status_code in [200, 201]:
+                    program = response.json()
+                    program_id = program["id"]
+                else:
+                    self.log_test(
+                        "Create Select All That Apply Test - Program Creation",
+                        False,
+                        f"Failed to create program: {response.status_code}",
+                        response.text
+                    )
+                    return False
+            
             test_data = {
                 "title": "Select All That Apply Test - Bug Fix Verification",
                 "description": "Testing select-all-that-apply scoring logic",
-                "programId": None,  # Not tied to a specific program
+                "programId": program_id,
                 "passingScore": 75,
                 "timeLimit": 30,
                 "maxAttempts": 3,
                 "isPublished": True,
                 "questions": [
                     {
-                        "id": str(uuid.uuid4()),
                         "type": "select-all-that-apply",
-                        "text": "Which of the following are programming languages? (Select all that apply)",
+                        "question": "Which of the following are programming languages? (Select all that apply)",
                         "options": ["Python", "HTML", "JavaScript", "CSS", "Java"],
                         "correctAnswers": [0, 2, 4],  # Python, JavaScript, Java
                         "points": 10,
                         "explanation": "Python, JavaScript, and Java are programming languages. HTML and CSS are markup/styling languages."
                     },
                     {
-                        "id": str(uuid.uuid4()),
                         "type": "select-all-that-apply", 
-                        "text": "Which of the following are database systems? (Select all that apply)",
+                        "question": "Which of the following are database systems? (Select all that apply)",
                         "options": ["MySQL", "React", "PostgreSQL", "MongoDB", "Angular"],
                         "correctAnswers": [0, 2, 3],  # MySQL, PostgreSQL, MongoDB
                         "points": 10,
