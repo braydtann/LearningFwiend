@@ -4702,10 +4702,13 @@ async def submit_final_test_attempt(
     await db.final_test_attempts.insert_one(attempt_dict)
     
     # Create subjective submissions for manual grading
+    logger.info(f"Creating subjective submissions for attempt {attempt_dict['id']}")
     for question in test['questions']:
+        logger.info(f"Processing question type: {question['type']}")
         if question['type'] in ['short_answer', 'long_form', 'essay']:
             question_id = question.get('id')
             student_answer = answer_map.get(question_id)
+            logger.info(f"Question {question_id} has answer: {bool(student_answer)}")
             
             if student_answer:  # Only create submission if student provided an answer
                 subjective_submission = {
