@@ -4739,7 +4739,9 @@ async def submit_final_test_attempt(
                 }
                 
                 # Insert subjective submission for manual grading
+                logger.info(f"Inserting subjective submission: {subjective_submission['id']}")
                 await db.subjective_submissions.insert_one(subjective_submission)
+                logger.info(f"Successfully inserted subjective submission for question {question_id}")
     
     return FinalTestAttemptResponse(**attempt_dict)
 
