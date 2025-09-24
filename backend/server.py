@@ -6158,6 +6158,101 @@ async def update_quiz_attempt_score(course_id: str, lesson_id: str, user_id: str
     except Exception as e:
         logger.error(f"Error updating quiz attempt score: {str(e)}")
 
+async def update_quiz_attempt_score(course_id: str, lesson_id: str, user_id: str):
+    """Recalculate and update quiz attempt score after manual grading."""
+    try:
+        # Find the quiz for this lesson
+        quiz = await db.quizzes.find_one({
+            "courseId": course_id,
+            "lessonId": lesson_id,
+            "isActive": True
+        })
+        
+        if not quiz:
+            return
+        
+        # Find the latest quiz attempt for this user
+        quiz_attempt = await db.quiz_attempts.find_one({
+            "quizId": quiz.get("id"),
+            "studentId": user_id,
+            "isActive": True
+        }, sort=[("created_at", -1)])
+        
+        if not quiz_attempt:
+            return
+        
+        # Get all subjective submissions for this quiz attempt
+        subjective_submissions = await db.subjective_submissions.find({
+            "quizId": quiz.get("id"),
+            "studentId": user_id,
+            "isActive": True
+        }).to_list(None)
+        
+        # Calculate new total score
+        points_earned = 0
+        total_points = quiz.get('totalPoints', 0)
+        
+        # Create maps for quick lookup
+        submission_scores = {sub.get("questionId"): sub.get("score", 0) for sub in subjective_submissions if sub.get("status") == "graded"}
+        answer_map = {answer.get('questionId'): answer.get('answer') for answer in quiz_attempt.get('answers', [])}
+        
+        for question in quiz.get('questions', []):
+            question_id = question.get('id')
+            question_points = question.get('points', 1)
+            
+            if question['type'] in ['short_answer', 'long_form', 'essay']:
+                # Use manual grading score if available
+                if question_id in submission_scores:
+                    points_earned += submission_scores[question_id]
+            else:
+                # Re-calculate auto-graded questions
+                student_answer = answer_map.get(question_id)
+                
+                if question['type'] == 'multiple_choice':
+                    try:
+                        answer_index = int(student_answer) if str(student_answer).isdigit() else -1
+                        correct_index = int(question['correctAnswer']) if str(question['correctAnswer']).isdigit() else -1
+                        
+                        if answer_index >= 0 and correct_index >= 0 and answer_index == correct_index:
+                            points_earned += question_points
+                    except (ValueError, AttributeError, TypeError):
+                        pass
+                        
+                elif question['type'] == 'true_false':
+                    if (student_answer is not None and question.get('correctAnswer') and 
+                        str(student_answer).lower().strip() == str(question['correctAnswer']).lower().strip()):
+                        points_earned += question_points
+                        
+                elif question['type'] == 'select-all-that-apply':
+                    if isinstance(student_answer, list) and question.get('correctAnswers'):
+                        student_set = set(student_answer) if student_answer else set()
+                        correct_set = set(question['correctAnswers']) if question['correctAnswers'] else set()
+                        
+                        if student_set == correct_set:
+                            points_earned += question_points
+                            
+                elif question['type'] == 'chronological-order':
+                    if isinstance(student_answer, list) and question.get('correctOrder'):
+                        if student_answer == question['correctOrder']:
+                            points_earned += question_points
+        
+        # Update the quiz attempt with new score
+        score_percentage = (points_earned / total_points * 100) if total_points > 0 else 0
+        is_passed = score_percentage >= quiz.get('passingScore', 75.0)
+        
+        await db.quiz_attempts.update_one(
+            {"id": quiz_attempt.get("id")},
+            {"$set": {
+                "score": round(score_percentage, 2),
+                "pointsEarned": points_earned,
+                "isPassed": is_passed,
+                "updated_at": datetime.utcnow()
+            }}
+        )
+        
+    except Exception as e:
+        logger.error(f"Error updating quiz attempt score: {str(e)}")
+
 @api_router.get("/submissions/{submission_id}/grade")
 async def get_submission_grade(
     submission_id: str,
