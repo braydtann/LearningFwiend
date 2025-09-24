@@ -228,8 +228,20 @@ class ManualGradingTester:
         response = requests.get(f"{BACKEND_URL}/courses/all/submissions", headers=headers)
         
         if response.status_code == 200:
-            submissions = response.json()
-            pending_submissions = [sub for sub in submissions if sub.get("status") == "pending"]
+            submissions_data = response.json()
+            print(f"📋 Submissions response type: {type(submissions_data)}")
+            print(f"📋 Submissions response: {submissions_data}")
+            
+            # Handle different response formats
+            if isinstance(submissions_data, dict):
+                submissions = submissions_data.get("submissions", [])
+            elif isinstance(submissions_data, list):
+                submissions = submissions_data
+            else:
+                print(f"❌ Unexpected submissions format: {type(submissions_data)}")
+                return False
+            
+            pending_submissions = [sub for sub in submissions if isinstance(sub, dict) and sub.get("status") == "pending"]
             
             print(f"✅ Found {len(pending_submissions)} pending submissions")
             for sub in pending_submissions:
