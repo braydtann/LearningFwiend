@@ -4634,7 +4634,7 @@ async def submit_final_test_attempt(
                 str(student_answer).lower().strip() == str(question['correctAnswer']).lower().strip()):
                 points_earned += question_points
                 
-        elif question['type'] in ['short-answer', 'long-form', 'essay']:
+        elif question['type'] in ['short_answer', 'long_form', 'essay']:
             # These question types require manual grading - don't auto-grade
             # Auto-grading only happens if explicitly enabled and has a correct answer
             if (question['type'] == 'short-answer' and 
