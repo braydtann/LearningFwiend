@@ -5398,7 +5398,7 @@ class SubjectiveQuestionSubmission(BaseModel):
     status: str = "pending"  # pending, graded, needs_review
 
 class GradingRequest(BaseModel):
-    score: float  # 0-100
+    score: float  # 0 to question points value
     feedback: Optional[str] = None
 
 @api_router.post("/quiz-submissions/subjective")
