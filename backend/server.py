@@ -5965,6 +5965,10 @@ async def grade_submission(
     if submission and submission.get("testId") and submission.get("attemptId"):
         await update_final_test_attempt_score(submission.get("attemptId"))
     
+    # If this is a quiz submission, update the quiz attempt score
+    elif submission and submission.get("courseId") and submission.get("lessonId"):
+        await update_quiz_attempt_score(submission.get("courseId"), submission.get("lessonId"), current_user.id)
+    
     return {
         "success": True,
         "action": action,
