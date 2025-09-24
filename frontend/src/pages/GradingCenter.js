@@ -49,7 +49,13 @@ const GradingCenter = () => {
         
         if (accessibleCourses.length > 0) {
           setSelectedCourse(accessibleCourses[0]);
-          await loadCourseSubmissions(accessibleCourses[0].id);
+          if (viewMode === 'course') {
+            await loadCourseSubmissions(accessibleCourses[0].id);
+          }
+        }
+        
+        if (viewMode === 'all') {
+          await loadAllSubmissions();
         }
       }
     } catch (error) {
