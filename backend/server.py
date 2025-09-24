@@ -5572,7 +5572,12 @@ async def get_course_submissions(
     
     try:
         # Get submissions from the subjective_submissions collection
-        submission_docs = await db.subjective_submissions.find({"courseId": course_id}).to_list(1000)
+        if course_id == "all":
+            # Get all submissions including final test submissions
+            submission_docs = await db.subjective_submissions.find({}).to_list(1000)
+        else:
+            # Get submissions for specific course
+            submission_docs = await db.subjective_submissions.find({"courseId": course_id}).to_list(1000)
         
         for doc in submission_docs:
             # Find the question to get its points
