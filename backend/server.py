@@ -4703,7 +4703,7 @@ async def submit_final_test_attempt(
     
     # Create subjective submissions for manual grading
     for question in test['questions']:
-        if question['type'] in ['short-answer', 'long-form', 'essay']:
+        if question['type'] in ['short_answer', 'long_form', 'essay']:
             question_id = question.get('id')
             student_answer = answer_map.get(question_id)
             
