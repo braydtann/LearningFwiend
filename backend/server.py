@@ -4835,7 +4835,27 @@ async def submit_final_test_attempt(
                 await db.subjective_submissions.insert_one(subjective_submission)
                 logger.info(f"Successfully inserted subjective submission for question {question_id}")
     
-    return FinalTestAttemptResponse(**attempt_dict)
+    # Return properly constructed response object
+    return FinalTestAttemptResponse(
+        id=attempt_dict['id'],
+        testId=attempt_dict['testId'],
+        testTitle=test['title'],
+        programId=test.get('programId', ''),
+        programName=program_name,
+        studentId=attempt_dict['studentId'],
+        studentName=attempt_dict['studentName'],
+        score=attempt_dict['score'],
+        pointsEarned=attempt_dict['pointsEarned'],
+        totalPoints=attempt_dict['totalPoints'],
+        isPassed=attempt_dict['isPassed'],
+        timeSpent=attempt_dict.get('timeSpent'),
+        startedAt=attempt_dict['startedAt'],
+        completedAt=attempt_dict.get('completedAt'),
+        attemptNumber=attempt_dict['attemptNumber'],
+        status=attempt_dict['status'],
+        isActive=attempt_dict['isActive'],
+        created_at=attempt_dict['created_at']
+    )
 
 @api_router.get("/final-test-attempts", response_model=List[FinalTestAttemptResponse])
 async def get_final_test_attempts(
