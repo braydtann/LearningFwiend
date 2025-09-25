@@ -1094,13 +1094,72 @@ async def update_enrollment_progress(
             detail="Enrollment not found"
         )
     
+    # Get course details to check for quiz lessons
+    course = await db.courses.find_one({"id": course_id})
+    if not course:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Course not found"
+        )
+    
     # Prepare update data
     update_data = {"updated_at": datetime.utcnow()}
     
     if progress_data.progress is not None:
+        # **COURSE COMPLETION FIX**: Validate quiz completion before allowing 100% progress
+        if progress_data.progress >= 100.0:
+            # Check if course has quiz lessons
+            quiz_lessons = []
+            for module in course.get("modules", []):
+                for lesson in module.get("lessons", []):
+                    if lesson.get("type") == "quiz" and lesson.get("quiz") and lesson.get("quiz", {}).get("questions"):
+                        quiz_lessons.append({
+                            "lessonId": lesson.get("id"),
+                            "moduleId": module.get("id"),
+                            "title": lesson.get("title"),
+                            "quiz": lesson.get("quiz")
+                        })
+            
+            if quiz_lessons:
+                # Verify all quiz lessons have been completed by checking quiz attempts
+                for quiz_lesson in quiz_lessons:
+                    quiz_attempts = await db.quiz_attempts.find({
+                        "studentId": current_user.id,
+                        "courseId": course_id,
+                        "lessonId": quiz_lesson["lessonId"],
+                        "isActive": True
+                    }).to_list(None)
+                    
+                    # Check if student has passed this quiz
+                    has_passed_quiz = False
+                    if quiz_attempts:
+                        passing_score = quiz_lesson["quiz"].get("passingScore", 70)
+                        for attempt in quiz_attempts:
+                            if attempt.get("isPassed") or (attempt.get("score", 0) >= passing_score):
+                                has_passed_quiz = True
+                                break
+                    
+                    if not has_passed_quiz:
+                        # Calculate actual progress without allowing 100%
+                        total_lessons = sum(len(module.get("lessons", [])) for module in course.get("modules", []))
+                        completed_lessons = 0
+                        if enrollment.get("moduleProgress"):
+                            completed_lessons = sum(
+                                len([l for l in mp.get("lessons", []) if l.get("completed")])
+                                for mp in enrollment["moduleProgress"]
+                            )
+                        
+                        # Cap progress at 95% if quizzes are not completed
+                        max_allowed_progress = min(95.0, (completed_lessons / total_lessons * 100) if total_lessons > 0 else 0)
+                        
+                        raise HTTPException(
+                            status_code=status.HTTP_400_BAD_REQUEST,
+                            detail=f"Cannot complete course. You must take and pass the quiz '{quiz_lesson['title']}' before completing the course. Current progress capped at {max_allowed_progress:.1f}%"
+                        )
+        
         update_data["progress"] = min(100.0, max(0.0, progress_data.progress))
         
-        # Mark as completed if progress reaches 100%
+        # Mark as completed if progress reaches 100% (and all validations passed)
         if progress_data.progress >= 100.0:
             update_data["status"] = "completed"
             update_data["completedAt"] = datetime.utcnow()
