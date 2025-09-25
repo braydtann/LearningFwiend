@@ -78,6 +78,65 @@ const GradingCenter = () => {
     }
   };
 
+  // Load all attempts for attempt review functionality
+  const loadAllAttempts = async () => {
+    try {
+      const backendUrl = process.env.REACT_APP_BACKEND_URL;
+      const token = localStorage.getItem('auth_token');
+      
+      // Load quiz attempts
+      const quizResponse = await fetch(`${backendUrl}/api/admin/quiz-attempts`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      // Load final test attempts  
+      const finalResponse = await fetch(`${backendUrl}/api/admin/final-test-attempts`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      let allAttempts = [];
+      
+      if (quizResponse.ok) {
+        const quizData = await quizResponse.json();
+        // Add type identifier and format quiz attempts
+        const quizAttempts = (quizData.attempts || []).map(attempt => ({
+          ...attempt,
+          type: 'quiz',
+          title: attempt.quizTitle || attempt.lessonTitle || 'Unknown Quiz',
+          courseName: attempt.courseName || 'Unknown Course',
+          date: attempt.submittedAt || attempt.created_at
+        }));
+        allAttempts = [...allAttempts, ...quizAttempts];
+      }
+      
+      if (finalResponse.ok) {
+        const finalData = await finalResponse.json();
+        // Add type identifier and format final test attempts
+        const finalAttempts = (finalData.attempts || []).map(attempt => ({
+          ...attempt,
+          type: 'final',
+          title: attempt.testTitle || 'Final Exam',
+          courseName: attempt.programName || 'Unknown Program', 
+          date: attempt.submittedAt || attempt.created_at
+        }));
+        allAttempts = [...allAttempts, ...finalAttempts];
+      }
+      
+      // Sort by date (newest first)
+      allAttempts.sort((a, b) => new Date(b.date) - new Date(a.date));
+      setAttempts(allAttempts);
+    } catch (error) {
+      console.error('Error loading attempts:', error);
+      setAttempts([]);
+    }
+  };
+
   const loadCourseSubmissions = async (courseId) => {
     try {
       const backendUrl = process.env.REACT_APP_BACKEND_URL;
