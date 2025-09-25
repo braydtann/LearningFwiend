@@ -487,11 +487,12 @@ const Programs = () => {
                 case 'chronological-order':
                   // Ensure items array exists with strings
                   if (!updatedQuestion.items || updatedQuestion.items.length === 0) {
-                    updatedQuestion.items = ['', '', ''];
+                    updatedQuestion.items = ['', '', '']; // Start with 3 empty items
                   }
                   // Ensure all items are strings
                   updatedQuestion.items = updatedQuestion.items.map(item => String(item || ''));
-                  updatedQuestion.correctOrder = [0, 1, 2];
+                  // **SIMPLIFIED APPROACH**: correctOrder is always sequential based on item arrangement
+                  updatedQuestion.correctOrder = updatedQuestion.items.map((_, idx) => idx);
                   break;
                 case 'short_answer':
                 case 'essay':
