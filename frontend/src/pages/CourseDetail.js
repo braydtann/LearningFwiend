@@ -562,6 +562,34 @@ const CourseDetail = () => {
       }
       
       if (!lesson || !moduleId) return;
+
+      // **IMPORTANT COURSE COMPLETION FIX**: 
+      // For quiz lessons, only allow completion if the user has actually taken and passed the quiz
+      if (lesson.type === 'quiz' && lesson.quiz && lesson.quiz.questions && lesson.quiz.questions.length > 0) {
+        // Check if user has taken and passed this quiz
+        const quizAttempts = await getQuizAttempts({ 
+          quiz_id: `course-quiz-${id}-${lessonId}`,
+          student_id: currentEnrollment.userId
+        });
+        
+        let hasPassedQuiz = false;
+        if (quizAttempts.success && quizAttempts.attempts && quizAttempts.attempts.length > 0) {
+          // Check if any attempt has passed
+          const passingScore = lesson.quiz.passingScore || 70;
+          hasPassedQuiz = quizAttempts.attempts.some(attempt => 
+            attempt.isPassed === true || (attempt.score && attempt.score >= passingScore)
+          );
+        }
+        
+        if (!hasPassedQuiz) {
+          toast({
+            title: "Quiz Required",
+            description: `You must take and pass the quiz "${lesson.title}" before marking it as complete.`,
+            variant: "destructive",
+          });
+          return;
+        }
+      }
       
       // Update enrollment progress
       const moduleProgress = currentEnrollment.moduleProgress || [];
