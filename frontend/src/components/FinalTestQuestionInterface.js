@@ -353,12 +353,22 @@ const FinalTestQuestionInterface = ({
           {question.type === 'chronological-order' && (
             <div className="space-y-3">
               <Label className="text-sm">Items to Order</Label>
+              <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-3">
+                <p className="text-green-800 text-sm font-medium mb-1">
+                  ✅ <strong>How it works:</strong>
+                </p>
+                <p className="text-green-700 text-xs">
+                  The order you arrange the items below (using the up/down arrows) will be the correct chronological order that students must match. 
+                  Arrange them from earliest to latest in time.
+                </p>
+              </div>
+              
               {(question.items || []).map((item, itemIndex) => (
                 <div key={itemIndex} className="border border-purple-200 rounded-lg p-3 space-y-3 bg-purple-50/50">
                   <div className="flex items-center space-x-2">
-                    <span className="text-sm text-purple-700 min-w-[80px]">Item {itemIndex + 1}:</span>
+                    <span className="text-sm text-purple-700 min-w-[80px] font-medium">#{itemIndex + 1}:</span>
                     <Input
-                      placeholder={`Item ${itemIndex + 1} text`}
+                      placeholder={`Item ${itemIndex + 1} text (e.g., "World War I begins (1914)")`}
                       value={item || ''}
                       onChange={(e) => onItemChange(questionIndex, itemIndex, e.target.value)}
                     />
@@ -370,7 +380,7 @@ const FinalTestQuestionInterface = ({
                         onClick={() => onMoveItemUp && onMoveItemUp(questionIndex, itemIndex)}
                         disabled={itemIndex === 0}
                         className="text-blue-600 hover:text-blue-700"
-                        title="Move item up"
+                        title="Move earlier in chronological order"
                       >
                         <ArrowUp className="w-4 h-4" />
                       </Button>
@@ -381,7 +391,7 @@ const FinalTestQuestionInterface = ({
                         onClick={() => onMoveItemDown && onMoveItemDown(questionIndex, itemIndex)}
                         disabled={itemIndex === (question.items || []).length - 1}
                         className="text-blue-600 hover:text-blue-700"
-                        title="Move item down"
+                        title="Move later in chronological order"
                       >
                         <ArrowDown className="w-4 h-4" />
                       </Button>
@@ -400,6 +410,7 @@ const FinalTestQuestionInterface = ({
                   </div>
                 </div>
               ))}
+              
               <Button
                 type="button"
                 variant="outline"
@@ -411,94 +422,26 @@ const FinalTestQuestionInterface = ({
                 Add Item
               </Button>
               
-              {/* NEW: Correct Order Interface */}
+              {/* Preview of correct order */}
               {(question.items || []).length > 0 && (
-                <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <Label className="text-sm font-medium text-green-800 mb-3 block">
-                    ✅ Set Correct Chronological Order
-                  </Label>
-                  <p className="text-xs text-green-700 mb-3">
-                    Drag the items below to arrange them in the correct chronological order (earliest to latest).
-                    This is the order students must match to get the question right.
+                <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-blue-800 text-sm font-medium mb-2">
+                    📋 Current Correct Order (what students must match):
                   </p>
-                  
-                  <div className="space-y-2">
-                    {/* Display current correct order or default sequential order */}
-                    {(() => {
-                      const items = question.items || [];
-                      const correctOrder = (question.correctOrder && question.correctOrder.length > 0) 
-                        ? question.correctOrder 
-                        : items.map((_, index) => index);
-                      
-                      return correctOrder.map((itemIndex, position) => {
-                        const itemText = items[itemIndex] || `Item ${itemIndex + 1}`;
-                        return (
-                          <div key={`correct-order-${position}`} className="flex items-center space-x-2 p-2 bg-white border border-green-300 rounded">
-                            <span className="text-sm text-green-700 font-medium min-w-[60px]">#{position + 1}:</span>
-                            <span className="text-sm text-gray-800 flex-1">
-                              {itemText.length > 100 ? `${itemText.substring(0, 100)}...` : itemText}
-                            </span>
-                            <div className="flex items-center space-x-1">
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  if (position > 0) {
-                                    const newCorrectOrder = [...correctOrder];
-                                    [newCorrectOrder[position], newCorrectOrder[position - 1]] = 
-                                      [newCorrectOrder[position - 1], newCorrectOrder[position]];
-                                    onQuestionChange(questionIndex, 'correctOrder', newCorrectOrder);
-                                  }
-                                }}
-                                disabled={position === 0}
-                                className="text-green-600 hover:text-green-700"
-                                title="Move earlier in chronological order"
-                              >
-                                <ArrowUp className="w-3 h-3" />
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  if (position < correctOrder.length - 1) {
-                                    const newCorrectOrder = [...correctOrder];
-                                    [newCorrectOrder[position], newCorrectOrder[position + 1]] = 
-                                      [newCorrectOrder[position + 1], newCorrectOrder[position]];
-                                    onQuestionChange(questionIndex, 'correctOrder', newCorrectOrder);
-                                  }
-                                }}
-                                disabled={position === correctOrder.length - 1}
-                                className="text-green-600 hover:text-green-700"
-                                title="Move later in chronological order"
-                              >
-                                <ArrowDown className="w-3 h-3" />
-                              </Button>
-                            </div>
-                          </div>
-                        );
-                      });
-                    })()}
+                  <div className="text-blue-700 text-sm">
+                    {(question.items || []).map((item, index) => {
+                      const displayText = item ? (item.length > 50 ? `${item.substring(0, 50)}...` : item) : `Item ${index + 1}`;
+                      return displayText;
+                    }).join(' → ')}
                   </div>
-                  
-                  <div className="mt-3 text-xs text-green-600 bg-green-100 p-2 rounded">
-                    <strong>Current Correct Order:</strong> {(() => {
-                      const items = question.items || [];
-                      const correctOrder = (question.correctOrder && question.correctOrder.length > 0) 
-                        ? question.correctOrder 
-                        : items.map((_, index) => index);
-                      return correctOrder.map(idx => {
-                        const item = items[idx] || `Item ${idx + 1}`;
-                        return item.length > 30 ? `${item.substring(0, 30)}...` : item;
-                      }).join(' → ');
-                    })()}
-                  </div>
+                  <p className="text-blue-600 text-xs mt-2">
+                    Students will see these items shuffled and must arrange them in this exact order.
+                  </p>
                 </div>
               )}
               
               <p className="text-xs text-purple-600">
-                Add items above, then use the "Set Correct Chronological Order" section to arrange them in the right sequence.
+                Use the up/down arrows to arrange items in correct chronological order (earliest to latest). This arrangement will be the answer key.
               </p>
             </div>
           )}
