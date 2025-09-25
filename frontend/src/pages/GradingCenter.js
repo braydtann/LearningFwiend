@@ -933,4 +933,64 @@ const SubmissionCard = ({ submission, onGrade }) => {
   );
 };
 
+const AttemptCard = ({ attempt, onReview }) => {
+  const getScoreColor = (score, isPassed) => {
+    if (isPassed) return 'text-green-600';
+    if (score >= 60) return 'text-yellow-600';
+    return 'text-red-600';
+  };
+
+  const getStatusBadge = (isPassed) => {
+    return isPassed 
+      ? <Badge variant="default" className="bg-green-100 text-green-800">Passed</Badge>
+      : <Badge variant="destructive">Failed</Badge>;
+  };
+
+  return (
+    <Card className={`border-l-4 ${attempt.type === 'quiz' ? 'border-l-blue-500' : 'border-l-purple-500'}`}>
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-2">
+              <h3 className="font-medium text-gray-900">{attempt.studentName}</h3>
+              {getStatusBadge(attempt.isPassed)}
+              <Badge variant="outline" className={attempt.type === 'quiz' ? 'bg-blue-50 text-blue-700' : 'bg-purple-50 text-purple-700'}>
+                {attempt.type === 'quiz' ? 'Quiz' : 'Final Exam'}
+              </Badge>
+            </div>
+            
+            <div className="space-y-1 text-sm text-gray-600 mb-3">
+              <p><strong>{attempt.type === 'quiz' ? 'Quiz' : 'Test'}:</strong> {attempt.title}</p>
+              <p><strong>{attempt.type === 'quiz' ? 'Course' : 'Program'}:</strong> {attempt.courseName}</p>
+              <p><strong>Score:</strong> 
+                <span className={`font-semibold ml-1 ${getScoreColor(attempt.score, attempt.isPassed)}`}>
+                  {attempt.score}% ({attempt.pointsEarned || 0}/{attempt.totalPoints || 100} points)
+                </span>
+              </p>
+              <p><strong>Submitted:</strong> {new Date(attempt.date).toLocaleDateString()} at {new Date(attempt.date).toLocaleTimeString()}</p>
+            </div>
+            
+            {/* Show additional info if available */}
+            {attempt.timeSpent && (
+              <p className="text-xs text-gray-500">
+                Time Spent: {Math.round(attempt.timeSpent / 60)} minutes
+              </p>
+            )}
+          </div>
+          
+          <Button 
+            variant="outline"
+            size="sm"
+            onClick={onReview}
+            className="flex items-center gap-2"
+          >
+            <Eye className="w-4 h-4" />
+            Review Details
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 export default GradingCenter;
