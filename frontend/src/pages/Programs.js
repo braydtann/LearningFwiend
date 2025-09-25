@@ -686,17 +686,21 @@ const Programs = () => {
         questions: prev.finalTest.questions.map((question, index) => {
           if (index !== questionIndex) return question;
           
-          // Swap items in the display order
+          // Swap items in the arrangement (this becomes the correct chronological order)
           const newItems = question.items.map((item, iIdx) => {
             if (iIdx === itemIndex) return question.items[itemIndex - 1];
             if (iIdx === itemIndex - 1) return question.items[itemIndex];
             return item;
           });
           
+          // **SIMPLIFIED APPROACH**: correctOrder is always sequential [0,1,2,3...]
+          // The arranged order of items IS the correct chronological order
+          const newCorrectOrder = newItems.map((_, idx) => idx);
+          
           return {
             ...question,
-            items: newItems
-            // Note: Don't auto-update correctOrder - let instructor set it manually
+            items: newItems,
+            correctOrder: newCorrectOrder
           };
         })
       }
@@ -715,17 +719,21 @@ const Programs = () => {
           questions: prev.finalTest.questions.map((question, index) => {
             if (index !== questionIndex) return question;
             
-            // Swap items in the display order
+            // Swap items in the arrangement (this becomes the correct chronological order)
             const newItems = question.items.map((item, iIdx) => {
               if (iIdx === itemIndex) return question.items[itemIndex + 1];
               if (iIdx === itemIndex + 1) return question.items[itemIndex];
               return item;
             });
             
+            // **SIMPLIFIED APPROACH**: correctOrder is always sequential [0,1,2,3...]
+            // The arranged order of items IS the correct chronological order  
+            const newCorrectOrder = newItems.map((_, idx) => idx);
+            
             return {
               ...question,
-              items: newItems
-              // Note: Don't auto-update correctOrder - let instructor set it manually
+              items: newItems,
+              correctOrder: newCorrectOrder
             };
           })
         }
