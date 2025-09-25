@@ -670,6 +670,192 @@ const GradingCenter = () => {
           </Card>
         </div>
       )}
+
+      {/* Attempt Details Modal */}
+      {selectedAttempt && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>Attempt Review - {selectedAttempt.title}</span>
+                <Badge variant={selectedAttempt.type === 'quiz' ? 'default' : 'secondary'}>
+                  {selectedAttempt.type === 'quiz' ? 'Quiz' : 'Final Exam'}
+                </Badge>
+              </CardTitle>
+              <div className="text-sm text-gray-600 space-y-1">
+                <p><strong>Student:</strong> {selectedAttempt.studentName}</p>
+                <p><strong>Course/Program:</strong> {selectedAttempt.courseName}</p>
+                <p><strong>Score:</strong> {selectedAttempt.score}% ({selectedAttempt.pointsEarned || 0}/{selectedAttempt.totalPoints || 100} points)</p>
+                <p><strong>Status:</strong> 
+                  <Badge variant={selectedAttempt.isPassed ? 'default' : 'destructive'} className="ml-2">
+                    {selectedAttempt.isPassed ? 'Passed' : 'Failed'}
+                  </Badge>
+                </p>
+                <p><strong>Submitted:</strong> {new Date(selectedAttempt.date).toLocaleString()}</p>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {selectedAttempt.questions && selectedAttempt.questions.length > 0 ? (
+                <div className="space-y-6">
+                  <h3 className="text-lg font-semibold text-gray-900">Question-by-Question Breakdown</h3>
+                  {selectedAttempt.questions.map((question, index) => {
+                    const studentAnswer = selectedAttempt.answers?.find(a => a.questionId === question.id);
+                    const isCorrect = studentAnswer?.isCorrect;
+                    
+                    return (
+                      <Card key={question.id} className={`border-l-4 ${
+                        isCorrect ? 'border-l-green-500' : 'border-l-red-500'
+                      }`}>
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between mb-3">
+                            <h4 className="font-medium text-gray-900">Question {index + 1}</h4>
+                            <div className="flex items-center gap-2">
+                              <Badge variant={isCorrect ? 'default' : 'destructive'}>
+                                {isCorrect ? 'Correct' : 'Incorrect'}
+                              </Badge>
+                              <span className="text-sm text-gray-600">
+                                {question.points || 1} point{(question.points || 1) !== 1 ? 's' : ''}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-3">
+                            <div>
+                              <p className="font-medium text-gray-900 mb-1">Question:</p>
+                              <p className="text-gray-700 bg-gray-50 p-3 rounded">{question.question}</p>
+                            </div>
+                            
+                            {question.type === 'multiple_choice' && (
+                              <div>
+                                <p className="font-medium text-gray-900 mb-2">Options:</p>
+                                <div className="space-y-1">
+                                  {question.options?.map((option, optIndex) => (
+                                    <div key={optIndex} className={`p-2 rounded text-sm ${
+                                      parseInt(question.correctAnswer) === optIndex 
+                                        ? 'bg-green-50 border border-green-200 text-green-800'
+                                        : parseInt(studentAnswer?.answer) === optIndex
+                                          ? 'bg-red-50 border border-red-200 text-red-800' 
+                                          : 'bg-gray-50'
+                                    }`}>
+                                      {String.fromCharCode(65 + optIndex)}. {option}
+                                      {parseInt(question.correctAnswer) === optIndex && ' ✓ (Correct)'}
+                                      {parseInt(studentAnswer?.answer) === optIndex && parseInt(question.correctAnswer) !== optIndex && ' ✗ (Selected)'}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            
+                            {question.type === 'true_false' && (
+                              <div>
+                                <p className="font-medium text-gray-900 mb-1">Student Answer:</p>
+                                <span className={`inline-block px-3 py-1 rounded text-sm ${
+                                  isCorrect ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
+                                }`}>
+                                  {studentAnswer?.answer} 
+                                  {!isCorrect && ` (Correct: ${question.correctAnswer})`}
+                                </span>
+                              </div>
+                            )}
+                            
+                            {(question.type === 'short_answer' || question.type === 'long_form' || question.type === 'essay') && (
+                              <div>
+                                <p className="font-medium text-gray-900 mb-1">Student Answer:</p>
+                                <p className="text-gray-700 bg-blue-50 p-3 rounded whitespace-pre-wrap">
+                                  {studentAnswer?.answer || 'No answer provided'}
+                                </p>
+                                {studentAnswer?.score !== undefined && (
+                                  <p className="text-sm text-gray-600 mt-2">
+                                    Manual Score: {studentAnswer.score}/{question.points || 1}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                            
+                            {question.type === 'select-all-that-apply' && (
+                              <div>
+                                <p className="font-medium text-gray-900 mb-2">Options:</p>
+                                <div className="space-y-1">
+                                  {question.options?.map((option, optIndex) => {
+                                    const isCorrectOption = question.correctAnswers?.includes(optIndex);
+                                    const wasSelected = studentAnswer?.answer?.includes(optIndex);
+                                    
+                                    return (
+                                      <div key={optIndex} className={`p-2 rounded text-sm ${
+                                        isCorrectOption && wasSelected
+                                          ? 'bg-green-50 border border-green-200 text-green-800'
+                                          : isCorrectOption && !wasSelected  
+                                            ? 'bg-yellow-50 border border-yellow-200 text-yellow-800'
+                                            : !isCorrectOption && wasSelected
+                                              ? 'bg-red-50 border border-red-200 text-red-800'
+                                              : 'bg-gray-50'
+                                      }`}>
+                                        {String.fromCharCode(65 + optIndex)}. {option}
+                                        {isCorrectOption && wasSelected && ' ✓ (Correct Selection)'}
+                                        {isCorrectOption && !wasSelected && ' ⚠ (Should be Selected)'}
+                                        {!isCorrectOption && wasSelected && ' ✗ (Incorrectly Selected)'}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+                            
+                            {question.type === 'chronological-order' && (
+                              <div>
+                                <p className="font-medium text-gray-900 mb-2">Chronological Order:</p>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div>
+                                    <p className="text-sm font-medium text-gray-700 mb-2">Student Order:</p>
+                                    <div className="space-y-1">
+                                      {studentAnswer?.answer?.map((itemIndex, pos) => (
+                                        <div key={pos} className="text-sm p-2 bg-blue-50 rounded">
+                                          {pos + 1}. {question.items?.[itemIndex] || `Item ${itemIndex + 1}`}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-medium text-gray-700 mb-2">Correct Order:</p>
+                                    <div className="space-y-1">
+                                      {question.correctOrder?.map((itemIndex, pos) => (
+                                        <div key={pos} className="text-sm p-2 bg-green-50 rounded">
+                                          {pos + 1}. {question.items?.[itemIndex] || `Item ${itemIndex + 1}`}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Detailed Data Available</h3>
+                  <p className="text-gray-600">
+                    Detailed question breakdown is not available for this attempt.
+                  </p>
+                </div>
+              )}
+              
+              <div className="flex justify-end space-x-3 pt-4 border-t">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setSelectedAttempt(null)}
+                >
+                  Close
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };
