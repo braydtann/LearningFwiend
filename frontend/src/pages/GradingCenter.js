@@ -14,7 +14,10 @@ import {
   MessageSquare,
   Star,
   Clock,
-  FileText
+  FileText,
+  Eye,
+  Search,
+  Filter
 } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 
@@ -24,11 +27,15 @@ const GradingCenter = () => {
   const [courses, setCourses] = useState([]);
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [submissions, setSubmissions] = useState([]);
+  const [attempts, setAttempts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [gradingSubmission, setGradingSubmission] = useState(null);
   const [gradeScore, setGradeScore] = useState('');
   const [gradeFeedback, setGradeFeedback] = useState('');
   const [viewMode, setViewMode] = useState('course'); // 'course' or 'all'
+  const [selectedAttempt, setSelectedAttempt] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterType, setFilterType] = useState('all'); // 'all', 'quiz', 'final'
 
   useEffect(() => {
     if (user && (user.role === 'instructor' || user.role === 'admin')) {
