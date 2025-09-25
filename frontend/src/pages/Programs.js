@@ -640,8 +640,8 @@ const Programs = () => {
           const currentItems = question.items || [];
           const newItems = [...currentItems.map(item => String(item || '')), ''];
           
-          // **CRITICAL FIX**: Update correctOrder to include the new item index
-          const newCorrectOrder = [...(question.correctOrder || []), newItems.length - 1];
+          // **SIMPLIFIED APPROACH**: correctOrder is always sequential based on item arrangement
+          const newCorrectOrder = newItems.map((_, idx) => idx);
           
           return { 
             ...question, 
@@ -663,10 +663,8 @@ const Programs = () => {
           
           const newItems = question.items.filter((_, iIdx) => iIdx !== itemIndex);
           
-          // **CRITICAL FIX**: Update correctOrder to remove the deleted item and adjust indices
-          let newCorrectOrder = (question.correctOrder || []).filter(orderIdx => orderIdx !== itemIndex);
-          // Adjust indices that are greater than the removed index
-          newCorrectOrder = newCorrectOrder.map(orderIdx => orderIdx > itemIndex ? orderIdx - 1 : orderIdx);
+          // **SIMPLIFIED APPROACH**: correctOrder is always sequential based on item arrangement
+          const newCorrectOrder = newItems.map((_, idx) => idx);
           
           return { 
             ...question, 
