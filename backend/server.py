@@ -5062,19 +5062,19 @@ async def get_all_final_test_attempts_admin(current_user: UserResponse = Depends
     
     try:
         # Get all final test attempts
-        attempts = await db.final_test_attempts.find({"isActive": True}).to_list(1000)
+        attempts = await db.final_test_attempts.find({"isActive": True}, {"_id": 0}).to_list(1000)
         
         # Get test and program information for each attempt
         processed_attempts = []
         for attempt in attempts:
             # Get test details
-            test = await db.final_tests.find_one({"id": attempt.get('testId')})
+            test = await db.final_tests.find_one({"id": attempt.get('testId')}, {"_id": 0})
             if test:
                 attempt['testTitle'] = test.get('title', 'Final Test')
                 attempt['programName'] = test.get('programName', 'Unknown Program')
             
             # Get student details
-            student = await db.users.find_one({"id": attempt.get('studentId')})
+            student = await db.users.find_one({"id": attempt.get('studentId')}, {"_id": 0})
             if student:
                 attempt['studentName'] = student.get('full_name', 'Unknown Student')
             
