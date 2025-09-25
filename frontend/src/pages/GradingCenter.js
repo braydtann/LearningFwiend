@@ -40,6 +40,7 @@ const GradingCenter = () => {
   useEffect(() => {
     if (user && (user.role === 'instructor' || user.role === 'admin')) {
       loadInstructorCourses();
+      loadAllAttempts(); // Load attempts for review functionality
     }
   }, [user]);
 
