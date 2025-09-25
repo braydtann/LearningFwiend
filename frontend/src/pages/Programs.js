@@ -688,24 +688,17 @@ const Programs = () => {
         questions: prev.finalTest.questions.map((question, index) => {
           if (index !== questionIndex) return question;
           
-          // Swap items
+          // Swap items in the display order
           const newItems = question.items.map((item, iIdx) => {
             if (iIdx === itemIndex) return question.items[itemIndex - 1];
             if (iIdx === itemIndex - 1) return question.items[itemIndex];
             return item;
           });
           
-          // **CRITICAL FIX**: Update correctOrder to reflect the new item positions
-          const newCorrectOrder = (question.correctOrder || []).map(orderIdx => {
-            if (orderIdx === itemIndex) return itemIndex - 1;
-            if (orderIdx === itemIndex - 1) return itemIndex;
-            return orderIdx;
-          });
-          
           return {
             ...question,
-            items: newItems,
-            correctOrder: newCorrectOrder
+            items: newItems
+            // Note: Don't auto-update correctOrder - let instructor set it manually
           };
         })
       }
@@ -724,24 +717,17 @@ const Programs = () => {
           questions: prev.finalTest.questions.map((question, index) => {
             if (index !== questionIndex) return question;
             
-            // Swap items
+            // Swap items in the display order
             const newItems = question.items.map((item, iIdx) => {
               if (iIdx === itemIndex) return question.items[itemIndex + 1];
               if (iIdx === itemIndex + 1) return question.items[itemIndex];
               return item;
             });
             
-            // **CRITICAL FIX**: Update correctOrder to reflect the new item positions
-            const newCorrectOrder = (question.correctOrder || []).map(orderIdx => {
-              if (orderIdx === itemIndex) return itemIndex + 1;
-              if (orderIdx === itemIndex + 1) return itemIndex;
-              return orderIdx;
-            });
-            
             return {
               ...question,
-              items: newItems,
-              correctOrder: newCorrectOrder
+              items: newItems
+              // Note: Don't auto-update correctOrder - let instructor set it manually
             };
           })
         }
