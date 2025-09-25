@@ -271,6 +271,68 @@ const GradingCenter = () => {
     return submissions.filter(sub => sub.status === 'graded').length;
   };
 
+  // Filter attempts based on search term and type
+  const getFilteredAttempts = () => {
+    return attempts.filter(attempt => {
+      const matchesSearch = !searchTerm || 
+        attempt.studentName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        attempt.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        attempt.courseName?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesType = filterType === 'all' || attempt.type === filterType;
+      
+      return matchesSearch && matchesType;
+    });
+  };
+
+  // Load detailed attempt data
+  const loadAttemptDetails = async (attempt) => {
+    try {
+      const backendUrl = process.env.REACT_APP_BACKEND_URL;
+      const token = localStorage.getItem('auth_token');
+      
+      let endpoint = '';
+      if (attempt.type === 'quiz') {
+        endpoint = `/api/quiz-attempts/${attempt.id}/detailed`;
+      } else if (attempt.type === 'final') {
+        endpoint = `/api/final-test-attempts/${attempt.id}/detailed`;
+      }
+      
+      if (!endpoint) return;
+      
+      const response = await fetch(`${backendUrl}${endpoint}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const detailedData = await response.json();
+        setSelectedAttempt({
+          ...attempt,
+          questions: detailedData.questions || [],
+          answers: detailedData.answers || [],
+          detailed: true
+        });
+      } else {
+        console.error('Failed to load attempt details');
+        toast({
+          title: "Error",
+          description: "Failed to load attempt details.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error loading attempt details:', error);
+      toast({
+        title: "Error", 
+        description: "An error occurred while loading attempt details.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (user?.role !== 'instructor' && user?.role !== 'admin') {
     return (
       <div className="max-w-4xl mx-auto p-6">
