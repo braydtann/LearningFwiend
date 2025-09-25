@@ -4273,20 +4273,20 @@ async def get_all_quiz_attempts_admin(current_user: UserResponse = Depends(get_c
     
     try:
         # Get all quiz attempts
-        attempts = await db.quiz_attempts.find({"isActive": True}).to_list(1000)
+        attempts = await db.quiz_attempts.find({"isActive": True}, {"_id": 0}).to_list(1000)
         
         # Get quiz and course information for each attempt
         processed_attempts = []
         for attempt in attempts:
             # Get quiz details
-            quiz = await db.quizzes.find_one({"id": attempt.get('quizId')})
+            quiz = await db.quizzes.find_one({"id": attempt.get('quizId')}, {"_id": 0})
             if quiz:
                 attempt['quizTitle'] = quiz.get('title', 'Unknown Quiz')
                 attempt['courseName'] = quiz.get('courseName', 'Unknown Course')
                 attempt['lessonTitle'] = quiz.get('lessonTitle')
             
             # Get student details
-            student = await db.users.find_one({"id": attempt.get('studentId')})
+            student = await db.users.find_one({"id": attempt.get('studentId')}, {"_id": 0})
             if student:
                 attempt['studentName'] = student.get('full_name', 'Unknown Student')
             
