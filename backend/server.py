@@ -5123,7 +5123,16 @@ async def get_final_test_attempt_detailed(
             # Determine if answer is correct based on question type
             is_correct = False
             if question['type'] == 'multiple_choice':
-                is_correct = int(answer.get('answer', -1)) == int(question.get('correctAnswer', -1))
+                # Handle both numeric and text-based answers
+                student_answer = answer.get('answer', '')
+                correct_answer = question.get('correctAnswer', '')
+                
+                # Try to compare as integers first (for index-based answers)
+                try:
+                    is_correct = int(student_answer) == int(correct_answer)
+                except (ValueError, TypeError):
+                    # Fall back to string comparison for text-based answers
+                    is_correct = str(student_answer) == str(correct_answer)
             elif question['type'] == 'true_false':
                 is_correct = str(answer.get('answer', '')).lower() == str(question.get('correctAnswer', '')).lower()
             elif question['type'] == 'select-all-that-apply':
