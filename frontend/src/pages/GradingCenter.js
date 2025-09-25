@@ -547,6 +547,56 @@ const GradingCenter = () => {
                       />
                     ))}
                   </TabsContent>
+                  
+                  <TabsContent value="attempts" className="space-y-4">
+                    {/* Search and Filter Controls */}
+                    <div className="flex flex-col sm:flex-row gap-4 mb-4">
+                      <div className="flex-1 relative">
+                        <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <input
+                          type="text"
+                          placeholder="Search by student name, quiz/test title, or course..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Filter className="w-4 h-4 text-gray-500" />
+                        <select
+                          value={filterType}
+                          onChange={(e) => setFilterType(e.target.value)}
+                          className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="all">All Attempts</option>
+                          <option value="quiz">Quiz Attempts</option>
+                          <option value="final">Final Exam Attempts</option>
+                        </select>
+                      </div>
+                    </div>
+                    
+                    {/* Attempts List */}
+                    {getFilteredAttempts().length === 0 ? (
+                      <div className="text-center py-8">
+                        <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">No Attempts Found</h3>
+                        <p className="text-gray-600">
+                          {searchTerm || filterType !== 'all' 
+                            ? 'No attempts match your search criteria.' 
+                            : 'No quiz or exam attempts have been submitted yet.'
+                          }
+                        </p>
+                      </div>
+                    ) : (
+                      getFilteredAttempts().map((attempt) => (
+                        <AttemptCard 
+                          key={`${attempt.type}-${attempt.id}`} 
+                          attempt={attempt} 
+                          onReview={() => loadAttemptDetails(attempt)}
+                        />
+                      ))
+                    )}
+                  </TabsContent>
                 </Tabs>
               )}
             </CardContent>
