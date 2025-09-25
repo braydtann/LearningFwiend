@@ -496,13 +496,27 @@ const GradingCenter = () => {
           </div>
 
           {/* Submissions List */}
-          <Tabs defaultValue="pending" className="w-full">
-            <TabsList>
-              <TabsTrigger value="pending">Pending ({getPendingCount()})</TabsTrigger>
-              <TabsTrigger value="graded">Graded ({getGradedCount()})</TabsTrigger>
-              <TabsTrigger value="all">All ({submissions.length})</TabsTrigger>
-              <TabsTrigger value="attempts">Attempt Reviews ({getFilteredAttempts().length})</TabsTrigger>
-            </TabsList>
+          <Card>
+            <CardHeader>
+              <CardTitle>Student Submissions & Attempt Reviews</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {submissions.length === 0 && attempts.length === 0 ? (
+                <div className="text-center py-8">
+                  <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Data Available</h3>
+                  <p className="text-gray-600">
+                    No submissions or attempts found for the selected criteria.
+                  </p>
+                </div>
+              ) : (
+                <Tabs defaultValue="pending" className="w-full">
+                  <TabsList>
+                    <TabsTrigger value="pending">Pending ({getPendingCount()})</TabsTrigger>
+                    <TabsTrigger value="graded">Graded ({getGradedCount()})</TabsTrigger>
+                    <TabsTrigger value="all">All ({submissions.length})</TabsTrigger>
+                    <TabsTrigger value="attempts">Attempt Reviews ({getFilteredAttempts().length})</TabsTrigger>
+                  </TabsList>
                   
                   <TabsContent value="pending" className="space-y-4">
                     {submissions.filter(sub => sub.status === 'pending').map((submission) => (
