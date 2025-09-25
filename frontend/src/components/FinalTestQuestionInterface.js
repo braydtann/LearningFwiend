@@ -352,11 +352,11 @@ const FinalTestQuestionInterface = ({
           {/* Chronological Order Questions */}
           {question.type === 'chronological-order' && (
             <div className="space-y-3">
-              <Label className="text-sm">Items to Order (Use arrows to set correct chronological sequence)</Label>
+              <Label className="text-sm">Items to Order</Label>
               {(question.items || []).map((item, itemIndex) => (
                 <div key={itemIndex} className="border border-purple-200 rounded-lg p-3 space-y-3 bg-purple-50/50">
                   <div className="flex items-center space-x-2">
-                    <span className="text-sm text-purple-700 min-w-[80px]">Position {itemIndex + 1}:</span>
+                    <span className="text-sm text-purple-700 min-w-[80px]">Item {itemIndex + 1}:</span>
                     <Input
                       placeholder={`Item ${itemIndex + 1} text`}
                       value={item || ''}
@@ -410,7 +410,96 @@ const FinalTestQuestionInterface = ({
                 <Plus className="w-4 h-4 mr-2" />
                 Add Item
               </Button>
-              <p className="text-xs text-purple-600">Use the arrow buttons to arrange items in the correct chronological order. Students will need to arrange them correctly.</p>
+              
+              {/* NEW: Correct Order Interface */}
+              {(question.items || []).length > 0 && (
+                <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <Label className="text-sm font-medium text-green-800 mb-3 block">
+                    ✅ Set Correct Chronological Order
+                  </Label>
+                  <p className="text-xs text-green-700 mb-3">
+                    Drag the items below to arrange them in the correct chronological order (earliest to latest).
+                    This is the order students must match to get the question right.
+                  </p>
+                  
+                  <div className="space-y-2">
+                    {/* Display current correct order or default sequential order */}
+                    {(() => {
+                      const items = question.items || [];
+                      const correctOrder = (question.correctOrder && question.correctOrder.length > 0) 
+                        ? question.correctOrder 
+                        : items.map((_, index) => index);
+                      
+                      return correctOrder.map((itemIndex, position) => {
+                        const itemText = items[itemIndex] || `Item ${itemIndex + 1}`;
+                        return (
+                          <div key={`correct-order-${position}`} className="flex items-center space-x-2 p-2 bg-white border border-green-300 rounded">
+                            <span className="text-sm text-green-700 font-medium min-w-[60px]">#{position + 1}:</span>
+                            <span className="text-sm text-gray-800 flex-1">
+                              {itemText.length > 100 ? `${itemText.substring(0, 100)}...` : itemText}
+                            </span>
+                            <div className="flex items-center space-x-1">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  if (position > 0) {
+                                    const newCorrectOrder = [...correctOrder];
+                                    [newCorrectOrder[position], newCorrectOrder[position - 1]] = 
+                                      [newCorrectOrder[position - 1], newCorrectOrder[position]];
+                                    onQuestionChange(questionIndex, 'correctOrder', newCorrectOrder);
+                                  }
+                                }}
+                                disabled={position === 0}
+                                className="text-green-600 hover:text-green-700"
+                                title="Move earlier in chronological order"
+                              >
+                                <ArrowUp className="w-3 h-3" />
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  if (position < correctOrder.length - 1) {
+                                    const newCorrectOrder = [...correctOrder];
+                                    [newCorrectOrder[position], newCorrectOrder[position + 1]] = 
+                                      [newCorrectOrder[position + 1], newCorrectOrder[position]];
+                                    onQuestionChange(questionIndex, 'correctOrder', newCorrectOrder);
+                                  }
+                                }}
+                                disabled={position === correctOrder.length - 1}
+                                className="text-green-600 hover:text-green-700"
+                                title="Move later in chronological order"
+                              >
+                                <ArrowDown className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        );
+                      });
+                    })()}
+                  </div>
+                  
+                  <div className="mt-3 text-xs text-green-600 bg-green-100 p-2 rounded">
+                    <strong>Current Correct Order:</strong> {(() => {
+                      const items = question.items || [];
+                      const correctOrder = (question.correctOrder && question.correctOrder.length > 0) 
+                        ? question.correctOrder 
+                        : items.map((_, index) => index);
+                      return correctOrder.map(idx => {
+                        const item = items[idx] || `Item ${idx + 1}`;
+                        return item.length > 30 ? `${item.substring(0, 30)}...` : item;
+                      }).join(' → ');
+                    })()}
+                  </div>
+                </div>
+              )}
+              
+              <p className="text-xs text-purple-600">
+                Add items above, then use the "Set Correct Chronological Order" section to arrange them in the right sequence.
+              </p>
             </div>
           )}
 
