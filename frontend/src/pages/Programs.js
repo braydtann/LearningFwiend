@@ -634,14 +634,21 @@ const Programs = () => {
       ...prev,
       finalTest: {
         ...prev.finalTest,
-        questions: prev.finalTest.questions.map((question, index) =>
-          index === questionIndex 
-            ? { 
-                ...question, 
-                items: [...(question.items || []).map(item => String(item || '')), '']
-              } 
-            : question
-        )
+        questions: prev.finalTest.questions.map((question, index) => {
+          if (index !== questionIndex) return question;
+          
+          const currentItems = question.items || [];
+          const newItems = [...currentItems.map(item => String(item || '')), ''];
+          
+          // **CRITICAL FIX**: Update correctOrder to include the new item index
+          const newCorrectOrder = [...(question.correctOrder || []), newItems.length - 1];
+          
+          return { 
+            ...question, 
+            items: newItems,
+            correctOrder: newCorrectOrder
+          };
+        })
       }
     }));
   };
@@ -651,14 +658,22 @@ const Programs = () => {
       ...prev,
       finalTest: {
         ...prev.finalTest,
-        questions: prev.finalTest.questions.map((question, index) =>
-          index === questionIndex 
-            ? { 
-                ...question, 
-                items: question.items.filter((_, iIdx) => iIdx !== itemIndex)
-              } 
-            : question
-        )
+        questions: prev.finalTest.questions.map((question, index) => {
+          if (index !== questionIndex) return question;
+          
+          const newItems = question.items.filter((_, iIdx) => iIdx !== itemIndex);
+          
+          // **CRITICAL FIX**: Update correctOrder to remove the deleted item and adjust indices
+          let newCorrectOrder = (question.correctOrder || []).filter(orderIdx => orderIdx !== itemIndex);
+          // Adjust indices that are greater than the removed index
+          newCorrectOrder = newCorrectOrder.map(orderIdx => orderIdx > itemIndex ? orderIdx - 1 : orderIdx);
+          
+          return { 
+            ...question, 
+            items: newItems,
+            correctOrder: newCorrectOrder
+          };
+        })
       }
     }));
   };
