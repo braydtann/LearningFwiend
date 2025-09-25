@@ -5051,6 +5051,105 @@ async def get_final_test_attempt(
     
     return FinalTestAttemptWithAnswersResponse(**attempt)
 
+@api_router.get("/admin/final-test-attempts")
+async def get_all_final_test_attempts_admin(current_user: UserResponse = Depends(get_current_user)):
+    """Get all final test attempts for admin/instructor review."""
+    if current_user.role not in ['instructor', 'admin']:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only instructors and admins can access all final test attempts"
+        )
+    
+    try:
+        # Get all final test attempts
+        attempts = await db.final_test_attempts.find({"isActive": True}).to_list(1000)
+        
+        # Get test and program information for each attempt
+        processed_attempts = []
+        for attempt in attempts:
+            # Get test details
+            test = await db.final_tests.find_one({"id": attempt.get('testId')})
+            if test:
+                attempt['testTitle'] = test.get('title', 'Final Test')
+                attempt['programName'] = test.get('programName', 'Unknown Program')
+            
+            # Get student details
+            student = await db.users.find_one({"id": attempt.get('studentId')})
+            if student:
+                attempt['studentName'] = student.get('full_name', 'Unknown Student')
+            
+            processed_attempts.append(attempt)
+        
+        return {"attempts": processed_attempts}
+    except Exception as e:
+        logger.error(f"Error fetching all final test attempts: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to fetch final test attempts"
+        )
+
+@api_router.get("/final-test-attempts/{attempt_id}/detailed")
+async def get_final_test_attempt_detailed(
+    attempt_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Get detailed final test attempt with question-by-question breakdown."""
+    if current_user.role not in ['instructor', 'admin']:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only instructors and admins can view detailed attempt breakdowns"
+        )
+    
+    attempt = await db.final_test_attempts.find_one({"id": attempt_id, "isActive": True})
+    if not attempt:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Final test attempt not found"
+        )
+    
+    # Get the final test to get question details
+    test = await db.final_tests.find_one({"id": attempt.get('testId')})
+    if not test:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Final test not found for this attempt"
+        )
+    
+    # Process answers to include correctness information
+    processed_answers = []
+    for answer in attempt.get('answers', []):
+        question = next((q for q in test.get('questions', []) if q['id'] == answer['questionId']), None)
+        if question:
+            # Determine if answer is correct based on question type
+            is_correct = False
+            if question['type'] == 'multiple_choice':
+                is_correct = int(answer.get('answer', -1)) == int(question.get('correctAnswer', -1))
+            elif question['type'] == 'true_false':
+                is_correct = str(answer.get('answer', '')).lower() == str(question.get('correctAnswer', '')).lower()
+            elif question['type'] == 'select-all-that-apply':
+                student_answers = set(answer.get('answer', []))
+                correct_answers = set(question.get('correctAnswers', []))
+                is_correct = student_answers == correct_answers
+            elif question['type'] == 'chronological-order':
+                is_correct = answer.get('answer') == question.get('correctOrder')
+            elif question['type'] in ['short_answer', 'long_form', 'essay']:
+                # For subjective questions, check if manually graded
+                subjective_grade = await db.submission_grades.find_one({
+                    "submissionId": answer.get('submissionId'),
+                    "isActive": True
+                })
+                is_correct = subjective_grade is not None
+            
+            processed_answers.append({
+                **answer,
+                'isCorrect': is_correct
+            })
+    
+    return {
+        "questions": test.get('questions', []),
+        "answers": processed_answers
+    }
+
 
 # =============================================================================
 # ANALYTICS MODELS
