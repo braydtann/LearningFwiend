@@ -6243,7 +6243,7 @@ async def grade_submission(
     
     # If this is a quiz submission, update the quiz attempt score
     elif submission and submission.get("courseId") and submission.get("lessonId"):
-        await update_quiz_attempt_score(submission.get("courseId"), submission.get("lessonId"), current_user.id)
+        await update_quiz_attempt_score(submission.get("courseId"), submission.get("lessonId"), submission.get("studentId"))
     
     return {
         "success": True,
