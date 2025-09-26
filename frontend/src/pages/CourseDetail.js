@@ -1564,7 +1564,20 @@ const CourseDetail = () => {
                   </div>
                   <Button 
                     className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg"
-                    onClick={() => {
+                    onClick={async () => {
+                      // Initialize course progress to 1% to prevent "Start Course" reset issue
+                      if (updateEnrollmentProgress) {
+                        try {
+                          await updateEnrollmentProgress(id, {
+                            progress: 1.0, // Set minimal progress to indicate course has been started
+                            currentModuleId: course.modules[0]?.id,
+                            currentLessonId: course.modules[0]?.lessons?.[0]?.id
+                          });
+                        } catch (error) {
+                          console.error('Error initializing course progress:', error);
+                        }
+                      }
+                      
                       const firstLesson = course.modules[0]?.lessons?.[0];
                       if (firstLesson) {
                         setSelectedLesson(firstLesson);
