@@ -324,6 +324,18 @@
 user_problem_statement: "🚨 CRITICAL BUG INVESTIGATION: Program Assignment to Classroom Enrollment Issue - User created a new program called 'test program 2', Assigned student user (brayden.student) to that program, Student can see classroom in their classrooms list, BUT classroom shows student is NOT enrolled (enrollment status mismatch). INVESTIGATION NEEDED: 1) Find 'test program 2' - Verify program exists and student assignment, 2) Check student assignment - Verify brayden.student is properly assigned to the program, 3) Check classroom creation - Find the classroom associated with this program, 4) Test auto-enrollment logic - Verify if program assignment triggers classroom enrollment, 5) Check enrollment records - Look for enrollment records for brayden.student, 6) Test enrollment status display - Verify how frontend determines enrollment status. SPECIFIC TESTS: GET /api/programs - Find 'test program 2', GET /api/programs/{id} - Check student assignments, GET /api/classrooms - Find associated classroom, GET /api/enrollments - Check brayden.student enrollment records, Test program-to-classroom auto-enrollment workflow. Use admin credentials: brayden.t@covesmart.com / Hawaii2020!, Also test with student credentials: brayden.student@learningfwiend.com"
 
 backend:
+  - task: "Critical Quiz Bug Fixes Testing - Quiz Access and Long Form Submission"
+    implemented: true
+    working: false
+    file: "/app/quiz_bug_fixes_backend_test.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "🎯 CRITICAL QUIZ BUG FIXES TESTING COMPLETED - 84.6% SUCCESS RATE: Executed comprehensive testing of two critical quiz bug fixes. RESULTS: ✅ Quiz Access Bug Fix: RESOLVED - Students can access quizzes in single-module courses without greyed-out buttons, ✅ Type Consistency Validation: WORKING - Backend accepts both 'essay' and 'long_form' question types, ❌ Course Completion Validation Issue: Quiz submission blocked by course completion validation with error 'Cannot complete course. You must take and pass the quiz before completing the course. Current progress capped at 0.0%'. The course completion validation is too restrictive and prevents quiz progress updates, affecting long-form answer submission workflow. Quiz access fix working correctly, but completion validation needs adjustment."
+
   - task: "Comprehensive Data Sanitization Fixes for Final Test Creation"
     implemented: true
     working: true
