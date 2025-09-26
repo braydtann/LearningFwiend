@@ -267,8 +267,8 @@ const CreateCourse = () => {
                             correctAnswer: 0,
                             correctAnswers: [], // for select-all-that-apply
                             correctOrder: [], // for chronological-order
-                            sampleAnswer: '', // for long-form-answer
-                            wordLimit: null, // for long-form-answer
+                            sampleAnswer: '', // for essay questions
+                            wordLimit: null, // for essay questions
                             points: 5,
                             explanation: ''
                           }
