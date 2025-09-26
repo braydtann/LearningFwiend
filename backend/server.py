@@ -6572,13 +6572,16 @@ async def auto_complete_course_after_quiz_grading(course_id: str, user_id: str, 
         quiz_lessons = []
         for module in course.get("modules", []):
             for lesson in module.get("lessons", []):
-                if lesson.get("type") == "quiz" and lesson.get("quiz") and lesson.get("quiz", {}).get("questions"):
-                    quiz_lessons.append({
-                        "lessonId": lesson.get("id"),
-                        "moduleId": module.get("id"),
-                        "title": lesson.get("title"),
-                        "quiz": lesson.get("quiz")
-                    })
+                if lesson.get("type") == "quiz":
+                    # **CRITICAL FIX**: Use correct data structure - 'content' not 'quiz'
+                    quiz_content = lesson.get("content") or lesson.get("quiz")
+                    if quiz_content and quiz_content.get("questions"):
+                        quiz_lessons.append({
+                            "lessonId": lesson.get("id"),
+                            "moduleId": module.get("id"),
+                            "title": lesson.get("title"),
+                            "quiz": quiz_content  # Use the actual content structure
+                        })
         
         if not quiz_lessons:
             return  # No quizzes in course
