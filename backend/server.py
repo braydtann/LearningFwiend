@@ -6567,6 +6567,7 @@ async def auto_complete_course_after_quiz_grading(course_id: str, user_id: str, 
         # Check if student has passed ALL quiz lessons
         all_quizzes_passed = True
         for quiz_lesson in quiz_lessons:
+            # First check for traditional quiz attempts
             quiz_attempts = await db.quiz_attempts.find({
                 "studentId": user_id,
                 "courseId": course_id,
@@ -6574,7 +6575,7 @@ async def auto_complete_course_after_quiz_grading(course_id: str, user_id: str, 
                 "isActive": True
             }).to_list(None)
             
-            # Check if student has passed this quiz
+            # Check if student has passed this quiz via quiz attempts
             has_passed_quiz = False
             if quiz_attempts:
                 passing_score = quiz_lesson["quiz"].get("passingScore", 70)
@@ -6583,8 +6584,35 @@ async def auto_complete_course_after_quiz_grading(course_id: str, user_id: str, 
                         has_passed_quiz = True
                         break
             
+            # If no quiz attempts found, check subjective submissions for course-based quizzes
+            if not has_passed_quiz:
+                # Get all subjective submissions for this lesson
+                subjective_submissions = await db.subjective_submissions.find({
+                    "studentId": user_id,
+                    "courseId": course_id,
+                    "lessonId": quiz_lesson["lessonId"],
+                    "status": "graded",
+                    "isActive": True
+                }).to_list(None)
+                
+                if subjective_submissions:
+                    # Calculate total score from subjective submissions
+                    total_points = quiz_lesson["quiz"].get("totalPoints", 0)
+                    if total_points == 0:
+                        # Calculate total points from questions
+                        total_points = sum(q.get("points", 1) for q in quiz_lesson["quiz"].get("questions", []))
+                    
+                    points_earned = sum(sub.get("score", 0) for sub in subjective_submissions)
+                    score_percentage = (points_earned / total_points * 100) if total_points > 0 else 0
+                    passing_score = quiz_lesson["quiz"].get("passingScore", 70)
+                    
+                    if score_percentage >= passing_score:
+                        has_passed_quiz = True
+                        logger.info(f"Student {user_id} passed quiz lesson {quiz_lesson['lessonId']} via subjective grading: {score_percentage:.1f}% (passing: {passing_score}%)")
+            
             if not has_passed_quiz:
                 all_quizzes_passed = False
+                logger.info(f"Student {user_id} has not passed quiz lesson {quiz_lesson['lessonId']} - auto-completion blocked")
                 break
         
         # If all quizzes passed, auto-complete the course
