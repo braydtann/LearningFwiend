@@ -1704,8 +1704,8 @@ const QuizTakingNewFixed = () => {
               />
             )}
 
-            {/* Long Form Answer Questions */}
-            {currentQuestion?.type === 'long-form-answer' && (
+            {/* Essay/Long Form Questions */}
+            {currentQuestion?.type === 'essay' && (
               <Textarea
                 placeholder="Enter your detailed answer here..."
                 value={answers[currentQuestion.id] || ''}
