@@ -1151,15 +1151,6 @@ const CourseDetail = () => {
 
     return true; // All prerequisites completed
   };
-    for (const lesson of lessonsBeforeQuiz) {
-      const lessonProgress = currentModuleProgress.lessons.find(lp => lp.lessonId === lesson.id);
-      if (!lessonProgress || !lessonProgress.completed) {
-        return false; // Previous lesson in module not completed
-      }
-    }
-
-    return true; // All prerequisites completed
-  };
 
   // Helper function to get next course in program
   const getNextCourseInProgram = () => {
