@@ -3079,6 +3079,7 @@ metadata:
 
 test_plan:
   current_focus:
+    - "Manual Grading Auto-Completion Fix - Data Structure Mismatch - CRITICAL BUG IDENTIFIED"
     - "Comprehensive Data Sanitization Fixes for Final Test Creation - COMPLETED"
     - "Course Navigation and Quiz Completion Workflow Backend Testing - COMPLETED"
     - "Google Drive URL Conversion Fix for Quiz Images - COMPLETED"
