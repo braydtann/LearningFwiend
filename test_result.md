@@ -3217,6 +3217,18 @@ agent_communication:
     message: "🔐 NEW SYSTEM ADMINISTRATOR LOGIN TESTING COMPLETED SUCCESSFULLY: Comprehensive testing of updated admin credentials completed with EXCELLENT results. CRITICAL FINDINGS: ✅ NEW admin credentials (brayden.t@covesmart.com / Hawaii2020!) working perfectly - successful authentication with permanent login, no password change required, ✅ OLD admin credentials properly blocked - security maintained, old 'admin' user correctly rejected with 401 Unauthorized, ✅ NEW admin user properly stored in MongoDB Atlas with correct properties (Brayden T, admin role, permanent login), ✅ Full admin permissions verified - successfully accessed all admin-only endpoints (/auth/admin/users, /departments, /categories), ✅ Complete admin user management capabilities confirmed - create, update, reset password, delete operations all working, ✅ MongoDB Atlas integration verified - backend connected successfully to shared database. SUCCESS RATE: 100.0% (9/9 tests passed). ASSESSMENT: EXCELLENT - New admin system is fully functional and secure. The admin credential update has been successfully implemented and tested."
 
 backend:
+  - task: "Manual Grading Auto-Completion Fix - Data Structure Mismatch"
+    implemented: false
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "🚨 CRITICAL BUG IDENTIFIED: Manual grading auto-completion failing due to data structure mismatch in backend. Root cause: /app/backend/server.py lines 6029-6033 look for lesson['quiz']['questions'] but actual course structure uses lesson['content']['questions']. This causes submissions to get 0 points instead of actual question points, preventing auto-completion trigger. Auto-completion logic is correctly implemented but never triggers because total score = 0/0 = 0%. SOLUTION REQUIRED: Update backend submissions endpoint to use correct data path lesson['content']['questions'] to match actual course structure. This will allow proper points extraction, enable correct scoring, and trigger auto-completion when students pass manually graded subjective quizzes."
+
   - task: "Course Completion Validation Fix - Quiz Requirement Enforcement"
     implemented: true
     working: true
