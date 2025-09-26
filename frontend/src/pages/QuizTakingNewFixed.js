@@ -451,7 +451,7 @@ const QuizTakingNewFixed = () => {
             isScoreable: question.correctOrder.length > 0,
             validationStatus: 'PASSED'
           });
-        } else if (question.type === 'short-answer' || question.type === 'long-form-answer') {
+        if (question.type === 'short-answer' || question.type === 'essay') {
           // Text questions don't need additional validation
         } else {
           console.warn(`❌ Question ${index + 1} FAILED: unsupported type: ${question.type}`);
