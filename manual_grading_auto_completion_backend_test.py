@@ -516,23 +516,22 @@ class ManualGradingAutoCompletionTestSuite:
             
             # Student takes quiz
             lesson_id = failing_course["modules"][0]["lessons"][0]["id"]
-            quiz_id = failing_course["modules"][0]["lessons"][0]["quiz"]["id"]
+            questions = failing_course["modules"][0]["lessons"][0]["quiz"]["questions"]
             
-            quiz_submission = {
-                "courseId": failing_course_id,
-                "lessonId": lesson_id,
-                "quizId": quiz_id,
-                "answers": [
+            failing_quiz_submission = {
+                "submissions": [
                     {
-                        "questionId": failing_course["modules"][0]["lessons"][0]["quiz"]["questions"][0]["id"],
-                        "answer": "Poor response for testing failing grade"
+                        "questionId": questions[0]["id"],
+                        "questionText": questions[0]["question"],
+                        "studentAnswer": "Poor response for testing failing grade",
+                        "courseId": failing_course_id,
+                        "lessonId": lesson_id,
+                        "questionType": questions[0]["type"]
                     }
-                ],
-                "timeSpent": 600,
-                "submittedAt": datetime.utcnow().isoformat()
+                ]
             }
             
-            quiz_response = requests.post(f"{BACKEND_URL}/quiz-submissions", json=quiz_submission, headers=headers_student)
+            quiz_response = requests.post(f"{BACKEND_URL}/quiz-submissions/subjective", json=failing_quiz_submission, headers=headers_student)
             
             if quiz_response.status_code != 200:
                 self.log_test("Edge Case - Submit Failing Quiz", False, 
