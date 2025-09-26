@@ -6437,42 +6437,61 @@ async def update_quiz_attempt_score(course_id: str, lesson_id: str, user_id: str
 async def update_quiz_attempt_score(course_id: str, lesson_id: str, user_id: str):
     """Recalculate and update quiz attempt score after manual grading."""
     try:
-        # Find the quiz for this lesson
-        quiz = await db.quizzes.find_one({
+        # **CRITICAL FIX**: For course-based quizzes, get quiz details from course structure
+        course = await db.courses.find_one({"id": course_id})
+        if not course:
+            logger.error(f"Course not found: {course_id}")
+            return
+            
+        # Find the quiz lesson in the course structure
+        quiz_lesson = None
+        for module in course.get("modules", []):
+            for lesson in module.get("lessons", []):
+                if lesson.get("id") == lesson_id and lesson.get("type") == "quiz":
+                    quiz_lesson = lesson
+                    break
+            if quiz_lesson:
+                break
+        
+        if not quiz_lesson or not quiz_lesson.get("quiz"):
+            logger.error(f"Quiz lesson not found in course {course_id}, lesson {lesson_id}")
+            return
+            
+        quiz_data = quiz_lesson["quiz"]
+        
+        # Try to find quiz attempt first (for traditional quiz flow)
+        quiz_attempt = await db.quiz_attempts.find_one({
             "courseId": course_id,
             "lessonId": lesson_id,
-            "isActive": True
-        })
-        
-        if not quiz:
-            return
-        
-        # Find the latest quiz attempt for this user
-        quiz_attempt = await db.quiz_attempts.find_one({
-            "quizId": quiz.get("id"),
             "studentId": user_id,
             "isActive": True
         }, sort=[("created_at", -1)])
         
+        # If no quiz attempt found, this is likely a subjective-only quiz
+        # Still trigger auto-completion check based on subjective submissions
         if not quiz_attempt:
+            logger.info(f"No quiz attempt found for course {course_id}, lesson {lesson_id}, user {user_id} - checking subjective submissions")
+            # Directly trigger auto-completion check for subjective-only quizzes
+            await auto_complete_course_after_quiz_grading(course_id, user_id, quiz_data.get("id", lesson_id))
             return
         
         # Get all subjective submissions for this quiz attempt
         subjective_submissions = await db.subjective_submissions.find({
-            "quizId": quiz.get("id"),
+            "courseId": course_id,
+            "lessonId": lesson_id,
             "studentId": user_id,
             "isActive": True
         }).to_list(None)
         
         # Calculate new total score
         points_earned = 0
-        total_points = quiz.get('totalPoints', 0)
+        total_points = quiz_data.get('totalPoints', 0)
         
         # Create maps for quick lookup
         submission_scores = {sub.get("questionId"): sub.get("score", 0) for sub in subjective_submissions if sub.get("status") == "graded"}
         answer_map = {answer.get('questionId'): answer.get('answer') for answer in quiz_attempt.get('answers', [])}
         
-        for question in quiz.get('questions', []):
+        for question in quiz_data.get('questions', []):
             question_id = question.get('id')
             question_points = question.get('points', 1)
             
@@ -6514,7 +6533,7 @@ async def update_quiz_attempt_score(course_id: str, lesson_id: str, user_id: str
         
         # Update the quiz attempt with new score
         score_percentage = (points_earned / total_points * 100) if total_points > 0 else 0
-        is_passed = score_percentage >= quiz.get('passingScore', 75.0)
+        is_passed = score_percentage >= quiz_data.get('passingScore', 75.0)
         
         await db.quiz_attempts.update_one(
             {"id": quiz_attempt.get("id")},
@@ -6528,7 +6547,7 @@ async def update_quiz_attempt_score(course_id: str, lesson_id: str, user_id: str
         
         # **NEW: Auto-complete course if this was the only/final quiz requirement**
         if is_passed:
-            await auto_complete_course_after_quiz_grading(course_id, user_id, quiz.get("id"))
+            await auto_complete_course_after_quiz_grading(course_id, user_id, quiz_data.get("id", lesson_id))
         
     except Exception as e:
         logger.error(f"Error updating quiz attempt score: {str(e)}")
