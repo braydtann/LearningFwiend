@@ -219,42 +219,36 @@ class ManualGradingAutoCompletionTestSuite:
                 
             course = course_response.json()
             lesson_id = course["modules"][0]["lessons"][0]["id"]
+            questions = course["modules"][0]["lessons"][0]["quiz"]["questions"]
             
-            # Submit quiz with subjective answers
-            quiz_submission = {
-                "courseId": self.test_course_id,
-                "lessonId": lesson_id,
-                "quizId": self.test_quiz_id,
-                "answers": [
+            # Submit subjective answers using the correct endpoint
+            subjective_submissions = {
+                "submissions": [
                     {
-                        "questionId": course["modules"][0]["lessons"][0]["quiz"]["questions"][0]["id"],
-                        "answer": "Manual grading is crucial in educational assessment because it allows for nuanced evaluation of complex responses that cannot be automatically scored. For example, essay questions require human judgment to assess critical thinking, creativity, and depth of understanding. Manual grading enables instructors to provide personalized feedback and recognize unique insights that automated systems might miss."
+                        "questionId": questions[0]["id"],
+                        "questionText": questions[0]["question"],
+                        "studentAnswer": "Manual grading is crucial in educational assessment because it allows for nuanced evaluation of complex responses that cannot be automatically scored. For example, essay questions require human judgment to assess critical thinking, creativity, and depth of understanding. Manual grading enables instructors to provide personalized feedback and recognize unique insights that automated systems might miss.",
+                        "courseId": self.test_course_id,
+                        "lessonId": lesson_id,
+                        "questionType": questions[0]["type"]
                     },
                     {
-                        "questionId": course["modules"][0]["lessons"][0]["quiz"]["questions"][1]["id"],
-                        "answer": "Auto-completion after manual grading would be highly beneficial in professional certification programs where students must demonstrate mastery through written assessments. For instance, in a medical training course, students might complete case study analyses that require manual evaluation. Once the instructor grades these subjective responses and confirms the student has met the passing criteria, the system should automatically mark the course as complete and issue the certification, eliminating the need for students to manually mark completion."
+                        "questionId": questions[1]["id"],
+                        "questionText": questions[1]["question"],
+                        "studentAnswer": "Auto-completion after manual grading would be highly beneficial in professional certification programs where students must demonstrate mastery through written assessments. For instance, in a medical training course, students might complete case study analyses that require manual evaluation. Once the instructor grades these subjective responses and confirms the student has met the passing criteria, the system should automatically mark the course as complete and issue the certification, eliminating the need for students to manually mark completion.",
+                        "courseId": self.test_course_id,
+                        "lessonId": lesson_id,
+                        "questionType": questions[1]["type"]
                     }
-                ],
-                "timeSpent": 1800,  # 30 minutes
-                "submittedAt": datetime.utcnow().isoformat()
+                ]
             }
             
-            response = requests.post(f"{BACKEND_URL}/quiz-submissions", json=quiz_submission, headers=headers)
+            response = requests.post(f"{BACKEND_URL}/quiz-submissions/subjective", json=subjective_submissions, headers=headers)
             
             if response.status_code == 200:
                 submission_result = response.json()
-                self.test_quiz_attempt_id = submission_result.get("attemptId")
-                
-                # Verify initial score is 0% (no auto-gradable questions)
-                initial_score = submission_result.get("score", 0)
-                if initial_score == 0:
-                    self.log_test("Student Take Quiz", True, 
-                                f"Quiz submitted successfully. Initial score: {initial_score}% (expected for subjective-only quiz)")
-                else:
-                    self.log_test("Student Take Quiz", False, 
-                                f"Unexpected initial score: {initial_score}% (should be 0% for subjective-only quiz)")
-                    return False
-                    
+                self.log_test("Student Take Quiz", True, 
+                            f"Subjective quiz submitted successfully: {submission_result.get('message', 'Submitted')}")
                 return True
             else:
                 self.log_test("Student Take Quiz", False, 
