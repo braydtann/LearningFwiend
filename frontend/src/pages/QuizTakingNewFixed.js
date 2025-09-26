@@ -851,7 +851,7 @@ const QuizTakingNewFixed = () => {
                   failureReason: !lengthMatches ? 'Length mismatch' : 'Sequence mismatch'
                 });
               }
-            } else if (question.type === 'short-answer' || question.type === 'long-form-answer' || question.type === 'long-form') {
+            } else if (question.type === 'short-answer' || question.type === 'essay' || question.type === 'long-form') {
               // Mark quiz as containing subjective questions that need manual grading
               hasSubjectiveQuestions = true;
               
