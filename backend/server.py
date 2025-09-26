@@ -6325,8 +6325,11 @@ async def grade_submission(
     max_points = 1  # Default
     
     if submission:
+        # **CRITICAL FIX**: Use maxScore from submission if available (for course-based quizzes)
+        if submission.get("maxScore") is not None:
+            max_points = submission.get("maxScore")
         # Check if it's a final test submission first
-        if submission.get("testId") and submission.get("questionId"):
+        elif submission.get("testId") and submission.get("questionId"):
             # This is a final test submission
             test = await db.final_tests.find_one({"id": submission.get("testId")})
             if test:
@@ -6335,18 +6338,21 @@ async def grade_submission(
                     if question.get("id") == submission.get("questionId"):
                         max_points = question.get("points", 1)
                         break
-        # Regular quiz submission
+        # Regular quiz submission (fallback for older structure)
         elif submission.get("courseId") and submission.get("lessonId") and submission.get("questionId"):
             course = await db.courses.find_one({"id": submission.get("courseId")})
             if course and course.get("modules"):
                 for module in course["modules"]:
                     if module.get("lessons"):
                         for lesson in module["lessons"]:
-                            if lesson.get("id") == submission.get("lessonId") and lesson.get("quiz", {}).get("questions"):
-                                for question in lesson["quiz"]["questions"]:
-                                    if question.get("id") == submission.get("questionId"):
-                                        max_points = question.get("points", 1)
-                                        break
+                            if lesson.get("id") == submission.get("lessonId"):
+                                # **CRITICAL FIX**: Check both 'content' and 'quiz' structures
+                                quiz_content = lesson.get("content") or lesson.get("quiz")
+                                if quiz_content and quiz_content.get("questions"):
+                                    for question in quiz_content["questions"]:
+                                        if question.get("id") == submission.get("questionId"):
+                                            max_points = question.get("points", 1)
+                                            break
     else:
         # Check if it's an old format final test submission (fallback)
         if submission_id.startswith("final-"):
