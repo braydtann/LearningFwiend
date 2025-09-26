@@ -305,14 +305,29 @@ class ManualGradingAutoCompletionTestSuite:
             response = requests.get(f"{BACKEND_URL}/courses/all/submissions", headers=headers)
             
             if response.status_code == 200:
-                all_submissions = response.json()
+                response_data = response.json()
+                
+                # Handle different response formats
+                if isinstance(response_data, list):
+                    all_submissions = response_data
+                elif isinstance(response_data, dict) and 'submissions' in response_data:
+                    all_submissions = response_data['submissions']
+                else:
+                    self.log_test("Get Subjective Submissions", False, 
+                                f"Unexpected response format: {type(response_data)}")
+                    return False
                 
                 # Filter submissions for our test course and student
                 test_submissions = []
                 for submission in all_submissions:
-                    if (submission.get("courseId") == self.test_course_id and 
-                        submission.get("studentId") == self.student_user["id"]):
-                        test_submissions.append(submission)
+                    if isinstance(submission, dict):
+                        if (submission.get("courseId") == self.test_course_id and 
+                            submission.get("studentId") == self.student_user["id"]):
+                            test_submissions.append(submission)
+                    else:
+                        self.log_test("Get Subjective Submissions", False, 
+                                    f"Submission is not a dict: {type(submission)}")
+                        return False
                 
                 if test_submissions:
                     self.subjective_submissions = test_submissions
@@ -321,7 +336,10 @@ class ManualGradingAutoCompletionTestSuite:
                     return True
                 else:
                     self.log_test("Get Subjective Submissions", False, 
-                                "No subjective submissions found for test course")
+                                f"No subjective submissions found for test course. Total submissions: {len(all_submissions)}")
+                    # Debug: print first few submissions to understand structure
+                    if all_submissions:
+                        print(f"Sample submission structure: {all_submissions[0]}")
                     return False
             else:
                 self.log_test("Get Subjective Submissions", False, 
