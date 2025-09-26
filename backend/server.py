@@ -3570,7 +3570,7 @@ async def revoke_certificate(
 # =============================================================================
 
 class QuestionCreate(BaseModel):
-    type: str = Field(..., pattern="^(multiple_choice|true_false|short_answer|essay|chronological-order|select-all-that-apply)$", description="Question type")
+    type: str = Field(..., pattern="^(multiple_choice|true_false|short_answer|long_form|essay|chronological-order|select-all-that-apply)$", description="Question type")
     question: str = Field(..., min_length=1, max_length=1000, description="Question text")
     options: List[str] = Field(default=[], description="Options for multiple choice questions")
     correctAnswer: Optional[str] = Field(None, description="Correct answer (index for MC, text for others, not used for chronological-order)")
