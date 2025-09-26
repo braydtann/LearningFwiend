@@ -404,7 +404,7 @@ class ManualGradingAutoCompletionTestSuite:
                 max_score = submission.get("maxScore", 10)
                 
                 # Give passing score (80% of max points)
-                passing_score = int(max_score * 0.8)
+                passing_score = max_score * 0.8
                 
                 grading_data = {
                     "score": passing_score,
