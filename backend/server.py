@@ -6526,8 +6526,131 @@ async def update_quiz_attempt_score(course_id: str, lesson_id: str, user_id: str
             }}
         )
         
+        # **NEW: Auto-complete course if this was the only/final quiz requirement**
+        if is_passed:
+            await auto_complete_course_after_quiz_grading(course_id, user_id, quiz.get("id"))
+        
     except Exception as e:
         logger.error(f"Error updating quiz attempt score: {str(e)}")
+
+async def auto_complete_course_after_quiz_grading(course_id: str, user_id: str, quiz_id: str):
+    """Auto-complete course if student has now passed all required quizzes after manual grading."""
+    try:
+        # Get course details
+        course = await db.courses.find_one({"id": course_id})
+        if not course:
+            return
+            
+        # Get student enrollment
+        enrollment = await db.enrollments.find_one({
+            "userId": user_id,
+            "courseId": course_id
+        })
+        if not enrollment:
+            return
+            
+        # Find all quiz lessons in the course
+        quiz_lessons = []
+        for module in course.get("modules", []):
+            for lesson in module.get("lessons", []):
+                if lesson.get("type") == "quiz" and lesson.get("quiz") and lesson.get("quiz", {}).get("questions"):
+                    quiz_lessons.append({
+                        "lessonId": lesson.get("id"),
+                        "moduleId": module.get("id"),
+                        "title": lesson.get("title"),
+                        "quiz": lesson.get("quiz")
+                    })
+        
+        if not quiz_lessons:
+            return  # No quizzes in course
+            
+        # Check if student has passed ALL quiz lessons
+        all_quizzes_passed = True
+        for quiz_lesson in quiz_lessons:
+            quiz_attempts = await db.quiz_attempts.find({
+                "studentId": user_id,
+                "courseId": course_id,
+                "lessonId": quiz_lesson["lessonId"],
+                "isActive": True
+            }).to_list(None)
+            
+            # Check if student has passed this quiz
+            has_passed_quiz = False
+            if quiz_attempts:
+                passing_score = quiz_lesson["quiz"].get("passingScore", 70)
+                for attempt in quiz_attempts:
+                    if attempt.get("isPassed") or (attempt.get("score", 0) >= passing_score):
+                        has_passed_quiz = True
+                        break
+            
+            if not has_passed_quiz:
+                all_quizzes_passed = False
+                break
+        
+        # If all quizzes passed, auto-complete the course
+        if all_quizzes_passed:
+            logger.info(f"Auto-completing course {course_id} for user {user_id} after manual grading")
+            
+            # Calculate total lessons for progress calculation
+            total_lessons = sum(len(module.get("lessons", [])) for module in course.get("modules", []))
+            
+            # Update enrollment to completed status
+            await db.enrollments.update_one(
+                {"userId": user_id, "courseId": course_id},
+                {"$set": {
+                    "progress": 100.0,
+                    "status": "completed", 
+                    "completedAt": datetime.utcnow(),
+                    "updated_at": datetime.utcnow()
+                }}
+            )
+            
+            # Generate certificate if not already exists
+            existing_certificate = await db.certificates.find_one({
+                "studentId": user_id,
+                "courseId": course_id,
+                "isActive": True
+            })
+            
+            if not existing_certificate:
+                # Get student details
+                student = await db.users.find_one({"id": user_id})
+                if student:
+                    certificate_number = f"CERT-{course_id[:8].upper()}-{user_id[:8].upper()}-{datetime.utcnow().strftime('%Y%m%d')}"
+                    verification_code = str(uuid.uuid4()).replace('-', '').upper()[:12]
+                    
+                    certificate_dict = {
+                        "id": str(uuid.uuid4()),
+                        "certificateNumber": certificate_number,
+                        "studentId": user_id,
+                        "studentName": student.get('full_name', 'Unknown Student'),
+                        "studentEmail": student.get('email', ''),
+                        "courseId": course_id,
+                        "courseName": course.get("title", "Unknown Course"),
+                        "programId": None,
+                        "programName": None,
+                        "type": "completion",
+                        "template": "default",
+                        "status": "generated",
+                        "issueDate": datetime.utcnow(),
+                        "expiryDate": None,
+                        "grade": "A",  # Perfect grade since all quizzes passed
+                        "score": 100.0,
+                        "completionDate": datetime.utcnow(),
+                        "certificateUrl": None,
+                        "issuedBy": "system",
+                        "issuedByName": "LearningFriend System",
+                        "verificationCode": verification_code,
+                        "isActive": True,
+                        "created_at": datetime.utcnow(),
+                        "updated_at": datetime.utcnow()
+                    }
+                    
+                    await db.certificates.insert_one(certificate_dict)
+                    logger.info(f"Generated certificate {certificate_number} for auto-completed course")
+        
+    except Exception as e:
+        logger.error(f"Error in auto_complete_course_after_quiz_grading: {str(e)}")
 
 @api_router.get("/submissions/{submission_id}/grade")
 async def get_submission_grade(
