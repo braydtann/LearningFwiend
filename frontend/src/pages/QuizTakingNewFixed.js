@@ -579,7 +579,7 @@ const QuizTakingNewFixed = () => {
       const subjectiveSubmissions = [];
       
       for (const question of quiz.questions) {
-        if (question.type === 'short-answer' || question.type === 'long-form-answer' || question.type === 'long-form') {
+        if (question.type === 'short-answer' || question.type === 'essay' || question.type === 'long-form') {
           const userAnswer = answers[question.id];
           
           if (userAnswer && userAnswer.trim() !== '') {
