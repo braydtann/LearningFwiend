@@ -4321,6 +4321,189 @@ async def get_quiz_attempt(
     
     return QuizAttemptWithAnswersResponse(**attempt)
 
+@api_router.post("/courses/{course_id}/lessons/{lesson_id}/quiz/submit")
+async def submit_course_quiz_attempt(
+    course_id: str,
+    lesson_id: str,
+    submission_data: dict,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Submit a quiz attempt for a course-based quiz lesson."""
+    try:
+        # Get course and verify quiz lesson exists
+        course = await db.courses.find_one({"id": course_id})
+        if not course:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Course not found"
+            )
+        
+        # Find the quiz lesson
+        quiz_lesson = None
+        for module in course.get("modules", []):
+            for lesson in module.get("lessons", []):
+                if lesson.get("id") == lesson_id and lesson.get("type") == "quiz":
+                    quiz_lesson = lesson
+                    break
+            if quiz_lesson:
+                break
+        
+        if not quiz_lesson:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Quiz lesson not found"
+            )
+        
+        quiz_content = quiz_lesson.get("content") or quiz_lesson.get("quiz")
+        if not quiz_content:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Quiz content not found"
+            )
+        
+        # Extract answers and calculate score
+        answers = submission_data.get("answers", [])
+        time_spent = submission_data.get("timeSpent", 0)
+        
+        # Calculate auto-gradable score
+        points_earned = 0
+        total_points = 0
+        processed_answers = []
+        subjective_questions = []
+        
+        for question in quiz_content.get("questions", []):
+            question_id = question.get("id")
+            question_points = question.get("points", 1)
+            total_points += question_points
+            
+            # Find student's answer for this question
+            student_answer = None
+            for answer in answers:
+                if answer.get("questionId") == question_id:
+                    student_answer = answer.get("answer")
+                    break
+            
+            answer_record = {
+                "questionId": question_id,
+                "answer": student_answer,
+                "isCorrect": False,
+                "pointsEarned": 0
+            }
+            
+            # Auto-grade if possible
+            if question.get("type") in ["short_answer", "long_form", "essay"]:
+                # Subjective questions - need manual grading
+                subjective_questions.append({
+                    "questionId": question_id,
+                    "question": question.get("question"),
+                    "answer": student_answer,
+                    "points": question_points,
+                    "type": question.get("type")
+                })
+                # Don't add points yet - will be added after manual grading
+            else:
+                # Auto-gradable questions
+                if question.get("type") == "multiple_choice":
+                    correct_index = int(question.get("correctAnswer", -1))
+                    student_index = int(student_answer) if str(student_answer).isdigit() else -1
+                    if student_index == correct_index:
+                        answer_record["isCorrect"] = True
+                        answer_record["pointsEarned"] = question_points
+                        points_earned += question_points
+                        
+                elif question.get("type") == "true_false":
+                    correct_answer = str(question.get("correctAnswer", "")).lower()
+                    student_answer_str = str(student_answer).lower() if student_answer is not None else ""
+                    if student_answer_str == correct_answer:
+                        answer_record["isCorrect"] = True
+                        answer_record["pointsEarned"] = question_points
+                        points_earned += question_points
+                        
+                elif question.get("type") == "select-all-that-apply":
+                    correct_answers = set(question.get("correctAnswers", []))
+                    student_answers = set(student_answer) if isinstance(student_answer, list) else set()
+                    if student_answers == correct_answers:
+                        answer_record["isCorrect"] = True
+                        answer_record["pointsEarned"] = question_points
+                        points_earned += question_points
+                        
+                elif question.get("type") == "chronological-order":
+                    correct_order = question.get("correctOrder", [])
+                    if isinstance(student_answer, list) and student_answer == correct_order:
+                        answer_record["isCorrect"] = True
+                        answer_record["pointsEarned"] = question_points
+                        points_earned += question_points
+            
+            processed_answers.append(answer_record)
+        
+        # Calculate initial score (only auto-gradable questions)
+        auto_gradable_points = total_points - sum(q["points"] for q in subjective_questions)
+        auto_score_percentage = (points_earned / auto_gradable_points * 100) if auto_gradable_points > 0 else 0
+        overall_score = (points_earned / total_points * 100) if total_points > 0 else 0
+        
+        # Create quiz attempt record
+        quiz_attempt_id = str(uuid.uuid4())
+        quiz_attempt = {
+            "id": quiz_attempt_id,
+            "courseId": course_id,
+            "lessonId": lesson_id,
+            "studentId": current_user.id,
+            "answers": processed_answers,
+            "score": round(overall_score, 2),
+            "pointsEarned": points_earned,
+            "totalPoints": total_points,
+            "timeSpent": time_spent,
+            "isPassed": overall_score >= quiz_content.get("passingScore", 75),
+            "submittedAt": datetime.utcnow(),
+            "isActive": True,
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow()
+        }
+        
+        await db.quiz_attempts.insert_one(quiz_attempt)
+        
+        # Submit subjective questions for manual grading
+        for subj_q in subjective_questions:
+            submission_id = str(uuid.uuid4())
+            submission = {
+                "id": submission_id,
+                "courseId": course_id,
+                "lessonId": lesson_id,
+                "questionId": subj_q["questionId"],
+                "studentId": current_user.id,
+                "answer": subj_q["answer"],
+                "status": "pending",
+                "maxScore": subj_q["points"],
+                "submittedAt": datetime.utcnow(),
+                "isActive": True,
+                "created_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow()
+            }
+            await db.subjective_submissions.insert_one(submission)
+        
+        logger.info(f"Course quiz submission completed: {quiz_attempt_id}, Score: {overall_score}%, Subjective questions: {len(subjective_questions)}")
+        
+        return {
+            "success": True,
+            "attemptId": quiz_attempt_id,
+            "score": round(overall_score, 2),
+            "pointsEarned": points_earned,
+            "totalPoints": total_points,
+            "isPassed": overall_score >= quiz_content.get("passingScore", 75),
+            "hasSubjectiveQuestions": len(subjective_questions) > 0,
+            "subjectiveQuestionsCount": len(subjective_questions),
+            "message": "Quiz submitted successfully. Subjective questions will be manually graded." if subjective_questions else "Quiz submitted and graded automatically."
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error submitting course quiz: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to submit quiz attempt"
+        )
+
 @api_router.get("/admin/quiz-attempts")
 async def get_all_quiz_attempts_admin(current_user: UserResponse = Depends(get_current_user)):
     """Get all quiz attempts for admin/instructor review."""
