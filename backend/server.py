@@ -6453,11 +6453,15 @@ async def update_quiz_attempt_score(course_id: str, lesson_id: str, user_id: str
             if quiz_lesson:
                 break
         
-        if not quiz_lesson or not quiz_lesson.get("quiz"):
+        if not quiz_lesson:
             logger.error(f"Quiz lesson not found in course {course_id}, lesson {lesson_id}")
             return
             
-        quiz_data = quiz_lesson["quiz"]
+        # **CRITICAL FIX**: Use correct data structure - 'content' or 'quiz'
+        quiz_data = quiz_lesson.get("content") or quiz_lesson.get("quiz")
+        if not quiz_data:
+            logger.error(f"Quiz data not found in lesson {lesson_id}")
+            return
         
         # Try to find quiz attempt first (for traditional quiz flow)
         quiz_attempt = await db.quiz_attempts.find_one({
