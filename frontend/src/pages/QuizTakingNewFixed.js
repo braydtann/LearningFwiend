@@ -902,7 +902,7 @@ const QuizTakingNewFixed = () => {
             // Show different message based on whether subjective questions need grading
             const baseMessage = `Your score: ${score}% ${passed ? '(Passed)' : '(Below passing score)'}`;
             const subjectiveWarning = hasSubjectiveQuestions 
-              ? " Note: Your score is subject to change once subjective questions are graded by an instructor."
+              ? " Note: Subjective questions received full points to allow progression. Your instructor will review and provide feedback."
               : "";
             
             toast({
