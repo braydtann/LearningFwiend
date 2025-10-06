@@ -1510,7 +1510,14 @@ const CourseDetail = () => {
             )}
 
             {/* Quick Quiz Access - only for enrolled students */}
-            {isEnrolled && allQuizLessons.length > 0 && (
+            {isEnrolled && allQuizLessons.length > 0 && (() => {
+              // Calculate accessibility each time (will be fast since allQuizLessons is memoized)
+              const accessibleQuizzes = allQuizLessons.filter(quiz => canAccessQuiz(quiz));
+              const lockedQuizzes = allQuizLessons.filter(quiz => !canAccessQuiz(quiz));
+              
+              console.log(`🔄 Quiz accessibility recalculated: ${accessibleQuizzes.length} accessible, ${lockedQuizzes.length} locked`);
+              
+              return (
               <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-6 rounded-lg mb-6 border border-purple-200">
                 <div className="flex items-center justify-between">
                   <div>
