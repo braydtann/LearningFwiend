@@ -518,7 +518,16 @@ const CourseDetail = () => {
       }
       
       const userAttempts = attemptsResult.attempts || [];
-      console.log('User quiz attempts:', userAttempts.length);
+      console.log('🔍 DEBUG: User quiz attempts found:', userAttempts.length);
+      console.log('🔍 DEBUG: All user attempts:', userAttempts.map(a => ({
+        id: a.id,
+        lessonId: a.lessonId,
+        quizId: a.quizId, 
+        courseId: a.courseId,
+        score: a.score,
+        title: a.quizTitle || 'No title'
+      })));
+      console.log('🔍 DEBUG: Current enrollment moduleProgress:', currentEnrollment?.moduleProgress);
       
       // Check each quiz requirement
       const failedQuizzes = [];
