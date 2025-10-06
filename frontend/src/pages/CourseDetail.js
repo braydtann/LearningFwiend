@@ -1228,6 +1228,18 @@ const CourseDetail = () => {
 
     console.log(`🔍 Quiz Access Check: "${quiz.title}" (Global Quiz #${globalQuizIndex + 1}/${allQuizzes.length})`);
 
+    // **CRITICAL FIX**: Check if THIS SPECIFIC quiz is already completed FIRST (before any other logic)
+    const currentQuizModuleProgress = moduleProgress.find(mp => mp.moduleId === quizModule.id);
+    if (currentQuizModuleProgress) {
+      const thisQuizLessonProgress = currentQuizModuleProgress.lessons.find(lp => lp.lessonId === quiz.id);
+      console.log(`🔍 COMPLETED CHECK: Quiz "${quiz.title}" (ID: ${quiz.id}) progress:`, thisQuizLessonProgress);
+      
+      if (thisQuizLessonProgress && thisQuizLessonProgress.completed) {
+        console.log(`✅ Quiz "${quiz.title}" already completed - allowing access for review`);
+        return true;
+      }
+    }
+
     // **NEW PROGRESSIVE QUIZ UNLOCKING LOGIC**:
     
     // 1. Always allow access to the first quiz - students should be able to start the course
