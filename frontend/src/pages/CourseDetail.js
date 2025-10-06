@@ -1589,7 +1589,8 @@ const CourseDetail = () => {
                   )}
                 </div>
                   </div>
-            )}
+              );
+            })()}
 
             {/* Start Course Button - When no lesson is selected */}
             {!selectedLesson && isEnrolled && course?.modules?.length > 0 && (
