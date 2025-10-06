@@ -1522,29 +1522,7 @@ const CourseDetail = () => {
             )}
 
             {/* Quick Quiz Access - only for enrolled students */}
-            {isEnrolled && course?.modules && (
-              (() => {
-                // Find all quiz lessons across all modules
-                const quizLessons = [];
-                course.modules.forEach((module, moduleIndex) => {
-                  if (module.lessons) {
-                    module.lessons.forEach((lesson, lessonIndex) => {
-                      if (lesson.type === 'quiz') {
-                        quizLessons.push({
-                          ...lesson,
-                          moduleTitle: module.title,
-                          moduleIndex,
-                          lessonIndex
-                        });
-                      }
-                    });
-                  }
-                });
-
-                if (quizLessons.length > 0) {
-                  // Filter quizzes based on progressive access
-                  const accessibleQuizzes = quizLessons.filter(quiz => canAccessQuiz(quiz));
-                  const lockedQuizzes = quizLessons.filter(quiz => !canAccessQuiz(quiz));
+            {isEnrolled && allQuizLessons.length > 0 && (
 
                   return (
                     <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-6 rounded-lg mb-6 border border-purple-200">
