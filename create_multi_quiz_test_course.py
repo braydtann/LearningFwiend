@@ -463,7 +463,7 @@ def main():
         return
     
     # Enroll student
-    enrollment = enroll_student(token, course['id'], student['id'])
+    enrollment = enroll_student(token, course['id'], student)
     if not enrollment:
         return
     
