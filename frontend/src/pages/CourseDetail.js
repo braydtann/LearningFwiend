@@ -555,7 +555,22 @@ const CourseDetail = () => {
         
         console.log(`Quiz "${quizLesson.title}": Best score = ${bestAttempt?.score || 0}%, Passing score = ${quizLesson.passingScore}%`);
         
-        if (!bestAttempt || bestAttempt.score < quizLesson.passingScore) {
+        let quizPassed = bestAttempt && bestAttempt.score >= quizLesson.passingScore;
+        
+        // **FALLBACK**: If no quiz attempt found or failed, check if lesson is marked as completed in moduleProgress
+        // This handles cases where quiz completion tracking works but attempt retrieval doesn't
+        if (!quizPassed && currentEnrollment?.moduleProgress) {
+          for (const moduleProgress of currentEnrollment.moduleProgress) {
+            const lessonProgress = moduleProgress.lessons?.find(l => l.lessonId === quizLesson.id);
+            if (lessonProgress?.completed) {
+              console.log(`✅ Quiz "${quizLesson.title}" marked as completed in moduleProgress - allowing completion`);
+              quizPassed = true;
+              break;
+            }
+          }
+        }
+        
+        if (!quizPassed) {
           failedQuizzes.push({
             title: quizLesson.title,
             bestScore: bestAttempt?.score || 0,
