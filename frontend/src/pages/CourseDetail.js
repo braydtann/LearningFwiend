@@ -427,14 +427,44 @@ const CourseDetail = () => {
       
       console.log(`Potential completed count: ${potentialCompletedCount}, Can complete: ${allLessonsWillBeCompleted}, Remaining: ${remainingLessons}`);
       
-      setNextAction({
-        type: 'complete',
-        target: null,
-        moduleIndex: currentModuleIndex,
-        lessonIndex: currentLessonIndex,
-        canComplete: allLessonsWillBeCompleted,
-        remainingLessons: remainingLessons
-      });
+      // **QUIZ VALIDATION FIX**: Also check quiz requirements before allowing course completion
+      let canCompleteWithQuizzes = allLessonsWillBeCompleted;
+      if (allLessonsWillBeCompleted) {
+        console.log(`🔍 All lessons completed - checking quiz requirements...`);
+        // Check quiz requirements asynchronously and update the action
+        checkQuizRequirements().then(result => {
+          console.log(`🎯 Quiz requirements check result:`, result);
+          setNextAction({
+            type: 'complete',
+            target: null,
+            moduleIndex: currentModuleIndex,
+            lessonIndex: currentLessonIndex,
+            canComplete: result.passed,
+            remainingLessons: result.passed ? 0 : remainingLessons,
+            quizValidationMessage: result.passed ? null : result.message
+          });
+        }).catch(error => {
+          console.error('Quiz validation failed:', error);
+          // Default to allowing completion if validation fails
+          setNextAction({
+            type: 'complete',
+            target: null,
+            moduleIndex: currentModuleIndex,
+            lessonIndex: currentLessonIndex,
+            canComplete: allLessonsWillBeCompleted,
+            remainingLessons: remainingLessons
+          });
+        });
+      } else {
+        setNextAction({
+          type: 'complete',
+          target: null,
+          moduleIndex: currentModuleIndex,
+          lessonIndex: currentLessonIndex,
+          canComplete: allLessonsWillBeCompleted,
+          remainingLessons: remainingLessons
+        });
+      }
       return;
     }
     
