@@ -12,7 +12,7 @@ from datetime import datetime
 import time
 
 # Configuration - Using Production Backend URL from frontend/.env
-BACKEND_URL = "https://lms-progression.preview.emergentagent.com/api"
+BACKEND_URL = "https://lms-progression-1.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 class StudentAuthTester:

@@ -9,7 +9,7 @@ import json
 from datetime import datetime
 
 # Configuration
-BACKEND_URL = "https://lms-progression.preview.emergentagent.com/api"
+BACKEND_URL = "https://lms-progression-1.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 # Admin credentials
