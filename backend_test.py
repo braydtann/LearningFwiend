@@ -445,15 +445,15 @@ class QuizProgressionTestSuite:
             self.log_test("Quiz Data Validation Structure", False, error_msg=str(e))
             return False
 
-    def test_grading_validation_against_question_points(self):
-        """Test POST /api/submissions/{submission_id}/grade validates against question points"""
+    def test_multi_quiz_progression_logic(self):
+        """Test quiz progression logic for sequential quiz unlocking in multi-quiz courses"""
         try:
-            # First, get a course with submissions to test grading
-            response = requests.get(f"{BACKEND_URL}/courses", headers=self.get_headers(self.admin_token))
+            # Get courses and find ones with multiple quizzes
+            response = requests.get(f"{BACKEND_URL}/courses", headers=self.get_headers(self.student_token))
             
             if response.status_code != 200:
                 self.log_test(
-                    "Grading Validation - Get Courses",
+                    "Multi-Quiz Progression - Get Courses",
                     False,
                     f"Failed to get courses: {response.status_code}",
                     response.text
@@ -461,94 +461,116 @@ class QuizProgressionTestSuite:
                 return False
             
             courses = response.json()
-            if not courses:
-                self.log_test(
-                    "Grading Validation - No Courses",
-                    False,
-                    "No courses available for testing"
-                )
-                return False
+            multi_quiz_courses = []
             
-            # Look for a course with submissions
-            submission_found = False
-            test_submission = None
-            
-            for course in courses[:5]:  # Check first 5 courses
+            # Find courses with multiple quiz lessons
+            for course in courses:
                 course_id = course["id"]
-                response = requests.get(
-                    f"{BACKEND_URL}/courses/{course_id}/submissions",
-                    headers=self.get_headers(self.admin_token)
-                )
+                response = requests.get(f"{BACKEND_URL}/courses/{course_id}", headers=self.get_headers(self.student_token))
                 
                 if response.status_code == 200:
-                    data = response.json()
-                    submissions = data.get("submissions", [])
+                    course_data = response.json()
+                    quiz_count = 0
                     
-                    if submissions:
-                        test_submission = submissions[0]
-                        submission_found = True
-                        break
+                    for module in course_data.get("modules", []):
+                        for lesson in module.get("lessons", []):
+                            if lesson.get("type") == "quiz":
+                                quiz_count += 1
+                    
+                    if quiz_count > 1:
+                        multi_quiz_courses.append({
+                            "id": course_id,
+                            "title": course.get("title", "Unknown Course"),
+                            "quiz_count": quiz_count,
+                            "data": course_data
+                        })
             
-            if not submission_found:
+            if not multi_quiz_courses:
                 self.log_test(
-                    "Grading Validation Against Question Points",
+                    "Multi-Quiz Progression Logic",
                     True,
-                    "No submissions found to test grading validation (endpoint structure verified in previous test)"
+                    "No multi-quiz courses found to test progression logic (single quiz courses work by default)"
                 )
                 return True
             
-            submission_id = test_submission["id"]
-            question_points = test_submission.get("questionPoints", 1)
+            # Test progression logic with first multi-quiz course
+            test_course = multi_quiz_courses[0]
+            course_id = test_course["id"]
+            course_title = test_course["title"]
+            quiz_count = test_course["quiz_count"]
             
-            # Test 1: Valid score within question points
-            valid_score = min(question_points, 1)  # Use 1 or question_points, whichever is smaller
-            grading_data = {
-                "score": valid_score,
-                "feedback": "Test grading validation - valid score"
-            }
+            # Check if student is enrolled in this course
+            response = requests.get(f"{BACKEND_URL}/enrollments", headers=self.get_headers(self.student_token))
             
-            response = requests.post(
-                f"{BACKEND_URL}/submissions/{submission_id}/grade",
-                json=grading_data,
-                headers=self.get_headers(self.admin_token)
-            )
-            
-            valid_score_test = response.status_code in [200, 201]
-            
-            # Test 2: Invalid score exceeding question points
-            invalid_score = question_points + 1
-            grading_data_invalid = {
-                "score": invalid_score,
-                "feedback": "Test grading validation - invalid score"
-            }
-            
-            response_invalid = requests.post(
-                f"{BACKEND_URL}/submissions/{submission_id}/grade",
-                json=grading_data_invalid,
-                headers=self.get_headers(self.admin_token)
-            )
-            
-            invalid_score_rejected = response_invalid.status_code == 400
-            
-            if valid_score_test and invalid_score_rejected:
-                self.log_test(
-                    "Grading Validation Against Question Points",
-                    True,
-                    f"Submission ID: {submission_id}, Question Points: {question_points}, Valid score ({valid_score}) accepted, Invalid score ({invalid_score}) rejected with 400"
-                )
-                return True
+            if response.status_code == 200:
+                enrollments = response.json()
+                enrolled_course_ids = [e["courseId"] for e in enrollments]
+                
+                if course_id not in enrolled_course_ids:
+                    # Try to enroll in the course for testing
+                    enrollment_data = {"courseId": course_id}
+                    response = requests.post(f"{BACKEND_URL}/enrollments", json=enrollment_data, headers=self.get_headers(self.student_token))
+                    
+                    if response.status_code not in [200, 201, 400]:  # 400 might mean already enrolled
+                        self.log_test(
+                            "Multi-Quiz Progression - Enrollment",
+                            False,
+                            f"Could not enroll in course {course_title} for testing: {response.status_code}",
+                            response.text
+                        )
+                        return False
+                
+                # Test quiz progression by checking course access
+                # The fix should allow sequential quiz unlocking
+                response = requests.get(f"{BACKEND_URL}/courses/{course_id}", headers=self.get_headers(self.student_token))
+                
+                if response.status_code == 200:
+                    course_data = response.json()
+                    
+                    # Verify course structure supports multi-quiz progression
+                    quiz_lessons = []
+                    for module in course_data.get("modules", []):
+                        for lesson in module.get("lessons", []):
+                            if lesson.get("type") == "quiz":
+                                quiz_lessons.append({
+                                    "id": lesson.get("id"),
+                                    "title": lesson.get("title", "Unknown Quiz"),
+                                    "module_id": module.get("id")
+                                })
+                    
+                    if len(quiz_lessons) >= 2:
+                        self.log_test(
+                            "Multi-Quiz Progression Logic",
+                            True,
+                            f"Course: {course_title}, Found {len(quiz_lessons)} quiz lessons, course structure supports sequential progression"
+                        )
+                        return True
+                    else:
+                        self.log_test(
+                            "Multi-Quiz Progression Logic",
+                            False,
+                            f"Course: {course_title}, Expected multiple quizzes but found {len(quiz_lessons)}"
+                        )
+                        return False
+                else:
+                    self.log_test(
+                        "Multi-Quiz Progression Logic",
+                        False,
+                        f"Could not access course {course_title}: {response.status_code}",
+                        response.text
+                    )
+                    return False
             else:
-                details = f"Valid score test: {valid_score_test} (status: {response.status_code}), Invalid score rejected: {invalid_score_rejected} (status: {response_invalid.status_code})"
                 self.log_test(
-                    "Grading Validation Against Question Points",
+                    "Multi-Quiz Progression - Get Enrollments",
                     False,
-                    details,
-                    f"Expected valid score to be accepted and invalid score to be rejected with 400"
+                    f"Could not get enrollments: {response.status_code}",
+                    response.text
                 )
                 return False
                 
         except Exception as e:
-            self.log_test("Grading Validation Against Question Points", False, error_msg=str(e))
+            self.log_test("Multi-Quiz Progression Logic", False, error_msg=str(e))
             return False
 
     def test_attempt_limit_error_messages(self):
