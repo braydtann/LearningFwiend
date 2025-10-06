@@ -1237,12 +1237,24 @@ const CourseDetail = () => {
       
       // **FIRST QUIZ ACCESS FIX**: Check if first quiz is already completed (allow re-access)
       const currentModuleProgress = moduleProgress.find(mp => mp.moduleId === quizModule.id);
+      console.log(`🔍 DEBUG First Quiz - Looking for quiz ID: ${quiz.id} in module: ${quizModule.id}`);
+      console.log(`🔍 DEBUG Module Progress:`, currentModuleProgress);
+      
       if (currentModuleProgress) {
         const firstQuizLessonProgress = currentModuleProgress.lessons.find(lp => lp.lessonId === quiz.id);
+        console.log(`🔍 DEBUG Found lesson progress:`, firstQuizLessonProgress);
+        
         if (firstQuizLessonProgress && firstQuizLessonProgress.completed) {
           console.log(`✅ First quiz "${quiz.title}" already completed - allowing access for review`);
           return true;
+        } else if (firstQuizLessonProgress) {
+          console.log(`⚠️ First quiz found in progress but not completed: ${firstQuizLessonProgress.completed}`);
+        } else {
+          console.log(`⚠️ First quiz not found in lesson progress - quiz ID: ${quiz.id}`);
+          console.log(`⚠️ Available lesson IDs:`, currentModuleProgress.lessons.map(l => l.lessonId));
         }
+      } else {
+        console.log(`⚠️ No module progress found for module ID: ${quizModule.id}`);
       }
       
       // For brand new students with no progress, allow access to first quiz
