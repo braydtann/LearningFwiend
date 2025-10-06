@@ -99,7 +99,7 @@ def create_subjective_test_course(admin_token):
                                     "id": "q3-true-false",
                                     "type": "true_false",
                                     "question": "Subjective questions should always receive full points regardless of the answer quality.",
-                                    "correctAnswer": false,
+                                    "correctAnswer": False,
                                     "points": 2,
                                     "explanation": "While our system gives full points initially to allow progression, manual grading can adjust scores based on answer quality."
                                 },
