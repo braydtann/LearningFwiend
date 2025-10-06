@@ -717,11 +717,32 @@ const QuizTakingNewFixed = () => {
             const userAnswer = answers[question.id];
             
             // Handle different question types  
-            if (question.type === 'true-false' && userAnswer === question.correctAnswer) {
-              correctAnswers++;
+            if (question.type === 'true-false') {
+              // **TRUE/FALSE FIX**: Handle both boolean and numeric correctAnswer formats
+              let isCorrect = false;
+              
+              // Normalize correctAnswer to boolean for comparison
+              let normalizedCorrectAnswer;
+              if (typeof question.correctAnswer === 'boolean') {
+                normalizedCorrectAnswer = question.correctAnswer;
+              } else if (question.correctAnswer === 0 || question.correctAnswer === '0') {
+                normalizedCorrectAnswer = false;
+              } else if (question.correctAnswer === 1 || question.correctAnswer === '1') {
+                normalizedCorrectAnswer = true;
+              } else {
+                normalizedCorrectAnswer = Boolean(question.correctAnswer);
+              }
+              
+              // Normalize userAnswer to boolean (it comes from radio button value)
+              const normalizedUserAnswer = userAnswer === true || userAnswer === 'true';
+              
+              isCorrect = normalizedUserAnswer === normalizedCorrectAnswer;
+              
+              if (isCorrect) {
+                correctAnswers++;
+              }
               scorableQuestions++;
-            } else if (question.type === 'true-false') {
-              scorableQuestions++; // Count as scorable even if incorrect
+            }
             } else if (question.type === 'multiple-choice' && userAnswer === question.correctAnswer) {
               correctAnswers++;
               scorableQuestions++;
