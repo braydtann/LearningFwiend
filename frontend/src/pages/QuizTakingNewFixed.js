@@ -289,11 +289,17 @@ const QuizTakingNewFixed = () => {
         
         // Type-specific validation
         if (question.type === 'true-false') {
-          // True/false questions need correctAnswer boolean
-          if (typeof question.correctAnswer !== 'boolean') {
+          // True/false questions need correctAnswer boolean or numeric (0/1)
+          const isValidBoolean = typeof question.correctAnswer === 'boolean';
+          const isValidNumeric = (question.correctAnswer === 0 || question.correctAnswer === 1);
+          
+          if (!isValidBoolean && !isValidNumeric) {
             console.warn(`❌ Question ${index + 1} FAILED: (true-false) missing valid correctAnswer:`, question.correctAnswer);
             return false;
           }
+          
+          console.log(`✅ Question ${index + 1} PASSED: (true-false) correctAnswer validation: ${question.correctAnswer} (${typeof question.correctAnswer})`);
+        }
         } else if (question.type === 'multiple-choice') {
           // Multiple choice questions need options array and correctAnswer index
           if (!question.options || !Array.isArray(question.options) || question.options.length < 2) {
