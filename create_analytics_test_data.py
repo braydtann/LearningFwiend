@@ -11,7 +11,7 @@ from typing import Dict, List, Any, Optional
 
 class AnalyticsTestDataCreator:
     def __init__(self):
-        self.base_url = "https://grade-flow-wizard.preview.emergentagent.com/api"
+        self.base_url = "https://lms-progression.preview.emergentagent.com/api"
         self.admin_token = None
         self.student_token = None
         

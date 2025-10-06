@@ -9,7 +9,7 @@ Create enrollment for karlo.student in the multi-quiz course using known working
 import requests
 import json
 
-BACKEND_URL = "https://grade-flow-wizard.preview.emergentagent.com/api"
+BACKEND_URL = "https://lms-progression.preview.emergentagent.com/api"
 
 # Get user credentials from backend testing
 STUDENT_CREDENTIALS = {

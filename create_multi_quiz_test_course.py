@@ -13,7 +13,7 @@ import uuid
 from datetime import datetime, timezone
 
 # Configuration
-BACKEND_URL = "https://grade-flow-wizard.preview.emergentagent.com/api"
+BACKEND_URL = "https://lms-progression.preview.emergentagent.com/api"
 
 # Admin credentials for creating course
 ADMIN_CREDENTIALS = {

@@ -27,7 +27,7 @@ import uuid
 from datetime import datetime
 
 # Configuration
-BACKEND_URL = "https://grade-flow-wizard.preview.emergentagent.com/api"
+BACKEND_URL = "https://lms-progression.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_CREDENTIALS = {

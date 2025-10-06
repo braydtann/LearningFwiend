@@ -23,7 +23,7 @@ from datetime import datetime
 import uuid
 
 # Configuration - Using correct backend URL from frontend/.env
-BACKEND_URL = "https://grade-flow-wizard.preview.emergentagent.com/api"
+BACKEND_URL = "https://lms-progression.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_EMAIL = "brayden.t@covesmart.com"

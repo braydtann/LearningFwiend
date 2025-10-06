@@ -13,7 +13,7 @@ Focus Areas:
 3. Submit answers and capture exact request format
 4. Compare request format with backend expectations
 
-Environment: https://grade-flow-wizard.preview.emergentagent.com
+Environment: https://lms-progression.preview.emergentagent.com
 """
 
 import asyncio
@@ -24,7 +24,7 @@ from datetime import datetime
 from typing import Dict, List, Any, Optional
 
 # Test Configuration
-BASE_URL = "https://grade-flow-wizard.preview.emergentagent.com/api"
+BASE_URL = "https://lms-progression.preview.emergentagent.com/api"
 ADMIN_CREDENTIALS = {
     "username_or_email": "brayden.t@covesmart.com",
     "password": "Hawaii2020!"
