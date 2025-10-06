@@ -742,7 +742,6 @@ const QuizTakingNewFixed = () => {
                 correctAnswers++;
               }
               scorableQuestions++;
-            }
             } else if (question.type === 'multiple-choice' && userAnswer === question.correctAnswer) {
               correctAnswers++;
               scorableQuestions++;
