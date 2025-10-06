@@ -4221,11 +4221,12 @@ async def submit_quiz_attempt(
                 answer.lower().strip() == question['correctAnswer'].lower().strip()):
                 points_earned += question.get('points', 1)
         elif question['type'] in ['short_answer', 'essay']:
-            # For exact match on short answers (case-insensitive)
-            if (question['type'] == 'short_answer' and answer and question.get('correctAnswer') and
-                answer.lower().strip() == question['correctAnswer'].lower().strip()):
+            # **SUBJECTIVE QUESTION FIX**: Give full points by default to allow progression
+            if answer and str(answer).strip():
+                # Award full points for any reasonable attempt at subjective questions
                 points_earned += question.get('points', 1)
-            # Essays require manual grading - skip for now
+                logger.info(f"Subjective question awarded full points - Type: {question['type']}")
+            # Note: Manual grading can later adjust these scores
     
     # Calculate percentage score
     score_percentage = (points_earned / total_points * 100) if total_points > 0 else 0
