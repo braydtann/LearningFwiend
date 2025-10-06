@@ -9,7 +9,7 @@ Testing the two critical bug fixes:
 3. Type Consistency Validation - Backend accepts both 'essay' and 'long_form' question types
 4. Integration Testing - Complete end-to-end workflow
 
-Test Environment: https://lms-analytics-hub.preview.emergentagent.com/api
+Test Environment: https://grade-flow-wizard.preview.emergentagent.com/api
 Admin: brayden.t@covesmart.com / Hawaii2020!
 Student: karlo.student@alder.com / StudentPermanent123!
 """
@@ -22,7 +22,7 @@ import sys
 import os
 
 # Configuration
-BASE_URL = "https://lms-analytics-hub.preview.emergentagent.com/api"
+BASE_URL = "https://grade-flow-wizard.preview.emergentagent.com/api"
 ADMIN_EMAIL = "brayden.t@covesmart.com"
 ADMIN_PASSWORD = "Hawaii2020!"
 STUDENT_EMAIL = "karlo.student@alder.com"

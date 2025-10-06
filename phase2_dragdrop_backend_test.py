@@ -19,7 +19,7 @@ import uuid
 from datetime import datetime
 
 # Configuration
-BACKEND_URL = "https://lms-analytics-hub.preview.emergentagent.com/api"
+BACKEND_URL = "https://grade-flow-wizard.preview.emergentagent.com/api"
 
 # Test credentials
 STUDENT_EMAIL = "karlo.student@alder.com"

@@ -13,7 +13,7 @@ import time
 import uuid
 
 # Configuration
-BACKEND_URL = "https://lms-analytics-hub.preview.emergentagent.com/api"
+BACKEND_URL = "https://grade-flow-wizard.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 class ComprehensiveBackendTester:

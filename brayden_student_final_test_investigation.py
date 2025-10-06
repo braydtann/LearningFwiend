@@ -11,7 +11,7 @@ from datetime import datetime
 import time
 
 # Configuration
-BACKEND_URL = "https://lms-analytics-hub.preview.emergentagent.com/api"
+BACKEND_URL = "https://grade-flow-wizard.preview.emergentagent.com/api"
 
 # Test credentials for the specific student mentioned in review request
 BRAYDEN_STUDENT_CREDENTIALS = [

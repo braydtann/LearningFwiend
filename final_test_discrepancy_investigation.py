@@ -12,7 +12,7 @@ from datetime import datetime
 import time
 
 # Configuration - Use the correct backend URL from frontend/.env
-BACKEND_URL = "https://lms-analytics-hub.preview.emergentagent.com/api"
+BACKEND_URL = "https://grade-flow-wizard.preview.emergentagent.com/api"
 
 # Test credentials from the review request
 ADMIN_CREDENTIALS = {

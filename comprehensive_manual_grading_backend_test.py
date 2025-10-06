@@ -27,7 +27,7 @@ from datetime import datetime, timezone
 import time
 
 # Backend URL from environment
-BACKEND_URL = "https://lms-analytics-hub.preview.emergentagent.com/api"
+BACKEND_URL = "https://grade-flow-wizard.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_CREDENTIALS = {

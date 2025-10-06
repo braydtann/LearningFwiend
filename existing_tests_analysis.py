@@ -15,7 +15,7 @@ import json
 import sys
 from datetime import datetime
 
-BACKEND_URL = "https://lms-analytics-hub.preview.emergentagent.com/api"
+BACKEND_URL = "https://grade-flow-wizard.preview.emergentagent.com/api"
 
 ADMIN_EMAIL = "brayden.t@covesmart.com"
 ADMIN_PASSWORD = "Hawaii2020!"
