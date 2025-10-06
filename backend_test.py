@@ -336,15 +336,15 @@ class QuizProgressionTestSuite:
             self.log_test("Enrollment Progress Tracking", False, error_msg=str(e))
             return False
 
-    def test_submissions_with_question_points(self):
-        """Test GET /api/courses/{course_id}/submissions includes questionPoints field"""
+    def test_quiz_data_validation_structure(self):
+        """Test quiz questions have proper data format, especially true-false questions with correctAnswer field"""
         try:
-            # First, get available courses to test with
+            # Get courses with quiz content
             response = requests.get(f"{BACKEND_URL}/courses", headers=self.get_headers(self.admin_token))
             
             if response.status_code != 200:
                 self.log_test(
-                    "Submissions Question Points - Get Courses",
+                    "Quiz Data Validation - Get Courses",
                     False,
                     f"Failed to get courses: {response.status_code}",
                     response.text
@@ -354,64 +354,95 @@ class QuizProgressionTestSuite:
             courses = response.json()
             if not courses:
                 self.log_test(
-                    "Submissions Question Points - No Courses",
+                    "Quiz Data Validation - No Courses",
                     False,
                     "No courses available for testing"
                 )
                 return False
             
-            # Test submissions endpoint with first available course
-            course_id = courses[0]["id"]
-            course_title = courses[0].get("title", "Unknown Course")
+            # Analyze quiz data structure across courses
+            total_quiz_questions = 0
+            true_false_questions = 0
+            multiple_choice_questions = 0
+            validation_errors = []
             
-            response = requests.get(
-                f"{BACKEND_URL}/courses/{course_id}/submissions",
-                headers=self.get_headers(self.admin_token)
-            )
+            for course in courses:
+                course_id = course["id"]
+                course_title = course.get("title", "Unknown Course")
+                
+                # Get detailed course data
+                response = requests.get(f"{BACKEND_URL}/courses/{course_id}", headers=self.get_headers(self.admin_token))
+                
+                if response.status_code == 200:
+                    course_data = response.json()
+                    
+                    # Extract and validate quiz questions
+                    for module in course_data.get("modules", []):
+                        for lesson in module.get("lessons", []):
+                            if lesson.get("type") == "quiz":
+                                quiz_data = lesson.get("quiz", {})
+                                questions = quiz_data.get("questions", [])
+                                
+                                for i, question in enumerate(questions):
+                                    total_quiz_questions += 1
+                                    question_type = question.get("type", "")
+                                    question_text = question.get("question", "")[:50] + "..."
+                                    
+                                    # Validate true-false questions (priority from review)
+                                    if question_type == "true-false":
+                                        true_false_questions += 1
+                                        correct_answer = question.get("correctAnswer")
+                                        
+                                        if correct_answer is None:
+                                            validation_errors.append(f"True-false question in {course_title} missing correctAnswer: {question_text}")
+                                        else:
+                                            # Check if correctAnswer accepts both boolean and numeric (0/1) values
+                                            valid_formats = [True, False, 0, 1, "0", "1", "true", "false"]
+                                            if correct_answer not in valid_formats:
+                                                validation_errors.append(f"True-false question in {course_title} has invalid correctAnswer format: {correct_answer} (should be boolean or 0/1)")
+                                    
+                                    # Validate multiple-choice questions
+                                    elif question_type == "multiple-choice":
+                                        multiple_choice_questions += 1
+                                        options = question.get("options", [])
+                                        correct_answer = question.get("correctAnswer")
+                                        
+                                        if not options:
+                                            validation_errors.append(f"Multiple-choice question in {course_title} missing options: {question_text}")
+                                        if correct_answer is None:
+                                            validation_errors.append(f"Multiple-choice question in {course_title} missing correctAnswer: {question_text}")
+                                        elif isinstance(correct_answer, int) and (correct_answer < 0 or correct_answer >= len(options)):
+                                            validation_errors.append(f"Multiple-choice question in {course_title} has invalid correctAnswer index: {correct_answer} (options: {len(options)})")
+                                    
+                                    # Validate common required fields
+                                    if not question.get("question"):
+                                        validation_errors.append(f"Question in {course_title} missing question text")
+                                    if not question_type:
+                                        validation_errors.append(f"Question in {course_title} missing type field")
             
-            if response.status_code == 200:
-                data = response.json()
-                submissions = data.get("submissions", [])
+            # Report validation results
+            if validation_errors:
+                error_summary = "; ".join(validation_errors[:3])  # Show first 3 errors
+                if len(validation_errors) > 3:
+                    error_summary += f" ... and {len(validation_errors) - 3} more errors"
                 
-                if not submissions:
-                    self.log_test(
-                        "Submissions Question Points Field",
-                        True,
-                        f"Course: {course_title}, No submissions found (endpoint working, no data to validate questionPoints field)"
-                    )
-                    return True
-                
-                # Check if questionPoints field exists in submissions
-                has_question_points = all("questionPoints" in submission for submission in submissions)
-                
-                if has_question_points:
-                    # Show sample question points values
-                    sample_points = [sub.get("questionPoints", "N/A") for sub in submissions[:3]]
-                    self.log_test(
-                        "Submissions Question Points Field",
-                        True,
-                        f"Course: {course_title}, Found {len(submissions)} submissions, all include questionPoints field. Sample values: {sample_points}"
-                    )
-                    return True
-                else:
-                    missing_count = sum(1 for sub in submissions if "questionPoints" not in sub)
-                    self.log_test(
-                        "Submissions Question Points Field",
-                        False,
-                        f"Course: {course_title}, {missing_count}/{len(submissions)} submissions missing questionPoints field"
-                    )
-                    return False
-            else:
                 self.log_test(
-                    "Submissions Question Points Field",
+                    "Quiz Data Validation Structure",
                     False,
-                    f"Status: {response.status_code}",
-                    response.text
+                    f"Found {len(validation_errors)} validation errors in {total_quiz_questions} quiz questions",
+                    error_summary
                 )
                 return False
+            else:
+                self.log_test(
+                    "Quiz Data Validation Structure",
+                    True,
+                    f"Validated {total_quiz_questions} quiz questions ({true_false_questions} true-false, {multiple_choice_questions} multiple-choice) - all have proper data format"
+                )
+                return True
                 
         except Exception as e:
-            self.log_test("Submissions Question Points Field", False, error_msg=str(e))
+            self.log_test("Quiz Data Validation Structure", False, error_msg=str(e))
             return False
 
     def test_grading_validation_against_question_points(self):
