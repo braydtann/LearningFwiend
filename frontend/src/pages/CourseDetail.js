@@ -532,11 +532,15 @@ const CourseDetail = () => {
       // Check each quiz requirement
       const failedQuizzes = [];
       
+      console.log('🔍 DEBUG: Starting quiz validation for', quizLessons.length, 'quizzes');
+      
       for (const quizLesson of quizLessons) {
+        console.log(`🔍 DEBUG: Checking quiz "${quizLesson.title}" (ID: ${quizLesson.id}), passing score: ${quizLesson.passingScore}`);
+        
         // For lesson-based quizzes, we need to check if they have a passing score requirement
         // If no passing score is defined, we assume the quiz is just for practice
         if (!quizLesson.passingScore) {
-          console.log(`Quiz "${quizLesson.title}" has no passing score requirement - skipping validation`);
+          console.log(`✅ Quiz "${quizLesson.title}" has no passing score requirement - skipping validation`);
           continue;
         }
         
