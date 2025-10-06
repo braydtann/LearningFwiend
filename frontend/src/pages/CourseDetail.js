@@ -912,14 +912,25 @@ const CourseDetail = () => {
 
   // Handle next module/lesson navigation or course completion
   const handleNextAction = async () => {
-    if (!nextAction || !selectedLesson) return;
+    if (!nextAction) return;
     
     try {
-      // First mark current lesson as complete (this will update progress and state)
-      await markLessonComplete(selectedLesson.id);
-      
-      // Handle different action types
+      // Handle complete action differently - it may not have a selectedLesson
       if (nextAction.type === 'complete') {
+        // **QUIZ VALIDATION FIX**: Check if course can actually be completed
+        if (!nextAction.canComplete) {
+          if (nextAction.quizValidationMessage) {
+            alert(nextAction.quizValidationMessage);
+          } else {
+            alert('Course cannot be completed yet. Please ensure all lessons and quizzes are finished.');
+          }
+          return;
+        }
+        
+        // If we have a selected lesson, mark it complete first
+        if (selectedLesson) {
+          await markLessonComplete(selectedLesson.id);
+        }
         // Complete the course
         const result = await updateEnrollmentProgress(id, {
           progress: 100,
