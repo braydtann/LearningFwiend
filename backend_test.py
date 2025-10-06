@@ -133,70 +133,119 @@ class QuizProgressionTestSuite:
         """Get authorization headers"""
         return {"Authorization": f"Bearer {token}"}
 
-    def test_quiz_attempt_check_endpoint(self):
-        """Test GET /api/quizzes/{quiz_id}/attempt-check"""
+    def test_course_management_with_quiz_data(self):
+        """Test GET /api/courses/{id} returns courses with proper quiz data structure"""
         try:
-            # First, get available quizzes to test with
-            response = requests.get(f"{BACKEND_URL}/quizzes", headers=self.get_headers(self.student_token))
+            # Get all courses first
+            response = requests.get(f"{BACKEND_URL}/courses", headers=self.get_headers(self.admin_token))
             
             if response.status_code != 200:
                 self.log_test(
-                    "Quiz Attempt Check - Get Quizzes",
+                    "Course Management - Get All Courses",
                     False,
-                    f"Failed to get quizzes: {response.status_code}",
+                    f"Failed to get courses: {response.status_code}",
                     response.text
                 )
                 return False
             
-            quizzes = response.json()
-            if not quizzes:
+            courses = response.json()
+            if not courses:
                 self.log_test(
-                    "Quiz Attempt Check - No Quizzes",
+                    "Course Management - No Courses",
                     False,
-                    "No quizzes available for testing"
+                    "No courses available for testing"
                 )
                 return False
             
-            # Test attempt check with first available quiz
-            quiz_id = quizzes[0]["id"]
-            quiz_title = quizzes[0].get("title", "Unknown Quiz")
+            # Test individual course retrieval with quiz data validation
+            quiz_courses_found = 0
+            multi_quiz_courses_found = 0
             
-            response = requests.get(
-                f"{BACKEND_URL}/quizzes/{quiz_id}/attempt-check",
-                headers=self.get_headers(self.student_token)
+            for course in courses[:5]:  # Test first 5 courses
+                course_id = course["id"]
+                course_title = course.get("title", "Unknown Course")
+                
+                response = requests.get(f"{BACKEND_URL}/courses/{course_id}", headers=self.get_headers(self.admin_token))
+                
+                if response.status_code == 200:
+                    course_data = response.json()
+                    
+                    # Check for proper course structure
+                    required_fields = ["id", "title", "modules", "instructorId", "status"]
+                    missing_fields = [field for field in required_fields if field not in course_data]
+                    
+                    if missing_fields:
+                        self.log_test(
+                            "Course Management - Course Structure",
+                            False,
+                            f"Course {course_title} missing fields: {missing_fields}"
+                        )
+                        return False
+                    
+                    # Check for quiz lessons and their data structure
+                    quiz_lessons = []
+                    for module in course_data.get("modules", []):
+                        for lesson in module.get("lessons", []):
+                            if lesson.get("type") == "quiz":
+                                quiz_lessons.append(lesson)
+                    
+                    if quiz_lessons:
+                        quiz_courses_found += 1
+                        if len(quiz_lessons) > 1:
+                            multi_quiz_courses_found += 1
+                        
+                        # Validate quiz data structure
+                        for quiz_lesson in quiz_lessons:
+                            quiz_data = quiz_lesson.get("quiz", {})
+                            questions = quiz_data.get("questions", [])
+                            
+                            if not questions:
+                                continue
+                                
+                            # Check each question for proper structure
+                            for question in questions:
+                                question_type = question.get("type", "")
+                                
+                                # Validate true-false questions specifically (mentioned in review)
+                                if question_type == "true-false":
+                                    correct_answer = question.get("correctAnswer")
+                                    if correct_answer is None:
+                                        self.log_test(
+                                            "Course Management - True-False Question Validation",
+                                            False,
+                                            f"True-false question missing correctAnswer field in course {course_title}"
+                                        )
+                                        return False
+                                    
+                                    # Check if correctAnswer accepts both boolean and numeric values
+                                    if not (isinstance(correct_answer, (bool, int)) or 
+                                           (isinstance(correct_answer, str) and correct_answer in ["0", "1", "true", "false"])):
+                                        self.log_test(
+                                            "Course Management - True-False Question Format",
+                                            False,
+                                            f"True-false question has invalid correctAnswer format: {correct_answer} (type: {type(correct_answer)})"
+                                        )
+                                        return False
+                                
+                                # Validate other question types have required fields
+                                if question_type == "multiple-choice":
+                                    if not question.get("options") or not question.get("correctAnswer"):
+                                        self.log_test(
+                                            "Course Management - Multiple Choice Question Structure",
+                                            False,
+                                            f"Multiple choice question missing options or correctAnswer in course {course_title}"
+                                        )
+                                        return False
+            
+            self.log_test(
+                "Course Management with Quiz Data Structure",
+                True,
+                f"Tested {len(courses[:5])} courses, found {quiz_courses_found} with quizzes ({multi_quiz_courses_found} multi-quiz courses), all quiz data structures valid"
             )
-            
-            if response.status_code == 200:
-                data = response.json()
-                required_fields = ["canAttempt", "existingAttempts", "maxAttempts", "remainingAttempts", "quizTitle", "message"]
-                
-                missing_fields = [field for field in required_fields if field not in data]
-                if missing_fields:
-                    self.log_test(
-                        "Quiz Attempt Check Endpoint",
-                        False,
-                        f"Missing fields: {missing_fields}",
-                        f"Response: {data}"
-                    )
-                    return False
-                
-                self.log_test(
-                    "Quiz Attempt Check Endpoint",
-                    True,
-                    f"Quiz: {quiz_title}, Can Attempt: {data['canAttempt']}, Remaining: {data['remainingAttempts']}/{data['maxAttempts']}"
-                )
-                return True
-            else:
-                self.log_test(
-                    "Quiz Attempt Check Endpoint",
-                    False,
-                    f"Status: {response.status_code}",
-                    response.text
-                )
-                return False
+            return True
                 
         except Exception as e:
-            self.log_test("Quiz Attempt Check Endpoint", False, error_msg=str(e))
+            self.log_test("Course Management with Quiz Data Structure", False, error_msg=str(e))
             return False
 
     def test_final_test_attempt_check_endpoint(self):
