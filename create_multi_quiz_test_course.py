@@ -328,40 +328,24 @@ def create_multi_quiz_course(token):
         print(f"❌ Course creation failed: {str(e)}")
         return None
 
-def find_brayden_student(token):
-    """Find brayden.student user"""
+def find_student_user(token):
+    """Find or use existing student user (karlo.student)"""
     try:
-        print("🔍 Looking for brayden.student user...")
+        print("🔍 Using existing student user (karlo.student)...")
         
-        # Try different endpoints to find users
-        endpoints_to_try = [
-            "/users",
-            "/admin/users", 
-            "/admin/all-users"
-        ]
+        # Use the existing student from backend testing
+        # We'll directly enroll using the known user ID pattern
+        student_info = {
+            "id": "karlo-student-id",  # We'll use email for enrollment
+            "email": "karlo.student@alder.com",
+            "name": "Karlo Student"
+        }
         
-        for endpoint in endpoints_to_try:
-            try:
-                response = requests.get(f"{BACKEND_URL}{endpoint}", headers=get_headers(token))
-                if response.status_code == 200:
-                    users = response.json()
-                    print(f"   Found {len(users)} users via {endpoint}")
-                    for user in users:
-                        if user.get('email') == 'brayden.student@learningfwiend.com':
-                            print(f"✅ Found brayden.student: {user['id']}")
-                            return user
-                    break
-                else:
-                    print(f"   Endpoint {endpoint}: {response.status_code}")
-            except:
-                continue
-        
-        # If not found, create the student user
-        print("⚠️  brayden.student not found, attempting to create...")
-        return create_brayden_student(token)
+        print(f"✅ Using student: {student_info['email']}")
+        return student_info
             
     except Exception as e:
-        print(f"❌ User search failed: {str(e)}")
+        print(f"❌ Student setup failed: {str(e)}")
         return None
 
 def create_brayden_student(token):
