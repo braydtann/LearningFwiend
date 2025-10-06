@@ -531,10 +531,24 @@ const CourseDetail = () => {
           continue;
         }
         
-        // Find the best attempt for this quiz lesson
+        // Find the best attempt for this quiz lesson - enhanced matching for course quizzes
         const quizAttempts = userAttempts.filter(attempt => 
-          attempt.lessonId === quizLesson.id || attempt.quizId === quizLesson.id
+          attempt.lessonId === quizLesson.id || 
+          attempt.quizId === quizLesson.id ||
+          // Also check for course-quiz format attempts
+          attempt.quizId === `course-quiz-${id}-${quizLesson.id}` ||
+          // Check if attempt courseId matches and lesson title matches
+          (attempt.courseId === id && attempt.quizTitle === quizLesson.title)
         );
+        
+        console.log(`🔍 Searching for attempts for quiz "${quizLesson.title}" (ID: ${quizLesson.id})`);
+        console.log(`   Found ${quizAttempts.length} matching attempts:`, quizAttempts.map(a => ({
+          id: a.id,
+          lessonId: a.lessonId, 
+          quizId: a.quizId,
+          score: a.score,
+          courseId: a.courseId
+        })));
         const bestAttempt = quizAttempts.reduce((best, current) => {
           return (!best || current.score > best.score) ? current : best;
         }, null);
