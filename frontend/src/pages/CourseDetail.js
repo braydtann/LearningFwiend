@@ -1580,8 +1580,8 @@ const CourseDetail = () => {
                               </span>
                             )}
                           </div>
-                        </div>
-                        {accessibleQuizzes.length === 1 && lockedQuizzes.length === 0 && (
+                  </div>
+                  {accessibleQuizzes.length === 1 && lockedQuizzes.length === 0 && (
                           <Button 
                             className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 text-lg"
                             onClick={() => {
