@@ -589,10 +589,11 @@ const CourseDetail = () => {
         }
         
         if (!quizPassed) {
+          console.log(`❌ Quiz "${quizLesson.title}" FAILED validation - adding to failed list`);
           failedQuizzes.push({
             title: quizLesson.title,
             bestScore: bestAttempt?.score || 0,
-            passingScore: quizLesson.passingScore
+            passingScore: passingScore
           });
         }
       }
