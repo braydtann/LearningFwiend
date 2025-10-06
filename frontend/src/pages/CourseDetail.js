@@ -60,6 +60,44 @@ const CourseDetail = () => {
   const [programCompleted, setProgramCompleted] = useState(false);
   const [showFinalExamOption, setShowFinalExamOption] = useState(false);
 
+  // Memoized quiz accessibility calculation - recalculates when enrollment or course changes
+  const { allQuizLessons, accessibleQuizzes, lockedQuizzes } = useMemo(() => {
+    if (!isEnrolled || !course?.modules) {
+      return { allQuizLessons: [], accessibleQuizzes: [], lockedQuizzes: [] };
+    }
+
+    // Find all quiz lessons across all modules
+    const quizLessons = [];
+    course.modules.forEach((module, moduleIndex) => {
+      if (module.lessons) {
+        module.lessons.forEach((lesson, lessonIndex) => {
+          if (lesson.type === 'quiz') {
+            quizLessons.push({
+              ...lesson,
+              moduleTitle: module.title,
+              moduleIndex,
+              lessonIndex
+            });
+          }
+        });
+      }
+    });
+
+    // Filter quizzes based on progressive access - this will recalculate when currentEnrollment changes
+    const accessible = quizLessons.filter(quiz => canAccessQuiz(quiz));
+    const locked = quizLessons.filter(quiz => !canAccessQuiz(quiz));
+
+    console.log(`🔄 Quiz accessibility recalculated: ${accessible.length} accessible, ${locked.length} locked`);
+    accessible.forEach(quiz => console.log(`  ✅ Accessible: ${quiz.title}`));
+    locked.forEach(quiz => console.log(`  🔒 Locked: ${quiz.title}`));
+
+    return {
+      allQuizLessons: quizLessons,
+      accessibleQuizzes: accessible,
+      lockedQuizzes: locked
+    };
+  }, [isEnrolled, course, currentEnrollment, canAccessQuiz]);
+
   // Load course data and enrollments from backend
   useEffect(() => {
     loadCourse();
