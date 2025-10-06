@@ -855,14 +855,22 @@ const QuizTakingNewFixed = () => {
               // Mark quiz as containing subjective questions that need manual grading
               hasSubjectiveQuestions = true;
               
-              // For text answers, basic string comparison (case-insensitive)
+              // **SUBJECTIVE QUESTION FIX**: Give full points by default to allow progression
+              // Instructor can review and adjust scores later via manual grading
               scorableQuestions++;
-              const correctAnswer = question.correctAnswer || '';
-              const userAnswerText = (userAnswer || '').toString().trim().toLowerCase();
-              const correctAnswerText = correctAnswer.toString().trim().toLowerCase();
-              if (userAnswerText === correctAnswerText) {
-                correctAnswers++;
-              }
+              
+              // Always award points for subjective questions to prevent blocking progression
+              correctAnswers++;
+              
+              console.log(`📝 Subjective question "${question.question}" - awarded full points (pending instructor review)`);
+              
+              // Note: Exact matching is commented out as it was too restrictive
+              // const correctAnswer = question.correctAnswer || '';
+              // const userAnswerText = (userAnswer || '').toString().trim().toLowerCase();
+              // const correctAnswerText = correctAnswer.toString().trim().toLowerCase();
+              // if (userAnswerText === correctAnswerText) {
+              //   correctAnswers++;
+              // }
             }
           }
         }
