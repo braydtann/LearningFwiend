@@ -1524,7 +1524,7 @@ const CourseDetail = () => {
             {/* Quick Quiz Access - only for enrolled students */}
             {isEnrolled && allQuizLessons.length > 0 && (
               <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-6 rounded-lg mb-6 border border-purple-200">
-                      <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between">
                         <div>
                           <h3 className="text-xl font-semibold text-gray-900 mb-2">
                             <ClipboardCheck className="w-6 h-6 inline mr-2 text-purple-600" />
