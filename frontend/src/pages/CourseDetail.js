@@ -1574,9 +1574,9 @@ const CourseDetail = () => {
                               </Button>
                             ))}
                             
-                            {quizLessons.length > 3 && (
+                            {allQuizLessons.length > 3 && (
                               <span className="text-sm text-gray-500 self-center">
-                                +{quizLessons.length - 3} more quiz{quizLessons.length - 3 > 1 ? 'es' : ''}
+                                +{allQuizLessons.length - 3} more quiz{allQuizLessons.length - 3 > 1 ? 'es' : ''}
                               </span>
                             )}
                           </div>
