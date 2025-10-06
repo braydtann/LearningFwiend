@@ -46,7 +46,7 @@ STUDENT_CREDENTIALS = {
     "password": "StudentPermanent123!"
 }
 
-class QualityOfLifeTestSuite:
+class QuizProgressionTestSuite:
     def __init__(self):
         self.admin_token = None
         self.student_token = None
