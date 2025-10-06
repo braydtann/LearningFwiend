@@ -1596,10 +1596,7 @@ const CourseDetail = () => {
                         )}
                       </div>
                     </div>
-                  );
-                }
-                return null;
-              })()
+                  )
             )}
 
             {/* Start Course Button - When no lesson is selected */}
