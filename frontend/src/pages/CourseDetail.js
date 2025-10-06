@@ -1523,8 +1523,6 @@ const CourseDetail = () => {
 
             {/* Quick Quiz Access - only for enrolled students */}
             {isEnrolled && allQuizLessons.length > 0 && (
-
-                  return (
                     <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-6 rounded-lg mb-6 border border-purple-200">
                       <div className="flex items-center justify-between">
                         <div>
