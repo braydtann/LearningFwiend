@@ -4597,12 +4597,23 @@ async def get_quiz_attempt_detailed(
             elif question['type'] == 'chronological-order':
                 is_correct = answer.get('answer') == question.get('correctOrder')
             elif question['type'] in ['short_answer', 'long_form', 'essay']:
-                # For subjective questions, check if manually graded
+                # **SUBJECTIVE QUESTION FIX**: Default to correct if answer provided
+                student_answer = answer.get('answer', '')
+                if student_answer and str(student_answer).strip():
+                    # Consider correct by default to allow progression
+                    is_correct = True
+                else:
+                    # No answer provided
+                    is_correct = False
+                
+                # Check if manually graded (this can override the default)
                 subjective_grade = await db.submission_grades.find_one({
                     "submissionId": answer.get('submissionId'),
                     "isActive": True
                 })
-                is_correct = subjective_grade is not None
+                if subjective_grade:
+                    # Use manual grade if available
+                    is_correct = subjective_grade.get('isCorrect', is_correct)
             
             processed_answers.append({
                 **answer,
