@@ -382,37 +382,61 @@ def create_brayden_student(token):
         print(f"❌ Student creation failed: {str(e)}")
         return None
 
-def enroll_student(token, course_id, student_id):
-    """Enroll brayden.student in the course"""
+def enroll_student(token, course_id, student_info):
+    """Enroll student in the course via admin enrollment"""
     try:
-        print("📝 Enrolling brayden.student in multi-quiz course...")
+        print(f"📝 Enrolling {student_info['email']} in multi-quiz course...")
         
+        # Try admin enrollment endpoint
         enrollment_data = {
-            "userId": student_id,
-            "courseId": course_id,
-            "enrolledAt": datetime.now(timezone.utc).isoformat(),
-            "status": "active",
-            "progress": 1.0,  # Start with 1% to avoid "Start Course" reset issue
-            "moduleProgress": []
+            "email": student_info['email'],
+            "courseId": course_id
         }
         
         response = requests.post(
-            f"{BACKEND_URL}/enrollments",
+            f"{BACKEND_URL}/admin/enroll-student",
             headers=get_headers(token),
             json=enrollment_data
         )
         
         if response.status_code == 200:
-            enrollment = response.json()
-            print(f"✅ Student enrolled successfully!")
-            print(f"   📧 Student: brayden.student@learningfwiend.com")
+            print(f"✅ Student enrolled successfully via admin endpoint!")
+            print(f"   📧 Student: {student_info['email']}")
             print(f"   🎓 Course: Multi-Quiz Progression Test Course")
-            print(f"   📈 Initial Progress: {enrollment.get('progress', 0)}%")
-            return enrollment
+            return {"success": True}
         else:
-            print(f"❌ Enrollment failed: {response.status_code}")
-            print(f"   Response: {response.text}")
-            return None
+            # Try direct enrollment creation
+            print(f"   Admin enrollment failed ({response.status_code}), trying direct approach...")
+            
+            # Create enrollment directly in database
+            enrollment_data = {
+                "id": str(uuid.uuid4()),
+                "userEmail": student_info['email'],  # Use email as identifier
+                "courseId": course_id,
+                "enrolledAt": datetime.now(timezone.utc).isoformat(),
+                "status": "active",
+                "progress": 1.0,  # Start with 1% 
+                "moduleProgress": []
+            }
+            
+            # Try creating enrollment with email
+            response2 = requests.post(
+                f"{BACKEND_URL}/enrollments",
+                headers=get_headers(token),
+                json=enrollment_data
+            )
+            
+            if response2.status_code == 200:
+                enrollment = response2.json()
+                print(f"✅ Student enrolled successfully via direct enrollment!")
+                print(f"   📧 Student: {student_info['email']}")
+                print(f"   🎓 Course: Multi-Quiz Progression Test Course")
+                return enrollment
+            else:
+                print(f"❌ Both enrollment methods failed")
+                print(f"   Admin: {response.status_code}")
+                print(f"   Direct: {response2.status_code}")
+                return None
             
     except Exception as e:
         print(f"❌ Enrollment failed: {str(e)}")
