@@ -299,7 +299,6 @@ const QuizTakingNewFixed = () => {
           }
           
           console.log(`✅ Question ${index + 1} PASSED: (true-false) correctAnswer validation: ${question.correctAnswer} (${typeof question.correctAnswer})`);
-        }
         } else if (question.type === 'multiple-choice') {
           // Multiple choice questions need options array and correctAnswer index
           if (!question.options || !Array.isArray(question.options) || question.options.length < 2) {
