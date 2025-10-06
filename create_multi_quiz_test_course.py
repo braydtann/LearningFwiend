@@ -306,17 +306,17 @@ def create_multi_quiz_course(token):
             print(f"✅ Course created successfully!")
             print(f"   📚 Course ID: {course['id']}")
             print(f"   📖 Title: {course['title']}")
-            print(f"   📊 Modules: {len(course['modules'])}")
+            print(f"   📊 Modules: {len(course.get('modules', []))}")
             
             # Count quizzes
             quiz_count = 0
-            for module in course['modules']:
-                for lesson in module['lessons']:
-                    if lesson['type'] == 'quiz':
+            for module in course.get('modules', []):
+                for lesson in module.get('lessons', []):
+                    if lesson.get('type') == 'quiz':
                         quiz_count += 1
             
             print(f"   🎯 Quizzes: {quiz_count}")
-            print(f"   📝 Total Lessons: {course['totalLessons']}")
+            print(f"   📝 Total Lessons: {course.get('totalLessons', 'N/A')}")
             
             return course
         else:
