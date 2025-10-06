@@ -471,7 +471,7 @@ def main():
     print("🎉 MULTI-QUIZ TEST COURSE SETUP COMPLETE!")
     print("=" * 60)
     print("✅ Course Created: Multi-Quiz Progression Test Course")
-    print("✅ Student Enrolled: brayden.student@learningfwiend.com")
+    print("✅ Student Enrolled: karlo.student@alder.com")
     print()
     print("📋 TESTING INSTRUCTIONS:")
     print("1. Login as brayden.student@learningfwiend.com / Cove1234!")
