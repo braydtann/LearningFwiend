@@ -1230,21 +1230,31 @@ const CourseDetail = () => {
 
     // **NEW PROGRESSIVE QUIZ UNLOCKING LOGIC**:
     
-    // 1. Always allow access to the first quiz if it's the first lesson or has no non-quiz prerequisites
+    // 1. Always allow access to the first quiz - students should be able to start the course
     if (globalQuizIndex === 0) {
       const lessonsBeforeQuiz = quizModule.lessons.slice(0, quizLessonIndex);
       const nonQuizLessonsBeforeFirst = lessonsBeforeQuiz.filter(l => l.type !== 'quiz');
+      
+      // **COURSE START FIX**: For brand new students with no progress, allow access to first quiz
+      const hasAnyProgress = moduleProgress.some(mp => 
+        mp.lessons && mp.lessons.length > 0 && mp.lessons.some(l => l.completed)
+      );
+      
+      if (!hasAnyProgress) {
+        console.log(`✅ First quiz allowed - new student with no progress can start course`);
+        return true;
+      }
       
       if (nonQuizLessonsBeforeFirst.length === 0) {
         console.log(`✅ First quiz allowed - no prerequisites`);
         return true;
       }
       
-      // Check if prerequisite lessons are completed
+      // Check if prerequisite lessons are completed (only for students who have started)
       const currentModuleProgress = moduleProgress.find(mp => mp.moduleId === quizModule.id);
       if (!currentModuleProgress) {
-        console.log(`❌ First quiz blocked - no module progress and has prerequisites`);
-        return false;
+        console.log(`✅ First quiz allowed - no module progress but student can start`);
+        return true;
       }
       
       // Check if all non-quiz lessons before first quiz are completed
