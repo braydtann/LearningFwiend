@@ -345,7 +345,7 @@ class SubjectiveScoringFocusedTestSuite:
             questions = quiz.get("questions", [])
             
             # Prepare answers with EMPTY responses for subjective questions
-            answers = {}
+            answers = []
             subjective_count = 0
             non_subjective_points = 0
             total_points = 0
@@ -357,17 +357,26 @@ class SubjectiveScoringFocusedTestSuite:
                 total_points += points
                 
                 if question_type in ["short_answer", "essay", "long_form"]:
-                    answers[question_id] = ""  # Empty answer
+                    answers.append({
+                        "questionId": question_id,
+                        "answer": ""  # Empty answer
+                    })
                     subjective_count += 1
                 elif question_type == "multiple_choice":
                     # Provide correct answer to isolate subjective scoring
                     correct_answer = question.get("correctAnswer", 0)
-                    answers[question_id] = correct_answer
+                    answers.append({
+                        "questionId": question_id,
+                        "answer": correct_answer
+                    })
                     non_subjective_points += points
                 elif question_type == "true_false":
                     # Provide correct answer to isolate subjective scoring
                     correct_answer = question.get("correctAnswer", True)
-                    answers[question_id] = correct_answer
+                    answers.append({
+                        "questionId": question_id,
+                        "answer": correct_answer
+                    })
                     non_subjective_points += points
             
             # Submit quiz with empty subjective answers
