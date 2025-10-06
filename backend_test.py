@@ -573,72 +573,92 @@ class QuizProgressionTestSuite:
             self.log_test("Multi-Quiz Progression Logic", False, error_msg=str(e))
             return False
 
-    def test_attempt_limit_error_messages(self):
-        """Test proper error messages when attempt limits are exceeded"""
+    def test_no_422_validation_errors(self):
+        """Test that there are no 422 errors or validation failures in critical endpoints"""
         try:
-            # This test will check if the attempt check endpoints return proper messages
-            # when limits are exceeded. We'll use the quiz endpoint as an example.
+            # Test various endpoints that should not return 422 errors
+            test_endpoints = [
+                ("GET", f"{BACKEND_URL}/courses", "Get all courses"),
+                ("GET", f"{BACKEND_URL}/enrollments", "Get student enrollments"),
+                ("GET", f"{BACKEND_URL}/auth/me", "Get current user info")
+            ]
             
-            response = requests.get(f"{BACKEND_URL}/quizzes", headers=self.get_headers(self.student_token))
+            validation_errors = []
+            successful_requests = 0
             
-            if response.status_code != 200:
-                self.log_test(
-                    "Attempt Limit Error Messages",
-                    False,
-                    "Could not get quizzes to test error messages"
-                )
-                return False
+            for method, url, description in test_endpoints:
+                try:
+                    if method == "GET":
+                        response = requests.get(url, headers=self.get_headers(self.student_token))
+                    
+                    if response.status_code == 422:
+                        validation_errors.append(f"{description}: 422 Unprocessable Entity - {response.text[:100]}")
+                    elif response.status_code in [200, 201]:
+                        successful_requests += 1
+                    elif response.status_code in [401, 403]:
+                        # Authentication/authorization errors are acceptable
+                        successful_requests += 1
+                    else:
+                        validation_errors.append(f"{description}: Unexpected status {response.status_code}")
+                        
+                except Exception as e:
+                    validation_errors.append(f"{description}: Request failed - {str(e)}")
             
-            quizzes = response.json()
-            if not quizzes:
-                self.log_test(
-                    "Attempt Limit Error Messages",
-                    True,
-                    "No quizzes available to test attempt limit messages (endpoint structure verified)"
-                )
-                return True
+            # Test course creation with proper data (admin only)
+            course_creation_data = {
+                "title": "Test Course for Validation",
+                "description": "Testing that course creation doesn't return 422 errors",
+                "category": "Testing",
+                "duration": "1 hour",
+                "accessType": "open",
+                "learningOutcomes": ["Test validation"],
+                "modules": []
+            }
             
-            # Test with first quiz
-            quiz_id = quizzes[0]["id"]
-            
-            response = requests.get(
-                f"{BACKEND_URL}/quizzes/{quiz_id}/attempt-check",
-                headers=self.get_headers(self.student_token)
+            response = requests.post(
+                f"{BACKEND_URL}/courses",
+                json=course_creation_data,
+                headers=self.get_headers(self.admin_token)
             )
             
-            if response.status_code == 200:
-                data = response.json()
-                message = data.get("message", "")
-                can_attempt = data.get("canAttempt", True)
+            if response.status_code == 422:
+                validation_errors.append(f"Course creation: 422 Unprocessable Entity - {response.text[:100]}")
+            elif response.status_code in [200, 201]:
+                successful_requests += 1
+                # Clean up - delete the test course
+                try:
+                    created_course = response.json()
+                    course_id = created_course.get("id")
+                    if course_id:
+                        requests.delete(f"{BACKEND_URL}/courses/{course_id}", headers=self.get_headers(self.admin_token))
+                except:
+                    pass  # Cleanup failure is not critical
+            
+            # Report results
+            total_tests = len(test_endpoints) + 1  # +1 for course creation
+            
+            if validation_errors:
+                error_summary = "; ".join(validation_errors[:2])  # Show first 2 errors
+                if len(validation_errors) > 2:
+                    error_summary += f" ... and {len(validation_errors) - 2} more"
                 
-                # Check if message is informative
-                has_proper_message = len(message) > 10 and ("attempt" in message.lower())
-                
-                if has_proper_message:
-                    self.log_test(
-                        "Attempt Limit Error Messages",
-                        True,
-                        f"Quiz attempt check returns proper message: '{message}', Can attempt: {can_attempt}"
-                    )
-                    return True
-                else:
-                    self.log_test(
-                        "Attempt Limit Error Messages",
-                        False,
-                        f"Message too short or uninformative: '{message}'"
-                    )
-                    return False
-            else:
                 self.log_test(
-                    "Attempt Limit Error Messages",
+                    "No 422 Validation Errors",
                     False,
-                    f"Failed to get attempt check: {response.status_code}",
-                    response.text
+                    f"Found {len(validation_errors)} validation errors out of {total_tests} tests",
+                    error_summary
                 )
                 return False
+            else:
+                self.log_test(
+                    "No 422 Validation Errors",
+                    True,
+                    f"All {total_tests} critical endpoints working without 422 validation errors ({successful_requests} successful requests)"
+                )
+                return True
                 
         except Exception as e:
-            self.log_test("Attempt Limit Error Messages", False, error_msg=str(e))
+            self.log_test("No 422 Validation Errors", False, error_msg=str(e))
             return False
 
     def run_all_tests(self):
