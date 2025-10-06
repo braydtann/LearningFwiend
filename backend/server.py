@@ -5078,19 +5078,31 @@ async def submit_final_test_attempt(
                 points_earned += question_points
                 
         elif question['type'] in ['short_answer', 'long_form', 'essay']:
-            # These question types require manual grading - don't auto-grade
-            # Auto-grading only happens if explicitly enabled and has a correct answer
+            # **SUBJECTIVE QUESTION FIX**: Give full points by default to allow progression
+            # Instructor can review and adjust scores later via manual grading
+            
+            # Check if student provided an answer (not empty)
+            if student_answer and str(student_answer).strip():
+                # Award full points for any reasonable attempt at subjective questions
+                points_earned += question_points
+                logger.info(f"Subjective question awarded full points - Type: {question['type']}, Points: {question_points}")
+            else:
+                # No answer provided - give 0 points
+                logger.info(f"Subjective question received 0 points - no answer provided")
+            
+            # Optional: Auto-grading for short-answer if enabled (kept for compatibility)
             if (question['type'] == 'short-answer' and 
                 question.get('enableAutoGrading', False) and 
                 student_answer and 
                 question.get('correctAnswer')):
-                # More flexible matching for short answers
+                # More flexible matching for short answers - but we already awarded points above
                 student_clean = str(student_answer).lower().strip()
                 correct_clean = str(question['correctAnswer']).lower().strip()
+                # Note: Points already awarded above, this is just for logging
                 if student_clean == correct_clean:
-                    points_earned += question_points
-            # For long-form/essay and non-auto-grading short-answer, points will be 0
-            # These will be available for manual grading
+                    logger.info(f"Short-answer auto-grading: exact match confirmed")
+                else:
+                    logger.info(f"Short-answer auto-grading: no exact match, but full points already awarded")
                 
         elif question['type'] == 'select-all-that-apply':
             # Student answer should be a list of indices
