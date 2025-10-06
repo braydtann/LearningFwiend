@@ -719,7 +719,7 @@ class QuizProgressionTestSuite:
 
 def main():
     """Main test execution"""
-    test_suite = QualityOfLifeTestSuite()
+    test_suite = QuizProgressionTestSuite()
     
     try:
         success = test_suite.run_all_tests()
