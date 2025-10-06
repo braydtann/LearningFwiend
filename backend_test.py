@@ -662,9 +662,9 @@ class QuizProgressionTestSuite:
             return False
 
     def run_all_tests(self):
-        """Run all quality of life improvement tests"""
-        print("🚀 Starting Quality of Life Improvements Testing")
-        print("=" * 60)
+        """Run all quiz progression and validation tests"""
+        print("🚀 Starting LearningFriend LMS Backend Testing - Quiz Progression Fixes")
+        print("=" * 70)
         print()
         
         # Authentication tests
@@ -678,16 +678,16 @@ class QuizProgressionTestSuite:
         print("🔐 Authentication completed successfully")
         print()
         
-        # Core quality of life improvement tests
+        # Core quiz progression and validation tests
         test_methods = [
-            self.test_quiz_attempt_check_endpoint,
-            self.test_final_test_attempt_check_endpoint,
-            self.test_submissions_with_question_points,
-            self.test_grading_validation_against_question_points,
-            self.test_attempt_limit_error_messages
+            self.test_course_management_with_quiz_data,
+            self.test_enrollment_and_progress_tracking,
+            self.test_quiz_data_validation_structure,
+            self.test_multi_quiz_progression_logic,
+            self.test_no_422_validation_errors
         ]
         
-        print("🧪 Running Quality of Life Improvement Tests")
+        print("🧪 Running Quiz Progression and Validation Tests")
         print("-" * 50)
         
         passed_tests = 0
@@ -703,16 +703,18 @@ class QuizProgressionTestSuite:
         
         print()
         print("📊 TEST SUMMARY")
-        print("=" * 60)
+        print("=" * 70)
         
         success_rate = (passed_tests / total_tests) * 100
         print(f"Tests Passed: {passed_tests}/{total_tests} ({success_rate:.1f}%)")
         
         if success_rate >= 80:
-            print("🎉 Quality of Life Improvements Testing: SUCCESS")
+            print("🎉 LearningFriend LMS Backend Testing: SUCCESS")
+            print("✅ Quiz progression fixes and validation working correctly")
             return True
         else:
-            print("⚠️  Quality of Life Improvements Testing: NEEDS ATTENTION")
+            print("⚠️  LearningFriend LMS Backend Testing: NEEDS ATTENTION")
+            print("❌ Some quiz progression or validation issues detected")
             return False
 
 def main():
