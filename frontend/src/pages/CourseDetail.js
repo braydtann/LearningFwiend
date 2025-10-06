@@ -1318,25 +1318,35 @@ const CourseDetail = () => {
       }
     }
     
-    // 3. Also check if any non-quiz lessons before current quiz are completed
-    const lessonsBeforeQuiz = quizModule.lessons.slice(0, quizLessonIndex);
-    const nonQuizLessonsBeforeCurrent = lessonsBeforeQuiz.filter(l => l.type !== 'quiz');
+    // 3. **MULTI-QUIZ PROGRESSION FIX**: For multi-quiz courses, focus on sequential quiz completion
+    // Only check prerequisite lessons if this is the first quiz in its module
+    const quizLessonsInModule = quizModule.lessons.filter(l => l.type === 'quiz');
+    const quizIndexInModule = quizLessonsInModule.findIndex(q => q.id === quiz.id);
     
-    const currentModuleProgress = moduleProgress.find(mp => mp.moduleId === quizModule.id);
-    if (nonQuizLessonsBeforeCurrent.length > 0) {
-      if (!currentModuleProgress) {
-        console.log(`❌ Quiz blocked - current module has no progress and has prerequisites`);
-        return false;
-      }
+    // Only enforce lesson prerequisites for the FIRST quiz in each module
+    if (quizIndexInModule === 0) {
+      const lessonsBeforeQuiz = quizModule.lessons.slice(0, quizLessonIndex);
+      const nonQuizLessonsBeforeCurrent = lessonsBeforeQuiz.filter(l => l.type !== 'quiz');
       
-      // Check if all non-quiz lessons before current quiz are completed
-      for (const lesson of nonQuizLessonsBeforeCurrent) {
-        const lessonProgress = currentModuleProgress.lessons.find(lp => lp.lessonId === lesson.id);
-        if (!lessonProgress || !lessonProgress.completed) {
-          console.log(`❌ Quiz blocked - prerequisite lesson "${lesson.title}" not completed`);
+      const currentModuleProgress = moduleProgress.find(mp => mp.moduleId === quizModule.id);
+      if (nonQuizLessonsBeforeCurrent.length > 0) {
+        if (!currentModuleProgress) {
+          console.log(`❌ First quiz in module blocked - module has no progress and has prerequisites`);
           return false;
         }
+        
+        // Check if all non-quiz lessons before first quiz in module are completed
+        for (const lesson of nonQuizLessonsBeforeCurrent) {
+          const lessonProgress = currentModuleProgress.lessons.find(lp => lp.lessonId === lesson.id);
+          if (!lessonProgress || !lessonProgress.completed) {
+            console.log(`❌ First quiz in module blocked - prerequisite lesson "${lesson.title}" not completed`);
+            return false;
+          }
+        }
       }
+    } else {
+      // For subsequent quizzes in the same module, we already checked previous quiz completion above
+      console.log(`✅ Subsequent quiz in module - previous quiz completion already verified`);
     }
     
     console.log(`✅ Quiz allowed - previous quiz completed and all prerequisites met`);
