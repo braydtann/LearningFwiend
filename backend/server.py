@@ -1185,6 +1185,83 @@ async def update_enrollment_progress(
     if progress_data.timeSpent is not None:
         update_data["timeSpent"] = progress_data.timeSpent
     
+    # **QUIZ PROGRESSION FIX**: Handle quiz lesson completion for multi-quiz progression
+    if (progress_data.markQuizCompleted and 
+        progress_data.currentLessonId and 
+        enrollment.get("moduleProgress")):
+        
+        # Find the lesson in the course to get its module
+        lesson_module_id = None
+        for module in course.get("modules", []):
+            for lesson in module.get("lessons", []):
+                if lesson.get("id") == progress_data.currentLessonId:
+                    lesson_module_id = module.get("id")
+                    break
+            if lesson_module_id:
+                break
+        
+        if lesson_module_id:
+            # Get current module progress or create if doesn't exist
+            module_progress_list = list(enrollment.get("moduleProgress", []))
+            target_module_progress = None
+            
+            for mp in module_progress_list:
+                if mp.get("moduleId") == lesson_module_id:
+                    target_module_progress = mp
+                    break
+            
+            if not target_module_progress:
+                # Create new module progress entry
+                target_module_progress = {
+                    "moduleId": lesson_module_id,
+                    "lessons": [],
+                    "completed": False,
+                    "completedAt": None
+                }
+                module_progress_list.append(target_module_progress)
+            
+            # Mark the quiz lesson as completed
+            lesson_progress_list = list(target_module_progress.get("lessons", []))
+            lesson_found = False
+            
+            for lp in lesson_progress_list:
+                if lp.get("lessonId") == progress_data.currentLessonId:
+                    lp["completed"] = True
+                    lp["completedAt"] = datetime.utcnow().isoformat()
+                    lesson_found = True
+                    break
+            
+            if not lesson_found:
+                # Add new lesson progress entry
+                lesson_progress_list.append({
+                    "lessonId": progress_data.currentLessonId,
+                    "completed": True,
+                    "completedAt": datetime.utcnow().isoformat(),
+                    "timeSpent": progress_data.timeSpent or 0
+                })
+            
+            target_module_progress["lessons"] = lesson_progress_list
+            
+            # Check if module is now complete
+            module_from_course = None
+            for module in course.get("modules", []):
+                if module.get("id") == lesson_module_id:
+                    module_from_course = module
+                    break
+            
+            if module_from_course:
+                module_lessons = module_from_course.get("lessons", [])
+                completed_lessons_in_module = [lp for lp in lesson_progress_list if lp.get("completed")]
+                
+                if len(completed_lessons_in_module) >= len(module_lessons):
+                    target_module_progress["completed"] = True
+                    target_module_progress["completedAt"] = datetime.utcnow().isoformat()
+            
+            # Update the module progress in update_data
+            update_data["moduleProgress"] = module_progress_list
+            
+            logger.info(f"Quiz lesson {progress_data.currentLessonId} marked as completed for user {current_user.id}")
+    
     # Update the enrollment
     result = await db.enrollments.update_one(
         {"userId": current_user.id, "courseId": course_id},
