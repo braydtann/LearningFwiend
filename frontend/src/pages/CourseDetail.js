@@ -1273,7 +1273,6 @@ const CourseDetail = () => {
     const previousQuiz = allQuizzes[globalQuizIndex - 1];
     
     // Check if previous quiz has been completed by checking module progress
-    // First, check if the previous quiz's lesson is marked as completed
     const prevQuizModuleProgress = moduleProgress.find(mp => mp.moduleId === previousQuiz.module.id);
     if (!prevQuizModuleProgress) {
       console.log(`❌ Quiz blocked - previous quiz module has no progress`);
@@ -1284,6 +1283,18 @@ const CourseDetail = () => {
     if (!prevQuizLessonProgress || !prevQuizLessonProgress.completed) {
       console.log(`❌ Quiz blocked - previous quiz "${previousQuiz.title}" not completed`);
       return false;
+    }
+    
+    console.log(`✅ Previous quiz "${previousQuiz.title}" completed - checking current quiz prerequisites`);
+    
+    // **QUIZ PROGRESSION FIX**: If this quiz is already completed, always allow access (for re-takes)
+    const currentQuizModuleProgress = moduleProgress.find(mp => mp.moduleId === quizModule.id);
+    if (currentQuizModuleProgress) {
+      const currentQuizLessonProgress = currentQuizModuleProgress.lessons.find(lp => lp.lessonId === quiz.id);
+      if (currentQuizLessonProgress && currentQuizLessonProgress.completed) {
+        console.log(`✅ Current quiz "${quiz.title}" already completed - allowing access for review`);
+        return true;
+      }
     }
     
     // 3. Also check if any non-quiz lessons before current quiz are completed
