@@ -1074,6 +1074,7 @@ class EnrollmentProgressUpdate(BaseModel):
     moduleProgress: Optional[List[ModuleProgress]] = None
     lastAccessedAt: Optional[datetime] = None
     timeSpent: Optional[int] = None  # Total time spent in seconds
+    markQuizCompleted: Optional[bool] = None  # Flag to mark quiz lesson as completed
 
 @api_router.put("/enrollments/{course_id}/progress", response_model=EnrollmentResponse)
 async def update_enrollment_progress(
