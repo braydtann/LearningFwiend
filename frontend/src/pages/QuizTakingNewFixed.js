@@ -882,13 +882,24 @@ const QuizTakingNewFixed = () => {
       const score = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
       const passed = score >= (quiz?.passingScore || 70);
 
-      // Update progress
+      // Update progress - mark quiz lesson as completed for multi-quiz progression
       if (updateEnrollmentProgress && typeof updateEnrollmentProgress === 'function') {
-        const progressResult = await updateEnrollmentProgress(courseId, {
-          // Don't set entire course progress to 100% just for one quiz - let the system calculate proper progress
+        // For passed quizzes, we need to mark the lesson as completed to unlock subsequent quizzes
+        const progressData = {
           currentLessonId: lessonId,
           timeSpent: quiz?.timeLimit ? (quiz.timeLimit * 60 - (timeLeft || 0)) : null
-        });
+        };
+
+        // If quiz passed, mark lesson as completed by calling markLessonComplete
+        // This ensures the lesson shows as completed in moduleProgress for quiz progression
+        if (passed && markLessonComplete && typeof markLessonComplete === 'function') {
+          console.log(`🎯 Quiz passed! Marking lesson as completed for multi-quiz progression`);
+          await markLessonComplete(lessonId);
+        } else {
+          // If quiz failed or markLessonComplete not available, just update current lesson
+          console.log(`📝 Quiz ${passed ? 'passed' : 'failed'} - updating enrollment progress only`);
+          await updateEnrollmentProgress(courseId, progressData);
+        }
 
         if (progressResult.success) {
           // Submit subjective questions for grading if any exist
