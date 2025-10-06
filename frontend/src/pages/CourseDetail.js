@@ -60,10 +60,10 @@ const CourseDetail = () => {
   const [programCompleted, setProgramCompleted] = useState(false);
   const [showFinalExamOption, setShowFinalExamOption] = useState(false);
 
-  // Memoized quiz accessibility calculation - recalculates when enrollment or course changes
-  const { allQuizLessons, accessibleQuizzes, lockedQuizzes } = useMemo(() => {
-    if (!isEnrolled || !course?.modules) {
-      return { allQuizLessons: [], accessibleQuizzes: [], lockedQuizzes: [] };
+  // Memoized quiz lessons calculation - recalculates when course changes
+  const allQuizLessons = useMemo(() => {
+    if (!course?.modules) {
+      return [];
     }
 
     // Find all quiz lessons across all modules
@@ -83,20 +83,8 @@ const CourseDetail = () => {
       }
     });
 
-    // Filter quizzes based on progressive access - this will recalculate when currentEnrollment changes
-    const accessible = quizLessons.filter(quiz => canAccessQuiz(quiz));
-    const locked = quizLessons.filter(quiz => !canAccessQuiz(quiz));
-
-    console.log(`🔄 Quiz accessibility recalculated: ${accessible.length} accessible, ${locked.length} locked`);
-    accessible.forEach(quiz => console.log(`  ✅ Accessible: ${quiz.title}`));
-    locked.forEach(quiz => console.log(`  🔒 Locked: ${quiz.title}`));
-
-    return {
-      allQuizLessons: quizLessons,
-      accessibleQuizzes: accessible,
-      lockedQuizzes: locked
-    };
-  }, [isEnrolled, course, currentEnrollment, canAccessQuiz]);
+    return quizLessons;
+  }, [course]);
 
   // Load course data and enrollments from backend
   useEffect(() => {
