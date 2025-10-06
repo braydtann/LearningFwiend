@@ -332,23 +332,70 @@ def find_brayden_student(token):
     """Find brayden.student user"""
     try:
         print("🔍 Looking for brayden.student user...")
-        response = requests.get(f"{BACKEND_URL}/admin/users", headers=get_headers(token))
         
-        if response.status_code == 200:
-            users = response.json()
-            for user in users:
-                if user.get('email') == 'brayden.student@learningfwiend.com':
-                    print(f"✅ Found brayden.student: {user['id']}")
-                    return user
-            
-            print("❌ brayden.student not found in user list")
-            return None
-        else:
-            print(f"❌ Failed to get users: {response.status_code}")
-            return None
+        # Try different endpoints to find users
+        endpoints_to_try = [
+            "/users",
+            "/admin/users", 
+            "/admin/all-users"
+        ]
+        
+        for endpoint in endpoints_to_try:
+            try:
+                response = requests.get(f"{BACKEND_URL}{endpoint}", headers=get_headers(token))
+                if response.status_code == 200:
+                    users = response.json()
+                    print(f"   Found {len(users)} users via {endpoint}")
+                    for user in users:
+                        if user.get('email') == 'brayden.student@learningfwiend.com':
+                            print(f"✅ Found brayden.student: {user['id']}")
+                            return user
+                    break
+                else:
+                    print(f"   Endpoint {endpoint}: {response.status_code}")
+            except:
+                continue
+        
+        # If not found, create the student user
+        print("⚠️  brayden.student not found, attempting to create...")
+        return create_brayden_student(token)
             
     except Exception as e:
         print(f"❌ User search failed: {str(e)}")
+        return None
+
+def create_brayden_student(token):
+    """Create brayden.student user if not exists"""
+    try:
+        student_data = {
+            "id": str(uuid.uuid4()),
+            "email": "brayden.student@learningfwiend.com",
+            "username": "brayden.student", 
+            "firstName": "Brayden",
+            "lastName": "Student",
+            "password": "Cove1234!",
+            "role": "learner",
+            "isActive": True,
+            "needsPasswordChange": False
+        }
+        
+        response = requests.post(
+            f"{BACKEND_URL}/users",
+            headers=get_headers(token),
+            json=student_data
+        )
+        
+        if response.status_code == 200:
+            user = response.json()
+            print(f"✅ Created brayden.student: {user['id']}")
+            return user
+        else:
+            print(f"❌ Failed to create student: {response.status_code}")
+            print(f"   Response: {response.text}")
+            return None
+            
+    except Exception as e:
+        print(f"❌ Student creation failed: {str(e)}")
         return None
 
 def enroll_student(token, course_id, student_id):
