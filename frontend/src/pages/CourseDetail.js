@@ -1594,7 +1594,7 @@ const CourseDetail = () => {
                         )}
                       </div>
                     </div>
-                  )
+                  </div>
             )}
 
             {/* Start Course Button - When no lesson is selected */}
