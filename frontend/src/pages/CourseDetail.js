@@ -1235,7 +1235,17 @@ const CourseDetail = () => {
       const lessonsBeforeQuiz = quizModule.lessons.slice(0, quizLessonIndex);
       const nonQuizLessonsBeforeFirst = lessonsBeforeQuiz.filter(l => l.type !== 'quiz');
       
-      // **COURSE START FIX**: For brand new students with no progress, allow access to first quiz
+      // **FIRST QUIZ ACCESS FIX**: Check if first quiz is already completed (allow re-access)
+      const currentModuleProgress = moduleProgress.find(mp => mp.moduleId === quizModule.id);
+      if (currentModuleProgress) {
+        const firstQuizLessonProgress = currentModuleProgress.lessons.find(lp => lp.lessonId === quiz.id);
+        if (firstQuizLessonProgress && firstQuizLessonProgress.completed) {
+          console.log(`✅ First quiz "${quiz.title}" already completed - allowing access for review`);
+          return true;
+        }
+      }
+      
+      // For brand new students with no progress, allow access to first quiz
       const hasAnyProgress = moduleProgress.some(mp => 
         mp.lessons && mp.lessons.length > 0 && mp.lessons.some(l => l.completed)
       );
@@ -1250,22 +1260,9 @@ const CourseDetail = () => {
         return true;
       }
       
-      // Check if prerequisite lessons are completed (only for students who have started)
-      const currentModuleProgress = moduleProgress.find(mp => mp.moduleId === quizModule.id);
-      if (!currentModuleProgress) {
-        console.log(`✅ First quiz allowed - no module progress but student can start`);
-        return true;
-      }
-      
-      // Check if all non-quiz lessons before first quiz are completed
-      for (const lesson of nonQuizLessonsBeforeFirst) {
-        const lessonProgress = currentModuleProgress.lessons.find(lp => lp.lessonId === lesson.id);
-        if (!lessonProgress || !lessonProgress.completed) {
-          console.log(`❌ First quiz blocked - prerequisite lesson "${lesson.title}" not completed`);
-          return false;
-        }
-      }
-      console.log(`✅ First quiz allowed - all prerequisites completed`);
+      // **FLEXIBLE PREREQUISITE LOGIC**: Allow first quiz access even if prerequisite lessons aren't completed
+      // This supports different learning paths and course designs
+      console.log(`✅ First quiz allowed - flexible access for course start`);
       return true;
     }
 
