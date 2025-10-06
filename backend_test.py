@@ -248,70 +248,92 @@ class QuizProgressionTestSuite:
             self.log_test("Course Management with Quiz Data Structure", False, error_msg=str(e))
             return False
 
-    def test_final_test_attempt_check_endpoint(self):
-        """Test GET /api/final-tests/{test_id}/attempt-check"""
+    def test_enrollment_and_progress_tracking(self):
+        """Test enrollment progress tracking APIs and quiz completion tracking"""
         try:
-            # First, get available final tests to test with
-            response = requests.get(f"{BACKEND_URL}/final-tests", headers=self.get_headers(self.student_token))
+            # Get student enrollments
+            response = requests.get(f"{BACKEND_URL}/enrollments", headers=self.get_headers(self.student_token))
             
             if response.status_code != 200:
                 self.log_test(
-                    "Final Test Attempt Check - Get Tests",
+                    "Enrollment Progress - Get Enrollments",
                     False,
-                    f"Failed to get final tests: {response.status_code}",
+                    f"Failed to get enrollments: {response.status_code}",
                     response.text
                 )
                 return False
             
-            final_tests = response.json()
-            if not final_tests:
+            enrollments = response.json()
+            if not enrollments:
                 self.log_test(
-                    "Final Test Attempt Check - No Tests",
+                    "Enrollment Progress - No Enrollments",
                     False,
-                    "No final tests available for testing"
+                    "Student has no enrollments to test progress tracking"
                 )
                 return False
             
-            # Test attempt check with first available final test
-            test_id = final_tests[0]["id"]
-            test_title = final_tests[0].get("title", "Unknown Test")
+            # Test progress tracking with first enrollment
+            test_enrollment = enrollments[0]
+            course_id = test_enrollment["courseId"]
+            course_name = test_enrollment.get("courseName", "Unknown Course")
+            current_progress = test_enrollment.get("progress", 0)
             
-            response = requests.get(
-                f"{BACKEND_URL}/final-tests/{test_id}/attempt-check",
+            # Test progress update endpoint
+            progress_update_data = {
+                "progress": min(current_progress + 5, 100),  # Increment by 5% or cap at 100%
+                "currentLessonId": "test-lesson-id",
+                "timeSpent": 300,  # 5 minutes
+                "lastAccessedAt": datetime.now().isoformat()
+            }
+            
+            response = requests.put(
+                f"{BACKEND_URL}/enrollments/{course_id}/progress",
+                json=progress_update_data,
                 headers=self.get_headers(self.student_token)
             )
             
             if response.status_code == 200:
-                data = response.json()
-                required_fields = ["canAttempt", "existingAttempts", "maxAttempts", "remainingAttempts", "testTitle", "message"]
+                updated_enrollment = response.json()
                 
-                missing_fields = [field for field in required_fields if field not in data]
+                # Validate response structure
+                required_fields = ["id", "userId", "courseId", "progress", "status", "enrolledAt"]
+                missing_fields = [field for field in required_fields if field not in updated_enrollment]
+                
                 if missing_fields:
                     self.log_test(
-                        "Final Test Attempt Check Endpoint",
+                        "Enrollment Progress - Response Structure",
                         False,
-                        f"Missing fields: {missing_fields}",
-                        f"Response: {data}"
+                        f"Missing fields in progress update response: {missing_fields}"
+                    )
+                    return False
+                
+                # Check if progress was updated
+                new_progress = updated_enrollment.get("progress", 0)
+                if new_progress != progress_update_data["progress"]:
+                    self.log_test(
+                        "Enrollment Progress - Progress Update",
+                        False,
+                        f"Progress not updated correctly. Expected: {progress_update_data['progress']}, Got: {new_progress}"
                     )
                     return False
                 
                 self.log_test(
-                    "Final Test Attempt Check Endpoint",
+                    "Enrollment Progress Tracking",
                     True,
-                    f"Test: {test_title}, Can Attempt: {data['canAttempt']}, Remaining: {data['remainingAttempts']}/{data['maxAttempts']}"
+                    f"Course: {course_name}, Progress updated from {current_progress}% to {new_progress}%, Time spent: {progress_update_data['timeSpent']}s"
                 )
                 return True
             else:
                 self.log_test(
-                    "Final Test Attempt Check Endpoint",
+                    "Enrollment Progress Tracking",
                     False,
-                    f"Status: {response.status_code}",
+                    f"Progress update failed with status: {response.status_code}",
                     response.text
                 )
                 return False
                 
         except Exception as e:
-            self.log_test("Final Test Attempt Check Endpoint", False, error_msg=str(e))
+            self.log_test("Enrollment Progress Tracking", False, error_msg=str(e))
             return False
 
     def test_submissions_with_question_points(self):
