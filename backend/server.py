@@ -4393,7 +4393,21 @@ async def submit_course_quiz_attempt(
             
             # Auto-grade if possible
             if question.get("type") in ["short_answer", "long_form", "essay"]:
-                # Subjective questions - need manual grading
+                # **SUBJECTIVE QUESTION FIX**: Give full points by default to allow progression
+                # Instructor can review and adjust scores later via manual grading
+                
+                # Check if student provided an answer (not empty)
+                if student_answer and str(student_answer).strip():
+                    # Award full points for any reasonable attempt at subjective questions
+                    answer_record["isCorrect"] = True
+                    answer_record["pointsEarned"] = question_points
+                    points_earned += question_points
+                    logger.info(f"Subjective question awarded full points - Type: {question.get('type')}, Points: {question_points}")
+                else:
+                    # No answer provided - give 0 points
+                    logger.info(f"Subjective question received 0 points - no answer provided")
+                
+                # Still track for manual grading
                 subjective_questions.append({
                     "questionId": question_id,
                     "question": question.get("question"),
@@ -4401,7 +4415,6 @@ async def submit_course_quiz_attempt(
                     "points": question_points,
                     "type": question.get("type")
                 })
-                # Don't add points yet - will be added after manual grading
             else:
                 # Auto-gradable questions
                 if question.get("type") == "multiple_choice":
