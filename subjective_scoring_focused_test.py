@@ -217,7 +217,7 @@ class SubjectiveScoringFocusedTestSuite:
             questions = quiz.get("questions", [])
             
             # Prepare answers with non-empty responses for subjective questions
-            answers = {}
+            answers = []
             subjective_points = 0
             total_points = 0
             
@@ -228,22 +228,37 @@ class SubjectiveScoringFocusedTestSuite:
                 total_points += points
                 
                 if question_type == "short_answer":
-                    answers[question_id] = "This is a meaningful short answer that demonstrates understanding."
+                    answers.append({
+                        "questionId": question_id,
+                        "answer": "This is a meaningful short answer that demonstrates understanding."
+                    })
                     subjective_points += points
                 elif question_type == "essay":
-                    answers[question_id] = "This is a comprehensive essay response that addresses the question thoroughly and demonstrates critical thinking skills."
+                    answers.append({
+                        "questionId": question_id,
+                        "answer": "This is a comprehensive essay response that addresses the question thoroughly and demonstrates critical thinking skills."
+                    })
                     subjective_points += points
                 elif question_type == "long_form":
-                    answers[question_id] = "This is a detailed long-form response that provides extensive analysis and demonstrates deep understanding of the subject matter."
+                    answers.append({
+                        "questionId": question_id,
+                        "answer": "This is a detailed long-form response that provides extensive analysis and demonstrates deep understanding of the subject matter."
+                    })
                     subjective_points += points
                 elif question_type == "multiple_choice":
                     # Provide correct answer
                     correct_answer = question.get("correctAnswer", 0)
-                    answers[question_id] = correct_answer
+                    answers.append({
+                        "questionId": question_id,
+                        "answer": correct_answer
+                    })
                 elif question_type == "true_false":
                     # Provide correct answer
                     correct_answer = question.get("correctAnswer", True)
-                    answers[question_id] = correct_answer
+                    answers.append({
+                        "questionId": question_id,
+                        "answer": correct_answer
+                    })
             
             # Submit quiz
             submission_data = {
