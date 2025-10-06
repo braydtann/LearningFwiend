@@ -1229,9 +1229,9 @@ const CourseDetail = () => {
     console.log(`🔍 Quiz Access Check: "${quiz.title}" (Global Quiz #${globalQuizIndex + 1}/${allQuizzes.length})`);
 
     // **CRITICAL FIX**: Check if THIS SPECIFIC quiz is already completed FIRST (before any other logic)
-    const currentQuizModuleProgress = moduleProgress.find(mp => mp.moduleId === quizModule.id);
-    if (currentQuizModuleProgress) {
-      const thisQuizLessonProgress = currentQuizModuleProgress.lessons.find(lp => lp.lessonId === quiz.id);
+    const quizModuleProgressCheck = moduleProgress.find(mp => mp.moduleId === quizModule.id);
+    if (quizModuleProgressCheck) {
+      const thisQuizLessonProgress = quizModuleProgressCheck.lessons.find(lp => lp.lessonId === quiz.id);
       console.log(`🔍 COMPLETED CHECK: Quiz "${quiz.title}" (ID: ${quiz.id}) progress:`, thisQuizLessonProgress);
       
       if (thisQuizLessonProgress && thisQuizLessonProgress.completed) {
