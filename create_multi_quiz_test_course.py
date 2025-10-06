@@ -434,7 +434,7 @@ def main():
         return
     
     # Find student
-    student = find_brayden_student(token)
+    student = find_student_user(token)
     if not student:
         return
     
