@@ -474,7 +474,7 @@ def main():
     print("✅ Student Enrolled: karlo.student@alder.com")
     print()
     print("📋 TESTING INSTRUCTIONS:")
-    print("1. Login as brayden.student@learningfwiend.com / Cove1234!")
+    print("1. Login as karlo.student@alder.com / StudentPermanent123!")
     print("2. Navigate to the course: 'Multi-Quiz Progression Test Course'")
     print("3. Test the progression:")
     print("   - Only Quiz 1 should be accessible initially")
