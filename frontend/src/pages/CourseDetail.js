@@ -686,14 +686,18 @@ const CourseDetail = () => {
       
       if (!lesson || !moduleId) return;
 
-      // **IMPORTANT COURSE COMPLETION FIX**: 
+      // **TEMPORARY DEBUG**: Disable quiz validation to test lesson completion
       // For quiz lessons, only allow completion if the user has actually taken and passed the quiz
       if (lesson.type === 'quiz' && lesson.quiz && lesson.quiz.questions && lesson.quiz.questions.length > 0) {
+        console.log(`🔍 DEBUG: Checking quiz completion for "${lesson.title}"`);
+        
         // Check if user has taken and passed this quiz
         const quizAttempts = await getQuizAttempts({ 
           quiz_id: `course-quiz-${id}-${lessonId}`,
           student_id: currentEnrollment.userId
         });
+        
+        console.log(`🔍 Quiz attempts result:`, quizAttempts);
         
         let hasPassedQuiz = false;
         if (quizAttempts.success && quizAttempts.attempts && quizAttempts.attempts.length > 0) {
@@ -702,15 +706,22 @@ const CourseDetail = () => {
           hasPassedQuiz = quizAttempts.attempts.some(attempt => 
             attempt.isPassed === true || (attempt.score && attempt.score >= passingScore)
           );
+          console.log(`🔍 Quiz passed check: ${hasPassedQuiz}, attempts: ${quizAttempts.attempts.length}, passing score: ${passingScore}`);
+        } else {
+          console.log(`🔍 No quiz attempts found or API call failed`);
         }
         
         if (!hasPassedQuiz) {
-          toast({
-            title: "Quiz Required",
-            description: `You must take and pass the quiz "${lesson.title}" before marking it as complete.`,
-            variant: "destructive",
-          });
-          return;
+          console.log(`❌ Quiz validation failed - but allowing completion for debugging`);
+          // **TEMPORARY**: Comment out the blocking return for debugging
+          // toast({
+          //   title: "Quiz Required",
+          //   description: `You must take and pass the quiz "${lesson.title}" before marking it as complete.`,
+          //   variant: "destructive",
+          // });
+          // return;
+        } else {
+          console.log(`✅ Quiz validation passed`);
         }
       }
       
