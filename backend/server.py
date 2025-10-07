@@ -6893,7 +6893,7 @@ async def auto_complete_course_after_quiz_grading(course_id: str, user_id: str, 
             for lesson in module.get("lessons", []):
                 if lesson.get("type") == "quiz":
                     # **CRITICAL FIX**: Use correct data structure - 'content' not 'quiz'
-                    quiz_content = lesson.get("content") or lesson.get("quiz")
+                    quiz_content = lesson.get("quiz") or lesson.get("content")
                     if quiz_content and quiz_content.get("questions"):
                         quiz_lessons.append({
                             "lessonId": lesson.get("id"),
