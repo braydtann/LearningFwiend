@@ -28,6 +28,7 @@ import json
 import uuid
 from datetime import datetime
 import sys
+import io
 
 # Configuration
 BACKEND_URL = "https://quiz-progress-fix.preview.emergentagent.com/api"
@@ -38,10 +39,10 @@ ADMIN_CREDENTIALS = {
     "password": "Hawaii2020!"
 }
 
-TEST_STUDENTS = [
-    "brayden.student@covesmart.com",
-    "karlo.student@alder.com"
-]
+STUDENT_CREDENTIALS = {
+    "username_or_email": "karlo.student@alder.com",
+    "password": "StudentPermanent123!"
+}
 
 class BackendTester:
     def __init__(self):
