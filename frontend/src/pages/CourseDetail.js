@@ -492,6 +492,7 @@ const CourseDetail = () => {
     if (currentLessonIndex < currentModule.lessons.length - 1) {
       const nextLesson = currentModule.lessons[currentLessonIndex + 1];
       console.log(`calculateNextAction: Next lesson in current module: ${nextLesson.title}`);
+      console.log(`🚀 DEBUG: Setting nextAction to 'lesson' type for next lesson: ${nextLesson.title}`);
       setNextAction({
         type: 'lesson',
         target: nextLesson,
