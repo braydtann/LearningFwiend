@@ -936,16 +936,23 @@ const CourseDetail = () => {
           return;
         }
         
-        // If we have a selected lesson, mark it complete first
+        // **ENHANCED COURSE COMPLETION**: Ensure final lesson is marked complete first
         if (selectedLesson) {
+          console.log(`📝 Marking final lesson complete before course completion: ${selectedLesson.title}`);
           await markLessonComplete(selectedLesson.id);
+          
+          // Wait a moment for the lesson completion to be processed
+          await new Promise(resolve => setTimeout(resolve, 500));
         }
-        // Complete the course
+        
+        // Complete the course with explicit 100% progress
+        console.log(`🎓 Completing course with 100% progress...`);
         const result = await updateEnrollmentProgress(id, {
           progress: 100,
-          currentLessonId: selectedLesson.id,
+          currentLessonId: selectedLesson?.id,
           currentModuleId: nextAction.moduleIndex,
-          lastAccessedAt: new Date().toISOString()
+          lastAccessedAt: new Date().toISOString(),
+          completed: true // Explicitly mark as completed
         });
         
         if (result.success) {
