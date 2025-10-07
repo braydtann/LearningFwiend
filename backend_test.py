@@ -109,6 +109,40 @@ class BackendTester:
             )
             return False
 
+    def authenticate_student(self):
+        """Authenticate as student user"""
+        try:
+            response = requests.post(
+                f"{BACKEND_URL}/auth/login",
+                json=STUDENT_CREDENTIALS,
+                headers={"Content-Type": "application/json"}
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                self.student_token = data["access_token"]
+                self.log_result(
+                    "Student Authentication",
+                    True,
+                    f"Successfully authenticated as {data['user']['email']}"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Student Authentication",
+                    False,
+                    error_msg=f"HTTP {response.status_code}: {response.text}"
+                )
+                return False
+                
+        except Exception as e:
+            self.log_result(
+                "Student Authentication",
+                False,
+                error_msg=f"Exception: {str(e)}"
+            )
+            return False
+
     def create_quiz_questions(self, quiz_type="foundation"):
         """Create quiz questions with mixed formats for testing"""
         questions = []
