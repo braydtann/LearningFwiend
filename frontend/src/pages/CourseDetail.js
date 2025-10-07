@@ -422,26 +422,37 @@ const CourseDetail = () => {
       const currentLessonCompleted = isLessonCompleted(selectedLesson.id);
       console.log(`Current lesson "${selectedLesson.title}" completed: ${currentLessonCompleted}`);
       
-      // **IMPROVED COMPLETION LOGIC**: Consider all scenarios for course completion
-      // If we're on the final lesson, we should be able to complete the course if:
-      // 1. All OTHER lessons are complete, OR
-      // 2. All lessons including current one are complete
-      const otherLessonsCompleted = completedLessons - (currentLessonCompleted ? 1 : 0);
-      const willHaveAllLessonsCompleted = (otherLessonsCompleted + 1) >= totalLessons;
+      // **TWO-STEP COMPLETION LOGIC**: First complete lesson, then complete course
+      // Check if current lesson is completed
+      const currentLessonCompleted = isLessonCompleted(selectedLesson.id);
+      console.log(`Current lesson "${selectedLesson.title}" completed: ${currentLessonCompleted}`);
       
-      // More flexible completion logic - if we're on the last lesson, allow completion
-      const allLessonsWillBeCompleted = willHaveAllLessonsCompleted || (completedLessons >= totalLessons - 1);
-      const remainingLessons = Math.max(0, totalLessons - Math.max(completedLessons, otherLessonsCompleted + 1));
+      console.log(`🔍 TWO-STEP COMPLETION LOGIC:`);
+      console.log(`  - Total lessons: ${totalLessons}`);
+      console.log(`  - Completed lessons: ${completedLessons}`);
+      console.log(`  - Current lesson completed: ${currentLessonCompleted}`);
+      console.log(`  - Progress: ${Math.round((completedLessons / totalLessons) * 100)}%`);
       
-      console.log(`🔍 ENHANCED COMPLETION LOGIC:`);
-      console.log(`  - Other lessons completed: ${otherLessonsCompleted}`);
-      console.log(`  - Will have all lessons: ${willHaveAllLessonsCompleted}`);
-      console.log(`  - Can complete course: ${allLessonsWillBeCompleted}`);
-      console.log(`  - Remaining lessons: ${remainingLessons}`);
+      // Step 1: If current lesson is NOT completed, offer to complete it
+      if (!currentLessonCompleted) {
+        console.log(`📝 Step 1: Offering to complete current lesson first`);
+        setNextAction({
+          type: 'complete-lesson',
+          target: selectedLesson,
+          moduleIndex: currentModuleIndex,
+          lessonIndex: currentLessonIndex,
+          canComplete: true,
+          remainingLessons: totalLessons - completedLessons
+        });
+        return;
+      }
       
-      // **QUIZ VALIDATION FIX**: Also check quiz requirements before allowing course completion
-      if (allLessonsWillBeCompleted) {
-        console.log(`🔍 All lessons ready for completion - checking quiz requirements...`);
+      // Step 2: If current lesson IS completed, check if we can complete the course
+      const allLessonsCompleted = completedLessons >= totalLessons;
+      console.log(`🎓 Step 2: All lessons completed: ${allLessonsCompleted} (${completedLessons}/${totalLessons})`);
+      
+      if (allLessonsCompleted) {
+        console.log(`🔍 All lessons completed - checking quiz requirements...`);
         // Check quiz requirements asynchronously and update the action
         checkQuizRequirements().then(result => {
           console.log(`🎯 Quiz requirements check result:`, result);
@@ -451,7 +462,7 @@ const CourseDetail = () => {
             moduleIndex: currentModuleIndex,
             lessonIndex: currentLessonIndex,
             canComplete: result.passed,
-            remainingLessons: result.passed ? 0 : remainingLessons,
+            remainingLessons: result.passed ? 0 : (totalLessons - completedLessons),
             quizValidationMessage: result.passed ? null : result.message
           });
         }).catch(error => {
@@ -462,18 +473,19 @@ const CourseDetail = () => {
             target: null,
             moduleIndex: currentModuleIndex,
             lessonIndex: currentLessonIndex,
-            canComplete: allLessonsWillBeCompleted,
-            remainingLessons: remainingLessons
+            canComplete: allLessonsCompleted,
+            remainingLessons: totalLessons - completedLessons
           });
         });
       } else {
+        // Still missing some lessons
         setNextAction({
-          type: 'complete',
-          target: null,
+          type: 'complete-lesson',
+          target: selectedLesson,
           moduleIndex: currentModuleIndex,
           lessonIndex: currentLessonIndex,
-          canComplete: allLessonsWillBeCompleted,
-          remainingLessons: remainingLessons
+          canComplete: true,
+          remainingLessons: totalLessons - completedLessons
         });
       }
       return;
