@@ -205,11 +205,7 @@ class BackendTester:
             
         return questions
 
-    def get_headers(self, token):
-        """Get authorization headers"""
-        return {"Authorization": f"Bearer {token}"}
-
-    def test_course_management_with_quiz_data(self):
+    def create_test_course(self):
         """Test GET /api/courses/{id} returns courses with proper quiz data structure"""
         try:
             # Get all courses first
