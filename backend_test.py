@@ -487,7 +487,7 @@ class BackendTester:
         
         return all(enrollment_results)
 
-    def test_quiz_data_validation_structure(self):
+    def validate_quiz_question_formats(self):
         """Test quiz questions have proper data format, especially true-false questions with correctAnswer field"""
         try:
             # Get courses with quiz content
