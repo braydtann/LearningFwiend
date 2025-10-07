@@ -341,8 +341,10 @@ const CourseDetail = () => {
       const completedLessons = enrollment.moduleProgress.reduce((total, moduleProgress) => 
         total + (moduleProgress.lessons?.filter(l => l.completed).length || 0), 0);
       
-      const calculatedProgress = Math.round((completedLessons / totalLessons) * 100);
-      console.log(`Progress calculation: ${completedLessons}/${totalLessons} = ${calculatedProgress}%`);
+      const exactProgress = (completedLessons / totalLessons) * 100;
+      // **PROGRESS CALCULATION FIX**: Ensure 100% is achievable when all lessons are complete
+      const calculatedProgress = completedLessons >= totalLessons ? 100 : Math.round(exactProgress);
+      console.log(`Progress calculation: ${completedLessons}/${totalLessons} = ${exactProgress.toFixed(1)}% → ${calculatedProgress}%`);
       return calculatedProgress;
     }
     
