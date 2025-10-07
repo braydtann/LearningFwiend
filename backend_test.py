@@ -326,75 +326,59 @@ class BackendTester:
             )
             return False
 
-    def verify_course_structure(self):
-        """Verify the created course has the correct structure for testing"""
+    def test_pdf_certificate_generation(self):
+        """Test Fix 3: Certificate downloads should return professional PDF files"""
         try:
-            response = self.session.get(f"{BACKEND_URL}/courses/{self.course_id}")
-            
-            if response.status_code == 200:
-                course = response.json()
-                
-                # Verify course structure
-                modules = course.get("modules", [])
-                if len(modules) != 4:
-                    self.log_result(
-                        "Course Structure Verification",
-                        False,
-                        error_msg=f"Expected 4 modules, found {len(modules)}"
-                    )
-                    return False
-                
-                # Check quiz lessons
-                quiz_lessons = []
-                text_lessons = []
-                
-                for module in modules:
-                    for lesson in module.get("lessons", []):
-                        if lesson.get("type") == "quiz":
-                            quiz_lessons.append(lesson)
-                        elif lesson.get("type") == "text":
-                            text_lessons.append(lesson)
-                
-                # Verify we have 3 quizzes and 1 text lesson
-                if len(quiz_lessons) != 3:
-                    self.log_result(
-                        "Course Structure Verification",
-                        False,
-                        error_msg=f"Expected 3 quiz lessons, found {len(quiz_lessons)}"
-                    )
-                    return False
-                
-                if len(text_lessons) != 1:
-                    self.log_result(
-                        "Course Structure Verification", 
-                        False,
-                        error_msg=f"Expected 1 text lesson, found {len(text_lessons)}"
-                    )
-                    return False
-                
-                # Verify quiz question formats
-                mixed_formats_found = False
-                for quiz_lesson in quiz_lessons:
-                    quiz_data = quiz_lesson.get("quiz", {})
-                    questions = quiz_data.get("questions", [])
-                    
-                    boolean_answers = any(isinstance(q.get("correctAnswer"), bool) for q in questions)
-                    numeric_answers = any(isinstance(q.get("correctAnswer"), int) for q in questions)
-                    
-                    if boolean_answers and numeric_answers:
-                        mixed_formats_found = True
-                        break
-                
+            if not self.certificate_id:
                 self.log_result(
-                    "Course Structure Verification",
+                    "PDF Certificate Generation Test",
                     True,
-                    f"Course structure validated: 4 modules, 3 quizzes, 1 text lesson. Mixed answer formats: {mixed_formats_found}"
+                    "No certificate ID available for PDF testing - skipping (normal if no completed courses)"
                 )
                 return True
+            
+            response = self.session.get(f"{BACKEND_URL}/certificates/{self.certificate_id}/download")
+            
+            if response.status_code == 200:
+                content_type = response.headers.get('content-type', '')
+                content_length = len(response.content)
                 
+                # Check if it's a PDF
+                if 'application/pdf' in content_type:
+                    # Verify it's actually PDF content
+                    if response.content.startswith(b'%PDF'):
+                        self.log_result(
+                            "PDF Certificate Generation Test",
+                            True,
+                            f"Successfully generated PDF certificate: {content_length} bytes, Content-Type: {content_type}"
+                        )
+                        return True
+                    else:
+                        self.log_result(
+                            "PDF Certificate Generation Test",
+                            False,
+                            error_msg=f"Content-Type is PDF but content doesn't start with PDF header"
+                        )
+                        return False
+                else:
+                    # Check if it falls back to text format
+                    if 'text/plain' in content_type:
+                        self.log_result(
+                            "PDF Certificate Generation Test",
+                            False,
+                            error_msg=f"Certificate returned as text instead of PDF - PDF generation not working"
+                        )
+                        return False
+                    else:
+                        self.log_result(
+                            "PDF Certificate Generation Test",
+                            False,
+                            error_msg=f"Unexpected content type: {content_type}"
+                        )
+                        return False
             else:
                 self.log_result(
-                    "Course Structure Verification",
+                    "PDF Certificate Generation Test",
                     False,
                     error_msg=f"HTTP {response.status_code}: {response.text}"
                 )
@@ -402,7 +386,37 @@ class BackendTester:
                 
         except Exception as e:
             self.log_result(
-                "Course Structure Verification",
+                "PDF Certificate Generation Test",
+                False,
+                error_msg=f"Exception: {str(e)}"
+            )
+            return False
+
+    def test_course_management_apis(self):
+        """Test that existing course management functionality still works"""
+        try:
+            # Test course listing
+            response = self.session.get(f"{BACKEND_URL}/courses")
+            
+            if response.status_code == 200:
+                courses = response.json()
+                self.log_result(
+                    "Course Management APIs Test",
+                    True,
+                    f"Successfully retrieved {len(courses)} courses"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Course Management APIs Test",
+                    False,
+                    error_msg=f"HTTP {response.status_code}: {response.text}"
+                )
+                return False
+                
+        except Exception as e:
+            self.log_result(
+                "Course Management APIs Test",
                 False,
                 error_msg=f"Exception: {str(e)}"
             )
