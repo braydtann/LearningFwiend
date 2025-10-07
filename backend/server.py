@@ -17,6 +17,8 @@ from passlib.context import CryptContext
 import re
 import shutil
 import aiofiles
+from fastapi.responses import Response
+from certificate_generator import generate_certificate_pdf
 
 
 ROOT_DIR = Path(__file__).parent
