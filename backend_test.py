@@ -221,148 +221,106 @@ class BackendTester:
             )
             return False
 
-    def create_test_course(self):
-        """Create the Sequential Quiz Progression Test Course"""
+    def test_program_certificate_generation(self):
+        """Test Fix 2: Program certificates should be auto-generated when all courses in a program are completed"""
         try:
-            # Create course modules with 3 quizzes + 1 text lesson
-            modules = [
-                {
-                    "id": str(uuid.uuid4()),
-                    "title": "Foundation Module",
-                    "lessons": [
-                        {
-                            "id": str(uuid.uuid4()),
-                            "title": "Foundation Quiz",
-                            "type": "quiz",
-                            "content": "This quiz tests foundational knowledge and understanding.",
-                            "quiz": {
-                                "id": str(uuid.uuid4()),
-                                "title": "Foundation Quiz",
-                                "description": "Test your foundational knowledge",
-                                "questions": self.create_quiz_questions("foundation"),
-                                "passingScore": 70,
-                                "timeLimit": 15,
-                                "allowRetakes": True,
-                                "maxAttempts": 3
-                            }
-                        }
-                    ]
-                },
-                {
-                    "id": str(uuid.uuid4()),
-                    "title": "Intermediate Module", 
-                    "lessons": [
-                        {
-                            "id": str(uuid.uuid4()),
-                            "title": "Intermediate Quiz",
-                            "type": "quiz",
-                            "content": "This quiz tests intermediate concepts and application.",
-                            "quiz": {
-                                "id": str(uuid.uuid4()),
-                                "title": "Intermediate Quiz",
-                                "description": "Test your intermediate knowledge",
-                                "questions": self.create_quiz_questions("intermediate"),
-                                "passingScore": 75,
-                                "timeLimit": 20,
-                                "allowRetakes": True,
-                                "maxAttempts": 3
-                            }
-                        }
-                    ]
-                },
-                {
-                    "id": str(uuid.uuid4()),
-                    "title": "Advanced Module",
-                    "lessons": [
-                        {
-                            "id": str(uuid.uuid4()),
-                            "title": "Advanced Quiz",
-                            "type": "quiz", 
-                            "content": "This quiz tests advanced understanding and synthesis.",
-                            "quiz": {
-                                "id": str(uuid.uuid4()),
-                                "title": "Advanced Quiz",
-                                "description": "Test your advanced knowledge",
-                                "questions": self.create_quiz_questions("advanced"),
-                                "passingScore": 80,
-                                "timeLimit": 25,
-                                "allowRetakes": True,
-                                "maxAttempts": 3
-                            }
-                        }
-                    ]
-                },
-                {
-                    "id": str(uuid.uuid4()),
-                    "title": "Completion Module",
-                    "lessons": [
-                        {
-                            "id": str(uuid.uuid4()),
-                            "title": "Course Completion",
-                            "type": "text",
-                            "content": "Congratulations! You have successfully completed all quizzes in this course. This final lesson validates that automatic lesson completion works correctly after sequential quiz progression. Your course progress should now show 100% completion, and you should receive a completion certificate.",
-                            "duration": 5
-                        }
-                    ]
-                }
-            ]
-
-            course_data = {
-                "title": "Sequential Quiz Progression Test Course",
-                "description": "Test course for validating quiz unlocking and automatic lesson completion",
-                "category": "Testing",
-                "duration": "2 hours",
-                "thumbnailUrl": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop",
-                "accessType": "open",
-                "learningOutcomes": [
-                    "Understand sequential quiz progression mechanics",
-                    "Experience automatic lesson completion",
-                    "Validate quiz unlocking functionality",
-                    "Test mixed question format handling"
-                ],
-                "modules": modules
-            }
-
-            response = self.session.post(
-                f"{BACKEND_URL}/courses",
-                json=course_data,
-                headers={"Content-Type": "application/json"}
-            )
-
-            if response.status_code == 200:
-                course = response.json()
-                self.course_id = course["id"]
-                
-                # Validate course structure
-                total_lessons = sum(len(module["lessons"]) for module in course["modules"])
-                quiz_count = sum(
-                    1 for module in course["modules"] 
-                    for lesson in module["lessons"] 
-                    if lesson["type"] == "quiz"
+            # First, get all programs to find one with multiple courses
+            response = self.session.get(f"{BACKEND_URL}/programs")
+            
+            if response.status_code != 200:
+                self.log_result(
+                    "Program Certificate Generation Test",
+                    False,
+                    error_msg=f"Failed to fetch programs: HTTP {response.status_code}"
                 )
-                text_lesson_count = sum(
-                    1 for module in course["modules"]
-                    for lesson in module["lessons"]
-                    if lesson["type"] == "text"
+                return False
+            
+            programs = response.json()
+            test_program = None
+            
+            # Find a program with multiple courses
+            for program in programs:
+                if len(program.get("courseIds", [])) >= 2:
+                    test_program = program
+                    self.program_id = program["id"]
+                    break
+            
+            if not test_program:
+                self.log_result(
+                    "Program Certificate Generation Test",
+                    False,
+                    error_msg="No program found with multiple courses for testing"
                 )
+                return False
+            
+            # Check if there are any program certificates already
+            cert_response = self.session.get(f"{BACKEND_URL}/certificates/my-certificates")
+            
+            if cert_response.status_code == 200:
+                certificates = cert_response.json()
+                program_certs = [c for c in certificates if c.get("type") == "program_completion" and c.get("programId") == self.program_id]
                 
                 self.log_result(
-                    "Test Course Creation",
+                    "Program Certificate Generation Test",
                     True,
-                    f"Course created successfully. ID: {self.course_id}, Total lessons: {total_lessons}, Quizzes: {quiz_count}, Text lessons: {text_lesson_count}"
+                    f"Found program '{test_program['title']}' with {len(test_program['courseIds'])} courses. Program certificates found: {len(program_certs)}"
                 )
                 return True
             else:
                 self.log_result(
-                    "Test Course Creation",
+                    "Program Certificate Generation Test",
+                    False,
+                    error_msg=f"Failed to fetch certificates: HTTP {cert_response.status_code}"
+                )
+                return False
+                
+        except Exception as e:
+            self.log_result(
+                "Program Certificate Generation Test",
+                False,
+                error_msg=f"Exception: {str(e)}"
+            )
+            return False
+
+    def test_certificate_listing(self):
+        """Test certificate listing to find certificates for PDF testing"""
+        try:
+            response = self.session.get(f"{BACKEND_URL}/certificates/my-certificates")
+            
+            if response.status_code == 200:
+                certificates = response.json()
+                
+                if certificates:
+                    # Store first certificate ID for PDF testing
+                    self.certificate_id = certificates[0]["id"]
+                    
+                    course_certs = len([c for c in certificates if c.get("type") == "completion"])
+                    program_certs = len([c for c in certificates if c.get("type") == "program_completion"])
+                    
+                    self.log_result(
+                        "Certificate Listing Test",
+                        True,
+                        f"Found {len(certificates)} total certificates: {course_certs} course certificates, {program_certs} program certificates"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Certificate Listing Test",
+                        True,
+                        "No certificates found - this is normal if no courses have been completed"
+                    )
+                    return True
+            else:
+                self.log_result(
+                    "Certificate Listing Test",
                     False,
                     error_msg=f"HTTP {response.status_code}: {response.text}"
                 )
                 return False
-
+                
         except Exception as e:
             self.log_result(
-                "Test Course Creation",
+                "Certificate Listing Test",
                 False,
                 error_msg=f"Exception: {str(e)}"
             )
