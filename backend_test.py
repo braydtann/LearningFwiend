@@ -353,112 +353,85 @@ class BackendTester:
             return False
 
     def verify_course_structure(self):
-                self.log_test(
-                    "Course Management - Get All Courses",
+        """Verify the created course has the correct structure for testing"""
+        try:
+            response = self.session.get(f"{BACKEND_URL}/courses/{self.course_id}")
+            
+            if response.status_code == 200:
+                course = response.json()
+                
+                # Verify course structure
+                modules = course.get("modules", [])
+                if len(modules) != 4:
+                    self.log_result(
+                        "Course Structure Verification",
+                        False,
+                        error_msg=f"Expected 4 modules, found {len(modules)}"
+                    )
+                    return False
+                
+                # Check quiz lessons
+                quiz_lessons = []
+                text_lessons = []
+                
+                for module in modules:
+                    for lesson in module.get("lessons", []):
+                        if lesson.get("type") == "quiz":
+                            quiz_lessons.append(lesson)
+                        elif lesson.get("type") == "text":
+                            text_lessons.append(lesson)
+                
+                # Verify we have 3 quizzes and 1 text lesson
+                if len(quiz_lessons) != 3:
+                    self.log_result(
+                        "Course Structure Verification",
+                        False,
+                        error_msg=f"Expected 3 quiz lessons, found {len(quiz_lessons)}"
+                    )
+                    return False
+                
+                if len(text_lessons) != 1:
+                    self.log_result(
+                        "Course Structure Verification", 
+                        False,
+                        error_msg=f"Expected 1 text lesson, found {len(text_lessons)}"
+                    )
+                    return False
+                
+                # Verify quiz question formats
+                mixed_formats_found = False
+                for quiz_lesson in quiz_lessons:
+                    quiz_data = quiz_lesson.get("quiz", {})
+                    questions = quiz_data.get("questions", [])
+                    
+                    boolean_answers = any(isinstance(q.get("correctAnswer"), bool) for q in questions)
+                    numeric_answers = any(isinstance(q.get("correctAnswer"), int) for q in questions)
+                    
+                    if boolean_answers and numeric_answers:
+                        mixed_formats_found = True
+                        break
+                
+                self.log_result(
+                    "Course Structure Verification",
+                    True,
+                    f"Course structure validated: 4 modules, 3 quizzes, 1 text lesson. Mixed answer formats: {mixed_formats_found}"
+                )
+                return True
+                
+            else:
+                self.log_result(
+                    "Course Structure Verification",
                     False,
-                    f"Failed to get courses: {response.status_code}",
-                    response.text
+                    error_msg=f"HTTP {response.status_code}: {response.text}"
                 )
                 return False
-            
-            courses = response.json()
-            if not courses:
-                self.log_test(
-                    "Course Management - No Courses",
-                    False,
-                    "No courses available for testing"
-                )
-                return False
-            
-            # Test individual course retrieval with quiz data validation
-            quiz_courses_found = 0
-            multi_quiz_courses_found = 0
-            
-            for course in courses[:5]:  # Test first 5 courses
-                course_id = course["id"]
-                course_title = course.get("title", "Unknown Course")
-                
-                response = requests.get(f"{BACKEND_URL}/courses/{course_id}", headers=self.get_headers(self.admin_token))
-                
-                if response.status_code == 200:
-                    course_data = response.json()
-                    
-                    # Check for proper course structure
-                    required_fields = ["id", "title", "modules", "instructorId", "status"]
-                    missing_fields = [field for field in required_fields if field not in course_data]
-                    
-                    if missing_fields:
-                        self.log_test(
-                            "Course Management - Course Structure",
-                            False,
-                            f"Course {course_title} missing fields: {missing_fields}"
-                        )
-                        return False
-                    
-                    # Check for quiz lessons and their data structure
-                    quiz_lessons = []
-                    for module in course_data.get("modules", []):
-                        for lesson in module.get("lessons", []):
-                            if lesson.get("type") == "quiz":
-                                quiz_lessons.append(lesson)
-                    
-                    if quiz_lessons:
-                        quiz_courses_found += 1
-                        if len(quiz_lessons) > 1:
-                            multi_quiz_courses_found += 1
-                        
-                        # Validate quiz data structure
-                        for quiz_lesson in quiz_lessons:
-                            quiz_data = quiz_lesson.get("quiz", {})
-                            questions = quiz_data.get("questions", [])
-                            
-                            if not questions:
-                                continue
-                                
-                            # Check each question for proper structure
-                            for question in questions:
-                                question_type = question.get("type", "")
-                                
-                                # Validate true-false questions specifically (mentioned in review)
-                                if question_type == "true-false":
-                                    correct_answer = question.get("correctAnswer")
-                                    if correct_answer is None:
-                                        self.log_test(
-                                            "Course Management - True-False Question Validation",
-                                            False,
-                                            f"True-false question missing correctAnswer field in course {course_title}"
-                                        )
-                                        return False
-                                    
-                                    # Check if correctAnswer accepts both boolean and numeric values
-                                    if not (isinstance(correct_answer, (bool, int)) or 
-                                           (isinstance(correct_answer, str) and correct_answer in ["0", "1", "true", "false"])):
-                                        self.log_test(
-                                            "Course Management - True-False Question Format",
-                                            False,
-                                            f"True-false question has invalid correctAnswer format: {correct_answer} (type: {type(correct_answer)})"
-                                        )
-                                        return False
-                                
-                                # Validate other question types have required fields
-                                if question_type == "multiple-choice":
-                                    if not question.get("options") or not question.get("correctAnswer"):
-                                        self.log_test(
-                                            "Course Management - Multiple Choice Question Structure",
-                                            False,
-                                            f"Multiple choice question missing options or correctAnswer in course {course_title}"
-                                        )
-                                        return False
-            
-            self.log_test(
-                "Course Management with Quiz Data Structure",
-                True,
-                f"Tested {len(courses[:5])} courses, found {quiz_courses_found} with quizzes ({multi_quiz_courses_found} multi-quiz courses), all quiz data structures valid"
-            )
-            return True
                 
         except Exception as e:
-            self.log_test("Course Management with Quiz Data Structure", False, error_msg=str(e))
+            self.log_result(
+                "Course Structure Verification",
+                False,
+                error_msg=f"Exception: {str(e)}"
+            )
             return False
 
     def test_enrollment_and_progress_tracking(self):
