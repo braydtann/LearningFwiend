@@ -60,8 +60,15 @@ def main():
             print(f"      Type: {lesson.get('type')}")
             
             if lesson.get("type") == "quiz":
-                quiz_data = lesson.get("quiz")
-                if quiz_data:
+                # Check both content and quiz fields
+                content_field = lesson.get("content")
+                quiz_field = lesson.get("quiz")
+                
+                print(f"      Content field: {type(content_field)} - {content_field[:50] if isinstance(content_field, str) else content_field}")
+                print(f"      Quiz field: {type(quiz_field)} - {quiz_field.get('id') if isinstance(quiz_field, dict) else quiz_field}")
+                
+                quiz_data = quiz_field
+                if quiz_data and isinstance(quiz_data, dict):
                     print(f"      Quiz ID: {quiz_data.get('id')}")
                     print(f"      Questions: {len(quiz_data.get('questions', []))}")
                     
@@ -75,7 +82,7 @@ def main():
                         print(f"        Question: {first_q.get('question')[:50]}...")
                         print(f"        Correct Answer: {first_q.get('correctAnswer')} (type: {type(first_q.get('correctAnswer'))})")
                 else:
-                    print(f"      ERROR: Quiz lesson has no quiz data!")
+                    print(f"      ERROR: Quiz lesson has no valid quiz data!")
             print()
 
 if __name__ == "__main__":
