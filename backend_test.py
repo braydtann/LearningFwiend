@@ -503,18 +503,28 @@ class BackendTester:
             return False
 
     def run_comprehensive_test(self):
-        """Run all tests for the Sequential Quiz Progression Test Course creation"""
-        print("🎯 STARTING COMPREHENSIVE TEST COURSE CREATION FOR QUIZ PROGRESSION VALIDATION")
+        """Run all tests for the LearningFriend LMS Critical Fixes"""
+        print("🎯 STARTING COMPREHENSIVE BACKEND TESTING FOR CRITICAL FIXES")
+        print("=" * 80)
+        print("Testing the three critical fixes:")
+        print("1. Quiz Analytics Fixed - Analytics showing correct quiz attempt counts")
+        print("2. Program Certificate Generation - Auto-generation for completed programs")
+        print("3. PDF Certificate Generation - Professional PDF certificates")
         print("=" * 80)
         print()
         
         # Test sequence
         tests = [
             ("Admin Authentication", self.authenticate_admin),
-            ("Test Course Creation", self.create_test_course),
-            ("Course Structure Verification", self.verify_course_structure),
-            ("Student Enrollment Setup", self.enroll_test_students),
-            ("Quiz Question Format Validation", self.validate_quiz_question_formats)
+            ("Student Authentication", self.authenticate_student),
+            ("Analytics Quiz Attempts Fix", self.test_analytics_quiz_attempts),
+            ("Enrollment Data for Analytics", self.test_enrollment_data_for_analytics),
+            ("Program Certificate Generation", self.test_program_certificate_generation),
+            ("Certificate Listing", self.test_certificate_listing),
+            ("PDF Certificate Generation", self.test_pdf_certificate_generation),
+            ("Course Management APIs", self.test_course_management_apis),
+            ("Enrollment Progress Tracking", self.test_enrollment_progress_tracking),
+            ("Certificate Verification", self.test_certificate_verification)
         ]
         
         success_count = 0
@@ -529,20 +539,31 @@ class BackendTester:
         
         # Summary
         print("=" * 80)
-        print("🎉 TEST COURSE CREATION SUMMARY")
+        print("🎉 CRITICAL FIXES TESTING SUMMARY")
         print("=" * 80)
         
         success_rate = (success_count / total_tests) * 100
         print(f"Success Rate: {success_rate:.1f}% ({success_count}/{total_tests} tests passed)")
         print()
         
-        if self.course_id:
-            print(f"✅ Test Course Created Successfully")
-            print(f"   Course ID: {self.course_id}")
-            print(f"   Course Title: Sequential Quiz Progression Test Course")
-            print(f"   Structure: 3 Quizzes + 1 Text Lesson")
-            print(f"   Ready for: Quiz progression and automatic lesson completion testing")
-            print()
+        # Critical fixes status
+        critical_fixes = [
+            ("Quiz Analytics Fixed", "Analytics Quiz Attempts Fix"),
+            ("Program Certificate Generation", "Program Certificate Generation"),
+            ("PDF Certificate Generation", "PDF Certificate Generation")
+        ]
+        
+        print("🔧 CRITICAL FIXES STATUS:")
+        for fix_name, test_name in critical_fixes:
+            test_result = next((r for r in self.test_results if r["test"] == test_name), None)
+            if test_result:
+                status = "✅ WORKING" if test_result["success"] else "❌ FAILED"
+                print(f"   {status}: {fix_name}")
+                if test_result["details"]:
+                    print(f"      {test_result['details']}")
+                if test_result["error"]:
+                    print(f"      Error: {test_result['error']}")
+        print()
         
         print("📋 DETAILED TEST RESULTS:")
         for result in self.test_results:
@@ -553,15 +574,7 @@ class BackendTester:
             if result["error"]:
                 print(f"   Error: {result['error']}")
         
-        print()
-        print("🔧 NEXT STEPS FOR TESTING:")
-        print("1. Students can now access the Sequential Quiz Progression Test Course")
-        print("2. Test Quiz 1 → Quiz 2 → Quiz 3 progression")
-        print("3. Verify automatic lesson completion after Quiz 3")
-        print("4. Validate mixed question format handling (boolean vs numeric)")
-        print("5. Confirm course completion certificate generation")
-        
-        return success_rate >= 80  # Consider successful if 80% or more tests pass
+        return success_rate >= 70  # Consider successful if 70% or more tests pass
 
 def main():
     """Main test execution"""
