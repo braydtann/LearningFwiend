@@ -351,8 +351,8 @@ class BackendTester:
                 error_msg=f"Exception: {str(e)}"
             )
             return False
-            
-            if response.status_code != 200:
+
+    def verify_course_structure(self):
                 self.log_test(
                     "Course Management - Get All Courses",
                     False,
