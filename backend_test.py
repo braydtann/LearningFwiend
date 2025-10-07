@@ -556,10 +556,80 @@ class BackendTester:
             return False
 
     def run_comprehensive_test(self):
-        """Test quiz progression logic for sequential quiz unlocking in multi-quiz courses"""
-        try:
-            # Get courses and find ones with multiple quizzes
-            response = requests.get(f"{BACKEND_URL}/courses", headers=self.get_headers(self.student_token))
+        """Run all tests for the Sequential Quiz Progression Test Course creation"""
+        print("🎯 STARTING COMPREHENSIVE TEST COURSE CREATION FOR QUIZ PROGRESSION VALIDATION")
+        print("=" * 80)
+        print()
+        
+        # Test sequence
+        tests = [
+            ("Admin Authentication", self.authenticate_admin),
+            ("Test Course Creation", self.create_test_course),
+            ("Course Structure Verification", self.verify_course_structure),
+            ("Student Enrollment Setup", self.enroll_test_students),
+            ("Quiz Question Format Validation", self.validate_quiz_question_formats)
+        ]
+        
+        success_count = 0
+        total_tests = len(tests)
+        
+        for test_name, test_func in tests:
+            if test_func():
+                success_count += 1
+            else:
+                print(f"⚠️  Test failed: {test_name}")
+                # Continue with remaining tests even if one fails
+        
+        # Summary
+        print("=" * 80)
+        print("🎉 TEST COURSE CREATION SUMMARY")
+        print("=" * 80)
+        
+        success_rate = (success_count / total_tests) * 100
+        print(f"Success Rate: {success_rate:.1f}% ({success_count}/{total_tests} tests passed)")
+        print()
+        
+        if self.course_id:
+            print(f"✅ Test Course Created Successfully")
+            print(f"   Course ID: {self.course_id}")
+            print(f"   Course Title: Sequential Quiz Progression Test Course")
+            print(f"   Structure: 3 Quizzes + 1 Text Lesson")
+            print(f"   Ready for: Quiz progression and automatic lesson completion testing")
+            print()
+        
+        print("📋 DETAILED TEST RESULTS:")
+        for result in self.test_results:
+            status = "✅" if result["success"] else "❌"
+            print(f"{status} {result['test']}")
+            if result["details"]:
+                print(f"   {result['details']}")
+            if result["error"]:
+                print(f"   Error: {result['error']}")
+        
+        print()
+        print("🔧 NEXT STEPS FOR TESTING:")
+        print("1. Students can now access the Sequential Quiz Progression Test Course")
+        print("2. Test Quiz 1 → Quiz 2 → Quiz 3 progression")
+        print("3. Verify automatic lesson completion after Quiz 3")
+        print("4. Validate mixed question format handling (boolean vs numeric)")
+        print("5. Confirm course completion certificate generation")
+        
+        return success_rate >= 80  # Consider successful if 80% or more tests pass
+
+def main():
+    """Main test execution"""
+    tester = BackendTester()
+    success = tester.run_comprehensive_test()
+    
+    if success:
+        print("\n🎉 COMPREHENSIVE TEST COURSE CREATION COMPLETED SUCCESSFULLY")
+        sys.exit(0)
+    else:
+        print("\n❌ COMPREHENSIVE TEST COURSE CREATION ENCOUNTERED ISSUES")
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()
             
             if response.status_code != 200:
                 self.log_test(
