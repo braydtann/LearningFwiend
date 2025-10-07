@@ -181,26 +181,25 @@ const Analytics = () => {
           // **FIXED LOGIC**: Treat any enrollment with progress as a quiz attempt
           // The backend test revealed 28 enrollments with progress representing actual quiz attempts
           // Previous logic was too restrictive by only checking for specific quiz lesson types
-            const syntheticAttempt = {
-              id: `enrollment-${enrollment.id}`,
-              quizId: `course-quiz-${course.id}`,
-              quizTitle: `${course.title} - Course Quiz`,
-              studentId: enrollment.userId || enrollment.studentId,
-              studentName: enrollment.studentName || 'Unknown Student',
-              score: enrollment.progress,
-              pointsEarned: Math.round(enrollment.progress),
-              totalPoints: 100,
-              isPassed: enrollment.progress >= 70,
-              timeSpent: null,
-              startedAt: new Date(enrollment.enrolledAt || enrollment.created_at),
-              completedAt: enrollment.progress >= 100 ? new Date(enrollment.updated_at || enrollment.created_at) : null,
-              attemptNumber: 1,
-              isActive: true,
-              created_at: new Date(enrollment.created_at),
-              status: enrollment.progress >= 100 ? 'completed' : 'in_progress'
-            };
-            enrollmentQuizAttempts.push(syntheticAttempt);
-          }
+          const syntheticAttempt = {
+            id: `enrollment-${enrollment.id}`,
+            quizId: `course-quiz-${course.id}`,
+            quizTitle: `${course.title} - Course Quiz`,
+            studentId: enrollment.userId || enrollment.studentId,
+            studentName: enrollment.studentName || 'Unknown Student',
+            score: enrollment.progress,
+            pointsEarned: Math.round(enrollment.progress),
+            totalPoints: 100,
+            isPassed: enrollment.progress >= 70,
+            timeSpent: null,
+            startedAt: new Date(enrollment.enrolledAt || enrollment.created_at),
+            completedAt: enrollment.progress >= 100 ? new Date(enrollment.updated_at || enrollment.created_at) : null,
+            attemptNumber: 1,
+            isActive: true,
+            created_at: new Date(enrollment.created_at),
+            status: enrollment.progress >= 100 ? 'completed' : 'in_progress'
+          };
+          enrollmentQuizAttempts.push(syntheticAttempt);
         }
         
         allQuizAttempts = [...allQuizAttempts, ...enrollmentQuizAttempts];
