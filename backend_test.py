@@ -45,11 +45,10 @@ TEST_STUDENTS = [
 
 class BackendTester:
     def __init__(self):
+        self.session = requests.Session()
         self.admin_token = None
-        self.student_token = None
-        self.admin_user = None
-        self.student_user = None
         self.test_results = []
+        self.course_id = None
         
     def log_test(self, test_name, success, details="", error_msg=""):
         """Log test results"""
