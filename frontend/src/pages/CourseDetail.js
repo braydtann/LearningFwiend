@@ -1862,15 +1862,22 @@ const CourseDetail = () => {
                     className={`px-6 ${
                       nextAction.type === 'complete' && !nextAction.canComplete
                         ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed text-white' 
-                        : 'bg-blue-600 hover:bg-blue-700 text-white'
+                        : nextAction.type === 'complete-lesson'
+                          ? 'bg-green-600 hover:bg-green-700 text-white'
+                          : 'bg-blue-600 hover:bg-blue-700 text-white'
                     }`}
                     onClick={handleNextAction}
                     disabled={nextAction.type === 'complete' && !nextAction.canComplete}
                   >
                     {nextAction.type === 'complete' ? (
                       <>
-                        <CheckCircle className="w-4 h-4 mr-2" />
+                        <Trophy className="w-4 h-4 mr-2" />
                         Complete Course
+                      </>
+                    ) : nextAction.type === 'complete-lesson' ? (
+                      <>
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        Complete Lesson
                       </>
                     ) : nextAction.type === 'module' ? (
                       <>
