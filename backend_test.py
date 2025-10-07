@@ -105,33 +105,105 @@ class BackendTester:
             )
             return False
 
-    def authenticate_student(self):
-        """Authenticate student user"""
-        try:
-            response = requests.post(f"{BACKEND_URL}/auth/login", json=STUDENT_CREDENTIALS)
+    def create_quiz_questions(self, quiz_type="foundation"):
+        """Create quiz questions with mixed formats for testing"""
+        questions = []
+        
+        if quiz_type == "foundation":
+            # Foundation Quiz - Mix of True/False and Multiple Choice
+            questions = [
+                {
+                    "id": str(uuid.uuid4()),
+                    "type": "true-false",
+                    "question": "Learning Management Systems help organize educational content.",
+                    "correctAnswer": True,  # Boolean format
+                    "explanation": "LMS platforms are designed to organize and deliver educational content effectively."
+                },
+                {
+                    "id": str(uuid.uuid4()),
+                    "type": "true-false", 
+                    "question": "Students can only access courses after completing all prerequisites.",
+                    "correctAnswer": 0,  # Numeric format (0 = false, 1 = true)
+                    "explanation": "Course access depends on the specific course settings and prerequisites."
+                },
+                {
+                    "id": str(uuid.uuid4()),
+                    "type": "multiple-choice",
+                    "question": "What is the primary purpose of a Learning Management System?",
+                    "options": [
+                        "To replace traditional classrooms entirely",
+                        "To organize and deliver educational content",
+                        "To grade students automatically",
+                        "To eliminate the need for instructors"
+                    ],
+                    "correctAnswer": 1,
+                    "explanation": "LMS platforms are primarily designed to organize and deliver educational content effectively."
+                }
+            ]
+        elif quiz_type == "intermediate":
+            # Intermediate Quiz - Mix of True/False and Multiple Choice
+            questions = [
+                {
+                    "id": str(uuid.uuid4()),
+                    "type": "true-false",
+                    "question": "Quiz progression allows students to unlock subsequent quizzes after completing previous ones.",
+                    "correctAnswer": 1,  # Numeric format (1 = true)
+                    "explanation": "Sequential quiz progression is a key feature for structured learning paths."
+                },
+                {
+                    "id": str(uuid.uuid4()),
+                    "type": "multiple-choice",
+                    "question": "Which feature helps track student progress through a course?",
+                    "options": [
+                        "Course catalog",
+                        "User authentication",
+                        "Progress tracking system",
+                        "File upload system"
+                    ],
+                    "correctAnswer": 2,
+                    "explanation": "Progress tracking systems monitor and record student advancement through course materials."
+                },
+                {
+                    "id": str(uuid.uuid4()),
+                    "type": "true-false",
+                    "question": "Automatic lesson completion occurs when all course requirements are met.",
+                    "correctAnswer": True,  # Boolean format
+                    "explanation": "Automatic completion triggers when students fulfill all specified course requirements."
+                }
+            ]
+        elif quiz_type == "advanced":
+            # Advanced Quiz - Mix of True/False and Multiple Choice
+            questions = [
+                {
+                    "id": str(uuid.uuid4()),
+                    "type": "multiple-choice",
+                    "question": "What happens when a student completes all quizzes in a sequential progression course?",
+                    "options": [
+                        "The course automatically archives",
+                        "The final lesson becomes accessible",
+                        "All previous quizzes reset",
+                        "The student is unenrolled"
+                    ],
+                    "correctAnswer": 1,
+                    "explanation": "Completing all quizzes in sequence unlocks the final lesson for course completion."
+                },
+                {
+                    "id": str(uuid.uuid4()),
+                    "type": "true-false",
+                    "question": "Course completion certificates are generated automatically when progress reaches 100%.",
+                    "correctAnswer": 1,  # Numeric format
+                    "explanation": "The system automatically generates completion certificates when students reach 100% progress."
+                },
+                {
+                    "id": str(uuid.uuid4()),
+                    "type": "true-false",
+                    "question": "Students must manually mark lessons as complete in all LMS systems.",
+                    "correctAnswer": False,  # Boolean format
+                    "explanation": "Modern LMS systems often include automatic lesson completion based on engagement criteria."
+                }
+            ]
             
-            if response.status_code == 200:
-                data = response.json()
-                self.student_token = data["access_token"]
-                self.student_user = data["user"]
-                self.log_test(
-                    "Student Authentication",
-                    True,
-                    f"Successfully authenticated as {self.student_user['full_name']} ({self.student_user['role']})"
-                )
-                return True
-            else:
-                self.log_test(
-                    "Student Authentication",
-                    False, 
-                    f"Status: {response.status_code}",
-                    response.text
-                )
-                return False
-                
-        except Exception as e:
-            self.log_test("Student Authentication", False, error_msg=str(e))
-            return False
+        return questions
 
     def get_headers(self, token):
         """Get authorization headers"""
