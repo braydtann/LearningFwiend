@@ -25,8 +25,9 @@ SUCCESS CRITERIA:
 
 import requests
 import json
-import sys
+import uuid
 from datetime import datetime
+import sys
 
 # Configuration
 BACKEND_URL = "https://lms-progression-1.preview.emergentagent.com/api"
@@ -37,12 +38,12 @@ ADMIN_CREDENTIALS = {
     "password": "Hawaii2020!"
 }
 
-STUDENT_CREDENTIALS = {
-    "username_or_email": "karlo.student@alder.com", 
-    "password": "StudentPermanent123!"
-}
+TEST_STUDENTS = [
+    "brayden.student@covesmart.com",
+    "karlo.student@alder.com"
+]
 
-class QuizProgressionTestSuite:
+class BackendTester:
     def __init__(self):
         self.admin_token = None
         self.student_token = None
