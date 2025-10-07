@@ -1141,22 +1141,36 @@ async def update_enrollment_progress(
                                 break
                     
                     if not has_passed_quiz:
-                        # Calculate actual progress without allowing 100%
-                        total_lessons = sum(len(module.get("lessons", [])) for module in course.get("modules", []))
-                        completed_lessons = 0
+                        # **TEMPORARY DEBUG**: Check if lesson is marked completed in enrollment progress
+                        lesson_marked_complete = False
                         if enrollment.get("moduleProgress"):
-                            completed_lessons = sum(
-                                len([l for l in mp.get("lessons", []) if l.get("completed")])
-                                for mp in enrollment["moduleProgress"]
+                            for module_prog in enrollment["moduleProgress"]:
+                                for lesson_prog in module_prog.get("lessons", []):
+                                    if lesson_prog.get("lessonId") == quiz_lesson["lessonId"] and lesson_prog.get("completed"):
+                                        lesson_marked_complete = True
+                                        print(f"🔍 BACKEND DEBUG: Quiz lesson {quiz_lesson['title']} marked as completed in moduleProgress")
+                                        break
+                        
+                        if lesson_marked_complete:
+                            print(f"✅ BACKEND DEBUG: Allowing progress update despite no quiz attempts - lesson marked complete")
+                        else:
+                            # Calculate actual progress without allowing 100%
+                            total_lessons = sum(len(module.get("lessons", [])) for module in course.get("modules", []))
+                            completed_lessons = 0
+                            if enrollment.get("moduleProgress"):
+                                completed_lessons = sum(
+                                    len([l for l in mp.get("lessons", []) if l.get("completed")])
+                                    for mp in enrollment["moduleProgress"]
+                                )
+                            
+                            # Cap progress at 95% if quizzes are not completed
+                            max_allowed_progress = min(95.0, (completed_lessons / total_lessons * 100) if total_lessons > 0 else 0)
+                            
+                            print(f"❌ BACKEND DEBUG: Blocking progress update - quiz not passed and lesson not marked complete")
+                            raise HTTPException(
+                                status_code=status.HTTP_400_BAD_REQUEST,
+                                detail=f"Cannot complete course. You must take and pass the quiz '{quiz_lesson['title']}' before completing the course. Current progress capped at {max_allowed_progress:.1f}%"
                             )
-                        
-                        # Cap progress at 95% if quizzes are not completed
-                        max_allowed_progress = min(95.0, (completed_lessons / total_lessons * 100) if total_lessons > 0 else 0)
-                        
-                        raise HTTPException(
-                            status_code=status.HTTP_400_BAD_REQUEST,
-                            detail=f"Cannot complete course. You must take and pass the quiz '{quiz_lesson['title']}' before completing the course. Current progress capped at {max_allowed_progress:.1f}%"
-                        )
         
         update_data["progress"] = min(100.0, max(0.0, progress_data.progress))
         
