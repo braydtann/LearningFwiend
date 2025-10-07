@@ -50,8 +50,8 @@ class BackendTester:
         self.test_results = []
         self.course_id = None
         
-    def log_test(self, test_name, success, details="", error_msg=""):
-        """Log test results"""
+    def log_result(self, test_name, success, details="", error_msg=""):
+        """Log test results for reporting"""
         result = {
             "test": test_name,
             "success": success,
@@ -60,9 +60,8 @@ class BackendTester:
             "timestamp": datetime.now().isoformat()
         }
         self.test_results.append(result)
-        
         status = "✅ PASS" if success else "❌ FAIL"
-        print(f"{status} {test_name}")
+        print(f"{status}: {test_name}")
         if details:
             print(f"   Details: {details}")
         if error_msg:
