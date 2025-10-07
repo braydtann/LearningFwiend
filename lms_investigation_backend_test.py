@@ -37,8 +37,8 @@ class LMSInvestigationTester:
         }
         
         self.student_credentials = {
-            "username_or_email": "brayden.student@learningfwiend.com", 
-            "password": "Cove1234!"
+            "username_or_email": "karlo.student@alder.com", 
+            "password": "CleanEnv123!"
         }
         
         print("🔍 LMS Investigation Backend Test Initialized")
