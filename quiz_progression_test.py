@@ -183,46 +183,84 @@ class QuizProgressionTester:
                 )
                 return False
             
-            # Prepare correct answers for all questions
-            answers = {}
-            for i, question in enumerate(questions):
-                answers[str(i)] = question.get("correctAnswer")
+            # Prepare correct answers in the format expected by the backend
+            answers = []
+            for question in questions:
+                question_id = question.get("id")
+                correct_answer = question.get("correctAnswer")
+                
+                # Handle different question types
+                if question.get("type") == "true-false":
+                    # Convert boolean/numeric to string for consistency
+                    if isinstance(correct_answer, bool):
+                        answer_value = "true" if correct_answer else "false"
+                    elif isinstance(correct_answer, int):
+                        answer_value = "true" if correct_answer == 1 else "false"
+                    else:
+                        answer_value = str(correct_answer).lower()
+                elif question.get("type") == "multiple-choice":
+                    # Multiple choice answers are indices
+                    answer_value = correct_answer
+                else:
+                    answer_value = correct_answer
+                
+                answers.append({
+                    "questionId": question_id,
+                    "answer": answer_value
+                })
             
-            # Submit quiz with correct answers
+            # Submit quiz using the proper endpoint
             quiz_submission = {
-                "courseId": TARGET_COURSE_ID,
-                "lessonId": quiz_lesson["lesson_id"],
                 "answers": answers,
-                "timeSpent": 300,  # 5 minutes
-                "score": passing_score
+                "timeSpent": 300  # 5 minutes
             }
             
-            # Update enrollment progress to mark quiz as completed
-            progress_update = {
-                "currentLessonId": quiz_lesson["lesson_id"],
-                "markQuizCompleted": True,
-                "timeSpent": 300
-            }
-            
-            response = self.session.put(
-                f"{BACKEND_URL}/enrollments/{TARGET_COURSE_ID}/progress",
-                json=progress_update,
+            response = self.session.post(
+                f"{BACKEND_URL}/courses/{TARGET_COURSE_ID}/lessons/{quiz_lesson['lesson_id']}/quiz/submit",
+                json=quiz_submission,
                 headers={"Content-Type": "application/json"}
             )
             
             if response.status_code == 200:
-                enrollment = response.json()
+                result = response.json()
+                score = result.get("score", 0)
+                is_passed = result.get("isPassed", False)
+                
                 self.log_result(
                     f"Quiz Completion - {quiz_lesson['title']}",
                     True,
-                    f"Quiz completed successfully (Progress: {enrollment.get('progress', 0.0)}%)"
+                    f"Quiz submitted successfully (Score: {score}%, Passed: {is_passed})"
                 )
-                return True
+                
+                # Now update enrollment progress to mark quiz as completed
+                progress_update = {
+                    "currentLessonId": quiz_lesson["lesson_id"],
+                    "markQuizCompleted": True,
+                    "timeSpent": 300
+                }
+                
+                progress_response = self.session.put(
+                    f"{BACKEND_URL}/enrollments/{TARGET_COURSE_ID}/progress",
+                    json=progress_update,
+                    headers={"Content-Type": "application/json"}
+                )
+                
+                if progress_response.status_code == 200:
+                    enrollment = progress_response.json()
+                    return True
+                else:
+                    self.log_result(
+                        f"Progress Update - {quiz_lesson['title']}",
+                        False,
+                        error_msg=f"Progress update failed: HTTP {progress_response.status_code}: {progress_response.text}"
+                    )
+                    return False
+                
             else:
                 self.log_result(
                     f"Quiz Completion - {quiz_lesson['title']}",
                     False,
-                    error_msg=f"Progress update failed: HTTP {response.status_code}: {response.text}"
+                    error_msg=f"Quiz submission failed: HTTP {response.status_code}: {response.text}"
                 )
                 return False
                 
