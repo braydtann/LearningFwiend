@@ -451,6 +451,37 @@ class LMSInvestigationTester:
             print(f"❌ Program completion flow test error: {str(e)}")
             return False
 
+    def get_available_users(self) -> bool:
+        """Get list of available users to find student accounts."""
+        print("\n👥 GETTING AVAILABLE USERS")
+        print("-" * 50)
+        
+        try:
+            response = self.session.get(
+                f"{self.base_url}/auth/admin/users",
+                headers=self.get_headers(self.admin_token),
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                users = response.json()
+                print(f"✅ Found {len(users)} users in system")
+                
+                students = [u for u in users if u.get('role') == 'learner']
+                print(f"📚 Found {len(students)} student accounts:")
+                
+                for student in students[:5]:  # Show first 5 students
+                    print(f"   - {student.get('email')} ({student.get('full_name')})")
+                
+                return True
+            else:
+                print(f"❌ Failed to get users: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Get users error: {str(e)}")
+            return False
+
     def run_investigation(self):
         """Run the complete LMS investigation."""
         print("🚀 STARTING LMS INVESTIGATION")
@@ -458,15 +489,19 @@ class LMSInvestigationTester:
         
         # Authentication
         admin_auth = self.authenticate_admin()
-        student_auth = self.authenticate_student()
         
         if not admin_auth:
             print("❌ Cannot proceed without admin authentication")
             return False
         
+        # Get available users first
+        self.get_available_users()
+        
+        student_auth = self.authenticate_student()
+        
         if not student_auth:
-            print("❌ Cannot proceed without student authentication")
-            return False
+            print("⚠️  Proceeding with admin-only tests (student authentication failed)")
+            # Continue with admin-only tests
         
         # Test Results
         results = {
