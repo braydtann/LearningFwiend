@@ -188,20 +188,22 @@ class QuizProgressionTester:
             for question in questions:
                 question_id = question.get("id")
                 correct_answer = question.get("correctAnswer")
+                question_type = question.get("type")
                 
-                # Handle different question types
-                if question.get("type") == "true-false":
-                    # Convert boolean/numeric to string for consistency
+                # Handle different question types based on backend expectations
+                if question_type == "true-false":
+                    # Backend expects string format for true/false
                     if isinstance(correct_answer, bool):
                         answer_value = "true" if correct_answer else "false"
                     elif isinstance(correct_answer, int):
                         answer_value = "true" if correct_answer == 1 else "false"
                     else:
                         answer_value = str(correct_answer).lower()
-                elif question.get("type") == "multiple-choice":
-                    # Multiple choice answers are indices
+                elif question_type == "multiple-choice":
+                    # Multiple choice answers are indices (keep as is)
                     answer_value = correct_answer
                 else:
+                    # For other types, use the correct answer as is
                     answer_value = correct_answer
                 
                 answers.append({
