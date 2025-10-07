@@ -1334,6 +1334,78 @@ async def update_enrollment_progress(
                 
                 await db.certificates.insert_one(certificate_dict)
     
+    # **PROGRAM COMPLETION DETECTION**: Check if user has completed all courses in any programs
+    # This fixes the missing program certificate generation logic
+    if progress_data.progress is not None and progress_data.progress >= 100.0:
+        # Find all programs that contain this course
+        programs_with_course = await db.programs.find({
+            "courseIds": course_id,
+            "isActive": True
+        }).to_list(1000)
+        
+        for program in programs_with_course:
+            # Check if user has completed ALL courses in this program
+            program_course_ids = program.get("courseIds", [])
+            if not program_course_ids:
+                continue
+                
+            # Get all user's enrollments for courses in this program
+            user_program_enrollments = await db.enrollments.find({
+                "userId": current_user.id,
+                "courseId": {"$in": program_course_ids}
+            }).to_list(1000)
+            
+            # Check if all program courses are completed (100% progress)
+            completed_courses = [e for e in user_program_enrollments if e.get("progress", 0) >= 100.0]
+            
+            if len(completed_courses) >= len(program_course_ids):
+                # User has completed all courses in this program!
+                # Check if program certificate already exists
+                existing_program_cert = await db.certificates.find_one({
+                    "studentId": current_user.id,
+                    "programId": program["id"],
+                    "isActive": True
+                })
+                
+                if not existing_program_cert:
+                    # Generate program completion certificate
+                    program_cert_number = f"PROG-{program['id'][:8].upper()}-{current_user.id[:8].upper()}-{datetime.utcnow().strftime('%Y%m%d')}"
+                    program_verification_code = str(uuid.uuid4()).replace('-', '').upper()[:12]
+                    
+                    # Calculate overall program score (average of all course scores)
+                    total_score = sum(e.get("progress", 0) for e in completed_courses)
+                    program_score = total_score / len(completed_courses) if completed_courses else 100.0
+                    
+                    program_certificate_dict = {
+                        "id": str(uuid.uuid4()),
+                        "certificateNumber": program_cert_number,
+                        "studentId": current_user.id,
+                        "studentName": current_user.full_name,
+                        "studentEmail": current_user.email,
+                        "courseId": None,
+                        "courseName": None,
+                        "programId": program["id"],
+                        "programName": program.get("title", "Unknown Program"),
+                        "type": "program_completion",
+                        "template": "program",
+                        "status": "generated",
+                        "issueDate": datetime.utcnow(),
+                        "expiryDate": None,
+                        "grade": "A" if program_score >= 95 else "B" if program_score >= 85 else "C",
+                        "score": program_score,
+                        "completionDate": datetime.utcnow(),
+                        "certificateUrl": None,
+                        "issuedBy": "system",
+                        "issuedByName": "LearningFriend System",
+                        "verificationCode": program_verification_code,
+                        "isActive": True,
+                        "created_at": datetime.utcnow(),
+                        "updated_at": datetime.utcnow()
+                    }
+                    
+                    await db.certificates.insert_one(program_certificate_dict)
+                    logger.info(f"Generated program completion certificate for user {current_user.id}, program {program['id']}")
+    
     return EnrollmentResponse(**updated_enrollment)
 
 @api_router.post("/enrollments/{enrollment_id}/migrate-progress")
