@@ -3547,47 +3547,73 @@ async def download_certificate(
     certificate_id: str,
     current_user: UserResponse = Depends(get_current_user)
 ):
-    """Download certificate as PDF."""
-    from fastapi.responses import Response
-    import json
-    
-    certificate = await db.certificates.find_one({"id": certificate_id, "isActive": True})
-    if not certificate:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Certificate not found"
+    """Download certificate as professional PDF using template."""
+    try:
+        certificate = await db.certificates.find_one({"id": certificate_id, "isActive": True})
+        if not certificate:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Certificate not found"
+            )
+        
+        # Check permissions
+        if (current_user.role == 'learner' and 
+            certificate['studentId'] != current_user.id):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You can only download your own certificates"
+            )
+        
+        # **PDF CERTIFICATE GENERATION**: Generate professional PDF certificate
+        # using the provided template and ReportLab
+        
+        logger.info(f"Generating PDF certificate for certificate ID: {certificate_id}")
+        
+        # Generate the PDF certificate
+        pdf_content = generate_certificate_pdf(certificate)
+        
+        # Determine filename based on certificate type
+        certificate_name = certificate.get('programName') or certificate.get('courseName') or 'achievement'
+        safe_filename = "".join(c for c in certificate_name if c.isalnum() or c in (' ', '-', '_')).rstrip()
+        safe_filename = safe_filename.replace(' ', '_')
+        
+        cert_type = "program" if certificate.get('programName') else "course"
+        filename = f"{cert_type}_certificate_{safe_filename}.pdf"
+        
+        logger.info(f"Certificate PDF generated successfully: {filename}")
+        
+        # Return PDF as response
+        return Response(
+            content=pdf_content,
+            media_type='application/pdf',
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}",
+                "Content-Type": "application/pdf"
+            }
         )
-    
-    # Check permissions
-    if (current_user.role == 'learner' and 
-        certificate['studentId'] != current_user.id):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only download your own certificates"
-        )
-    
-    # For now, generate a simple text-based certificate
-    # In production, this would generate a proper PDF using libraries like reportlab
-    
-    # Get certificate details with proper fallbacks
-    student_name = certificate.get('studentName') or 'Student Name'
-    program_name = certificate.get('programName') or certificate.get('courseName') or 'Course/Program'
-    issued_date = certificate.get('issuedAt') or certificate.get('issued_at') or certificate.get('completionDate')
-    
-    # Format date if it's a datetime object
-    if issued_date and hasattr(issued_date, 'strftime'):
-        issued_date = issued_date.strftime('%B %d, %Y')
-    elif issued_date and isinstance(issued_date, str):
-        try:
-            from datetime import datetime
-            parsed_date = datetime.fromisoformat(issued_date.replace('Z', '+00:00'))
-            issued_date = parsed_date.strftime('%B %d, %Y')
-        except:
-            pass
-    else:
-        issued_date = 'Date Not Available'
-    
-    certificate_content = f"""
+        
+    except Exception as e:
+        logger.error(f"Error generating certificate PDF: {str(e)}")
+        
+        # **FALLBACK**: If PDF generation fails, provide text-based certificate
+        student_name = certificate.get('studentName', 'Student Name')
+        program_name = certificate.get('programName') or certificate.get('courseName', 'Course/Program')
+        issued_date = certificate.get('issueDate') or certificate.get('completionDate')
+        
+        # Format date if it's a datetime object
+        if issued_date and hasattr(issued_date, 'strftime'):
+            issued_date = issued_date.strftime('%B %d, %Y')
+        elif issued_date and isinstance(issued_date, str):
+            try:
+                from datetime import datetime
+                parsed_date = datetime.fromisoformat(issued_date.replace('Z', '+00:00'))
+                issued_date = parsed_date.strftime('%B %d, %Y')
+            except:
+                issued_date = 'Date Not Available'
+        else:
+            issued_date = 'Date Not Available'
+        
+        certificate_content = f"""
 CERTIFICATE OF COMPLETION
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -3595,29 +3621,27 @@ This is to certify that
 
 {student_name}
 
-has successfully completed the program
+has successfully completed
 
 {program_name}
 
 Awarded on: {issued_date}
-Certificate ID: {certificate.get('id', certificate_id)}
+Certificate Number: {certificate.get('certificateNumber', certificate_id)}
 Verification Code: {certificate.get('verificationCode', 'N/A')}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-LearningFwiend - Learning Management System
+LearningFriend - Learning Management System
 """
-    
-    # Return as downloadable text file (in production, this would be a PDF)
-    program_name = certificate.get('programName') or certificate.get('courseName') or 'achievement'
-    filename = f"certificate_{program_name.replace(' ', '_')}.txt"
-    
-    return Response(
-        content=certificate_content.encode('utf-8'),
-        media_type='text/plain',
-        headers={
-            "Content-Disposition": f"attachment; filename={filename}"
-        }
-    )
+        
+        filename = f"certificate_{program_name.replace(' ', '_')}.txt"
+        
+        return Response(
+            content=certificate_content.encode('utf-8'),
+            media_type='text/plain',
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}"
+            }
+        )
 
 @api_router.get("/certificates/verify/{verification_code}", response_model=CertificateVerificationResponse)
 async def verify_certificate(verification_code: str):
