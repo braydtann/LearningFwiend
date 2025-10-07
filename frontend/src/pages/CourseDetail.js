@@ -432,6 +432,7 @@ const CourseDetail = () => {
       // Step 1: If current lesson is NOT completed, offer to complete it
       if (!currentLessonCompleted) {
         console.log(`📝 Step 1: Offering to complete current lesson first`);
+        console.log(`🚀 DEBUG: Setting nextAction to 'complete-lesson' for lesson: ${selectedLesson.title}`);
         setNextAction({
           type: 'complete-lesson',
           target: selectedLesson,
