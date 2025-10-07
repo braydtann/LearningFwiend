@@ -206,10 +206,151 @@ class BackendTester:
         return questions
 
     def create_test_course(self):
-        """Test GET /api/courses/{id} returns courses with proper quiz data structure"""
+        """Create the Sequential Quiz Progression Test Course"""
         try:
-            # Get all courses first
-            response = requests.get(f"{BACKEND_URL}/courses", headers=self.get_headers(self.admin_token))
+            # Create course modules with 3 quizzes + 1 text lesson
+            modules = [
+                {
+                    "id": str(uuid.uuid4()),
+                    "title": "Foundation Module",
+                    "lessons": [
+                        {
+                            "id": str(uuid.uuid4()),
+                            "title": "Foundation Quiz",
+                            "type": "quiz",
+                            "content": "This quiz tests foundational knowledge and understanding.",
+                            "quiz": {
+                                "id": str(uuid.uuid4()),
+                                "title": "Foundation Quiz",
+                                "description": "Test your foundational knowledge",
+                                "questions": self.create_quiz_questions("foundation"),
+                                "passingScore": 70,
+                                "timeLimit": 15,
+                                "allowRetakes": True,
+                                "maxAttempts": 3
+                            }
+                        }
+                    ]
+                },
+                {
+                    "id": str(uuid.uuid4()),
+                    "title": "Intermediate Module", 
+                    "lessons": [
+                        {
+                            "id": str(uuid.uuid4()),
+                            "title": "Intermediate Quiz",
+                            "type": "quiz",
+                            "content": "This quiz tests intermediate concepts and application.",
+                            "quiz": {
+                                "id": str(uuid.uuid4()),
+                                "title": "Intermediate Quiz",
+                                "description": "Test your intermediate knowledge",
+                                "questions": self.create_quiz_questions("intermediate"),
+                                "passingScore": 75,
+                                "timeLimit": 20,
+                                "allowRetakes": True,
+                                "maxAttempts": 3
+                            }
+                        }
+                    ]
+                },
+                {
+                    "id": str(uuid.uuid4()),
+                    "title": "Advanced Module",
+                    "lessons": [
+                        {
+                            "id": str(uuid.uuid4()),
+                            "title": "Advanced Quiz",
+                            "type": "quiz", 
+                            "content": "This quiz tests advanced understanding and synthesis.",
+                            "quiz": {
+                                "id": str(uuid.uuid4()),
+                                "title": "Advanced Quiz",
+                                "description": "Test your advanced knowledge",
+                                "questions": self.create_quiz_questions("advanced"),
+                                "passingScore": 80,
+                                "timeLimit": 25,
+                                "allowRetakes": True,
+                                "maxAttempts": 3
+                            }
+                        }
+                    ]
+                },
+                {
+                    "id": str(uuid.uuid4()),
+                    "title": "Completion Module",
+                    "lessons": [
+                        {
+                            "id": str(uuid.uuid4()),
+                            "title": "Course Completion",
+                            "type": "text",
+                            "content": "Congratulations! You have successfully completed all quizzes in this course. This final lesson validates that automatic lesson completion works correctly after sequential quiz progression. Your course progress should now show 100% completion, and you should receive a completion certificate.",
+                            "duration": 5
+                        }
+                    ]
+                }
+            ]
+
+            course_data = {
+                "title": "Sequential Quiz Progression Test Course",
+                "description": "Test course for validating quiz unlocking and automatic lesson completion",
+                "category": "Testing",
+                "duration": "2 hours",
+                "thumbnailUrl": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop",
+                "accessType": "open",
+                "learningOutcomes": [
+                    "Understand sequential quiz progression mechanics",
+                    "Experience automatic lesson completion",
+                    "Validate quiz unlocking functionality",
+                    "Test mixed question format handling"
+                ],
+                "modules": modules
+            }
+
+            response = self.session.post(
+                f"{BACKEND_URL}/courses",
+                json=course_data,
+                headers={"Content-Type": "application/json"}
+            )
+
+            if response.status_code == 200:
+                course = response.json()
+                self.course_id = course["id"]
+                
+                # Validate course structure
+                total_lessons = sum(len(module["lessons"]) for module in course["modules"])
+                quiz_count = sum(
+                    1 for module in course["modules"] 
+                    for lesson in module["lessons"] 
+                    if lesson["type"] == "quiz"
+                )
+                text_lesson_count = sum(
+                    1 for module in course["modules"]
+                    for lesson in module["lessons"]
+                    if lesson["type"] == "text"
+                )
+                
+                self.log_result(
+                    "Test Course Creation",
+                    True,
+                    f"Course created successfully. ID: {self.course_id}, Total lessons: {total_lessons}, Quizzes: {quiz_count}, Text lessons: {text_lesson_count}"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Test Course Creation",
+                    False,
+                    error_msg=f"HTTP {response.status_code}: {response.text}"
+                )
+                return False
+
+        except Exception as e:
+            self.log_result(
+                "Test Course Creation",
+                False,
+                error_msg=f"Exception: {str(e)}"
+            )
+            return False
             
             if response.status_code != 200:
                 self.log_test(
