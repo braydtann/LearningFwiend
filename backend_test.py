@@ -69,31 +69,40 @@ class BackendTester:
         print()
 
     def authenticate_admin(self):
-        """Authenticate admin user"""
+        """Authenticate as admin user"""
         try:
-            response = requests.post(f"{BACKEND_URL}/auth/login", json=ADMIN_CREDENTIALS)
+            response = self.session.post(
+                f"{BACKEND_URL}/auth/login",
+                json=ADMIN_CREDENTIALS,
+                headers={"Content-Type": "application/json"}
+            )
             
             if response.status_code == 200:
                 data = response.json()
                 self.admin_token = data["access_token"]
-                self.admin_user = data["user"]
-                self.log_test(
+                self.session.headers.update({
+                    "Authorization": f"Bearer {self.admin_token}"
+                })
+                self.log_result(
                     "Admin Authentication",
                     True,
-                    f"Successfully authenticated as {self.admin_user['full_name']} ({self.admin_user['role']})"
+                    f"Successfully authenticated as {data['user']['email']}"
                 )
                 return True
             else:
-                self.log_test(
-                    "Admin Authentication", 
+                self.log_result(
+                    "Admin Authentication",
                     False,
-                    f"Status: {response.status_code}",
-                    response.text
+                    error_msg=f"HTTP {response.status_code}: {response.text}"
                 )
                 return False
                 
         except Exception as e:
-            self.log_test("Admin Authentication", False, error_msg=str(e))
+            self.log_result(
+                "Admin Authentication",
+                False,
+                error_msg=f"Exception: {str(e)}"
+            )
             return False
 
     def authenticate_student(self):
