@@ -1840,7 +1840,9 @@ const CourseDetail = () => {
                     <h3 className="font-semibold text-gray-900 mb-1">
                       {nextAction.type === 'complete' 
                         ? 'Ready to complete the course?' 
-                        : 'Ready for the next step?'
+                        : nextAction.type === 'complete-lesson'
+                          ? 'Ready to complete this lesson?'
+                          : 'Ready for the next step?'
                       }
                     </h3>
                     <p className="text-sm text-gray-600">
@@ -1848,9 +1850,11 @@ const CourseDetail = () => {
                         ? nextAction.canComplete
                           ? 'All lessons completed! Click to finish the course and get your certificate.'
                           : `Complete ${nextAction.remainingLessons} more lesson${nextAction.remainingLessons !== 1 ? 's' : ''} to finish the course.`
-                        : nextAction.type === 'module' 
-                          ? `Continue to the next module: ${nextAction.nextModuleTitle}`
-                          : `Move to the next lesson: ${nextAction.target.title}`
+                        : nextAction.type === 'complete-lesson'
+                          ? `Complete "${nextAction.target.title}" to update your progress and unlock course completion.`
+                          : nextAction.type === 'module' 
+                            ? `Continue to the next module: ${nextAction.nextModuleTitle}`
+                            : `Move to the next lesson: ${nextAction.target.title}`
                       }
                     </p>
                   </div>
