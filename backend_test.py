@@ -582,10 +582,10 @@ def main():
     success = tester.run_comprehensive_test()
     
     if success:
-        print("\n🎉 COMPREHENSIVE TEST COURSE CREATION COMPLETED SUCCESSFULLY")
+        print("\n🎉 CRITICAL FIXES BACKEND TESTING COMPLETED SUCCESSFULLY")
         sys.exit(0)
     else:
-        print("\n❌ COMPREHENSIVE TEST COURSE CREATION ENCOUNTERED ISSUES")
+        print("\n❌ CRITICAL FIXES BACKEND TESTING ENCOUNTERED ISSUES")
         sys.exit(1)
 
 if __name__ == "__main__":
