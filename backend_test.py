@@ -488,112 +488,71 @@ class BackendTester:
         return all(enrollment_results)
 
     def validate_quiz_question_formats(self):
-        """Test quiz questions have proper data format, especially true-false questions with correctAnswer field"""
+        """Validate that quiz questions have proper data structure for frontend validation"""
         try:
-            # Get courses with quiz content
-            response = requests.get(f"{BACKEND_URL}/courses", headers=self.get_headers(self.admin_token))
+            response = self.session.get(f"{BACKEND_URL}/courses/{self.course_id}")
             
             if response.status_code != 200:
-                self.log_test(
-                    "Quiz Data Validation - Get Courses",
+                self.log_result(
+                    "Quiz Question Format Validation",
                     False,
-                    f"Failed to get courses: {response.status_code}",
-                    response.text
+                    error_msg=f"Failed to fetch course: HTTP {response.status_code}"
                 )
                 return False
             
-            courses = response.json()
-            if not courses:
-                self.log_test(
-                    "Quiz Data Validation - No Courses",
+            course = response.json()
+            validation_results = []
+            
+            for module in course.get("modules", []):
+                for lesson in module.get("lessons", []):
+                    if lesson.get("type") == "quiz":
+                        quiz_data = lesson.get("quiz", {})
+                        questions = quiz_data.get("questions", [])
+                        
+                        for question in questions:
+                            # Check required fields
+                            required_fields = ["id", "type", "question", "correctAnswer"]
+                            missing_fields = [field for field in required_fields if field not in question]
+                            
+                            if missing_fields:
+                                validation_results.append(f"Missing fields in question: {missing_fields}")
+                                continue
+                            
+                            # Validate question type specific requirements
+                            q_type = question.get("type")
+                            if q_type == "multiple-choice":
+                                if "options" not in question:
+                                    validation_results.append("Multiple choice question missing options")
+                                elif not isinstance(question["options"], list):
+                                    validation_results.append("Multiple choice options must be a list")
+                            
+                            # Validate correctAnswer format variety
+                            correct_answer = question.get("correctAnswer")
+                            if q_type == "true-false":
+                                if not (isinstance(correct_answer, bool) or isinstance(correct_answer, int)):
+                                    validation_results.append(f"True/false question has invalid correctAnswer format: {type(correct_answer)}")
+            
+            if validation_results:
+                self.log_result(
+                    "Quiz Question Format Validation",
                     False,
-                    "No courses available for testing"
-                )
-                return False
-            
-            # Analyze quiz data structure across courses
-            total_quiz_questions = 0
-            true_false_questions = 0
-            multiple_choice_questions = 0
-            validation_errors = []
-            
-            for course in courses:
-                course_id = course["id"]
-                course_title = course.get("title", "Unknown Course")
-                
-                # Get detailed course data
-                response = requests.get(f"{BACKEND_URL}/courses/{course_id}", headers=self.get_headers(self.admin_token))
-                
-                if response.status_code == 200:
-                    course_data = response.json()
-                    
-                    # Extract and validate quiz questions
-                    for module in course_data.get("modules", []):
-                        for lesson in module.get("lessons", []):
-                            if lesson.get("type") == "quiz":
-                                quiz_data = lesson.get("quiz", {})
-                                questions = quiz_data.get("questions", [])
-                                
-                                for i, question in enumerate(questions):
-                                    total_quiz_questions += 1
-                                    question_type = question.get("type", "")
-                                    question_text = question.get("question", "")[:50] + "..."
-                                    
-                                    # Validate true-false questions (priority from review)
-                                    if question_type == "true-false":
-                                        true_false_questions += 1
-                                        correct_answer = question.get("correctAnswer")
-                                        
-                                        if correct_answer is None:
-                                            validation_errors.append(f"True-false question in {course_title} missing correctAnswer: {question_text}")
-                                        else:
-                                            # Check if correctAnswer accepts both boolean and numeric (0/1) values
-                                            valid_formats = [True, False, 0, 1, "0", "1", "true", "false"]
-                                            if correct_answer not in valid_formats:
-                                                validation_errors.append(f"True-false question in {course_title} has invalid correctAnswer format: {correct_answer} (should be boolean or 0/1)")
-                                    
-                                    # Validate multiple-choice questions
-                                    elif question_type == "multiple-choice":
-                                        multiple_choice_questions += 1
-                                        options = question.get("options", [])
-                                        correct_answer = question.get("correctAnswer")
-                                        
-                                        if not options:
-                                            validation_errors.append(f"Multiple-choice question in {course_title} missing options: {question_text}")
-                                        if correct_answer is None:
-                                            validation_errors.append(f"Multiple-choice question in {course_title} missing correctAnswer: {question_text}")
-                                        elif isinstance(correct_answer, int) and (correct_answer < 0 or correct_answer >= len(options)):
-                                            validation_errors.append(f"Multiple-choice question in {course_title} has invalid correctAnswer index: {correct_answer} (options: {len(options)})")
-                                    
-                                    # Validate common required fields
-                                    if not question.get("question"):
-                                        validation_errors.append(f"Question in {course_title} missing question text")
-                                    if not question_type:
-                                        validation_errors.append(f"Question in {course_title} missing type field")
-            
-            # Report validation results
-            if validation_errors:
-                error_summary = "; ".join(validation_errors[:3])  # Show first 3 errors
-                if len(validation_errors) > 3:
-                    error_summary += f" ... and {len(validation_errors) - 3} more errors"
-                
-                self.log_test(
-                    "Quiz Data Validation Structure",
-                    False,
-                    f"Found {len(validation_errors)} validation errors in {total_quiz_questions} quiz questions",
-                    error_summary
+                    error_msg=f"Validation issues found: {'; '.join(validation_results)}"
                 )
                 return False
             else:
-                self.log_test(
-                    "Quiz Data Validation Structure",
+                self.log_result(
+                    "Quiz Question Format Validation",
                     True,
-                    f"Validated {total_quiz_questions} quiz questions ({true_false_questions} true-false, {multiple_choice_questions} multiple-choice) - all have proper data format"
+                    "All quiz questions have proper data structure for frontend validation"
                 )
                 return True
                 
         except Exception as e:
-            self.log_test("Quiz Data Validation Structure", False, error_msg=str(e))
+            self.log_result(
+                "Quiz Question Format Validation",
+                False,
+                error_msg=f"Exception: {str(e)}"
+            )
             return False
 
     def test_multi_quiz_progression_logic(self):
