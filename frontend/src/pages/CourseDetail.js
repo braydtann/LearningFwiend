@@ -938,6 +938,26 @@ const CourseDetail = () => {
     if (!nextAction) return;
     
     try {
+      // Handle complete-lesson action - just complete the current lesson and recalculate
+      if (nextAction.type === 'complete-lesson') {
+        if (selectedLesson) {
+          console.log(`📝 Completing lesson: ${selectedLesson.title}`);
+          await markLessonComplete(selectedLesson.id);
+          
+          // Give the system a moment to update progress
+          setTimeout(() => {
+            console.log('Recalculating next action after lesson completion...');
+            calculateNextAction();
+          }, 1000);
+          
+          toast({
+            title: "Lesson completed!",
+            description: `Great job! "${selectedLesson.title}" is now complete.`,
+          });
+        }
+        return;
+      }
+      
       // Handle complete action differently - it may not have a selectedLesson
       if (nextAction.type === 'complete') {
         // **QUIZ VALIDATION FIX**: Check if course can actually be completed
