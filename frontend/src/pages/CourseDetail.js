@@ -1086,6 +1086,7 @@ const CourseDetail = () => {
         }
       } else {
         // **AUTOMATIC LESSON COMPLETION FIX**: Mark current lesson as complete before navigating to next lesson/module
+        console.log(`🚀 DEBUG: Handling regular lesson/module navigation`);
         if (selectedLesson) {
           console.log(`📝 Auto-completing current lesson: ${selectedLesson.title} before navigating to next`);
           await markLessonComplete(selectedLesson.id);
