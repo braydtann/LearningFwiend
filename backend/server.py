@@ -6473,7 +6473,7 @@ async def grade_submission(
                         for lesson in module["lessons"]:
                             if lesson.get("id") == submission.get("lessonId"):
                                 # **CRITICAL FIX**: Check both 'content' and 'quiz' structures
-                                quiz_content = lesson.get("content") or lesson.get("quiz")
+                                quiz_content = lesson.get("quiz") or lesson.get("content")
                                 if quiz_content and quiz_content.get("questions"):
                                     for question in quiz_content["questions"]:
                                         if question.get("id") == submission.get("questionId"):
