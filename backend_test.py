@@ -555,7 +555,7 @@ class BackendTester:
             )
             return False
 
-    def test_multi_quiz_progression_logic(self):
+    def run_comprehensive_test(self):
         """Test quiz progression logic for sequential quiz unlocking in multi-quiz courses"""
         try:
             # Get courses and find ones with multiple quizzes
