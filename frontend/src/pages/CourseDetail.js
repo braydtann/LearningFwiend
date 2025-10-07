@@ -942,11 +942,18 @@ const CourseDetail = () => {
 
   // Handle next module/lesson navigation or course completion
   const handleNextAction = async () => {
-    if (!nextAction) return;
+    console.log(`🚀 DEBUG: handleNextAction called with action type: ${nextAction?.type}`);
+    console.log(`🚀 DEBUG: Selected lesson: ${selectedLesson?.title} (ID: ${selectedLesson?.id})`);
+    
+    if (!nextAction) {
+      console.log(`🚀 DEBUG: No nextAction available`);
+      return;
+    }
     
     try {
       // Handle complete-lesson action - just complete the current lesson and recalculate
       if (nextAction.type === 'complete-lesson') {
+        console.log(`🚀 DEBUG: Handling complete-lesson action`);
         if (selectedLesson) {
           console.log(`📝 Completing lesson: ${selectedLesson.title}`);
           await markLessonComplete(selectedLesson.id);
