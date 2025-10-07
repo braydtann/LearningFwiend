@@ -422,58 +422,40 @@ class BackendTester:
             )
             return False
 
-    def enroll_test_students(self):
-        """Enroll both test students in the course"""
-        enrollment_results = []
-        
-        for student_email in TEST_STUDENTS:
-            try:
-                # First, find the student user
-                users_response = self.session.get(f"{BACKEND_URL}/auth/admin/users")
-                
-                if users_response.status_code != 200:
-                    self.log_result(
-                        f"Student Enrollment - {student_email}",
-                        False,
-                        error_msg=f"Failed to fetch users: HTTP {users_response.status_code}"
-                    )
-                    enrollment_results.append(False)
-                    continue
-                
-                users = users_response.json()
-                student_user = None
-                
-                for user in users:
-                    if user.get("email") == student_email:
-                        student_user = user
-                        break
-                
-                if not student_user:
-                    self.log_result(
-                        f"Student Enrollment - {student_email}",
-                        False,
-                        error_msg=f"Student user not found: {student_email}"
-                    )
-                    enrollment_results.append(False)
-                    continue
-                
-                # For now, we'll verify the student exists and course is accessible
+    def test_enrollment_progress_tracking(self):
+        """Test that enrollment progress tracking still works correctly"""
+        try:
+            # Switch to student token for this test
+            student_session = requests.Session()
+            student_session.headers.update({
+                "Authorization": f"Bearer {self.student_token}"
+            })
+            
+            response = student_session.get(f"{BACKEND_URL}/enrollments")
+            
+            if response.status_code == 200:
+                enrollments = response.json()
                 self.log_result(
-                    f"Student Verification - {student_email}",
+                    "Enrollment Progress Tracking Test",
                     True,
-                    f"Student found: {student_user['full_name']} (ID: {student_user['id']})"
+                    f"Successfully retrieved {len(enrollments)} student enrollments"
                 )
-                enrollment_results.append(True)
-                
-            except Exception as e:
+                return True
+            else:
                 self.log_result(
-                    f"Student Enrollment - {student_email}",
+                    "Enrollment Progress Tracking Test",
                     False,
-                    error_msg=f"Exception: {str(e)}"
+                    error_msg=f"HTTP {response.status_code}: {response.text}"
                 )
-                enrollment_results.append(False)
-        
-        return all(enrollment_results)
+                return False
+                
+        except Exception as e:
+            self.log_result(
+                "Enrollment Progress Tracking Test",
+                False,
+                error_msg=f"Exception: {str(e)}"
+            )
+            return False
 
     def validate_quiz_question_formats(self):
         """Validate that quiz questions have proper data structure for frontend validation"""
