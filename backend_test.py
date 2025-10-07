@@ -434,7 +434,7 @@ class BackendTester:
             )
             return False
 
-    def test_enrollment_and_progress_tracking(self):
+    def enroll_test_students(self):
         """Test enrollment progress tracking APIs and quiz completion tracking"""
         try:
             # Get student enrollments
