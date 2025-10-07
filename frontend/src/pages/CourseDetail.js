@@ -420,17 +420,26 @@ const CourseDetail = () => {
       const currentLessonCompleted = isLessonCompleted(selectedLesson.id);
       console.log(`Current lesson "${selectedLesson.title}" completed: ${currentLessonCompleted}`);
       
-      // If we complete this current lesson, how many total would be completed?
-      const potentialCompletedCount = currentLessonCompleted ? completedLessons : completedLessons + 1;
-      const allLessonsWillBeCompleted = potentialCompletedCount >= totalLessons;
-      const remainingLessons = Math.max(0, totalLessons - potentialCompletedCount);
+      // **IMPROVED COMPLETION LOGIC**: Consider all scenarios for course completion
+      // If we're on the final lesson, we should be able to complete the course if:
+      // 1. All OTHER lessons are complete, OR
+      // 2. All lessons including current one are complete
+      const otherLessonsCompleted = completedLessons - (currentLessonCompleted ? 1 : 0);
+      const willHaveAllLessonsCompleted = (otherLessonsCompleted + 1) >= totalLessons;
       
-      console.log(`Potential completed count: ${potentialCompletedCount}, Can complete: ${allLessonsWillBeCompleted}, Remaining: ${remainingLessons}`);
+      // More flexible completion logic - if we're on the last lesson, allow completion
+      const allLessonsWillBeCompleted = willHaveAllLessonsCompleted || (completedLessons >= totalLessons - 1);
+      const remainingLessons = Math.max(0, totalLessons - Math.max(completedLessons, otherLessonsCompleted + 1));
+      
+      console.log(`🔍 ENHANCED COMPLETION LOGIC:`);
+      console.log(`  - Other lessons completed: ${otherLessonsCompleted}`);
+      console.log(`  - Will have all lessons: ${willHaveAllLessonsCompleted}`);
+      console.log(`  - Can complete course: ${allLessonsWillBeCompleted}`);
+      console.log(`  - Remaining lessons: ${remainingLessons}`);
       
       // **QUIZ VALIDATION FIX**: Also check quiz requirements before allowing course completion
-      let canCompleteWithQuizzes = allLessonsWillBeCompleted;
       if (allLessonsWillBeCompleted) {
-        console.log(`🔍 All lessons completed - checking quiz requirements...`);
+        console.log(`🔍 All lessons ready for completion - checking quiz requirements...`);
         // Check quiz requirements asynchronously and update the action
         checkQuizRequirements().then(result => {
           console.log(`🎯 Quiz requirements check result:`, result);
