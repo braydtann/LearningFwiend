@@ -20,7 +20,7 @@ import sys
 from datetime import datetime
 
 # Backend URL from environment
-BACKEND_URL = "https://lms-progression-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://quiz-progress-fix.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_EMAIL = "brayden.t@covesmart.com"

@@ -36,7 +36,7 @@ from datetime import datetime
 import sys
 
 # Configuration
-BACKEND_URL = "https://lms-progression-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://quiz-progress-fix.preview.emergentagent.com/api"
 
 # Test credentials from review request
 ADMIN_CREDENTIALS = {

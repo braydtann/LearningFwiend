@@ -9,7 +9,7 @@ import sys
 from datetime import datetime
 
 # Configuration
-BACKEND_URL = "https://lms-progression-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://quiz-progress-fix.preview.emergentagent.com/api"
 
 # Admin credentials
 ADMIN_CREDENTIALS = {

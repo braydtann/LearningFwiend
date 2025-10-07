@@ -8,7 +8,7 @@ import json
 import uuid
 from datetime import datetime
 
-BACKEND_URL = "https://lms-progression-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://quiz-progress-fix.preview.emergentagent.com/api"
 TEST_TIMEOUT = 15
 
 class Priority23Tester:

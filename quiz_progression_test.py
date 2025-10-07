@@ -33,7 +33,7 @@ import sys
 import time
 
 # Configuration
-BACKEND_URL = "https://lms-progression-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://quiz-progress-fix.preview.emergentagent.com/api"
 
 # Course and student data
 TARGET_COURSE_ID = "1234d28b-5336-40bc-a605-6685564bb15c"

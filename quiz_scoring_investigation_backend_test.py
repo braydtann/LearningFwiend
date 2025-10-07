@@ -9,7 +9,7 @@ Critical Investigation Areas:
 3. Actual Submission Debug - Test exact workflow user followed
 4. Question ID Mismatch Investigation - Most likely root cause
 
-Environment: https://lms-progression-1.preview.emergentagent.com
+Environment: https://quiz-progress-fix.preview.emergentagent.com
 Admin: brayden.t@covesmart.com / Hawaii2020!
 Student: karlo.student@alder.com / StudentPermanent123!
 """
@@ -21,7 +21,7 @@ from datetime import datetime, timedelta
 import uuid
 
 # Configuration
-BACKEND_URL = "https://lms-progression-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://quiz-progress-fix.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_EMAIL = "brayden.t@covesmart.com"

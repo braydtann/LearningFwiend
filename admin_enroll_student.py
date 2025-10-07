@@ -11,7 +11,7 @@ import json
 import uuid
 from datetime import datetime, timezone
 
-BACKEND_URL = "https://lms-progression-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://quiz-progress-fix.preview.emergentagent.com/api"
 
 ADMIN_CREDENTIALS = {
     "username_or_email": "brayden.t@covesmart.com",
