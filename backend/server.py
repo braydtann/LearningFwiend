@@ -4433,7 +4433,7 @@ async def submit_course_quiz_attempt(
                 detail="Quiz lesson not found"
             )
         
-        quiz_content = quiz_lesson.get("content") or quiz_lesson.get("quiz")
+        quiz_content = quiz_lesson.get("quiz") or quiz_lesson.get("content")
         if not quiz_content:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
