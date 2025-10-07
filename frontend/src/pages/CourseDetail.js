@@ -418,10 +418,6 @@ const CourseDetail = () => {
       
       console.log(`Complete Course DEBUG: Total lessons: ${totalLessons}, Already completed: ${completedLessons}`);
       
-      // Check if current lesson is completed
-      const currentLessonCompleted = isLessonCompleted(selectedLesson.id);
-      console.log(`Current lesson "${selectedLesson.title}" completed: ${currentLessonCompleted}`);
-      
       // **TWO-STEP COMPLETION LOGIC**: First complete lesson, then complete course
       // Check if current lesson is completed
       const currentLessonCompleted = isLessonCompleted(selectedLesson.id);
