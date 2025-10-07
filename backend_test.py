@@ -143,105 +143,83 @@ class BackendTester:
             )
             return False
 
-    def create_quiz_questions(self, quiz_type="foundation"):
-        """Create quiz questions with mixed formats for testing"""
-        questions = []
-        
-        if quiz_type == "foundation":
-            # Foundation Quiz - Mix of True/False and Multiple Choice
-            questions = [
-                {
-                    "id": str(uuid.uuid4()),
-                    "type": "true-false",
-                    "question": "Learning Management Systems help organize educational content.",
-                    "correctAnswer": True,  # Boolean format
-                    "explanation": "LMS platforms are designed to organize and deliver educational content effectively."
-                },
-                {
-                    "id": str(uuid.uuid4()),
-                    "type": "true-false", 
-                    "question": "Students can only access courses after completing all prerequisites.",
-                    "correctAnswer": 0,  # Numeric format (0 = false, 1 = true)
-                    "explanation": "Course access depends on the specific course settings and prerequisites."
-                },
-                {
-                    "id": str(uuid.uuid4()),
-                    "type": "multiple-choice",
-                    "question": "What is the primary purpose of a Learning Management System?",
-                    "options": [
-                        "To replace traditional classrooms entirely",
-                        "To organize and deliver educational content",
-                        "To grade students automatically",
-                        "To eliminate the need for instructors"
-                    ],
-                    "correctAnswer": 1,
-                    "explanation": "LMS platforms are primarily designed to organize and deliver educational content effectively."
-                }
-            ]
-        elif quiz_type == "intermediate":
-            # Intermediate Quiz - Mix of True/False and Multiple Choice
-            questions = [
-                {
-                    "id": str(uuid.uuid4()),
-                    "type": "true-false",
-                    "question": "Quiz progression allows students to unlock subsequent quizzes after completing previous ones.",
-                    "correctAnswer": 1,  # Numeric format (1 = true)
-                    "explanation": "Sequential quiz progression is a key feature for structured learning paths."
-                },
-                {
-                    "id": str(uuid.uuid4()),
-                    "type": "multiple-choice",
-                    "question": "Which feature helps track student progress through a course?",
-                    "options": [
-                        "Course catalog",
-                        "User authentication",
-                        "Progress tracking system",
-                        "File upload system"
-                    ],
-                    "correctAnswer": 2,
-                    "explanation": "Progress tracking systems monitor and record student advancement through course materials."
-                },
-                {
-                    "id": str(uuid.uuid4()),
-                    "type": "true-false",
-                    "question": "Automatic lesson completion occurs when all course requirements are met.",
-                    "correctAnswer": True,  # Boolean format
-                    "explanation": "Automatic completion triggers when students fulfill all specified course requirements."
-                }
-            ]
-        elif quiz_type == "advanced":
-            # Advanced Quiz - Mix of True/False and Multiple Choice
-            questions = [
-                {
-                    "id": str(uuid.uuid4()),
-                    "type": "multiple-choice",
-                    "question": "What happens when a student completes all quizzes in a sequential progression course?",
-                    "options": [
-                        "The course automatically archives",
-                        "The final lesson becomes accessible",
-                        "All previous quizzes reset",
-                        "The student is unenrolled"
-                    ],
-                    "correctAnswer": 1,
-                    "explanation": "Completing all quizzes in sequence unlocks the final lesson for course completion."
-                },
-                {
-                    "id": str(uuid.uuid4()),
-                    "type": "true-false",
-                    "question": "Course completion certificates are generated automatically when progress reaches 100%.",
-                    "correctAnswer": 1,  # Numeric format
-                    "explanation": "The system automatically generates completion certificates when students reach 100% progress."
-                },
-                {
-                    "id": str(uuid.uuid4()),
-                    "type": "true-false",
-                    "question": "Students must manually mark lessons as complete in all LMS systems.",
-                    "correctAnswer": False,  # Boolean format
-                    "explanation": "Modern LMS systems often include automatic lesson completion based on engagement criteria."
-                }
-            ]
+    def test_analytics_quiz_attempts(self):
+        """Test Fix 1: Analytics should show correct quiz attempt counts (28 attempts, not 0)"""
+        try:
+            response = self.session.get(f"{BACKEND_URL}/analytics/system-stats")
             
-        return questions
+            if response.status_code == 200:
+                data = response.json()
+                quiz_stats = data.get("quizzes", {})
+                total_attempts = quiz_stats.get("totalAttempts", 0)
+                average_score = quiz_stats.get("averageScore", 0)
+                pass_rate = quiz_stats.get("passRate", 0)
+                
+                # Check if analytics are showing correct data (not 0)
+                if total_attempts > 0:
+                    self.log_result(
+                        "Analytics Quiz Attempts Fix",
+                        True,
+                        f"Analytics showing {total_attempts} quiz attempts, avg score: {average_score}%, pass rate: {pass_rate}%"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Analytics Quiz Attempts Fix",
+                        False,
+                        error_msg=f"Analytics still showing 0 quiz attempts - fix not working"
+                    )
+                    return False
+            else:
+                self.log_result(
+                    "Analytics Quiz Attempts Fix",
+                    False,
+                    error_msg=f"HTTP {response.status_code}: {response.text}"
+                )
+                return False
+                
+        except Exception as e:
+            self.log_result(
+                "Analytics Quiz Attempts Fix",
+                False,
+                error_msg=f"Exception: {str(e)}"
+            )
+            return False
+
+    def test_enrollment_data_for_analytics(self):
+        """Test enrollment data that feeds into analytics"""
+        try:
+            response = self.session.get(f"{BACKEND_URL}/admin/enrollments")
+            
+            if response.status_code == 200:
+                data = response.json()
+                enrollments = data if isinstance(data, list) else data.get("enrollments", [])
+                
+                # Count enrollments with progress > 0 (indicates quiz attempts)
+                quiz_attempts = len([e for e in enrollments if e.get("progress", 0) > 0])
+                completed_enrollments = len([e for e in enrollments if e.get("progress", 0) >= 100])
+                
+                self.log_result(
+                    "Enrollment Data for Analytics",
+                    True,
+                    f"Found {len(enrollments)} total enrollments, {quiz_attempts} with progress, {completed_enrollments} completed"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Enrollment Data for Analytics",
+                    False,
+                    error_msg=f"HTTP {response.status_code}: {response.text}"
+                )
+                return False
+                
+        except Exception as e:
+            self.log_result(
+                "Enrollment Data for Analytics",
+                False,
+                error_msg=f"Exception: {str(e)}"
+            )
+            return False
 
     def create_test_course(self):
         """Create the Sequential Quiz Progression Test Course"""
